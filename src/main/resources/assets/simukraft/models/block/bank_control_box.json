@@ -4,7 +4,7 @@
   "parent": "minecraft:block/block",
   "textures": {
     "4": "simukraft:block/bank_control_box",
-    "5": "simukraft:block/iron_block",
+    "5": "simukraft:block/bank_control_box_side",
     "particle": "simukraft:block/bank_control_box"
   },
   "elements": [
