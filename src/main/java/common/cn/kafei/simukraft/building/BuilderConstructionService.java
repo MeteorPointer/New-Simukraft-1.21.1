@@ -9,6 +9,7 @@ import common.cn.kafei.simukraft.citizen.CitizenSelfFeedingService;
 import common.cn.kafei.simukraft.citizen.CitizenWorkplaceMoveService;
 import common.cn.kafei.simukraft.citizen.CitizenWorkStatus;
 import common.cn.kafei.simukraft.city.poi.CityPoiManager;
+import common.cn.kafei.simukraft.event.BuildingConstructionEvent;
 import common.cn.kafei.simukraft.network.rts.RtsBuildingBoundsRequestPacket;
 import common.cn.kafei.simukraft.city.poi.CityPoiType;
 import common.cn.kafei.simukraft.config.ServerConfig;
@@ -36,6 +37,7 @@ import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.common.NeoForge;
 
 import java.util.Comparator;
 import java.util.List;
@@ -379,6 +381,7 @@ public final class BuilderConstructionService {
         }
         PlacedBuildingRecord placedBuilding = new PlacedBuildingRecord(UUID.randomUUID(), cityId, task.dimensionId(), task.category(), task.buildingFileName(), task.displayName(), task.amount(), task.structureFileName(), BuildingTransform.directionFromRotation(task.rotationDegrees()).getSerializedName(), task.origin(), BlockPos.ZERO, minPos, maxPos, System.currentTimeMillis(), cached.blocks(), task.poiDefinitions(), poiInstances, unitDefs, unitInsts);
         PlacedBuildingService.register(level, placedBuilding);
+        NeoForge.EVENT_BUS.post(new BuildingConstructionEvent.Complete(level, task, citizen, placedBuilding));
         RtsBuildingBoundsRequestPacket.refreshNearbyPlayers(level, placedBuilding);
         ResidentialBedPoiService.addRecordedBeds(level, placedBuilding);
         MedicalBedPoiService.addRecordedBeds(level, placedBuilding);

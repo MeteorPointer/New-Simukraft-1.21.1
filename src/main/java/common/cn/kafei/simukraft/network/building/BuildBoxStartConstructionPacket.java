@@ -4,6 +4,7 @@ import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.BuildingBlockData;
 import common.cn.kafei.simukraft.building.BuildingCatalog;
 import common.cn.kafei.simukraft.building.BuildingStructure;
+import common.cn.kafei.simukraft.event.BuildingConstructionEvent;
 import common.cn.kafei.simukraft.building.BuildingTaskStatus;
 import common.cn.kafei.simukraft.building.BuilderConstructionMobilityService;
 import common.cn.kafei.simukraft.building.BuilderConstructionService;
@@ -32,6 +33,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.List;
@@ -150,6 +152,7 @@ public record BuildBoxStartConstructionPacket(BlockPos buildBoxPos,
                 packet.replaceWithAir()
         );
         BuilderConstructionService.startTask(level, task);
+        NeoForge.EVENT_BUS.post(new BuildingConstructionEvent.Start(level, task, citizen));
         String statusLabel = Component.Serializer.toJson(
                 Component.translatable("status.simukraft.builder.building", structure.displayName()),
                 level.registryAccess());
