@@ -76,6 +76,11 @@ public final class BuildingBuiltinResourceService {
         COPIED_ROOTS.clear();
     }
 
+    /** openOfficialPackage: 打开 jar 内置官方建筑包，调用方负责关闭。 */
+    public static InputStream openOfficialPackage() {
+        return openResource();
+    }
+
     private static void copyOfficialPackage(Path rootDirectory) {
         try {
             Files.createDirectories(rootDirectory);

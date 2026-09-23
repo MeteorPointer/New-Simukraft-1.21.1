@@ -14,7 +14,8 @@
     "MixinLivingEntityDimensions",
     "MixinServerGamePacketListenerImpl",
     "MixinServerPlayer",
-    "MixinShulkerBoxMenu"
+    "MixinShulkerBoxMenu",
+    "MixinStructureManager"
   ],
   "injectors": {
     "defaultRequire": 1
