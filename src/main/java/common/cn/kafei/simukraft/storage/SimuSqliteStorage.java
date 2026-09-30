@@ -480,7 +480,7 @@ public final class SimuSqliteStorage {
     public static void shiftCommercialIncomeDays(ServerLevel level, long deltaDays) {
         SimuSqliteStorage storage = openSafely(level);
         if (storage != null && !storage.database.isDegraded()) {
-            storage.commercial.shiftIncomeDays(deltaDays);
+            storage.commercial.shiftIncomeDays(dimensionId(level), deltaDays);
         }
     }
 

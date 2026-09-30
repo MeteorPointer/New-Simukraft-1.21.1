@@ -24,13 +24,28 @@ class CitizenCalendarTest {
 
         assertTrue(CitizenCalendar.shiftDays(citizen, 40L));
 
-        assertEquals(0L, citizen.bornDay());
-        assertEquals(0L, citizen.pregnantSince());
+        assertEquals(-28L, citizen.bornDay());
+        assertEquals(-2L, citizen.pregnantSince());
         assertEquals(0L, citizen.lastAgeGrowthDay());
         assertEquals(5L, citizen.medical().postpartumUntilDay());
         assertEquals(0L, citizen.medical().lastHospitalMealDay());
-        assertEquals(0L, citizen.medical().diseaseSinceDay());
+        assertEquals(-1L, citizen.medical().diseaseSinceDay());
         assertEquals(80L, citizen.medical().diseaseTreatmentTicks());
+    }
+
+    @Test
+    void dayZeroPregnancyKeepsElapsedDays() {
+        CitizenData citizen = new CitizenData(UUID.randomUUID());
+        citizen.setPregnant(true);
+        citizen.setPregnantSince(0L);
+        citizen.setLastAgeGrowthDay(0L);
+        citizen.medical().setLastHospitalMealDay(0L);
+
+        assertTrue(CitizenCalendar.shiftDays(citizen, 40L));
+
+        assertEquals(-40L, citizen.pregnantSince());
+        assertEquals(-40L, citizen.lastAgeGrowthDay());
+        assertEquals(-40L, citizen.medical().lastHospitalMealDay());
     }
 
     @Test

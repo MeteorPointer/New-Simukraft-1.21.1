@@ -24,7 +24,7 @@ public final class NpcGrowthService {
             // 城市休眠时跳过年龄增长
             if (!CityRuntimeService.isCityActive(level, data.cityId())) continue;
             long lastGrowthDay = data.lastAgeGrowthDay();
-            if (lastGrowthDay < 0L || currentDay < lastGrowthDay) {
+            if (lastGrowthDay == -1L || currentDay < lastGrowthDay) {
                 data.setLastAgeGrowthDay(currentDay);
                 manager.saveCitizenNow(data.uuid());
                 continue;

@@ -95,7 +95,7 @@ public final class CitizenProfileGenerator {
         if (data.lifespan() < 18) {
             data.setLifespan(70 + random.nextInt(31)); // 70~100
         }
-        if (data.bornDay() <= 0L) {
+        if (data.bornDay() == 0L) {
             data.setBornDay(gameDay - data.age() * 365L);
         }
     }

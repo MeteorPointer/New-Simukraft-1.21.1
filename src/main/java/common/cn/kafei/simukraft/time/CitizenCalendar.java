@@ -13,16 +13,17 @@ public final class CitizenCalendar {
             return false;
         }
         boolean changed = false;
-        if (citizen.bornDay() > 0L) {
-            citizen.setBornDay(MinecraftDay.shift(citizen.bornDay(), deltaDays, 0L));
+        if (citizen.bornDay() != 0L) {
+            long shifted = citizen.bornDay() - deltaDays;
+            citizen.setBornDay(shifted == 0L ? -1L : shifted);
             changed = true;
         }
-        if (citizen.pregnantSince() > 0L) {
-            citizen.setPregnantSince(MinecraftDay.shift(citizen.pregnantSince(), deltaDays, 0L));
+        if (citizen.pregnant()) {
+            citizen.setPregnantSince(citizen.pregnantSince() - deltaDays);
             changed = true;
         }
-        if (citizen.lastAgeGrowthDay() >= 0L) {
-            citizen.setLastAgeGrowthDay(MinecraftDay.shift(citizen.lastAgeGrowthDay(), deltaDays, -1L));
+        if (citizen.lastAgeGrowthDay() != -1L) {
+            citizen.setLastAgeGrowthDay(MinecraftDay.shiftReal(citizen.lastAgeGrowthDay(), deltaDays, -1L));
             changed = true;
         }
         changed |= citizen.medical().shiftDays(deltaDays);

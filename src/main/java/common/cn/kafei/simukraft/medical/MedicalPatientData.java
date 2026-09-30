@@ -113,16 +113,17 @@ public final class MedicalPatientData {
             return false;
         }
         boolean changed = false;
-        if (postpartumUntilDay > 0L) {
-            postpartumUntilDay = Math.max(0L, postpartumUntilDay - deltaDays);
+        if (postpartumUntilDay != 0L) {
+            postpartumUntilDay -= deltaDays;
             changed = true;
         }
-        if (lastHospitalMealDay >= 0L) {
-            lastHospitalMealDay = Math.max(-1L, lastHospitalMealDay - deltaDays);
+        if (lastHospitalMealDay != -1L) {
+            long shifted = lastHospitalMealDay - deltaDays;
+            lastHospitalMealDay = shifted == -1L ? -2L : shifted;
             changed = true;
         }
-        if (diseaseSinceDay > 0L) {
-            diseaseSinceDay = Math.max(0L, diseaseSinceDay - deltaDays);
+        if (disease != DiseaseType.NONE) {
+            diseaseSinceDay -= deltaDays;
             changed = true;
         }
         return changed;

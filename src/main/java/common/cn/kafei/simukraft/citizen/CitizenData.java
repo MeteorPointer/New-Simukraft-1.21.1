@@ -270,7 +270,7 @@ public final class CitizenData {
     }
 
     public void setBornDay(long bornDay) {
-        this.bornDay = Math.max(0L, bornDay);
+        this.bornDay = bornDay;
     }
 
     public void setName(String name) {
@@ -536,7 +536,7 @@ public final class CitizenData {
     }
 
     public void setPregnantSince(long pregnantSince) {
-        this.pregnantSince = Math.max(0L, pregnantSince);
+        this.pregnantSince = pregnantSince;
     }
 
     public UUID reservedBabyBedPoiId() {
@@ -552,7 +552,7 @@ public final class CitizenData {
     }
 
     public void setLastAgeGrowthDay(long lastAgeGrowthDay) {
-        this.lastAgeGrowthDay = Math.max(-1L, lastAgeGrowthDay);
+        this.lastAgeGrowthDay = lastAgeGrowthDay;
     }
 
     public MedicalPatientData medical() {

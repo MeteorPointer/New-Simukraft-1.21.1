@@ -8,7 +8,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -185,77 +184,24 @@ public final class CommercialSqliteRepository {
         return Map.copyOf(result);
     }
 
-    /** shiftIncomeDays：日号回退时把收入日平移并合并主键，避免以后的收入永远等不到结算日。 */
-    public void shiftIncomeDays(long deltaDays) {
-        if (deltaDays <= 0L || database.isDegraded()) {
+    /** shiftIncomeDays：只平移该维度城市的收入日，已征税标记保持不变，事务交给写队列。 */
+    public void shiftIncomeDays(String dimensionId, long deltaDays) {
+        if (dimensionId == null || dimensionId.isBlank() || deltaDays <= 0L || database.isDegraded()) {
             return;
         }
         database.callSync(connection -> {
-            shiftIncomeDays(connection, deltaDays);
+            shiftIncomeDays(connection, dimensionId, deltaDays);
             return Boolean.TRUE;
         });
     }
 
-    private void shiftIncomeDays(Connection connection, long deltaDays) throws SQLException {
-        record IncomeRow(String cityId, long day, double income, boolean collected) {
-        }
-        List<IncomeRow> rows = new ArrayList<>();
+    private void shiftIncomeDays(Connection connection, String dimensionId, long deltaDays) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
-                "SELECT city_id, income_day, income, tax_collected FROM commercial_daily_income");
-             ResultSet resultSet = statement.executeQuery()) {
-            while (resultSet.next()) {
-                rows.add(new IncomeRow(
-                        resultSet.getString("city_id"),
-                        resultSet.getLong("income_day"),
-                        resultSet.getDouble("income"),
-                        resultSet.getInt("tax_collected") != 0));
-            }
-        }
-        Map<String, IncomeRow> merged = new LinkedHashMap<>();
-        boolean moved = false;
-        for (IncomeRow row : rows) {
-            long shiftedDay = Math.max(1L, row.day() - deltaDays);
-            if (shiftedDay != row.day()) {
-                moved = true;
-            }
-            String key = row.cityId() + "|" + shiftedDay;
-            IncomeRow existing = merged.get(key);
-            if (existing == null) {
-                merged.put(key, new IncomeRow(row.cityId(), shiftedDay, row.income(), row.collected()));
-                continue;
-            }
-            merged.put(key, new IncomeRow(
-                    row.cityId(),
-                    shiftedDay,
-                    existing.income() + row.income(),
-                    existing.collected() && row.collected()));
-        }
-        if (!moved) {
-            return;
-        }
-        boolean previousAutoCommit = connection.getAutoCommit();
-        connection.setAutoCommit(false);
-        try {
-            try (PreparedStatement delete = connection.prepareStatement("DELETE FROM commercial_daily_income")) {
-                delete.executeUpdate();
-            }
-            try (PreparedStatement insert = connection.prepareStatement(
-                    "INSERT INTO commercial_daily_income(city_id, income_day, income, tax_collected) VALUES(?, ?, ?, ?)")) {
-                for (IncomeRow row : merged.values()) {
-                    insert.setString(1, row.cityId());
-                    insert.setLong(2, row.day());
-                    insert.setDouble(3, row.income());
-                    insert.setInt(4, row.collected() ? 1 : 0);
-                    insert.addBatch();
-                }
-                insert.executeBatch();
-            }
-            connection.commit();
-        } catch (SQLException exception) {
-            connection.rollback();
-            throw exception;
-        } finally {
-            connection.setAutoCommit(previousAutoCommit);
+                "UPDATE commercial_daily_income SET income_day = income_day - ? "
+                        + "WHERE city_id IN (SELECT city_id FROM cities WHERE dimension_id = ?)")) {
+            statement.setLong(1, deltaDays);
+            statement.setString(2, dimensionId);
+            statement.executeUpdate();
         }
     }
 

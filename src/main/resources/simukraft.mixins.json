@@ -7,7 +7,7 @@
     "MixinChestBlockEntity",
     "MixinContainerStackLimit",
     "MixinExtraCodecsStackRange",
-    "MixinItemAbsoluteStackSize",
+    "MixinCoinSlotLimit",
     "MixinChunkMap",
     "MixinChunkMapAccessor",
     "MixinChestMenu",

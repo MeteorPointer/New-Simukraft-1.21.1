@@ -13,13 +13,14 @@ public final class MinecraftDay {
     }
 
     /**
-     * shift：日号回退了 delta 天时，把档案里的日期减去同样的天数。
-     * 小于 minimum 的哨兵值（例如未吃饭的 -1）保持不动。
+     * shiftReal：真实日期减去回退天数。
+     * 结果如果正好落到未设置哨兵上，再往前一天，避免把“第 0 天之后”收成“从未发生”。
      */
-    public static long shift(long recordedDay, long deltaDays, long minimum) {
-        if (deltaDays <= 0L || recordedDay < minimum) {
+    public static long shiftReal(long recordedDay, long deltaDays, long unset) {
+        if (deltaDays <= 0L || recordedDay == unset) {
             return recordedDay;
         }
-        return Math.max(minimum, recordedDay - deltaDays);
+        long shifted = recordedDay - deltaDays;
+        return shifted == unset ? unset - 1L : shifted;
     }
 }

@@ -196,7 +196,7 @@ public final class IndustrialWorkService {
             boxRuntime.nextTick = gameTime + IDLE_RETRY_TICKS;
             return;
         }
-        // 赶路和计时步骤不一定写状态，请假结束后先清掉，避免复工后仍显示医疗假
+        // 赶路和计时步骤不一���写状态，请假结束后先清掉，避免复工后仍显示医疗假
         if ("gui.simukraft.industrial.status.medical_leave".equals(data.statusKey())) {
             setStatus(manager, data, "gui.simukraft.industrial.status.running", "");
         }
@@ -273,25 +273,17 @@ public final class IndustrialWorkService {
     }
 
     /**
-     * shouldSkipTimedOutStep: skipOnTimeout 或短于默认值的 timeoutTicks 都会跳过。
-     * 未写超时的步骤仍停在缺料、箱子满，避免配方自己往下空跑。
+     * shouldSkipTimedOutStep: 只有配方写了 skipOnTimeout 才跳过。
+     * timeoutTicks 单独表示时长，缺料和收集不能因为写了较短数字就提前结束。
      */
     private static boolean shouldSkipTimedOutStep(IndustrialDefinition.StepDefinition step, BoxRuntime boxRuntime, long gameTime) {
-        if (!timeoutSkipsStep(step)) {
+        if (step == null || !step.skipOnTimeout() || step.timeoutTicks() <= 0) {
             return false;
         }
         if (boxRuntime.timeoutStartAt == 0L) {
             boxRuntime.timeoutStartAt = gameTime;
         }
         return gameTime - boxRuntime.timeoutStartAt >= step.timeoutTicks();
-    }
-
-    /** timeoutSkipsStep：养牛/鸡肉场写了 timeoutTicks:200，但没写 skipOnTimeout，超时仍应生效。 */
-    private static boolean timeoutSkipsStep(IndustrialDefinition.StepDefinition step) {
-        if (step == null || step.timeoutTicks() <= 0) {
-            return false;
-        }
-        return step.skipOnTimeout() || step.timeoutTicks() < IndustrialDefinitionLoader.DEFAULT_STEP_TIMEOUT_TICKS;
     }
 
     private static StepResult executeStep(ServerLevel level,
@@ -1118,12 +1110,12 @@ public final class IndustrialWorkService {
         return new ContainerMoveTarget(Vec3.atBottomCenterOf(bestContainer), false);
     }
 
-    /** standNearDrop：从掉落物向外找第一圈可站立格，围栏里的物品不用人站到物品中心。 */
+    /** standNearDrop：在搜索半径内选离工人最近的可站立格，避免停在围栏内的第一圈。 */
     private static BlockPos standNearDrop(ServerLevel level, BlockPos dropPos, Vec3 origin, int maxRadius) {
         int radiusLimit = Math.max(2, Math.min(maxRadius, 8));
+        BlockPos best = null;
+        double bestDistance = Double.MAX_VALUE;
         for (int radius = 1; radius <= radiusLimit; radius++) {
-            BlockPos best = null;
-            double bestDistance = Double.MAX_VALUE;
             for (int yOffset = 1; yOffset >= -3; yOffset--) {
                 for (int xOffset = -radius; xOffset <= radius; xOffset++) {
                     for (int zOffset = -radius; zOffset <= radius; zOffset++) {
@@ -1134,7 +1126,9 @@ public final class IndustrialWorkService {
                         if (!CitizenTeleportService.isSafeLandingPosition(level, candidate)) {
                             continue;
                         }
-                        double distance = origin != null ? Vec3.atBottomCenterOf(candidate).distanceToSqr(origin) : 0.0D;
+                        double distance = origin != null
+                                ? Vec3.atBottomCenterOf(candidate).distanceToSqr(origin)
+                                : radius;
                         if (best == null || distance < bestDistance) {
                             best = candidate.immutable();
                             bestDistance = distance;
@@ -1142,11 +1136,8 @@ public final class IndustrialWorkService {
                     }
                 }
             }
-            if (best != null) {
-                return best;
-            }
         }
-        return null;
+        return best;
     }
 
     /**
