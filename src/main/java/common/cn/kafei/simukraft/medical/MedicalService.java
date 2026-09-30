@@ -326,10 +326,18 @@ public final class MedicalService {
             CityRuntimeService.requestCitizenRecovery(level, citizen);
             return;
         }
+        // 已加载实体的血量是权威值。先对齐再出院，避免档案和实体不一致时满血仍躺在诊所。
+        double previousHealth = citizen.health();
+        citizen.setHealth(entity.getHealth());
+        boolean healthChanged = Double.compare(previousHealth, citizen.health()) != 0;
+        if (isReadyForDischarge(citizen, entity, currentDay)) {
+            discharge(level, citizen);
+            return;
+        }
         if (!entity.isSleeping()) {
-            if (citizen.medical().lastHospitalProgressDayTime() != 0L) {
+            boolean progressReset = citizen.medical().lastHospitalProgressDayTime() != 0L;
+            if (progressReset) {
                 citizen.medical().setLastHospitalProgressDayTime(0L);
-                CitizenService.save(level, citizen.uuid());
             }
             if (entity.distanceToSqr(target) <= 2.25D && entity.getNavigation().isDone()) {
                 CitizenBedSleepService.tryStartSleeping(level, entity, bed.pos(), target);
@@ -337,10 +345,18 @@ public final class MedicalService {
                     && !CitizenNavigationService.requestMove(level, citizen.uuid(), target, MovementIntent.MEDICAL)) {
                 CitizenTeleportService.teleportCitizen(level, citizen.uuid(), target);
             }
+            // 还没躺下时也刷新病因，避免血已回满或已怀孕仍停在旧的「生命值过低」。
+            boolean statusChanged = applyAdmittedStatus(citizen, currentDay);
+            if (progressReset || healthChanged || statusChanged) {
+                CitizenService.save(level, citizen.uuid());
+            }
             return;
         }
         if (!bed.pos().equals(entity.getSleepingPos().orElse(null))) {
             CitizenBedSleepService.wakeUp(level, entity, target);
+            if (healthChanged) {
+                CitizenService.save(level, citizen.uuid());
+            }
             return;
         }
         CitizenBedSleepService.restoreSleeping(level, entity, target);
@@ -562,7 +578,20 @@ public final class MedicalService {
         if (stage != PregnancyStage.NONE) return stage.translationKey();
         if (citizen.medical().postpartumUntilDay() > currentDay) return "pregnancy.postpartum";
         if (citizen.disease().isActive()) return citizen.disease().translationKey();
-        return "medical.low_health";
+        if (citizen.health() <= ServerConfig.medicalLowHealthThreshold()) {
+            return "medical.low_health";
+        }
+        return "medical.recovering";
+    }
+
+    /** applyAdmittedStatus：把头顶状态改成当前病因。返回值表示标签是否变化。 */
+    private static boolean applyAdmittedStatus(CitizenData citizen, long currentDay) {
+        String statusKey = conditionKey(citizen, currentDay);
+        if (statusKey.equals(citizen.statusLabel())) {
+            return false;
+        }
+        citizen.setStatusLabel(statusKey);
+        return true;
     }
 
     private static Set<UUID> medicalBedIds(ServerLevel level, PlacedBuildingRecord building) {

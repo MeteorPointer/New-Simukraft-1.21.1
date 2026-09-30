@@ -141,10 +141,22 @@ public final class IndustrialEntityActionService {
                                                      IndustrialDefinition definition,
                                                      IndustrialDefinition.StepDefinition step,
                                                      CitizenEntity worker) {
+        return collectReachableDrops(level, manager, data, building, definition, step, worker, Math.max(1.5D, step.range()));
+    }
+
+    /** collectReachableDrops：reach 为本次拾取距离，围栏内的掉落可以用搜索半径。 */
+    public static ActionResult collectReachableDrops(ServerLevel level,
+                                                     IndustrialBoxManager manager,
+                                                     IndustrialBoxData data,
+                                                     PlacedBuildingRecord building,
+                                                     IndustrialDefinition definition,
+                                                     IndustrialDefinition.StepDefinition step,
+                                                     CitizenEntity worker,
+                                                     double reach) {
         if (IndustrialCarriedItemService.stackCount(level, manager, data) >= Math.max(1, step.maxCarryStacks())) {
             return ActionResult.CARRY_FULL;
         }
-        double range = Math.max(1.5D, step.range());
+        double range = Math.max(1.5D, reach);
         List<ItemStack> picked = new ArrayList<>();
         List<ItemEntity> pickedEntities = new ArrayList<>();
         int limit = step.count() > 0 ? step.count() : Integer.MAX_VALUE;

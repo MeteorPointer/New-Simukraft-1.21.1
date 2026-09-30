@@ -28,12 +28,14 @@ public final class BankControlBoxBlock extends Block {
         registerDefaultState(stateDefinition.any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 
-    /** getStateForPlacement: 放置时让控制箱正面朝向玩家。 */
+    /** getStateForPlacement: 点在墙面上时正面朝外，点在地面或顶面时正面朝向玩家。 */
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
-        return defaultBlockState().setValue(
-                BlockStateProperties.HORIZONTAL_FACING,
-                context.getHorizontalDirection().getOpposite());
+        Direction clicked = context.getClickedFace();
+        Direction facing = clicked.getAxis().isHorizontal()
+                ? clicked
+                : context.getHorizontalDirection().getOpposite();
+        return defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, facing);
     }
 
     /** rotate: 结构旋转时同步水平朝向。 */

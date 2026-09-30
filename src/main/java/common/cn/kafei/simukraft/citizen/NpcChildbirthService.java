@@ -55,7 +55,14 @@ public final class NpcChildbirthService {
 
         // 预约床仍存在时优先使用，POI 丢失或失效则在同户兜底搜索
         UUID vacantBedPoiId = resolveBabyBed(level, wife);
-        if (vacantBedPoiId == null) return;
+        if (vacantBedPoiId == null) {
+            // 预产期已到但户内没有空床时不能清掉妊娠，否则孩子会丢。每天提醒一次，床空出来后次日继续生。
+            if (wife.cityId() != null) {
+                CityGroupMessageService.warningToCity(level, wife.cityId(),
+                        Component.translatable("message.simukraft.citizen.birth_waiting_bed", wife.name()));
+            }
+            return;
+        }
 
         Optional<common.cn.kafei.simukraft.entity.CitizenEntity> entityOpt =
                 CitizenService.spawnCitizen(level, spawnPos, wife.cityId(), true);

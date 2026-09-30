@@ -5,6 +5,7 @@
   "refmap": "simukraft.refmap.json",
   "client": [
     "MixinCamera",
+    "MixinGuiGraphicsCoinCount",
     "MixinEntity",
     "MixinFrustum",
     "MixinGameRenderer",

@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class IndustrialDefinitionLoader {
+    /** 未写 timeoutTicks 时的默认值。短于该值视为配方显式要求超时跳过。 */
+    static final int DEFAULT_STEP_TIMEOUT_TICKS = 12_000;
     private static final int MAX_POSITIONS = 64;
     private static final int MAX_RECIPES = 64;
     private static final int MAX_STEPS = 256;
@@ -397,7 +399,7 @@ public final class IndustrialDefinitionLoader {
                 bool(object, "replace", false),
                 bool(object, "dropItems", bool(object, "drop", false)),
                 stringAny(object, "extract_to_output", "outputPolicy", "output_policy"),
-                Math.max(1, integer(object, "timeoutTicks", integer(object, "timeout", 12000))),
+                Math.max(1, integer(object, "timeoutTicks", integer(object, "timeout", DEFAULT_STEP_TIMEOUT_TICKS))),
                 Math.max(1, integer(object, "pollTicks", integer(object, "poll", 20))),
                 bool(object, "skipOnTimeout", bool(object, "skip_on_timeout", false)),
                 integer(object, "slot", -1),

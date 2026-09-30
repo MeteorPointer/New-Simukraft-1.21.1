@@ -10,6 +10,7 @@ import client.cn.kafei.simukraft.client.citizen.CitizenAvatarFactory;
 import client.cn.kafei.simukraft.client.citizen.CitizenFamilyGraphCanvas;
 import client.cn.kafei.simukraft.client.city.map.SimuMapRegion;
 import common.cn.kafei.simukraft.city.CityPermissionLevel;
+import common.cn.kafei.simukraft.city.FinanceTransactionData;
 import common.cn.kafei.simukraft.network.city.chunk.CityChunkBatchPurchasePacket;
 import common.cn.kafei.simukraft.network.city.chunk.CityChunkBatchReleasePacket;
 import common.cn.kafei.simukraft.network.city.chunk.CityChunkPurchasePacket;
@@ -327,7 +328,7 @@ public final class CityCoreScreenOpener {
                 panel.addChild(line(Component.translatable(
                         "screen.simukraft.city_core.finance.row",
                         financeTypeText(entry),
-                        String.format(Locale.ROOT, "%+.2f", entry.amount()),
+                        financeAmountText(entry),
                         String.format(Locale.ROOT, "%.2f", entry.balanceAfter()),
                         financeReasonText(entry),
                         entry.actorName().isBlank() ? Component.translatable("screen.simukraft.city_core.finance.system").getString() : entry.actorName()
@@ -339,6 +340,17 @@ public final class CityCoreScreenOpener {
 
     private static String financeTypeText(CityCoreOpenResponsePacket.FinanceEntry entry) {
         return Component.translatable("screen.simukraft.city_core.finance.type." + entry.type().name().toLowerCase(Locale.ROOT)).getString();
+    }
+
+    /** financeAmountText：收入显示正数，支出显示负数，避免流水里两种符号同时出现。 */
+    private static String financeAmountText(CityCoreOpenResponsePacket.FinanceEntry entry) {
+        double amount = entry.amount();
+        if (entry.type() == FinanceTransactionData.Type.EXPENSE) {
+            amount = -Math.abs(amount);
+        } else if (entry.type() == FinanceTransactionData.Type.INCOME) {
+            amount = Math.abs(amount);
+        }
+        return String.format(Locale.ROOT, "%+.2f", amount);
     }
 
     private static String financeReasonText(CityCoreOpenResponsePacket.FinanceEntry entry) {

@@ -192,8 +192,13 @@ public final class IndustrialWorkService {
         }
         if (MedicalService.isOnMedicalLeave(worker, level.getDayTime() / 24_000L)) {
             CitizenJobVisualService.clearMainHandOverride(worker.uuid());
+            setStatus(manager, data, "gui.simukraft.industrial.status.medical_leave", "");
             boxRuntime.nextTick = gameTime + IDLE_RETRY_TICKS;
             return;
+        }
+        // 赶路和计时步骤不一定写状态，请假结束后先清掉，避免复工后仍显示医疗假
+        if ("gui.simukraft.industrial.status.medical_leave".equals(data.statusKey())) {
+            setStatus(manager, data, "gui.simukraft.industrial.status.running", "");
         }
         IndustrialEntitySpawnService.ensureSpawned(level, manager, data, building, definition);
         if (CitizenHomeRestService.isRestTime(level)) {
@@ -268,16 +273,25 @@ public final class IndustrialWorkService {
     }
 
     /**
-     * shouldSkipTimedOutStep: 仅允许 JSON 显式声明的步骤在等待超时后跳过，避免缺材料或箱子满时误推进。
+     * shouldSkipTimedOutStep: skipOnTimeout 或短于默认值的 timeoutTicks 都会跳过。
+     * 未写超时的步骤仍停在缺料、箱子满，避免配方自己往下空跑。
      */
     private static boolean shouldSkipTimedOutStep(IndustrialDefinition.StepDefinition step, BoxRuntime boxRuntime, long gameTime) {
-        if (!step.skipOnTimeout() || step.timeoutTicks() <= 0) {
+        if (!timeoutSkipsStep(step)) {
             return false;
         }
         if (boxRuntime.timeoutStartAt == 0L) {
             boxRuntime.timeoutStartAt = gameTime;
         }
         return gameTime - boxRuntime.timeoutStartAt >= step.timeoutTicks();
+    }
+
+    /** timeoutSkipsStep：养牛/鸡肉场写了 timeoutTicks:200，但没写 skipOnTimeout，超时仍应生效。 */
+    private static boolean timeoutSkipsStep(IndustrialDefinition.StepDefinition step) {
+        if (step == null || step.timeoutTicks() <= 0) {
+            return false;
+        }
+        return step.skipOnTimeout() || step.timeoutTicks() < IndustrialDefinitionLoader.DEFAULT_STEP_TIMEOUT_TICKS;
     }
 
     private static StepResult executeStep(ServerLevel level,
@@ -620,7 +634,6 @@ public final class IndustrialWorkService {
         }
         setStatus(IndustrialBoxManager.get(level), data, "gui.simukraft.industrial.status.moving", step.point());
         CitizenNavigationService.requestMove(level, worker.uuid(), targetCenter, MovementIntent.WORK);
-        boxRuntime.resetStep(data.currentStep());
         return StepResult.WAITING_MOVE;
     }
 
@@ -643,15 +656,14 @@ public final class IndustrialWorkService {
         }
         double range = Math.max(0.2D, step.range());
         ContainerMoveTarget target = containerMoveTarget(level, containers, entity.position());
-        double arrivalRange = target.hasStandTarget() ? Math.min(range, 0.65D) : range;
-        if (entity.position().distanceToSqr(target.position()) <= arrivalRange * arrivalRange
-                || (!target.hasStandTarget() && isNearContainer(entity.position(), containers, range))) {
+        // 寻路在约 0.72 格停下。再要求站到 0.65 格中心时，人已经在输出箱旁也会一直显示前往工作点。
+        if (entity.position().distanceToSqr(target.position()) <= range * range
+                || isNearContainer(entity.position(), containers, range)) {
             CitizenNavigationService.stop(level, worker.uuid());
             return StepResult.PROGRESSED;
         }
         setStatus(IndustrialBoxManager.get(level), data, "gui.simukraft.industrial.status.moving", containerId);
         CitizenNavigationService.requestMove(level, worker.uuid(), target.position(), MovementIntent.WORK);
-        boxRuntime.resetStep(data.currentStep());
         return StepResult.WAITING_MOVE;
     }
 
@@ -675,7 +687,6 @@ public final class IndustrialWorkService {
         }
         setStatus(IndustrialBoxManager.get(level), data, "gui.simukraft.industrial.status.moving", "");
         CitizenNavigationService.requestMove(level, worker.uuid(), target.get().position(), MovementIntent.WORK);
-        boxRuntime.resetStep(data.currentStep());
         return StepResult.WAITING_MOVE;
     }
 
@@ -737,15 +748,20 @@ public final class IndustrialWorkService {
             return StepResult.PROGRESSED;
         }
         double range = Math.max(1.5D, step.range());
-        if (entity.position().distanceToSqr(target.get().position()) > range * range) {
+        Vec3 dropPos = target.get().position();
+        BlockPos stand = standNearDrop(level, target.get().blockPosition(), entity.position(), (int) Math.ceil(step.radius()));
+        Vec3 moveTarget = stand != null ? Vec3.atBottomCenterOf(stand) : dropPos;
+        boolean atDrop = entity.position().distanceToSqr(dropPos) <= range * range;
+        boolean atStand = stand != null && entity.position().distanceToSqr(moveTarget) <= range * range;
+        if (!atDrop && !atStand) {
             setStatus(manager, data, "gui.simukraft.industrial.status.collecting_drops", "");
-            CitizenNavigationService.requestMove(level, worker.uuid(), target.get().position(), MovementIntent.WORK);
-            boxRuntime.resetStep(data.currentStep());
+            CitizenNavigationService.requestMove(level, worker.uuid(), moveTarget, MovementIntent.WORK);
             return StepResult.WAITING_MOVE;
         }
         CitizenNavigationService.stop(level, worker.uuid());
+        // 搜索范围已由 point/radius 限制。人站到围栏外后收这片范围内的掉落，不必站到物品中心。
         IndustrialEntityActionService.ActionResult result = IndustrialEntityActionService.collectReachableDrops(
-                level, manager, data, building, definition, step, entity);
+                level, manager, data, building, definition, step, entity, Double.MAX_VALUE);
         return switch (result) {
             case SUCCESS -> {
                 setStatus(manager, data, "gui.simukraft.industrial.status.collecting_drops", "");
@@ -1102,6 +1118,37 @@ public final class IndustrialWorkService {
         return new ContainerMoveTarget(Vec3.atBottomCenterOf(bestContainer), false);
     }
 
+    /** standNearDrop：从掉落物向外找第一圈可站立格，围栏里的物品不用人站到物品中心。 */
+    private static BlockPos standNearDrop(ServerLevel level, BlockPos dropPos, Vec3 origin, int maxRadius) {
+        int radiusLimit = Math.max(2, Math.min(maxRadius, 8));
+        for (int radius = 1; radius <= radiusLimit; radius++) {
+            BlockPos best = null;
+            double bestDistance = Double.MAX_VALUE;
+            for (int yOffset = 1; yOffset >= -3; yOffset--) {
+                for (int xOffset = -radius; xOffset <= radius; xOffset++) {
+                    for (int zOffset = -radius; zOffset <= radius; zOffset++) {
+                        if (Math.max(Math.abs(xOffset), Math.abs(zOffset)) != radius) {
+                            continue;
+                        }
+                        BlockPos candidate = dropPos.offset(xOffset, yOffset, zOffset);
+                        if (!CitizenTeleportService.isSafeLandingPosition(level, candidate)) {
+                            continue;
+                        }
+                        double distance = origin != null ? Vec3.atBottomCenterOf(candidate).distanceToSqr(origin) : 0.0D;
+                        if (best == null || distance < bestDistance) {
+                            best = candidate.immutable();
+                            bestDistance = distance;
+                        }
+                    }
+                }
+            }
+            if (best != null) {
+                return best;
+            }
+        }
+        return null;
+    }
+
     /**
      * containerStandTarget: 从容器周围向下查找可站立格，不向上搜索屋顶。
      */
@@ -1192,12 +1239,6 @@ public final class IndustrialWorkService {
             stepStartedAt = 0L;
             timeoutStartAt = 0L;
             swingDone = false;
-        }
-
-        private void resetStep(int currentStep) {
-            if (activeStep != currentStep) {
-                reset();
-            }
         }
     }
 

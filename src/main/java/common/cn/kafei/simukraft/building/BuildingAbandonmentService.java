@@ -45,6 +45,30 @@ public final class BuildingAbandonmentService {
         persist(level, buildingId, cityId);
     }
 
+    /** noteTimeRollback：日号回退后把废弃度游标拉回当天，否则会一直跳过每日结算。 */
+    public static void noteTimeRollback(ServerLevel level, long currentDay) {
+        if (level == null) {
+            return;
+        }
+        ensureLoaded(level);
+        String prefix = common.cn.kafei.simukraft.util.SaveScopedCacheKey.levelKey(level) + "|";
+        for (var building : PlacedBuildingService.getBuildings(level)) {
+            if (building.buildingId() == null) {
+                continue;
+            }
+            String cacheKey = key(level, building.buildingId());
+            if (!cacheKey.startsWith(prefix)) {
+                continue;
+            }
+            int[] entry = CACHE.get(cacheKey);
+            if (entry == null || entry[1] <= currentDay) {
+                continue;
+            }
+            CACHE.put(cacheKey, new int[]{entry[0], (int) currentDay});
+            persist(level, building.buildingId(), building.cityId());
+        }
+    }
+
     // 每游戏日 tick：自然恢复 −1；全城最小建筑 +5
     public static void tickDaily(ServerLevel level, long currentDay) {
         ensureLoaded(level);
