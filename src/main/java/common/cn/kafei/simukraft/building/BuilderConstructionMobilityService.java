@@ -1,5 +1,6 @@
 package common.cn.kafei.simukraft.building;
 
+import common.cn.kafei.simukraft.citizen.CitizenPanicService;
 import common.cn.kafei.simukraft.citizen.CitizenTeleportService;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.path.CitizenNavigationService;
@@ -26,6 +27,7 @@ public final class BuilderConstructionMobilityService {
             return;
         }
         Vec3 target = Vec3.atBottomCenterOf(buildBoxPos).add(0.0D, 1.0D, 0.0D);
+        CitizenPanicService.clear(level, entity);
         CitizenNavigationService.stop(level, citizenId);
         entity.getNavigation().stop();
         entity.setDeltaMovement(Vec3.ZERO);

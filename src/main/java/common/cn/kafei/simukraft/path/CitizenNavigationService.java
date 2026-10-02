@@ -62,10 +62,12 @@ public final class CitizenNavigationService {
         if (citizen == null) {
             return false;
         }
-        if (citizen.isStayInPlace()) {
+        if (normalizedIntent != MovementIntent.FLEE && (citizen.isStayInPlace() || citizen.isPanicking())) {
             return false;
         }
-        if (citizen.getFollowPlayerId() != null && normalizedIntent != MovementIntent.FOLLOW) {
+        if (citizen.getFollowPlayerId() != null
+                && normalizedIntent != MovementIntent.FOLLOW
+                && normalizedIntent != MovementIntent.FLEE) {
             return false;
         }
         if (citizen.isSleeping()) {
@@ -75,14 +77,20 @@ public final class CitizenNavigationService {
         double distanceSqr = current.distanceToSqr(target);
         double farDistance = localPathDistanceLimit();
         if (distanceSqr >= farDistance * farDistance || !hasLoadedChunk(level, BlockPos.containing(target.x, target.y, target.z))) {
-            if (normalizedIntent == MovementIntent.WANDER) {
+            if (!normalizedIntent.allowsTeleportFallback()) {
                 return false;
             }
             return CitizenTeleportService.teleportCitizen(level, citizenId, target);
         }
 
         LevelRuntime runtime = runtime(level);
-        if (normalizedIntent == MovementIntent.SELF_FEEDING) {
+        if (normalizedIntent == MovementIntent.FLEE) {
+            runtime.cooldowns.remove(citizenId);
+            runtime.blockedSince.remove(citizenId);
+            clearNonMatchingNavigation(level, runtime, citizenId, citizen, MovementIntent.FLEE);
+        } else if (hasIntent(runtime, citizenId, MovementIntent.FLEE)) {
+            return false;
+        } else if (normalizedIntent == MovementIntent.SELF_FEEDING) {
             clearLowerPriorityNavigation(level, runtime, citizenId, citizen);
         } else if (normalizedIntent == MovementIntent.WORK && hasSelfFeedingNavigation(runtime, citizenId)) {
             return false;
@@ -102,14 +110,16 @@ public final class CitizenNavigationService {
             running.future().cancel(true);
         }
         PathRequest queued = runtime.latestRequests.get(citizenId);
-        if (queued != null && queued.target().distanceToSqr(target) <= 4.0D) {
+        if (queued != null
+                && queued.intent() == normalizedIntent
+                && queued.target().distanceToSqr(target) <= 4.0D) {
             return true;
         }
         Long cooldownUntil = runtime.cooldowns.get(citizenId);
-        if (cooldownUntil != null && cooldownUntil > level.getGameTime()) {
+        if (cooldownUntil != null && cooldownUntil > level.getGameTime() && normalizedIntent != MovementIntent.FLEE) {
             return false;
         }
-        if (!bypassAdmissionLimits) {
+        if (!bypassAdmissionLimits && normalizedIntent != MovementIntent.FLEE) {
             if (!runtime.active.containsKey(citizenId) && runtime.active.size() >= ServerConfig.pathMaxActiveCitizens()) {
                 return false;
             }
@@ -140,6 +150,48 @@ public final class CitizenNavigationService {
         return queued != null && queued.intent() == MovementIntent.SELF_FEEDING;
     }
 
+    /** hasIntent: 判断该市民是否已有指定意图的排队、计算中或执行中导航。 */
+    public static boolean hasIntent(ServerLevel level, UUID citizenId, MovementIntent intent) {
+        if (level == null || citizenId == null || intent == null) {
+            return false;
+        }
+        return hasIntent(runtime(level), citizenId, intent);
+    }
+
+    private static boolean hasIntent(LevelRuntime runtime, UUID citizenId, MovementIntent intent) {
+        ActiveNavigation active = runtime.active.get(citizenId);
+        if (active != null && active.intent == intent) {
+            return true;
+        }
+        RunningRequest running = runtime.pending.get(citizenId);
+        if (running != null && running.cacheKey().intent() == intent) {
+            return true;
+        }
+        PathRequest queued = runtime.latestRequests.get(citizenId);
+        return queued != null && queued.intent() == intent;
+    }
+
+    /** clearNonMatchingNavigation: 高优先级意图开始时清掉其它意图，避免两套路径抢控制。 */
+    private static void clearNonMatchingNavigation(ServerLevel level, LevelRuntime runtime, UUID citizenId,
+            CitizenEntity citizen, MovementIntent keep) {
+        ActiveNavigation active = runtime.active.get(citizenId);
+        if (active != null && active.intent != keep) {
+            runtime.active.remove(citizenId);
+            citizen.getNavigation().stop();
+            PathCrowdCoordinator.clear(level, citizenId);
+        }
+        RunningRequest running = runtime.pending.get(citizenId);
+        if (running != null && running.cacheKey().intent() != keep) {
+            runtime.pending.remove(citizenId);
+            running.future().cancel(true);
+        }
+        PathRequest queued = runtime.latestRequests.get(citizenId);
+        if (queued != null && queued.intent() != keep) {
+            runtime.latestRequests.remove(citizenId);
+            runtime.queuedCitizenIds.remove(citizenId);
+        }
+    }
+
     /** clearLowerPriorityNavigation: 买饭开始时清掉旧的普通工作导航，防止两套状态轮流改目标。 */
     private static void clearLowerPriorityNavigation(ServerLevel level, LevelRuntime runtime, UUID citizenId, CitizenEntity citizen) {
         ActiveNavigation active = runtime.active.get(citizenId);
@@ -160,10 +212,22 @@ public final class CitizenNavigationService {
     }
 
     public static void stop(ServerLevel level, UUID citizenId) {
+        stopInternal(level, citizenId, false);
+    }
+
+    /** stopForced：死亡、卡墙救援或玩家强制调遣时连逃跑路径一起取消。 */
+    public static void stopForced(ServerLevel level, UUID citizenId) {
+        stopInternal(level, citizenId, true);
+    }
+
+    private static void stopInternal(ServerLevel level, UUID citizenId, boolean includeFlee) {
         if (level == null || citizenId == null) {
             return;
         }
         LevelRuntime runtime = runtime(level);
+        if (!includeFlee && hasIntent(runtime, citizenId, MovementIntent.FLEE)) {
+            return;
+        }
         runtime.latestRequests.remove(citizenId);
         runtime.blockedSince.remove(citizenId);
         runtime.pending.remove(citizenId);
@@ -446,7 +510,7 @@ public final class CitizenNavigationService {
                 runtime.cooldowns.remove(citizenId);
                 runtime.blockedSince.remove(citizenId);
                 if (result != null) {
-                    if (running.cacheKey().intent() != MovementIntent.WANDER) {
+                    if (running.cacheKey().intent().allowsTeleportFallback()) {
                         CitizenTeleportService.teleportCitizen(level, citizenId, result.target());
                         if (ServerConfig.pathDebugEnabled()) {
                             SimuKraft.LOGGER.info("Simukraft: NPC path failed for {}, teleporting to target: {}", citizenId, result.reason());
@@ -500,7 +564,7 @@ public final class CitizenNavigationService {
                 ActiveNavigation active = entry.getValue();
                 long blockedSince = runtime.blockedSince.computeIfAbsent(entry.getKey(), id -> level.getGameTime());
                 if (level.getGameTime() - blockedSince >= STALLED_TELEPORT_TICKS) {
-                    if (active.intent != MovementIntent.WANDER) {
+                    if (active.intent.allowsTeleportFallback()) {
                         CitizenTeleportService.teleportCitizen(level, entry.getKey(), active.target);
                     }
                     runtime.latestRequests.remove(entry.getKey());

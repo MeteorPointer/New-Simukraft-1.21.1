@@ -50,6 +50,9 @@ public final class CitizenWorkplaceMoveService {
         if (CitizenSelfFeedingService.isSelfFeeding(level, citizen.uuid())) {
             return false;
         }
+        if (CitizenPanicService.isFleeing(level, citizen.uuid())) {
+            return false;
+        }
         if (!CityRuntimeService.isCitizenActive(level, citizen)) {
             return false;
         }

@@ -8,6 +8,7 @@ import common.cn.kafei.simukraft.citizen.CitizenData;
 import common.cn.kafei.simukraft.citizen.CitizenFoodConsumptionService;
 import common.cn.kafei.simukraft.citizen.CitizenHomeRestService;
 import common.cn.kafei.simukraft.citizen.CitizenManager;
+import common.cn.kafei.simukraft.citizen.CitizenPanicService;
 import common.cn.kafei.simukraft.citizen.CitizenService;
 import common.cn.kafei.simukraft.citizen.CitizenTeleportService;
 import common.cn.kafei.simukraft.citizen.CitizenWorkStatus;
@@ -341,7 +342,8 @@ public final class MedicalService {
             }
             if (entity.distanceToSqr(target) <= 2.25D && entity.getNavigation().isDone()) {
                 CitizenBedSleepService.tryStartSleeping(level, entity, bed.pos(), target);
-            } else if (!CitizenNavigationService.isNavigating(level, citizen.uuid())
+            } else if (!CitizenPanicService.isFleeing(level, citizen.uuid())
+                    && !CitizenNavigationService.isNavigating(level, citizen.uuid())
                     && !CitizenNavigationService.requestMove(level, citizen.uuid(), target, MovementIntent.MEDICAL)) {
                 CitizenTeleportService.teleportCitizen(level, citizen.uuid(), target);
             }
@@ -456,6 +458,9 @@ public final class MedicalService {
         Vec3 homeTarget = CitizenHomeRestService.resolveHomeTarget(level, home.pos());
         if (CitizenTeleportService.findCitizenEntity(level, citizen.uuid()) == null) {
             CityRuntimeService.requestCitizenRecovery(level, citizen);
+            return;
+        }
+        if (CitizenPanicService.isFleeing(level, citizen.uuid())) {
             return;
         }
         if (!CitizenNavigationService.requestMove(level, citizen.uuid(), homeTarget, MovementIntent.RETURN_HOME)) {

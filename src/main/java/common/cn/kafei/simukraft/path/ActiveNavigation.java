@@ -462,6 +462,9 @@ final class ActiveNavigation {
         if (mode == MovementMode.SWIM_EXIT) {
             return 1.0D;
         }
+        if (intent == MovementIntent.FLEE) {
+            return 1.25D;
+        }
         if (mode == MovementMode.RUN || intent == MovementIntent.RUN || intent == MovementIntent.RETURN_HOME) {
             return 1.2D;
         }

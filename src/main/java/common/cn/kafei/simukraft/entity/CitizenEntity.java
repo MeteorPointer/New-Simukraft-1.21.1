@@ -10,6 +10,7 @@ import common.cn.kafei.simukraft.citizen.CitizenManager;
 import common.cn.kafei.simukraft.citizen.CitizenManualControlService;
 import common.cn.kafei.simukraft.citizen.CitizenDroppedFoodService;
 import common.cn.kafei.simukraft.citizen.CitizenFoodConsumptionService;
+import common.cn.kafei.simukraft.citizen.CitizenPanicService;
 import common.cn.kafei.simukraft.citizen.CitizenService;
 import common.cn.kafei.simukraft.citizen.CitizenTeleportService;
 import common.cn.kafei.simukraft.citizen.CitizenWorkStatus;
@@ -80,6 +81,8 @@ public class CitizenEntity extends PathfinderMob {
     private boolean inventoryReconciled;
     private UUID followPlayerId;
     private boolean stayInPlace;
+    private long panicUntilGameTime;
+    private UUID panicThreatId;
     private boolean pathJumpRequested;
     private int lastWorkSwingPulse = -1;
     private int workSwingStartTick = -WORK_SWING_DURATION_TICKS;
@@ -131,10 +134,15 @@ public class CitizenEntity extends PathfinderMob {
             rescueFromWall(true);
             return false;
         }
+        boolean wasSleeping = isSleeping();
         boolean result = super.hurt(source, amount);
         if (result && !level().isClientSide()) {
             addEffect(new MobEffectInstance(MobEffects.GLOWING, 60, 0, false, false));
             if (level() instanceof ServerLevel serverLevel && isAlive()) {
+                if (wasSleeping) {
+                    CitizenBedSleepService.wakeUp(serverLevel, this, position());
+                }
+                CitizenPanicService.onPlayerAttack(serverLevel, this, source);
                 CitizenData data = CitizenManager.get(serverLevel).getCitizen(getUUID()).orElse(null);
                 if (data != null) {
                     data.setHealth(getHealth());
@@ -215,6 +223,7 @@ public class CitizenEntity extends PathfinderMob {
                 return;
             }
             CitizenManualControlService.tick(serverLevel, this);
+            CitizenPanicService.tick(serverLevel, this);
             if (isSleeping() && !CitizenHomeRestService.isRestTime(serverLevel)
                     && !MedicalService.isHospitalized(serverLevel, getUUID())) {
                 stopSleeping();
@@ -264,7 +273,7 @@ public class CitizenEntity extends PathfinderMob {
         if (serverLevel.noBlockCollision(this, collisionBox.move(0.0D, 0.08D, 0.0D))) {
             return;
         }
-        CitizenNavigationService.stop(serverLevel, getUUID());
+        CitizenNavigationService.stopForced(serverLevel, getUUID());
         CitizenTeleportService.teleportCitizenToNearbySafePosition(serverLevel, this);
     }
 
@@ -406,6 +415,34 @@ public class CitizenEntity extends PathfinderMob {
     /** setStayInPlace：切换最高优先级原地停留状态。 */
     public void setStayInPlace(boolean stayInPlace) {
         this.stayInPlace = stayInPlace;
+    }
+
+    /** isPanicking：原版受击记忆窗口尚未结束。 */
+    public boolean isPanicking() {
+        return !level().isClientSide()
+                && level() instanceof ServerLevel serverLevel
+                && panicUntilGameTime > 0L
+                && serverLevel.getGameTime() <= panicUntilGameTime;
+    }
+
+    /** startPanic：记录攻击者并刷新逃跑窗口，不写入实体 NBT。 */
+    public void startPanic(UUID threatId, long untilGameTime) {
+        this.panicThreatId = threatId;
+        this.panicUntilGameTime = untilGameTime;
+    }
+
+    /** clearPanic：结束逃跑窗口并关掉冲刺动画。 */
+    public void clearPanic() {
+        this.panicUntilGameTime = 0L;
+        this.panicThreatId = null;
+        if (isSprinting()) {
+            setSprinting(false);
+        }
+    }
+
+    /** getPanicThreatId：返回当前逃跑要远离的玩家 UUID。 */
+    public UUID getPanicThreatId() {
+        return panicThreatId;
     }
 
     /** getCitizenInventory：返回由实体 NBT 持久化的 NPC 真实物品栏。 */

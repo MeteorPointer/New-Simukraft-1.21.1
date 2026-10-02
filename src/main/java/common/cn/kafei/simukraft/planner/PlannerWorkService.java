@@ -4,6 +4,7 @@ import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.citizen.CitizenData;
 import common.cn.kafei.simukraft.citizen.CitizenHomeRestService;
 import common.cn.kafei.simukraft.citizen.CitizenLevelService;
+import common.cn.kafei.simukraft.citizen.CitizenPanicService;
 import common.cn.kafei.simukraft.citizen.CitizenService;
 import common.cn.kafei.simukraft.citizen.CitizenSelfFeedingService;
 import common.cn.kafei.simukraft.citizen.CitizenTeleportService;
@@ -227,6 +228,9 @@ public final class PlannerWorkService {
         }
         if (citizenEntity.position().distanceToSqr(anchor) > REACH * REACH) {
             citizenEntity.setHasActiveVisualTask(false);
+            if (CitizenPanicService.isFleeing(level, citizen.uuid())) {
+                return;
+            }
             if (!CitizenNavigationService.requestMove(level, citizen.uuid(), anchor, MovementIntent.WORK)) {
                 CitizenTeleportService.teleportCitizen(level, citizen.uuid(), anchor);
             }

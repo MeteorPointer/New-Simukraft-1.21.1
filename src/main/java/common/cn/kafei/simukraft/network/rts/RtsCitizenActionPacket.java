@@ -3,6 +3,7 @@ package common.cn.kafei.simukraft.network.rts;
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.citizen.CitizenData;
 import common.cn.kafei.simukraft.citizen.CitizenInfoMenuProvider;
+import common.cn.kafei.simukraft.citizen.CitizenPanicService;
 import common.cn.kafei.simukraft.citizen.CitizenService;
 import common.cn.kafei.simukraft.city.CityService;
 import common.cn.kafei.simukraft.commercial.CommercialControlBoxService;
@@ -148,7 +149,7 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, Block
             }
             citizen.entity().setFollowPlayerId(null);
             citizen.entity().setStayInPlace(false);
-            CitizenNavigationService.stop(level, citizenId);
+            CitizenPanicService.clear(level, citizen.entity());
             if (CitizenNavigationService.requestMove(level, citizenId, target, MovementIntent.RUN)) {
                 moved++;
             }

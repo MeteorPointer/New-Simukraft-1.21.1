@@ -26,7 +26,7 @@ public record PathCell(BlockPos pos, int x, int y, int z, double standY, boolean
         if (climbable) {
             return MovementMode.CLIMB;
         }
-        return intent == MovementIntent.RUN ? MovementMode.RUN : MovementMode.WALK;
+        return intent == MovementIntent.RUN || intent == MovementIntent.FLEE ? MovementMode.RUN : MovementMode.WALK;
     }
 
     public static long key(BlockPos pos) {

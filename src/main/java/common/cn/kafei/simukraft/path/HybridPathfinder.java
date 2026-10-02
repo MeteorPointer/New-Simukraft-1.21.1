@@ -825,7 +825,7 @@ final class HybridPathfinder {
      * Maps a movement intent to the walking mode used for ground edges.
      */
     private static MovementMode walkMode(MovementIntent intent) {
-        return intent == MovementIntent.RUN ? MovementMode.RUN : MovementMode.WALK;
+        return intent == MovementIntent.RUN || intent == MovementIntent.FLEE ? MovementMode.RUN : MovementMode.WALK;
     }
 
     /**

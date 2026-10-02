@@ -22,6 +22,9 @@ public final class CitizenManualControlService {
         if (level == null || citizen == null || citizen.isRemoved()) {
             return;
         }
+        if (CitizenPanicService.isFleeing(citizen)) {
+            return;
+        }
         if (citizen.isStayInPlace()) {
             if (CitizenNavigationService.isNavigating(level, citizen.getUUID())) {
                 CitizenNavigationService.stop(level, citizen.getUUID());

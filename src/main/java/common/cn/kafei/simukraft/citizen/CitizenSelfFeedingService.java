@@ -124,6 +124,9 @@ public final class CitizenSelfFeedingService {
         if (citizen.workStatusType() == CitizenWorkStatus.RESTING || citizen.workStatusType() == CitizenWorkStatus.DEAD) {
             return false;
         }
+        if (CitizenPanicService.isFleeing(level, citizen.uuid())) {
+            return false;
+        }
         CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
         if (entity == null || entity.getHungerValue() > START_HUNGER_THRESHOLD) {
             return false;
