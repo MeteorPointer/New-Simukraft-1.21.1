@@ -1110,6 +1110,7 @@ public final class CityCoreScreenOpener {
         private static final int CURRENT_CHUNK_FILL_COLOR = 0x5500DD00;
         private static final int OTHER_CHUNK_FILL_COLOR = 0x55FF8800;
         private static final int BATCH_CLAIM_PREVIEW_COLOR = 0x66FFFF55;
+        private static final int BATCH_CLAIM_BOX_BORDER_COLOR = 0xEEFFFF00;
         private static final int GRID_COLOR = 0x40000000;
         private static final int CORE_MARKER_COLOR = 0xFF4080FF;
         private static final int MAX_BATCH_CLAIM_CHUNKS = 256;
@@ -1118,6 +1119,15 @@ public final class CityCoreScreenOpener {
         private final ClientCityChunkCache cache = ClientCityChunkCache.getInstance();
         private final SimuMapManager mapManager = SimuMapManager.getInstance();
         private final LinkedHashSet<Long> batchClaimChunks = new LinkedHashSet<>();
+        private boolean batchClaimDragging;
+        private int batchClaimStartChunkX;
+        private int batchClaimStartChunkZ;
+        private int batchBoxMinX;
+        private int batchBoxMaxX;
+        private int batchBoxMinZ;
+        private int batchBoxMaxZ;
+        private int batchClaimEndChunkX = Integer.MIN_VALUE;
+        private int batchClaimEndChunkZ = Integer.MIN_VALUE;
         private double zoomLevel = 4.0D;
         private double offsetX;
         private double offsetY;
@@ -1362,9 +1372,26 @@ public final class CityCoreScreenOpener {
             if (batchClaimChunks.isEmpty()) {
                 return;
             }
-            for (long chunkLong : batchClaimChunks) {
-                ChunkPos chunkPos = new ChunkPos(chunkLong);
-                drawChunkFill(guiContext, startX, startY, width, height, centerX, centerY, chunkSize, chunkPos.x, chunkPos.z, BATCH_CLAIM_PREVIEW_COLOR);
+            double screenX = centerX + offsetX + batchBoxMinX * chunkSize;
+            double screenY = centerY + offsetY + batchBoxMinZ * chunkSize;
+            double boxWidth = (batchBoxMaxX - batchBoxMinX + 1) * chunkSize;
+            double boxHeight = (batchBoxMaxZ - batchBoxMinZ + 1) * chunkSize;
+            drawClippedFill(guiContext, startX, startY, width, height, screenX, screenY, boxWidth, boxHeight, BATCH_CLAIM_PREVIEW_COLOR);
+            int thickness = Math.max(1, (int) Math.round(Math.min(2.0D, chunkSize / 8.0D)));
+            drawClippedFill(guiContext, startX, startY, width, height, screenX, screenY, boxWidth, thickness, BATCH_CLAIM_BOX_BORDER_COLOR);
+            drawClippedFill(guiContext, startX, startY, width, height, screenX, screenY + boxHeight - thickness, boxWidth, thickness, BATCH_CLAIM_BOX_BORDER_COLOR);
+            drawClippedFill(guiContext, startX, startY, width, height, screenX, screenY, thickness, boxHeight, BATCH_CLAIM_BOX_BORDER_COLOR);
+            drawClippedFill(guiContext, startX, startY, width, height, screenX + boxWidth - thickness, screenY, thickness, boxHeight, BATCH_CLAIM_BOX_BORDER_COLOR);
+        }
+
+        private void drawClippedFill(GUIContext guiContext, int startX, int startY, int width, int height,
+                                     double screenX, double screenY, double screenWidth, double screenHeight, int color) {
+            int drawX = Math.max((int) Math.floor(screenX), startX);
+            int drawY = Math.max((int) Math.floor(screenY), startY);
+            int drawWidth = Math.min((int) Math.ceil(screenX + screenWidth), startX + width) - drawX;
+            int drawHeight = Math.min((int) Math.ceil(screenY + screenHeight), startY + height) - drawY;
+            if (drawWidth > 0 && drawHeight > 0) {
+                guiContext.graphics.fill(drawX, drawY, drawX + drawWidth, drawY + drawHeight, color);
             }
         }
 
@@ -1378,6 +1405,9 @@ public final class CityCoreScreenOpener {
         }
 
         private void renderHoveredChunk(GUIContext guiContext, int startX, int startY, int width, int height, double centerX, double centerY, double chunkSize) {
+            if (batchClaimDragging) {
+                return;
+            }
             Minecraft minecraft = Minecraft.getInstance();
             double mouseX = minecraft.mouseHandler.xpos() * minecraft.getWindow().getGuiScaledWidth() / minecraft.getWindow().getScreenWidth();
             double mouseY = minecraft.mouseHandler.ypos() * minecraft.getWindow().getGuiScaledHeight() / minecraft.getWindow().getScreenHeight();
@@ -1398,7 +1428,7 @@ public final class CityCoreScreenOpener {
         }
 
         private void renderHoverBox(GUIContext guiContext, int startX, int startY, int width, int height, double centerX, double centerY, double chunkSize) {
-            if (contextMenuVisible) {
+            if (contextMenuVisible || batchClaimDragging) {
                 return;
             }
             Minecraft minecraft = Minecraft.getInstance();
@@ -1562,16 +1592,75 @@ public final class CityCoreScreenOpener {
                     .anyMatch(chunk -> ChunkPos.asLong(chunk.chunkX(), chunk.chunkZ()) == chunkLong));
         }
 
-        private void collectBatchClaimChunk(double mouseX, double mouseY) {
-            if (batchClaimChunks.size() >= MAX_BATCH_CLAIM_CHUNKS || isMouseOutsideMap(mouseX, mouseY)) {
+        private void beginBatchClaimBox(double mouseX, double mouseY) {
+            batchClaimDragging = true;
+            double clampedX = clampToMapX(mouseX);
+            double clampedY = clampToMapY(mouseY);
+            batchClaimStartChunkX = screenToChunk(clampedX, mapCenterX(), offsetX, 16.0D * zoomLevel);
+            batchClaimStartChunkZ = screenToChunk(clampedY, mapCenterY(), offsetY, 16.0D * zoomLevel);
+            batchClaimEndChunkX = Integer.MIN_VALUE;
+            batchClaimEndChunkZ = Integer.MIN_VALUE;
+            updateBatchClaimBox(mouseX, mouseY);
+        }
+
+        private void updateBatchClaimBox(double mouseX, double mouseY) {
+            double clampedX = clampToMapX(mouseX);
+            double clampedY = clampToMapY(mouseY);
+            int endChunkX = screenToChunk(clampedX, mapCenterX(), offsetX, 16.0D * zoomLevel);
+            int endChunkZ = screenToChunk(clampedY, mapCenterY(), offsetY, 16.0D * zoomLevel);
+            if (endChunkX == batchClaimEndChunkX && endChunkZ == batchClaimEndChunkZ) {
                 return;
             }
-            int chunkX = screenToChunk(mouseX, mapCenterX(), offsetX, 16.0D * zoomLevel);
-            int chunkZ = screenToChunk(mouseY, mapCenterY(), offsetY, 16.0D * zoomLevel);
-            batchClaimChunks.add(ChunkPos.asLong(chunkX, chunkZ));
+            batchClaimEndChunkX = endChunkX;
+            batchClaimEndChunkZ = endChunkZ;
+            fillBatchClaimRectangle(batchClaimStartChunkX, batchClaimStartChunkZ, endChunkX, endChunkZ);
+        }
+
+        private void fillBatchClaimRectangle(int startX, int startZ, int endX, int endZ) {
+            int dx = endX - startX;
+            int dz = endZ - startZ;
+            int boxWidth = Math.abs(dx) + 1;
+            int boxHeight = Math.abs(dz) + 1;
+            if ((long) boxWidth * (long) boxHeight > MAX_BATCH_CLAIM_CHUNKS) {
+                double scale = Math.sqrt((double) MAX_BATCH_CLAIM_CHUNKS / ((double) boxWidth * (double) boxHeight));
+                boxWidth = Math.max(1, (int) Math.floor(boxWidth * scale));
+                boxHeight = Math.max(1, (int) Math.floor(boxHeight * scale));
+                while ((long) boxWidth * (long) boxHeight > MAX_BATCH_CLAIM_CHUNKS) {
+                    if (boxWidth >= boxHeight) {
+                        boxWidth--;
+                    } else {
+                        boxHeight--;
+                    }
+                }
+                endX = startX + Integer.signum(dx) * (boxWidth - 1);
+                endZ = startZ + Integer.signum(dz) * (boxHeight - 1);
+            }
+            batchBoxMinX = Math.min(startX, endX);
+            batchBoxMaxX = Math.max(startX, endX);
+            batchBoxMinZ = Math.min(startZ, endZ);
+            batchBoxMaxZ = Math.max(startZ, endZ);
+            batchClaimChunks.clear();
+            for (int chunkX = batchBoxMinX; chunkX <= batchBoxMaxX; chunkX++) {
+                for (int chunkZ = batchBoxMinZ; chunkZ <= batchBoxMaxZ; chunkZ++) {
+                    batchClaimChunks.add(ChunkPos.asLong(chunkX, chunkZ));
+                }
+            }
         }
 
         private void finishBatchClaim() {
+            batchClaimDragging = false;
+        }
+
+        private double clampToMapX(double mouseX) {
+            double mapStartX = getPositionX() + MAP_SIDE_PADDING;
+            double mapWidth = getSizeWidth() - MAP_SIDE_PADDING * 2.0D;
+            return Math.max(mapStartX, Math.min(mouseX, mapStartX + Math.max(0.0D, mapWidth) - 0.001D));
+        }
+
+        private double clampToMapY(double mouseY) {
+            double mapStartY = getPositionY() + MAP_TOP_PADDING;
+            double mapHeight = getSizeHeight() - MAP_TOP_PADDING - MAP_SIDE_PADDING;
+            return Math.max(mapStartY, Math.min(mouseY, mapStartY + Math.max(0.0D, mapHeight) - 0.001D));
         }
 
         private int screenToChunk(double screenValue, double centerValue, double offsetValue, double chunkSize) {
@@ -1620,7 +1709,7 @@ public final class CityCoreScreenOpener {
             if (event.button == 2) {
                 contextMenuVisible = false;
                 batchClaimChunks.clear();
-                collectBatchClaimChunk(event.x, event.y);
+                beginBatchClaimBox(event.x, event.y);
                 event.target.startDrag(BATCH_CLAIM_DRAG_MARKER, null);
                 event.stopPropagation();
                 return;
@@ -1649,7 +1738,7 @@ public final class CityCoreScreenOpener {
         private void onDragUpdate(com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent event) {
             contextMenuVisible = false;
             if (BATCH_CLAIM_DRAG_MARKER.equals(event.dragHandler.getDraggingObject())) {
-                collectBatchClaimChunk(event.x, event.y);
+                updateBatchClaimBox(event.x, event.y);
                 event.stopPropagation();
                 return;
             }
