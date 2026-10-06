@@ -5,6 +5,8 @@ import common.cn.kafei.simukraft.city.CityChunkManager;
 import common.cn.kafei.simukraft.city.CityData;
 import common.cn.kafei.simukraft.city.CityPermissionLevel;
 import common.cn.kafei.simukraft.city.CityService;
+import common.cn.kafei.simukraft.city.DistrictData;
+import common.cn.kafei.simukraft.city.DistrictManager;
 import common.cn.kafei.simukraft.city.group.CityGroupMessageService;
 import common.cn.kafei.simukraft.city.group.CityUserGroup;
 import common.cn.kafei.simukraft.city.group.CityUserGroupService;
@@ -20,6 +22,7 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -60,6 +63,13 @@ public record CityCoreManageCityPacket(BlockPos pos, Action action, String value
         if (!CityCoreAccessValidator.requireAccess(level, player, packet.pos())) {
             return;
         }
+        Optional<DistrictData> district = DistrictManager.get(level).all().stream()
+                .filter(value -> value.cores().contains(packet.pos().asLong()))
+                .findFirst();
+        if (district.isPresent()) {
+            handleDistrictAction(level, player, packet, district.get());
+            return;
+        }
         Optional<CityData> city = CityService.findCityByCorePosForPlayer(level, packet.pos(), player.getUUID());
         if (city.isEmpty()) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.city_core.not_found"));
@@ -71,6 +81,68 @@ public record CityCoreManageCityPacket(BlockPos pos, Action action, String value
         } else if (packet.action() == Action.DELETE) {
             deleteCity(level, player, cityId, packet.pos(), packet.value());
         }
+    }
+
+    private static void handleDistrictAction(ServerLevel level,
+                                              ServerPlayer player,
+                                              CityCoreManageCityPacket packet,
+                                              DistrictData district) {
+        if (!CityService.hasPermission(level, district.parentCityId(), player.getUUID(), CityPermissionLevel.MAYOR)) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.district.no_permission"));
+            return;
+        }
+        if (packet.action() == Action.RENAME) {
+            String districtName = normalizeCityName(packet.value());
+            if (!isValidCityName(districtName)) {
+                InfoToastService.warning(player, Component.translatable("message.simukraft.city_core.invalid_name"));
+                CityCoreOpenRequestPacket.openFor(level, player, packet.pos());
+                return;
+            }
+            boolean renamed = DistrictManager.get(level).rename(district.districtId(), district.parentCityId(), districtName);
+            Component message = Component.translatable(
+                    renamed ? "message.simukraft.district.renamed" : "message.simukraft.district.rename_failed",
+                    DistrictManager.normalizeDistrictName(districtName));
+            if (renamed) {
+                InfoToastService.success(player, message);
+            } else {
+                InfoToastService.warning(player, message);
+            }
+            CityCoreOpenRequestPacket.openFor(level, player, packet.pos());
+            return;
+        }
+        if (packet.action() == Action.DELETE) {
+            deleteDistrict(level, player, packet.pos(), district, packet.value());
+        }
+    }
+
+    private static void deleteDistrict(ServerLevel level,
+                                       ServerPlayer player,
+                                       BlockPos pos,
+                                       DistrictData district,
+                                       String confirmation) {
+        if (!district.name().equals(confirmation)) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.district.delete_confirm_failed"));
+            CityCoreOpenRequestPacket.openFor(level, player, pos);
+            return;
+        }
+        List<Long> cores = List.copyOf(district.cores());
+        boolean deleted = DistrictManager.get(level).delete(district.districtId(), district.parentCityId());
+        if (!deleted) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.district.delete_failed"));
+            CityCoreOpenRequestPacket.openFor(level, player, pos);
+            return;
+        }
+        for (long core : cores) {
+            BlockPos corePos = BlockPos.of(core);
+            if (level.getBlockState(corePos).is(common.cn.kafei.simukraft.registry.ModBlocks.CITY_CORE.get())) {
+                level.setBlock(corePos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
+                net.minecraft.world.level.block.Block.popResource(level, corePos,
+                        new ItemStack(common.cn.kafei.simukraft.registry.ModItems.PORTABLE_CITY_CORE.get()));
+            }
+        }
+        InfoToastService.success(player, Component.translatable("message.simukraft.district.deleted", district.name()));
+        PacketDistributor.sendToPlayer(player, CityCoreOpenResponsePacket.from(pos, Optional.empty(), CityPermissionLevel.CITIZEN, false, false));
+        CityChunkSyncService.syncToAll(level);
     }
 
     private static void renameCity(ServerLevel level, ServerPlayer player, UUID cityId, BlockPos pos, String rawName) {

@@ -26,6 +26,7 @@ import common.cn.kafei.simukraft.network.city.core.CityCoreOpenResponsePacket;
 import common.cn.kafei.simukraft.network.city.core.CityUpgradeRequestPacket;
 import common.cn.kafei.simukraft.network.city.map.CityCoreMapRequestPacket;
 import common.cn.kafei.simukraft.network.city.map.CityCoreMapResponsePacket;
+import common.cn.kafei.simukraft.network.city.DistrictActionPacket;
 import common.cn.kafei.simukraft.network.citizen.manage.CityCitizenFamilyGraphRequestPacket;
 import common.cn.kafei.simukraft.network.citizen.manage.CityCitizenFamilyGraphResponsePacket;
 import common.cn.kafei.simukraft.network.citizen.manage.CityCitizenManageActionPacket;
@@ -118,6 +119,7 @@ public final class ModNetwork {
         registrar.playToServer(CityCitizenFamilyGraphRequestPacket.TYPE, CityCitizenFamilyGraphRequestPacket.STREAM_CODEC, CityCitizenFamilyGraphRequestPacket::handle);
         registrar.playToServer(CitizenBehaviorActionPacket.TYPE, CitizenBehaviorActionPacket.STREAM_CODEC, CitizenBehaviorActionPacket::handle);
         registrar.playToServer(CityCoreMapRequestPacket.TYPE, CityCoreMapRequestPacket.STREAM_CODEC, CityCoreMapRequestPacket::handle);
+        registrar.playToServer(DistrictActionPacket.TYPE, DistrictActionPacket.STREAM_CODEC, DistrictActionPacket::handle);
         registrar.playToServer(CityChunkPurchasePacket.TYPE, CityChunkPurchasePacket.STREAM_CODEC, CityChunkPurchasePacket::handle);
         registrar.playToServer(CityChunkBatchPurchasePacket.TYPE, CityChunkBatchPurchasePacket.STREAM_CODEC, CityChunkBatchPurchasePacket::handle);
         registrar.playToServer(CityChunkBatchReleasePacket.TYPE, CityChunkBatchReleasePacket.STREAM_CODEC, CityChunkBatchReleasePacket::handle);

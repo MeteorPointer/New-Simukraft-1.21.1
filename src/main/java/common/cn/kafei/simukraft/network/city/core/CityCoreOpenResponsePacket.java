@@ -31,7 +31,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 
-public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds, int cityLevel, int memberCount, int cityPopulation, int housingCapacity, int cityChunkCount, int cityEnclaveCount, CityPermissionLevel permissionLevel, boolean canCreateCity, boolean canManageCity, List<FinanceEntry> financeEntries, List<PoiStat> poiStats, List<JobStat> jobStats, List<UpgradeTarget> upgradeTargets, UpgradeProgress upgradeProgress) implements CustomPacketPayload {
+public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds, int cityLevel, int memberCount, int cityPopulation, int housingCapacity, int cityChunkCount, int cityEnclaveCount, CityPermissionLevel permissionLevel, boolean canCreateCity, boolean canManageCity, List<FinanceEntry> financeEntries, List<PoiStat> poiStats, List<JobStat> jobStats, List<UpgradeTarget> upgradeTargets, UpgradeProgress upgradeProgress, List<DistrictSummary> districts, boolean districtContext, String districtName) implements CustomPacketPayload {
     private static final int MAX_FINANCE_ENTRIES = 128;
     private static final int MAX_POI_STATS = 64;
     private static final int MAX_JOB_STATS = 128;
@@ -59,7 +59,7 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
                                       List<UpgradeTarget> upgradeTargets) {
         this(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity,
                 0, 0, permissionLevel, canCreateCity, canManageCity, financeEntries, poiStats, jobStats, upgradeTargets,
-                UpgradeProgress.NONE);
+                UpgradeProgress.NONE, List.of(), false, "");
     }
 
     /** CityCoreOpenResponsePacket: 兼容现有城市核心统计响应并附加升级进度快照。 */
@@ -83,7 +83,7 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
                                       List<UpgradeTarget> upgradeTargets) {
         this(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity,
                 cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries,
-                poiStats, jobStats, upgradeTargets, UpgradeProgress.NONE);
+                poiStats, jobStats, upgradeTargets, UpgradeProgress.NONE, List.of(), false, "");
     }
 
     public CityCoreOpenResponsePacket {
@@ -94,9 +94,36 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
         jobStats = jobStats == null ? List.of() : List.copyOf(jobStats);
         upgradeTargets = upgradeTargets == null ? List.of() : List.copyOf(upgradeTargets);
         upgradeProgress = upgradeProgress == null ? UpgradeProgress.NONE : upgradeProgress;
+        districts = districts == null ? List.of() : List.copyOf(districts);
+        districtName = districtName == null ? "" : districtName.trim();
+        if (!districtContext) {
+            districtName = "";
+        }
         if (upgradeTargets.size() > MAX_UPGRADE_TARGETS) {
             throw new IllegalArgumentException("Too many city upgrade targets");
         }
+    }
+
+    public CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds,
+                                      int cityLevel, int memberCount, int cityPopulation, int housingCapacity,
+                                      int cityChunkCount, int cityEnclaveCount, CityPermissionLevel permissionLevel,
+                                      boolean canCreateCity, boolean canManageCity, List<FinanceEntry> financeEntries,
+                                      List<PoiStat> poiStats, List<JobStat> jobStats, List<UpgradeTarget> upgradeTargets,
+                                      UpgradeProgress upgradeProgress) {
+        this(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity,
+                cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries,
+                poiStats, jobStats, upgradeTargets, upgradeProgress, List.of(), false, "");
+    }
+
+    public CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds,
+                                      int cityLevel, int memberCount, int cityPopulation, int housingCapacity,
+                                      int cityChunkCount, int cityEnclaveCount, CityPermissionLevel permissionLevel,
+                                      boolean canCreateCity, boolean canManageCity, List<FinanceEntry> financeEntries,
+                                      List<PoiStat> poiStats, List<JobStat> jobStats, List<UpgradeTarget> upgradeTargets,
+                                      UpgradeProgress upgradeProgress, List<DistrictSummary> districts) {
+        this(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity,
+                cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries,
+                poiStats, jobStats, upgradeTargets, upgradeProgress, districts, false, "");
     }
 
     @Override
@@ -152,6 +179,17 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
         buffer.writeVarInt(packet.upgradeTargets().size());
         packet.upgradeTargets().forEach(target -> encodeUpgradeTarget(buffer, target));
         encodeUpgradeProgress(buffer, packet.upgradeProgress());
+        buffer.writeVarInt(packet.districts().size());
+        packet.districts().forEach(district -> {
+            buffer.writeUUID(district.districtId());
+            buffer.writeUtf(district.name(), 64);
+            buffer.writeInt(district.color());
+            buffer.writeVarInt(district.chunkCount());
+            buffer.writeVarInt(district.coreCount());
+            buffer.writeUtf(district.mayorName(), 64);
+        });
+        buffer.writeBoolean(packet.districtContext());
+        buffer.writeUtf(packet.districtName(), 64);
     }
 
     public static CityCoreOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
@@ -209,7 +247,17 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
             upgradeTargets.add(decodeUpgradeTarget(buffer));
         }
         UpgradeProgress upgradeProgress = decodeUpgradeProgress(buffer);
-        return new CityCoreOpenResponsePacket(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity, cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, List.copyOf(financeEntries), List.copyOf(poiStats), List.copyOf(jobStats), upgradeTargets, upgradeProgress);
+        int districtSize = buffer.readVarInt();
+        if (districtSize < 0 || districtSize > 256) {
+            throw new IllegalArgumentException("Too many city districts");
+        }
+        List<DistrictSummary> districts = new ArrayList<>(districtSize);
+        for (int i = 0; i < districtSize; i++) {
+            districts.add(new DistrictSummary(buffer.readUUID(), buffer.readUtf(64), buffer.readInt(), buffer.readVarInt(), buffer.readVarInt(), buffer.readUtf(64)));
+        }
+        boolean districtContext = buffer.readBoolean();
+        String districtName = buffer.readUtf(64);
+        return new CityCoreOpenResponsePacket(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity, cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, List.copyOf(financeEntries), List.copyOf(poiStats), List.copyOf(jobStats), upgradeTargets, upgradeProgress, districts, districtContext, districtName);
     }
 
     public static void handle(CityCoreOpenResponsePacket packet, IPayloadContext context) {
@@ -287,6 +335,15 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
             if (target.level() == expectedLevel) return target;
         }
         return UpgradeTarget.NONE;
+    }
+
+    public record DistrictSummary(UUID districtId, String name, int color, int chunkCount, int coreCount, String mayorName) {
+        public DistrictSummary {
+            name = name == null ? "" : name;
+            mayorName = mayorName == null ? "" : mayorName;
+            chunkCount = Math.max(0, chunkCount);
+            coreCount = Math.max(0, coreCount);
+        }
     }
 
     /** UpgradeTarget: 发送给客户端的下一等级只读快照。 */

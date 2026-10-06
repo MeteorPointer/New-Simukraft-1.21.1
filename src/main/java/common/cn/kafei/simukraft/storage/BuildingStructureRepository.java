@@ -28,14 +28,14 @@ import java.util.UUID;
  */
 
 public final class BuildingStructureRepository {
-    private static final String CATALOG_COLUMNS = "building_id, city_id, dimension_id, category, building_file_name, "
+    private static final String CATALOG_COLUMNS = "building_id, city_id, district_id, dimension_id, category, building_file_name, "
             + "display_name, amount, structure_file_name, facing, origin_x, origin_y, origin_z, anchor_x, anchor_y, "
             + "anchor_z, min_x, min_y, min_z, max_x, max_y, max_z, completed_at, block_count";
-    private static final String UPSERT_SQL = "INSERT INTO placed_buildings(building_id, city_id, dimension_id, category, "
+    private static final String UPSERT_SQL = "INSERT INTO placed_buildings(building_id, city_id, district_id, dimension_id, category, "
             + "building_file_name, display_name, amount, structure_file_name, facing, origin_x, origin_y, origin_z, "
             + "anchor_x, anchor_y, anchor_z, min_x, min_y, min_z, max_x, max_y, max_z, completed_at, blocks_format, "
-            + "blocks_payload, block_count) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
-            + "ON CONFLICT(building_id) DO UPDATE SET city_id = excluded.city_id, dimension_id = excluded.dimension_id, "
+            + "blocks_payload, block_count) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
+            + "ON CONFLICT(building_id) DO UPDATE SET city_id = excluded.city_id, district_id = excluded.district_id, dimension_id = excluded.dimension_id, "
             + "category = excluded.category, building_file_name = excluded.building_file_name, display_name = excluded.display_name, "
             + "amount = excluded.amount, structure_file_name = excluded.structure_file_name, facing = excluded.facing, "
             + "origin_x = excluded.origin_x, origin_y = excluded.origin_y, origin_z = excluded.origin_z, "
@@ -100,6 +100,7 @@ public final class BuildingStructureRepository {
                             result.add(new PlacedBuildingRecord(
                                     buildingId,
                                     nullableUuid(resultSet.getString("city_id")),
+                                    nullableUuid(resultSet.getString("district_id")),
                                     resultSet.getString("dimension_id"),
                                     resultSet.getString("category"),
                                     resultSet.getString("building_file_name"),
@@ -225,29 +226,30 @@ public final class BuildingStructureRepository {
                      "INSERT INTO placed_building_pois(building_id, poi_key, poi_type, capacity, world_x, world_y, world_z) VALUES(?, ?, ?, ?, ?, ?, ?)")) {
             buildingStatement.setString(1, record.buildingId().toString());
             SqliteNbtHelper.setNullableString(buildingStatement, 2, record.cityId() != null ? record.cityId().toString() : null);
-            buildingStatement.setString(3, record.dimensionId());
-            buildingStatement.setString(4, record.category());
-            buildingStatement.setString(5, record.buildingFileName());
-            buildingStatement.setString(6, record.displayName());
-            buildingStatement.setString(7, record.amount());
-            buildingStatement.setString(8, record.structureFileName());
-            buildingStatement.setString(9, record.facing());
-            buildingStatement.setInt(10, record.worldOrigin().getX());
-            buildingStatement.setInt(11, record.worldOrigin().getY());
-            buildingStatement.setInt(12, record.worldOrigin().getZ());
-            buildingStatement.setInt(13, record.structureAnchor().getX());
-            buildingStatement.setInt(14, record.structureAnchor().getY());
-            buildingStatement.setInt(15, record.structureAnchor().getZ());
-            buildingStatement.setInt(16, record.minPos().getX());
-            buildingStatement.setInt(17, record.minPos().getY());
-            buildingStatement.setInt(18, record.minPos().getZ());
-            buildingStatement.setInt(19, record.maxPos().getX());
-            buildingStatement.setInt(20, record.maxPos().getY());
-            buildingStatement.setInt(21, record.maxPos().getZ());
-            buildingStatement.setLong(22, record.completedAt());
-            buildingStatement.setInt(23, BuildingVoxelCodec.FORMAT_V1);
-            buildingStatement.setBytes(24, payload);
-            buildingStatement.setInt(25, BuildingVoxelCodec.solidCount(blocks));
+            SqliteNbtHelper.setNullableString(buildingStatement, 3, record.districtId() != null ? record.districtId().toString() : null);
+            buildingStatement.setString(4, record.dimensionId());
+            buildingStatement.setString(5, record.category());
+            buildingStatement.setString(6, record.buildingFileName());
+            buildingStatement.setString(7, record.displayName());
+            buildingStatement.setString(8, record.amount());
+            buildingStatement.setString(9, record.structureFileName());
+            buildingStatement.setString(10, record.facing());
+            buildingStatement.setInt(11, record.worldOrigin().getX());
+            buildingStatement.setInt(12, record.worldOrigin().getY());
+            buildingStatement.setInt(13, record.worldOrigin().getZ());
+            buildingStatement.setInt(14, record.structureAnchor().getX());
+            buildingStatement.setInt(15, record.structureAnchor().getY());
+            buildingStatement.setInt(16, record.structureAnchor().getZ());
+            buildingStatement.setInt(17, record.minPos().getX());
+            buildingStatement.setInt(18, record.minPos().getY());
+            buildingStatement.setInt(19, record.minPos().getZ());
+            buildingStatement.setInt(20, record.maxPos().getX());
+            buildingStatement.setInt(21, record.maxPos().getY());
+            buildingStatement.setInt(22, record.maxPos().getZ());
+            buildingStatement.setLong(23, record.completedAt());
+            buildingStatement.setInt(24, BuildingVoxelCodec.FORMAT_V1);
+            buildingStatement.setBytes(25, payload);
+            buildingStatement.setInt(26, BuildingVoxelCodec.solidCount(blocks));
             buildingStatement.executeUpdate();
 
             deletePois.setString(1, record.buildingId().toString());

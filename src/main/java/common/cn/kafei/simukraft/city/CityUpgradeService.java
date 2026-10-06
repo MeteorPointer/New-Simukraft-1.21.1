@@ -26,6 +26,34 @@ public final class CityUpgradeService {
     }
 
     /** tick: 在服务端主线程完成已到期的城市升级任务并同步解锁结果。 */
+    /** debugSetLevel: 供管理员调试命令直接设置城市等级，不扣除资源也不等待升级耗时。 */
+    public static boolean debugSetLevel(ServerLevel level, CityData city, int targetLevel) {
+        if (level == null || city == null
+                || targetLevel < CityLevelDefinition.MIN_LEVEL
+                || targetLevel > CityLevelDefinition.MAX_LEVEL) {
+            return false;
+        }
+        synchronized (city) {
+            int previousLevel = city.cityLevel();
+            CityUpgradeState previousUpgrade = city.upgradeState();
+            city.setCityLevel(targetLevel);
+            city.restoreUpgradeState(CityUpgradeState.NONE);
+            boolean persisted;
+            try {
+                persisted = CityManager.get(level).persistUpgrade(city);
+            } catch (RuntimeException exception) {
+                SimuKraft.LOGGER.error("Failed to persist debug city level change for {}", city.cityId(), exception);
+                persisted = false;
+            }
+            if (persisted) {
+                return true;
+            }
+            city.setCityLevel(previousLevel);
+            city.restoreUpgradeState(previousUpgrade);
+            return false;
+        }
+    }
+
     public static void tick(ServerLevel level) {
         if (level == null || SimuSqliteStorage.isDegraded(level)) {
             return;

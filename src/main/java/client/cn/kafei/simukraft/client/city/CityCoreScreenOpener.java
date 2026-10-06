@@ -273,9 +273,17 @@ public final class CityCoreScreenOpener {
         if (!packet.hasCity()) {
             menu.addChild(menuButton("screen.simukraft.city_core.create", () -> window.openTab("create", "screen.simukraft.city_core.create", createPanel(packet))));
         } else if (packet.canManageCity()) {
+            String editMenuKey = packet.districtContext()
+                    ? "screen.simukraft.city_core.menu.edit_district"
+                    : "screen.simukraft.city_core.menu.edit";
             menu.addChild(menuButton("screen.simukraft.city_core.menu.info", () -> window.openTab("info", "screen.simukraft.city_core.menu.info", scrollable(contentPanel(packet)))));
             menu.addChild(menuButton("screen.simukraft.city_core.map_title", () -> requestMap(packet)));
-            menu.addChild(menuButton("screen.simukraft.city_core.menu.edit", () -> window.openTab("edit", "screen.simukraft.city_core.menu.edit", editPanel(packet))));
+            if (!packet.districtContext() && packet.permissionLevel() == CityPermissionLevel.MAYOR) {
+                menu.addChild(menuButton("screen.simukraft.city_core.menu.districts", () -> window.openTab("districts", "screen.simukraft.city_core.districts.title", districtsPanel(packet))));
+            }
+            if (!packet.districtContext() || packet.permissionLevel() == CityPermissionLevel.MAYOR) {
+                menu.addChild(menuButton(editMenuKey, () -> window.openTab("edit", editMenuKey, editPanel(packet))));
+            }
             menu.addChild(menuButton("screen.simukraft.city_core.menu.upgrade", () -> window.openTab("upgrade", "screen.simukraft.city_core.menu.upgrade", upgradePanel(packet))));
             menu.addChild(menuButton("screen.simukraft.city_core.menu.citizens", () -> PacketDistributor.sendToServer(new CityCitizenManageRequestPacket(packet.pos()))));
             menu.addChild(menuButton("screen.simukraft.city_core.menu.officials", () -> requestMembers(packet)));
@@ -297,17 +305,21 @@ public final class CityCoreScreenOpener {
 
     private static UIElement editPanel(CityCoreOpenResponsePacket packet) {
         UIElement panel = basePanel();
-        panel.addChild(line(Component.translatable("screen.simukraft.city_core.edit.rename_title")));
-        TextField renameField = textField(packet.cityName(), 200);
+        String prefix = packet.districtContext()
+                ? "screen.simukraft.city_core.edit.district."
+                : "screen.simukraft.city_core.edit.";
+        String displayName = packet.districtContext() ? packet.districtName() : packet.cityName();
+        panel.addChild(line(Component.translatable(prefix + "rename_title")));
+        TextField renameField = textField(displayName, 200);
         panel.addChild(renameField);
-        panel.addChild(contentButton("screen.simukraft.city_core.edit.rename", () -> PacketDistributor.sendToServer(new CityCoreManageCityPacket(packet.pos(), CityCoreManageCityPacket.Action.RENAME, renameField.getValue()))));
+        panel.addChild(contentButton(prefix + "rename", () -> PacketDistributor.sendToServer(new CityCoreManageCityPacket(packet.pos(), CityCoreManageCityPacket.Action.RENAME, renameField.getValue()))));
         panel.addChild(contentSpacer());
-        panel.addChild(line(Component.translatable("screen.simukraft.city_core.edit.delete_title")));
-        panel.addChild(line(Component.translatable("screen.simukraft.city_core.edit.delete_tip", packet.cityName())));
+        panel.addChild(line(Component.translatable(prefix + "delete_title")));
+        panel.addChild(line(Component.translatable(prefix + "delete_tip", displayName)));
         TextField deleteField = textField("", 200);
-        deleteField.getTextFieldStyle().placeholder(Component.translatable("screen.simukraft.city_core.edit.delete_placeholder"));
+        deleteField.getTextFieldStyle().placeholder(Component.translatable(prefix + "delete_placeholder"));
         panel.addChild(deleteField);
-        panel.addChild(contentButton("screen.simukraft.city_core.edit.delete", () -> PacketDistributor.sendToServer(new CityCoreManageCityPacket(packet.pos(), CityCoreManageCityPacket.Action.DELETE, deleteField.getValue()))));
+        panel.addChild(contentButton(prefix + "delete", () -> PacketDistributor.sendToServer(new CityCoreManageCityPacket(packet.pos(), CityCoreManageCityPacket.Action.DELETE, deleteField.getValue()))));
         return scrollable(panel);
     }
 
@@ -334,6 +346,40 @@ public final class CityCoreScreenOpener {
                         entry.actorName().isBlank() ? Component.translatable("screen.simukraft.city_core.finance.system").getString() : entry.actorName()
                 )));
             }
+        }
+        return scrollable(panel);
+    }
+
+    private static UIElement districtsPanel(CityCoreOpenResponsePacket packet) {
+        UIElement panel = basePanel();
+        panel.addChild(line(Component.translatable("screen.simukraft.city_core.districts.title")));
+        if (packet.districts().isEmpty()) {
+            panel.addChild(line(Component.translatable("screen.simukraft.city_core.districts.empty")));
+            return scrollable(panel);
+        }
+        for (CityCoreOpenResponsePacket.DistrictSummary district : packet.districts()) {
+            UIElement row = new UIElement().layout(layout -> {
+                layout.widthPercent(100);
+                layout.flexDirection(FlexDirection.COLUMN);
+                layout.gapAll(3);
+            });
+            row.addChild(line(Component.translatable("screen.simukraft.city_core.districts.row", district.name(), district.chunkCount(), district.coreCount(), district.mayorName().isBlank() ? "-" : district.mayorName())));
+            TextField rename = textField(district.name(), 200);
+            row.addChild(rename);
+            row.addChild(contentButton("screen.simukraft.city_core.districts.rename", () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                    common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.RENAME, packet.pos(), district.districtId(), rename.getValue(), List.of()))));
+            if (Minecraft.getInstance().level != null) {
+                for (var player : Minecraft.getInstance().level.players()) {
+                    UUID playerId = player.getUUID();
+                    String playerName = player.getName().getString();
+                    row.addChild(contentButton(Component.literal("-> " + playerName + " / " + Component.translatable("screen.simukraft.city_core.districts.set_mayor").getString()), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                            common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.SET_MAYOR, packet.pos(), district.districtId(), playerId, "", List.of()))));
+                    row.addChild(contentButton(Component.literal("-> " + playerName + " / " + Component.translatable("screen.simukraft.city_core.districts.set_official").getString()), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                            common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.SET_OFFICIAL, packet.pos(), district.districtId(), playerId, "", List.of()))));
+                }
+            }
+            panel.addChild(row);
+            panel.addChild(contentSpacer());
         }
         return scrollable(panel);
     }
@@ -865,6 +911,19 @@ public final class CityCoreScreenOpener {
         return button;
     }
 
+    private static Button contentButton(Component text, Runnable action) {
+        Button button = new Button();
+        button.setText(text);
+        button.setOnClick(event -> action.run());
+        button.layout(layout -> {
+            layout.width(170);
+            layout.height(20);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.justifyContent(AlignContent.CENTER);
+        });
+        return button;
+    }
+
     private static TextField textField(String value, int width) {
         TextField field = new TextField();
         field.setText(value == null ? "" : value);
@@ -1243,12 +1302,23 @@ public final class CityCoreScreenOpener {
                         continue;
                     }
                     boolean currentCityChunk = cache.isChunkInCurrentCity(chunkLong);
-                    int fillColor = currentCityChunk ? CURRENT_CHUNK_FILL_COLOR : OTHER_CHUNK_FILL_COLOR;
+                    int fillColor = districtFillColor(chunkLong, currentCityChunk);
                     drawChunkFill(guiContext, startX, startY, width, height, centerX, centerY, chunkSize, chunkX, chunkZ, fillColor);
                     // 只绘制领地外边缘，不画相邻已占领区块之间的内部线。
                     drawChunkOwnershipBorder(guiContext, startX, startY, width, height, centerX, centerY, chunkSize, chunkX, chunkZ, currentCityChunk ? CURRENT_BORDER_COLOR : OTHER_BORDER_COLOR);
                 }
             }
+        }
+
+        private int districtFillColor(long chunkLong, boolean currentCityChunk) {
+            if (currentCityChunk) {
+                for (CityCoreMapResponsePacket.DistrictEntry district : packet.districts()) {
+                    if (district.chunks().stream().anyMatch(chunk -> ChunkPos.asLong(chunk.chunkX(), chunk.chunkZ()) == chunkLong)) {
+                        return (district.color() & 0x00FFFFFF) | 0x55000000;
+                    }
+                }
+            }
+            return currentCityChunk ? CURRENT_CHUNK_FILL_COLOR : OTHER_CHUNK_FILL_COLOR;
         }
 
         private void drawChunkFill(GUIContext guiContext, int startX, int startY, int width, int height, double centerX, double centerY, double chunkSize, int chunkX, int chunkZ, int fillColor) {
@@ -1384,8 +1454,10 @@ public final class CityCoreScreenOpener {
                     : singleOwned ? Component.translatable("screen.simukraft.city_core.map.menu.claim_unavailable")
                     : Component.translatable("screen.simukraft.city_core.map.menu.claim");
             Component abandonAction = Component.translatable("screen.simukraft.city_core.map.menu.abandon");
-            contextMenuWidth = Math.max(minecraft.font.width(title), Math.max(minecraft.font.width(claimAction), minecraft.font.width(abandonAction))) + 16;
-            contextMenuHeight = 54;
+            Component districtAction = Component.translatable("screen.simukraft.city_core.map.menu.district");
+            contextMenuWidth = Math.max(Math.max(minecraft.font.width(title), minecraft.font.width(districtAction)),
+                    Math.max(minecraft.font.width(claimAction), minecraft.font.width(abandonAction))) + 16;
+            contextMenuHeight = 70;
             int menuX = (int) contextMenuX;
             int menuY = (int) contextMenuY;
             if (menuX + contextMenuWidth > startX + width) {
@@ -1402,9 +1474,11 @@ public final class CityCoreScreenOpener {
             guiContext.graphics.fill(menuX, menuY, menuX + contextMenuWidth, menuY + 1, 0xFFFFFFFF);
             guiContext.graphics.fill(menuX, menuY + 19, menuX + contextMenuWidth, menuY + 20, 0x80FFFFFF);
             guiContext.graphics.fill(menuX, menuY + 35, menuX + contextMenuWidth, menuY + 36, 0x80FFFFFF);
+            guiContext.graphics.fill(menuX, menuY + 51, menuX + contextMenuWidth, menuY + 52, 0x80FFFFFF);
             guiContext.graphics.drawString(minecraft.font, title, menuX + 6, menuY + 6, 0xFFFFFFFF, false);
             guiContext.graphics.drawString(minecraft.font, claimAction, menuX + 6, menuY + 24, canClaim ? 0xFFFFFF55 : 0xFFAAAAAA, false);
-            guiContext.graphics.drawString(minecraft.font, abandonAction, menuX + 6, menuY + 40, canAbandon ? 0xFFFF5555 : 0xFFAAAAAA, false);
+            guiContext.graphics.drawString(minecraft.font, districtAction, menuX + 6, menuY + 40, packet.canManageCity() && !batchClaimChunks.isEmpty() ? 0xFF55FFFF : 0xFFAAAAAA, false);
+            guiContext.graphics.drawString(minecraft.font, abandonAction, menuX + 6, menuY + 56, canAbandon ? 0xFFFF5555 : 0xFFAAAAAA, false);
         }
 
         private boolean handleContextMenuClick(double mouseX, double mouseY) {
@@ -1434,12 +1508,30 @@ public final class CityCoreScreenOpener {
                         PacketDistributor.sendToServer(new CityChunkPurchasePacket(packet.pos(), contextMenuChunkX, contextMenuChunkZ));
                     }
                 }
+            } else if (mouseY < contextMenuDrawY + 52) {
+                if (packet.canManageCity() && !batchClaimChunks.isEmpty()) {
+                    String name = "District " + packet.districts().size();
+                    PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                            common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.CREATE,
+                            packet.pos(), null, name, List.copyOf(batchClaimChunks)));
+                    batchClaimChunks.clear();
+                }
             } else {
                 // 放弃区块
                 if (packet.canManageCity()) {
                     long coreChunkLong = ChunkPos.asLong(packet.centerChunkX(), packet.centerChunkZ());
                     if (!batchClaimChunks.isEmpty()) {
+                        List<Long> districtChunks = batchClaimChunks.stream()
+                                .filter(this::isDistrictChunk)
+                                .filter(c -> c != coreChunkLong)
+                                .toList();
+                        if (!districtChunks.isEmpty()) {
+                            PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                                    common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.MOVE_TO_CITY,
+                                    packet.pos(), null, "", districtChunks));
+                        }
                         List<CityChunkBatchReleasePacket.ChunkEntry> releaseChunks = batchClaimChunks.stream()
+                                .filter(c -> !isDistrictChunk(c))
                                 .filter(cache::isChunkInCurrentCity)
                                 .filter(c -> c != coreChunkLong)
                                 .map(ChunkPos::new)
@@ -1451,7 +1543,11 @@ public final class CityCoreScreenOpener {
                         }
                     } else {
                         long singleChunk = ChunkPos.asLong(contextMenuChunkX, contextMenuChunkZ);
-                        if (singleChunk != coreChunkLong && cache.isChunkInCurrentCity(singleChunk)) {
+                        if (singleChunk != coreChunkLong && isDistrictChunk(singleChunk)) {
+                            PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                                    common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.MOVE_TO_CITY,
+                                    packet.pos(), null, "", List.of(singleChunk)));
+                        } else if (singleChunk != coreChunkLong && cache.isChunkInCurrentCity(singleChunk)) {
                             PacketDistributor.sendToServer(new CityChunkBatchReleasePacket(packet.pos(),
                                     List.of(new CityChunkBatchReleasePacket.ChunkEntry(contextMenuChunkX, contextMenuChunkZ))));
                         }
@@ -1459,6 +1555,11 @@ public final class CityCoreScreenOpener {
                 }
             }
             return true;
+        }
+
+        private boolean isDistrictChunk(long chunkLong) {
+            return packet.districts().stream().anyMatch(district -> district.chunks().stream()
+                    .anyMatch(chunk -> ChunkPos.asLong(chunk.chunkX(), chunk.chunkZ()) == chunkLong));
         }
 
         private void collectBatchClaimChunk(double mouseX, double mouseY) {

@@ -71,7 +71,17 @@ public final class CityService {
         if (level == null || cityCorePos == null) {
             return Optional.empty();
         }
-        return CityManager.get(level).getCityByCorePos(dimensionId(level), cityCorePos);
+        Optional<CityData> direct = CityManager.get(level).getCityByCorePos(dimensionId(level), cityCorePos);
+        if (direct.isPresent()) {
+            return direct;
+        }
+        // District cores are management entrances for their parent city. Resolve
+        // them here so map, member, upgrade and city management packets use the
+        // same parent-city authorization path as the main core.
+        return DistrictManager.get(level).all().stream()
+                .filter(district -> district.cores().contains(cityCorePos.asLong()))
+                .findFirst()
+                .flatMap(district -> findCity(level, district.parentCityId()));
     }
 
     public static Optional<CityData> findCityByCorePosForPlayer(ServerLevel level, BlockPos cityCorePos, UUID playerId) {

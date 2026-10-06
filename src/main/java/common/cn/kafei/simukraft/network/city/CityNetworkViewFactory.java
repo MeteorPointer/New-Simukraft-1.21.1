@@ -6,6 +6,9 @@ import common.cn.kafei.simukraft.city.CityMemberData;
 import common.cn.kafei.simukraft.city.CityLevelDefinitionLoader;
 import common.cn.kafei.simukraft.city.CityPermissionLevel;
 import common.cn.kafei.simukraft.city.CityPopulationStats;
+import common.cn.kafei.simukraft.city.DistrictManager;
+import common.cn.kafei.simukraft.city.DistrictData;
+import common.cn.kafei.simukraft.city.DistrictRole;
 import common.cn.kafei.simukraft.city.CityService;
 import common.cn.kafei.simukraft.building.PlacedBuildingService;
 import common.cn.kafei.simukraft.network.city.core.CityCoreOpenResponsePacket;
@@ -29,12 +32,28 @@ public final class CityNetworkViewFactory {
     }
 
     public static CityCoreOpenResponsePacket buildOpenResponse(ServerLevel level, BlockPos pos, UUID viewerId) {
-        Optional<CityData> city = CityService.findCityByCorePosForPlayer(level, pos, viewerId);
+        DistrictData districtContext = null;
+        if (level != null && pos != null) {
+            districtContext = DistrictManager.get(level).all().stream()
+                    .filter(district -> district.cores().contains(pos.asLong()))
+                    .findFirst().orElse(null);
+        }
+        Optional<CityData> city = districtContext == null
+                ? CityService.findCityByCorePosForPlayer(level, pos, viewerId)
+                : CityService.findCity(level, districtContext.parentCityId());
         Optional<CityData> playerCity = CityService.findPlayerCity(level, viewerId);
         CityPermissionLevel permissionLevel = city.map(data -> CityService.getPlayerPermission(data, viewerId)).orElse(CityPermissionLevel.CITIZEN);
+        if (districtContext != null && city.isPresent() && permissionLevel != CityPermissionLevel.MAYOR) {
+            DistrictRole role = districtContext.member(viewerId) == null ? DistrictRole.RESIDENT : districtContext.member(viewerId).role();
+            permissionLevel = role.atLeast(DistrictRole.OFFICIAL) ? CityPermissionLevel.OFFICIAL : CityPermissionLevel.CITIZEN;
+        }
         boolean canCreateCity = city.isEmpty() && playerCity.isEmpty();
-        boolean canManageCity = city.map(data -> CityService.canManageCity(data, viewerId)).orElse(false);
-        return buildOpenResponse(level, pos, city, permissionLevel, canCreateCity, canManageCity);
+        boolean canManageCity = districtContext != null
+                ? permissionLevel == CityPermissionLevel.MAYOR || districtContext.hasPermission(viewerId, DistrictRole.OFFICIAL)
+                : city.map(data -> CityService.canManageCity(data, viewerId)).orElse(false);
+        CityCoreOpenResponsePacket response = buildOpenResponse(level, pos, city, permissionLevel, canCreateCity, canManageCity);
+        if (districtContext == null || !response.hasCity()) return response;
+        return new CityCoreOpenResponsePacket(response.pos(), true, response.cityId(), response.cityName() + " " + districtContext.name(), response.funds(), response.cityLevel(), response.memberCount(), response.cityPopulation(), response.housingCapacity(), response.cityChunkCount(), response.cityEnclaveCount(), response.permissionLevel(), response.canCreateCity(), response.canManageCity(), response.financeEntries(), response.poiStats(), response.jobStats(), response.upgradeTargets(), response.upgradeProgress(), response.districts(), true, districtContext.name());
     }
 
     public static CityCoreOpenResponsePacket buildOpenResponse(ServerLevel level, BlockPos pos, Optional<CityData> city, CityPermissionLevel permissionLevel, boolean canCreateCity, boolean canManageCity) {
@@ -59,7 +78,15 @@ public final class CityNetworkViewFactory {
         List<CityCoreOpenResponsePacket.UpgradeTarget> upgradeTargets = CityCoreOpenResponsePacket.UpgradeTarget.from(
                 CityLevelDefinitionLoader.INSTANCE.futureLevels(data.cityLevel(), CityCoreOpenResponsePacket.MAX_UPGRADE_TARGETS));
         CityCoreOpenResponsePacket.UpgradeProgress upgradeProgress = CityCoreOpenResponsePacket.UpgradeProgress.from(data.upgradeState());
-        return new CityCoreOpenResponsePacket(pos, true, data.cityId(), data.cityName(), data.funds(), data.cityLevel(), data.members().size(), stats.population(), stats.housingCapacity(), cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries, poiStats, jobStats, upgradeTargets, upgradeProgress);
+        List<CityCoreOpenResponsePacket.DistrictSummary> districtSummaries = level == null ? List.of() : DistrictManager.get(level).all().stream()
+                .filter(district -> district.parentCityId().equals(data.cityId()))
+                .sorted(Comparator.comparing(DistrictData::name, String.CASE_INSENSITIVE_ORDER))
+                .map(district -> new CityCoreOpenResponsePacket.DistrictSummary(
+                        district.districtId(), district.name(), district.color(), district.chunks().size(), district.cores().size(),
+                        district.members().stream().filter(member -> member.role() == common.cn.kafei.simukraft.city.DistrictRole.MAYOR)
+                                .map(common.cn.kafei.simukraft.city.DistrictMemberData::playerName).findFirst().orElse("")))
+                .toList();
+        return new CityCoreOpenResponsePacket(pos, true, data.cityId(), data.cityName(), data.funds(), data.cityLevel(), data.members().size(), stats.population(), stats.housingCapacity(), cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries, poiStats, jobStats, upgradeTargets, upgradeProgress, districtSummaries);
     }
 
     public static CityCoreOpenResponsePacket buildCreatedCityResponse(ServerLevel level, BlockPos pos, CityData city, UUID viewerId) {
@@ -117,6 +144,12 @@ public final class CityNetworkViewFactory {
         }
         ChunkPos centerChunk = new ChunkPos(pos);
         CityPermissionLevel permissionLevel = CityService.getPlayerPermission(city, viewerId);
-        return new CityCoreMapResponsePacket(pos, city.cityId(), city.cityName(), city.funds(), city.cityLevel(), city.members().size(), permissionLevel, CityService.canManageCity(city, viewerId), centerChunk.x, centerChunk.z, entries);
+        List<CityCoreMapResponsePacket.DistrictEntry> districts = DistrictManager.get(level).all().stream()
+                .filter(district -> district.parentCityId().equals(city.cityId()))
+                .map(district -> new CityCoreMapResponsePacket.DistrictEntry(district.districtId(), district.name(), district.color(), district.chunks().stream().map(value -> {
+                    ChunkPos chunk = new ChunkPos(value); return new CityCoreMapResponsePacket.ChunkEntry(chunk.x, chunk.z);
+                }).toList()))
+                .toList();
+        return new CityCoreMapResponsePacket(pos, city.cityId(), city.cityName(), city.funds(), city.cityLevel(), city.members().size(), permissionLevel, CityService.canManageCity(city, viewerId), centerChunk.x, centerChunk.z, entries, districts);
     }
 }

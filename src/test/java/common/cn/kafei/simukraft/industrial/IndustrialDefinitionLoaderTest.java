@@ -145,7 +145,8 @@ class IndustrialDefinitionLoaderTest {
                 BlockPos.ZERO,
                 BlockPos.ZERO,
                 new BlockPos(10, 64, 20),
-                new BlockPos(21, 71, 31),
+                new BlockPos(21, 71, 31
+                ),
                 0L,
                 java.util.List.of(),
                 java.util.List.of(),

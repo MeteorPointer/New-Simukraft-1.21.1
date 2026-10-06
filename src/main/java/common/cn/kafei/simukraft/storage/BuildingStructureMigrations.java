@@ -21,7 +21,7 @@ import java.util.List;
  * <p>按栋独立提交，中断后下次开库从 blocks_format=0 的栋接着转，避免整库一把事务在盘满时滚回去。
  */
 final class BuildingStructureMigrations {
-    static final int VERSION = 2;
+    static final int VERSION = 3;
 
     private BuildingStructureMigrations() {
     }
@@ -34,6 +34,7 @@ final class BuildingStructureMigrations {
                 return;
             }
             addPayloadColumns(connection);
+            addColumnIfMissing(connection, "placed_buildings", "district_id", "TEXT");
             foldAllBuildings(connection, connections);
             dropLegacyBlockTable(connection);
             writeUserVersion(connection, VERSION);

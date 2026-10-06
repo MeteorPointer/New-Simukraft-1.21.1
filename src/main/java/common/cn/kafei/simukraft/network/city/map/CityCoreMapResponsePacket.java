@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public record CityCoreMapResponsePacket(BlockPos pos, UUID cityId, String cityName, double funds, int cityLevel, int memberCount, CityPermissionLevel permissionLevel, boolean canManageCity, int centerChunkX, int centerChunkZ, List<ChunkEntry> chunks) implements CustomPacketPayload {
+public record CityCoreMapResponsePacket(BlockPos pos, UUID cityId, String cityName, double funds, int cityLevel, int memberCount, CityPermissionLevel permissionLevel, boolean canManageCity, int centerChunkX, int centerChunkZ, List<ChunkEntry> chunks, List<DistrictEntry> districts) implements CustomPacketPayload {
     public static final Type<CityCoreMapResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_map_response"));
     public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreMapResponsePacket> STREAM_CODEC = StreamCodec.of(CityCoreMapResponsePacket::encode, CityCoreMapResponsePacket::decode);
 
@@ -40,6 +40,14 @@ public record CityCoreMapResponsePacket(BlockPos pos, UUID cityId, String cityNa
             buffer.writeInt(chunk.chunkX());
             buffer.writeInt(chunk.chunkZ());
         });
+        buffer.writeVarInt(packet.districts().size());
+        packet.districts().forEach(district -> {
+            buffer.writeUUID(district.districtId());
+            buffer.writeUtf(district.name(), 64);
+            buffer.writeInt(district.color());
+            buffer.writeVarInt(district.chunks().size());
+            district.chunks().forEach(chunk -> { buffer.writeInt(chunk.chunkX()); buffer.writeInt(chunk.chunkZ()); });
+        });
     }
 
     public static CityCoreMapResponsePacket decode(RegistryFriendlyByteBuf buffer) {
@@ -58,7 +66,15 @@ public record CityCoreMapResponsePacket(BlockPos pos, UUID cityId, String cityNa
         for (int i = 0; i < size; i++) {
             chunks.add(new ChunkEntry(buffer.readInt(), buffer.readInt()));
         }
-        return new CityCoreMapResponsePacket(pos, cityId, cityName, funds, cityLevel, memberCount, permissionLevel, canManageCity, centerChunkX, centerChunkZ, List.copyOf(chunks));
+        int districtCount = buffer.readVarInt();
+        List<DistrictEntry> districts = new ArrayList<>(districtCount);
+        for (int i = 0; i < districtCount; i++) {
+            UUID districtId = buffer.readUUID(); String name = buffer.readUtf(64); int color = buffer.readInt();
+            int chunkCount = buffer.readVarInt(); List<ChunkEntry> districtChunks = new ArrayList<>(chunkCount);
+            for (int j = 0; j < chunkCount; j++) districtChunks.add(new ChunkEntry(buffer.readInt(), buffer.readInt()));
+            districts.add(new DistrictEntry(districtId, name, color, List.copyOf(districtChunks)));
+        }
+        return new CityCoreMapResponsePacket(pos, cityId, cityName, funds, cityLevel, memberCount, permissionLevel, canManageCity, centerChunkX, centerChunkZ, List.copyOf(chunks), List.copyOf(districts));
     }
 
     public static void handle(CityCoreMapResponsePacket packet, IPayloadContext context) {
@@ -66,5 +82,8 @@ public record CityCoreMapResponsePacket(BlockPos pos, UUID cityId, String cityNa
     }
 
     public record ChunkEntry(int chunkX, int chunkZ) {
+    }
+
+    public record DistrictEntry(UUID districtId, String name, int color, List<ChunkEntry> chunks) {
     }
 }

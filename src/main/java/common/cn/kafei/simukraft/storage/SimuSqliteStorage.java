@@ -40,6 +40,7 @@ public final class SimuSqliteStorage {
     private final SimuSqliteDatabase database;
     private final CitySqliteRepository cities;
     private final CityChunkSqliteRepository cityChunks;
+    private final DistrictSqliteRepository districts;
     private final CityPoiSqliteRepository cityPois;
     private final CitizenSqliteRepository citizens;
     private final BuildingTaskSqliteRepository buildingTasks;
@@ -59,6 +60,7 @@ public final class SimuSqliteStorage {
         this.database = database;
         this.cities = new CitySqliteRepository(database);
         this.cityChunks = new CityChunkSqliteRepository(database);
+        this.districts = new DistrictSqliteRepository(database);
         this.cityPois = new CityPoiSqliteRepository(database);
         this.citizens = new CitizenSqliteRepository(database);
         this.buildingTasks = new BuildingTaskSqliteRepository(database);
@@ -236,6 +238,16 @@ public final class SimuSqliteStorage {
         String dimensionId = dimensionId(level);
         write(level, "city_chunk:" + dimensionId + ":" + cityId + ":" + chunkLong,
                 (storage, connection) -> storage.cityChunks.deleteChunk(connection, cityId, chunkLong, dimensionId));
+    }
+
+    public static CompoundTag loadDistricts(ServerLevel level) {
+        SimuSqliteStorage storage = openSafely(level);
+        return storage != null ? storage.districts.loadAll(dimensionId(level)) : null;
+    }
+
+    public static void saveDistricts(ServerLevel level, CompoundTag tag) {
+        if (tag == null) return;
+        writeOrdered(level, (storage, connection) -> storage.districts.saveAll(connection, tag, dimensionId(level)));
     }
 
     // ── 城市 POI ──────────────────────────────────────────────────────────────

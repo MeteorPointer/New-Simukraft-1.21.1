@@ -26,6 +26,7 @@ public final class CitizenData {
     private CitizenWorkStatus workStatus;
     private String skinPath;
     private UUID cityId;
+    private UUID districtId;
     private UUID homeId;
     private UUID workplaceId;
     private BlockPos workplacePos;
@@ -92,6 +93,7 @@ public final class CitizenData {
         data.npcId = tag.contains("NpcId") ? tag.getInt("NpcId") : -1;
         data.skinPath = tag.getString("SkinPath");
         data.cityId = tag.hasUUID("CityId") ? tag.getUUID("CityId") : null;
+        data.districtId = tag.hasUUID("DistrictId") ? tag.getUUID("DistrictId") : null;
         data.homeId = tag.hasUUID("HomeId") ? tag.getUUID("HomeId") : null;
         data.workplaceId = tag.hasUUID("WorkplaceId") ? tag.getUUID("WorkplaceId") : null;
         data.workplacePos = tag.contains("WorkplacePos") ? BlockPos.of(tag.getLong("WorkplacePos")) : null;
@@ -138,6 +140,9 @@ public final class CitizenData {
         tag.putString("SkinPath", skinPath);
         if (cityId != null) {
             tag.putUUID("CityId", cityId);
+        }
+        if (districtId != null) {
+            tag.putUUID("DistrictId", districtId);
         }
         if (homeId != null) {
             tag.putUUID("HomeId", homeId);
@@ -380,6 +385,14 @@ public final class CitizenData {
 
     public void setCityId(UUID cityId) {
         this.cityId = cityId;
+    }
+
+    public UUID districtId() {
+        return districtId;
+    }
+
+    public void setDistrictId(UUID districtId) {
+        this.districtId = districtId;
     }
 
     public UUID homeId() {

@@ -67,6 +67,22 @@ class BuildingStructureRepositoryTest {
     }
 
     @Test
+    void districtOwnershipRoundTripsThroughBuildingCatalog() throws Exception {
+        UUID buildingId = UUID.randomUUID();
+        UUID districtId = UUID.randomUUID();
+        PlacedBuildingRecord record = new PlacedBuildingRecord(
+                buildingId, UUID.randomUUID(), districtId, "minecraft:overworld", "residential", "house.sk", "House", "",
+                "house.nbt", "north", BlockPos.ZERO, BlockPos.ZERO, BlockPos.ZERO, new BlockPos(1, 1, 1), 1L,
+                List.of(new BuildingBlockData(BlockPos.ZERO, Blocks.STONE.defaultBlockState(), BlockPos.ZERO)), List.of(), List.of(), List.of(), List.of());
+        try (BuildingStructureSqliteDatabase database = openDatabase(tempDir.resolve("district.sqlite"))) {
+            BuildingStructureRepository repository = new BuildingStructureRepository(database);
+            repository.upsert(record);
+            assertTrue(database.drainWrites());
+            assertEquals(districtId, repository.loadByDimension("minecraft:overworld").getFirst().districtId());
+        }
+    }
+
+    @Test
     void legacyBlockRowsAreFoldedOnOpenAndRemainReadable() throws Exception {
         Path path = tempDir.resolve("legacy.sqlite");
         UUID kept = UUID.randomUUID();

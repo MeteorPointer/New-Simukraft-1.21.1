@@ -25,8 +25,10 @@ class CitizenSqliteRepositoryTest {
         UUID citizenId = UUID.randomUUID();
         UUID medicalBedId = UUID.randomUUID();
         UUID babyBedId = UUID.randomUUID();
+        UUID districtId = UUID.randomUUID();
         CitizenData citizen = new CitizenData(citizenId);
         citizen.setName("Medical Test");
+        citizen.setDistrictId(districtId);
         citizen.setPregnant(true);
         citizen.setPregnantSince(5L);
         citizen.setReservedBabyBedPoiId(babyBedId);
@@ -63,6 +65,7 @@ class CitizenSqliteRepositoryTest {
             assertEquals(12L, loaded.medical().postpartumUntilDay());
             assertEquals(10L, loaded.medical().lastHospitalMealDay());
             assertEquals(18_000L, loaded.medical().lastHospitalProgressDayTime());
+            assertEquals(districtId, loaded.districtId());
         }
     }
 

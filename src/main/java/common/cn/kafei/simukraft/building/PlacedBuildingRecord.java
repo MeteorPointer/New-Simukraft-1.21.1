@@ -7,6 +7,7 @@ import java.util.UUID;
 
 public record PlacedBuildingRecord(UUID buildingId,
                                    UUID cityId,
+                                   UUID districtId,
                                    String dimensionId,
                                    String category,
                                    String buildingFileName,
@@ -47,8 +48,33 @@ public record PlacedBuildingRecord(UUID buildingId,
                                 List<BuildingPoiInstance> poiInstances,
                                 List<BuildingUnitDefinition> unitDefinitions,
                                 List<BuildingUnitInstance> unitInstances) {
-        this(buildingId, cityId, dimensionId, category, buildingFileName, displayName, amount, structureFileName, facing,
+        this(buildingId, cityId, null, dimensionId, category, buildingFileName, displayName, amount, structureFileName, facing,
                 worldOrigin, structureAnchor, minPos, maxPos, completedAt, BuildingVoxelSnapshot.of(blocks),
+                poiDefinitions, poiInstances, unitDefinitions, unitInstances);
+    }
+
+    public PlacedBuildingRecord(UUID buildingId,
+                                UUID cityId,
+                                UUID districtId,
+                                String dimensionId,
+                                String category,
+                                String buildingFileName,
+                                String displayName,
+                                String amount,
+                                String structureFileName,
+                                String facing,
+                                BlockPos worldOrigin,
+                                BlockPos structureAnchor,
+                                BlockPos minPos,
+                                BlockPos maxPos,
+                                long completedAt,
+                                List<BuildingBlockData> blocks,
+                                List<BuildingPoiDefinition> poiDefinitions,
+                                List<BuildingPoiInstance> poiInstances,
+                                List<BuildingUnitDefinition> unitDefinitions,
+                                List<BuildingUnitInstance> unitInstances) {
+        this(buildingId, cityId, districtId, dimensionId, category, buildingFileName, displayName, amount, structureFileName,
+                facing, worldOrigin, structureAnchor, minPos, maxPos, completedAt, BuildingVoxelSnapshot.of(blocks),
                 poiDefinitions, poiInstances, unitDefinitions, unitInstances);
     }
 
