@@ -16,14 +16,10 @@ import common.cn.kafei.simukraft.citizen.CitizenService;
 import common.cn.kafei.simukraft.citizen.CitizenWorkStatus;
 import common.cn.kafei.simukraft.city.CityService;
 import common.cn.kafei.simukraft.city.DistrictService;
-import common.cn.kafei.simukraft.city.FinanceTransactionData;
 import common.cn.kafei.simukraft.city.group.CityGroupMessageService;
 import common.cn.kafei.simukraft.config.ServerConfig;
-import common.cn.kafei.simukraft.economy.EconomyService;
-import common.cn.kafei.simukraft.economy.FinanceLedgerService;
 import common.cn.kafei.simukraft.job.CitizenEmploymentService;
 import common.cn.kafei.simukraft.job.CityJobType;
-import common.cn.kafei.simukraft.network.hud.HudSyncService;
 import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import net.minecraft.core.BlockPos;
@@ -120,15 +116,6 @@ public record BuildBoxStartConstructionPacket(BlockPos buildBoxPos,
         if (ServerConfig.claimProtectionEnabled() && !BuildingTerritoryValidator.blockBoundsInCity(level, cityId, placedBlocks)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.construction.outside_city"));
             return;
-        }
-        double constructionCost = EconomyService.parseAmount(structure.amount(), "construction");
-        if (constructionCost > 0.0D) {
-            if (!EconomyService.canAfford(level, cityId, constructionCost) || !CityService.withdrawFunds(level, cityId, constructionCost)) {
-                InfoToastService.warning(player, Component.translatable("message.simukraft.build_box.not_enough_funds", constructionCost));
-                return;
-            }
-            FinanceLedgerService.record(level, cityId, player, -constructionCost, EconomyService.getCityBalance(level, cityId), FinanceTransactionData.Type.EXPENSE, "construction");
-            HudSyncService.syncToCityGroup(level, cityId, true);
         }
         BuilderConstructionService.cancelTask(level, citizen.uuid());
         long now = System.currentTimeMillis();

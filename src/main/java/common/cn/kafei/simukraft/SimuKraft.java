@@ -96,8 +96,10 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
+import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import org.slf4j.Logger;
 
 
@@ -134,6 +136,7 @@ public final class SimuKraft {
         NeoForge.EVENT_BUS.addListener(this::onBlockPlace);
         NeoForge.EVENT_BUS.addListener(this::onNeighborNotify);
         NeoForge.EVENT_BUS.addListener(this::onFluidPlaceBlock);
+        NeoForge.EVENT_BUS.addListener(this::onPistonPre);
         NeoForge.EVENT_BUS.addListener(this::onPistonPost);
         NeoForge.EVENT_BUS.addListener(this::onExplosionDetonate);
         NeoForge.EVENT_BUS.addListener(this::onFarmlandTrample);
@@ -211,6 +214,29 @@ public final class SimuKraft {
         if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel level) {
             CitizenNavigationService.invalidate(level, event.getPos());
         }
+    }
+
+    /** 活塞结构里只要带上城市核心就取消本次推动，避免原位恢复和被推走的方块同时存在。 */
+    private void onPistonPre(PistonEvent.Pre event) {
+        PistonStructureResolver resolver = event.getStructureHelper();
+        if (resolver == null || !resolver.resolve()) {
+            return;
+        }
+        if (containsCityCore(event, resolver.getToPush()) || containsCityCore(event, resolver.getToDestroy())) {
+            event.setCanceled(true);
+        }
+    }
+
+    private static boolean containsCityCore(PistonEvent event, java.util.List<BlockPos> positions) {
+        if (positions == null) {
+            return false;
+        }
+        for (BlockPos pos : positions) {
+            if (event.getLevel().getBlockState(pos).is(ModBlocks.CITY_CORE.get())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void onPistonPost(PistonEvent.Post event) {

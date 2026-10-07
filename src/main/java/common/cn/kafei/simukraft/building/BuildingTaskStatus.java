@@ -6,6 +6,7 @@ public enum BuildingTaskStatus {
     QUEUED("queued"),
     BUILDING("building"),
     WAITING_MATERIALS("waiting_materials"),
+    WAITING_FUNDS("waiting_funds"),
     PAUSED_RESTING("paused_resting"),
     PAUSED_OFFLINE("paused_offline"),
     COMPLETED("completed"),

@@ -301,7 +301,7 @@ public final class CityCoreScreenOpener {
             menu.addChild(menuButton("screen.simukraft.city_core.menu.info", () -> window.openTab("info", "screen.simukraft.city_core.menu.info", scrollable(contentPanel(packet)))));
             menu.addChild(menuButton("screen.simukraft.city_core.map_title", () -> requestMap(packet)));
             if (!packet.districtContext() && packet.permissionLevel() == CityPermissionLevel.MAYOR) {
-                menu.addChild(menuButton("screen.simukraft.city_core.menu.districts", () -> window.openTab("districts", "screen.simukraft.city_core.districts.title", districtsPanel(packet))));
+                menu.addChild(menuButton("screen.simukraft.city_core.menu.districts", () -> window.openOrReplaceTab("districts", "screen.simukraft.city_core.districts.title", districtsPanel(districtManagementPacket(packet)))));
             }
             if (!packet.districtContext() || packet.permissionLevel() == CityPermissionLevel.MAYOR) {
                 menu.addChild(menuButton(editMenuKey, () -> window.openTab("edit", editMenuKey, editPanel(packet))));
@@ -404,27 +404,57 @@ public final class CityCoreScreenOpener {
             row.addChild(deleteConfirm);
             row.addChild(contentButton("screen.simukraft.city_core.districts.delete", () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
                     common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.DELETE, packet.pos(), district.districtId(), deleteConfirm.getValue(), List.of()))));
-            UUID mayorId = district.members().stream().filter(member -> member.rolePower() >= 2).map(CityCoreOpenResponsePacket.DistrictMemberView::playerId).findFirst().orElse(null);
-            for (CityCoreOpenResponsePacket.CityMemberRef player : packet.cityMembers()) {
-                if (player.playerId().equals(mayorId)) {
-                    continue;
-                }
+            row.addChild(line(Component.translatable("screen.simukraft.city_core.districts.assign")));
+            for (CityCoreOpenResponsePacket.CityMemberRef player : districtCandidates(packet, district)) {
                 boolean official = district.members().stream().anyMatch(member -> member.playerId().equals(player.playerId()) && member.rolePower() == 1);
                 String playerName = player.playerName().isBlank() ? player.playerId().toString() : player.playerName();
-                row.addChild(contentButton(Component.translatable("screen.simukraft.city_core.districts.set_mayor_named", playerName), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                UIElement actions = new UIElement().layout(layout -> {
+                    layout.widthPercent(100);
+                    layout.flexDirection(FlexDirection.ROW);
+                    layout.alignItems(AlignItems.CENTER);
+                    layout.gapAll(4);
+                });
+                Label name = line(Component.literal(playerName));
+                name.layout(layout -> layout.flex(1).height(13));
+                actions.addChild(name);
+                actions.addChild(memberActionButton("screen.simukraft.city_core.districts.set_mayor", 72, () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
                         common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.SET_MAYOR, packet.pos(), district.districtId(), player.playerId(), "", List.of()))));
                 if (official) {
-                    row.addChild(contentButton(Component.translatable("screen.simukraft.city_core.districts.remove_official_named", playerName), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                    actions.addChild(memberActionButton("screen.simukraft.city_core.districts.remove_official", 72, () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
                             common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.REMOVE_OFFICIAL, packet.pos(), district.districtId(), player.playerId(), "", List.of()))));
                 } else {
-                    row.addChild(contentButton(Component.translatable("screen.simukraft.city_core.districts.set_official_named", playerName), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                    actions.addChild(memberActionButton("screen.simukraft.city_core.districts.set_official", 72, () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
                             common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.SET_OFFICIAL, packet.pos(), district.districtId(), player.playerId(), "", List.of()))));
                 }
+                row.addChild(actions);
             }
             panel.addChild(row);
             panel.addChild(contentSpacer());
         }
         return scrollable(panel);
+    }
+
+    /** 地图快照可能不带城市成员。分区页优先用完整快照，再补上分区里已有的人，保证区长和官员按钮有人可点。 */
+    private static CityCoreOpenResponsePacket districtManagementPacket(CityCoreOpenResponsePacket packet) {
+        if (packet == null || !packet.cityMembers().isEmpty()) {
+            return packet;
+        }
+        CityCoreOpenResponsePacket cached = lastSummaryPacket;
+        if (cached != null && cached.hasCity() && cached.cityId().equals(packet.cityId()) && !cached.cityMembers().isEmpty()) {
+            return new CityCoreOpenResponsePacket(packet.pos(), true, packet.cityId(), packet.cityName(), packet.funds(), packet.cityLevel(), packet.memberCount(), packet.cityPopulation(), packet.housingCapacity(), packet.cityChunkCount(), packet.cityEnclaveCount(), packet.permissionLevel(), packet.canCreateCity(), packet.canManageCity(), packet.financeEntries(), packet.poiStats(), packet.jobStats(), packet.upgradeTargets(), packet.upgradeProgress(), packet.districts().isEmpty() ? cached.districts() : packet.districts(), packet.districtContext(), packet.districtName(), cached.cityMembers());
+        }
+        return packet;
+    }
+
+    private static List<CityCoreOpenResponsePacket.CityMemberRef> districtCandidates(CityCoreOpenResponsePacket packet, CityCoreOpenResponsePacket.DistrictSummary district) {
+        java.util.LinkedHashMap<UUID, CityCoreOpenResponsePacket.CityMemberRef> candidates = new java.util.LinkedHashMap<>();
+        for (CityCoreOpenResponsePacket.CityMemberRef member : packet.cityMembers()) {
+            candidates.putIfAbsent(member.playerId(), member);
+        }
+        for (CityCoreOpenResponsePacket.DistrictMemberView member : district.members()) {
+            candidates.putIfAbsent(member.playerId(), new CityCoreOpenResponsePacket.CityMemberRef(member.playerId(), member.playerName()));
+        }
+        return List.copyOf(candidates.values());
     }
 
     private static String districtBaseName(String name) {
