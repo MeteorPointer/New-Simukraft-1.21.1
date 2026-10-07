@@ -3,6 +3,7 @@ package common.cn.kafei.simukraft.building;
 import net.minecraft.core.BlockPos;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public record PlacedBuildingRecord(UUID buildingId,
@@ -80,5 +81,15 @@ public record PlacedBuildingRecord(UUID buildingId,
 
     public List<BuildingBlockData> blocks() {
         return voxels.blocks();
+    }
+
+    /** withDistrictId: 复制建筑记录并替换分区归属，其它字段保持不变。 */
+    public PlacedBuildingRecord withDistrictId(UUID districtId) {
+        if (Objects.equals(this.districtId, districtId)) {
+            return this;
+        }
+        return new PlacedBuildingRecord(buildingId, cityId, districtId, dimensionId, category, buildingFileName,
+                displayName, amount, structureFileName, facing, worldOrigin, structureAnchor, minPos, maxPos,
+                completedAt, voxels, poiDefinitions, poiInstances, unitDefinitions, unitInstances);
     }
 }

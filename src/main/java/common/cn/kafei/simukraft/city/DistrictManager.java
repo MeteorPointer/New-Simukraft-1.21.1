@@ -1,6 +1,7 @@
 package common.cn.kafei.simukraft.city;
 
 import common.cn.kafei.simukraft.SimuKraft;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -9,10 +10,13 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.saveddata.SavedData;
 import common.cn.kafei.simukraft.storage.SimuSqliteStorage;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -37,9 +41,31 @@ public final class DistrictManager extends SavedData {
         CompoundTag sqlite = SimuSqliteStorage.loadDistricts(level);
         // SQLite is authoritative only when it returned actual district rows. An empty or
         // unavailable read must not erase SavedData loaded from the world.
-        if (sqlite == null || sqlite.isEmpty() || !sqlite.contains("Districts")) return;
-        DistrictManager loaded = load(sqlite, level.registryAccess());
-        districts.clear(); chunkIndex.clear(); districts.putAll(loaded.districts); chunkIndex.putAll(loaded.chunkIndex);
+        if (sqlite != null && !sqlite.isEmpty() && sqlite.contains("Districts")) {
+            DistrictManager loaded = load(sqlite, level.registryAccess());
+            districts.clear();
+            chunkIndex.clear();
+            districts.putAll(loaded.districts);
+            chunkIndex.putAll(loaded.chunkIndex);
+        }
+        discardMissingParents(level);
+    }
+
+    /** 已删除城市留下的分区会让整批保存因外键失败，也会让区块绑到管理列表里看不到的分区。 */
+    private void discardMissingParents(ServerLevel level) {
+        Set<UUID> liveCityIds = CityService.allCities(level).stream().map(CityData::cityId).collect(Collectors.toSet());
+        if (liveCityIds.isEmpty()) return;
+        List<UUID> stale = districts.values().stream()
+                .filter(district -> district.parentCityId() == null || !liveCityIds.contains(district.parentCityId()))
+                .map(DistrictData::districtId)
+                .toList();
+        if (stale.isEmpty()) return;
+        for (UUID districtId : stale) {
+            DistrictData district = districts.remove(districtId);
+            if (district != null) district.chunks().forEach(chunkIndex::remove);
+        }
+        setDirty();
+        persist();
     }
 
     private void persist() {
@@ -75,11 +101,8 @@ public final class DistrictManager extends SavedData {
         if (cityId == null || !CityService.isValidCityName(name) || chunks == null || chunks.isEmpty() || nameExists(cityId, name)) return null;
         // A chunk can only belong to one district. Core chunks remain protected even
         // though they are still part of the parent city's claimed area.
-        if (chunks.stream().anyMatch(chunk -> chunkIndex.containsKey(chunk))) return null;
-        if (level != null && chunks.stream().anyMatch(chunk -> CityService.allCities(level).stream().anyMatch(city -> new ChunkPos(city.cityCorePos()).toLong() == chunk))) return null;
-        if (level != null && chunks.stream().anyMatch(chunk -> districts.values().stream()
-                .flatMap(district -> district.cores().stream())
-                .anyMatch(core -> new ChunkPos(net.minecraft.core.BlockPos.of(core)).toLong() == chunk))) return null;
+        if (chunks.stream().anyMatch(chunk -> chunkIndex.containsKey(chunk) || isProtectedCoreChunk(chunk))) return null;
+        if (!ownedByCity(cityId, chunks)) return null;
         UUID id = UUID.randomUUID();
         int color = stableColor(id);
         DistrictData district = new DistrictData(id, cityId, name, color);
@@ -89,34 +112,52 @@ public final class DistrictManager extends SavedData {
     }
 
     public synchronized boolean assignChunks(UUID districtId, Set<Long> chunks) {
-        DistrictData target = districts.get(districtId); if (target == null || chunks == null || chunks.isEmpty()) return false;
+        DistrictData target = districts.get(districtId);
+        if (target == null || chunks == null || chunks.isEmpty() || !ownedByCity(target.parentCityId(), chunks)) return false;
         for (long chunk : chunks) {
-            if (level != null && CityService.allCities(level).stream().anyMatch(city -> new ChunkPos(city.cityCorePos()).toLong() == chunk)) return false;
-            if (districts.values().stream().anyMatch(d -> d.cores().stream().mapToLong(Long::longValue).anyMatch(core -> new ChunkPos(net.minecraft.core.BlockPos.of(core)).toLong() == chunk))) return false;
+            if (isProtectedCoreChunk(chunk)) return false;
         }
         for (long chunk : chunks) {
-            if (level != null && CityService.allCities(level).stream().anyMatch(city -> new ChunkPos(city.cityCorePos()).toLong() == chunk)) return false;
-            if (districts.values().stream().anyMatch(d -> d.cores().stream().mapToLong(Long::longValue).anyMatch(core -> new ChunkPos(net.minecraft.core.BlockPos.of(core)).toLong() == chunk))) return false;
             UUID oldId = chunkIndex.get(chunk);
-            if (oldId != null && !oldId.equals(districtId)) districts.get(oldId).removeChunk(chunk);
-            target.addChunk(chunk); chunkIndex.put(chunk, districtId);
+            if (oldId != null && !oldId.equals(districtId)) {
+                DistrictData previous = districts.get(oldId);
+                if (previous != null) previous.removeChunk(chunk);
+            }
+            target.addChunk(chunk);
+            chunkIndex.put(chunk, districtId);
         }
         setDirty(); persist(); return true;
     }
 
     public synchronized boolean moveToCity(UUID cityId, Set<Long> chunks) {
-        if (cityId == null || chunks == null || chunks.isEmpty()) return false;
+        if (cityId == null || chunks == null || chunks.isEmpty() || !detachableByCity(cityId, chunks)) return false;
         for (long chunk : chunks) {
-            if (level != null && CityService.allCities(level).stream().anyMatch(city -> new ChunkPos(city.cityCorePos()).toLong() == chunk)) return false;
-            if (districts.values().stream().anyMatch(d -> d.cores().stream().mapToLong(Long::longValue).anyMatch(core -> new ChunkPos(net.minecraft.core.BlockPos.of(core)).toLong() == chunk))) return false;
+            if (isProtectedCoreChunk(chunk)) return false;
         }
         for (long chunk : chunks) {
-            if (level != null && CityService.allCities(level).stream().anyMatch(city -> new ChunkPos(city.cityCorePos()).toLong() == chunk)) return false;
-            if (districts.values().stream().anyMatch(d -> d.cores().stream().mapToLong(Long::longValue).anyMatch(core -> new ChunkPos(net.minecraft.core.BlockPos.of(core)).toLong() == chunk))) return false;
             UUID oldId = chunkIndex.remove(chunk);
-            if (oldId != null && districts.containsKey(oldId)) districts.get(oldId).removeChunk(chunk);
+            if (oldId != null) {
+                DistrictData previous = districts.get(oldId);
+                if (previous != null) previous.removeChunk(chunk);
+            }
         }
         setDirty(); persist(); return true;
+    }
+
+    /** removeCity: 删除一座城市名下的全部分区，并返回需要拆除的分区核心坐标。 */
+    public synchronized List<BlockPos> removeCity(UUID cityId) {
+        if (cityId == null) return List.of();
+        List<DistrictData> owned = districts.values().stream().filter(district -> cityId.equals(district.parentCityId())).toList();
+        if (owned.isEmpty()) return List.of();
+        List<BlockPos> cores = new ArrayList<>();
+        for (DistrictData district : owned) {
+            district.cores().forEach(core -> cores.add(BlockPos.of(core)));
+            district.chunks().forEach(chunkIndex::remove);
+            districts.remove(district.districtId());
+        }
+        setDirty();
+        persist();
+        return List.copyOf(cores);
     }
 
     public synchronized boolean bindCore(UUID districtId, ChunkPos chunk, long corePosLong) {
@@ -149,8 +190,20 @@ public final class DistrictManager extends SavedData {
         DistrictData district = districts.get(districtId);
         if (district == null || playerId == null || role == null || role == DistrictRole.MAYOR) return false;
         DistrictMemberData member = district.member(playerId);
-        if (member == null) return false;
+        if (member == null || member.role() == DistrictRole.MAYOR) return false;
         member.setRole(role); setDirty(); persist(); return true;
+    }
+
+    /** grantRole: 把本城成员写入分区。不能把现任区长降成官员或居民。 */
+    public synchronized boolean grantRole(UUID districtId, UUID playerId, String playerName, DistrictRole role) {
+        DistrictData district = districts.get(districtId);
+        if (district == null || playerId == null || role == null || role == DistrictRole.MAYOR) return false;
+        DistrictMemberData member = district.member(playerId);
+        if (member != null && member.role() == DistrictRole.MAYOR) return false;
+        district.addOrUpdateMember(playerId, playerName, role);
+        setDirty();
+        persist();
+        return true;
     }
 
     public synchronized boolean setMayor(UUID districtId, UUID playerId, String playerName) {
@@ -196,6 +249,34 @@ public final class DistrictManager extends SavedData {
         if (district == null || !district.parentCityId().equals(cityId)) return false;
         district.chunks().forEach(chunkIndex::remove);
         districts.remove(districtId); setDirty(); persist(); return true;
+    }
+
+    private boolean ownedByCity(UUID cityId, Set<Long> chunks) {
+        if (level == null) return true;
+        CityChunkManager chunkManager = CityChunkManager.get(level);
+        return chunks.stream().allMatch(chunk -> cityId.equals(chunkManager.getChunkOwner(chunk)));
+    }
+
+    /** 无主区块只允许原分区城市清掉残留；不能动别的城市仍持有的区块。 */
+    private boolean detachableByCity(UUID cityId, Set<Long> chunks) {
+        if (level == null) return true;
+        CityChunkManager chunkManager = CityChunkManager.get(level);
+        for (long chunk : chunks) {
+            UUID owner = chunkManager.getChunkOwner(chunk);
+            DistrictData district = byChunk(chunk).orElse(null);
+            boolean ourDistrict = district == null || cityId.equals(district.parentCityId());
+            boolean ourOrUnowned = owner == null || cityId.equals(owner);
+            if (!ourDistrict || !ourOrUnowned) return false;
+        }
+        return true;
+    }
+
+    private boolean isProtectedCoreChunk(long chunk) {
+        if (level != null && CityService.allCities(level).stream().anyMatch(city -> new ChunkPos(city.cityCorePos()).toLong() == chunk)) {
+            return true;
+        }
+        return districts.values().stream().flatMap(district -> district.cores().stream())
+                .anyMatch(core -> new ChunkPos(BlockPos.of(core)).toLong() == chunk);
     }
 
     public static int stableColor(UUID id) {

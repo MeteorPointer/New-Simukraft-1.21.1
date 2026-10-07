@@ -9,7 +9,10 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.Set;
 import java.util.UUID;
 
 /** SQLite persistence for district metadata. The NBT shape mirrors DistrictData.toTag(). */
@@ -29,11 +32,17 @@ public final class DistrictSqliteRepository {
              PreparedStatement chunk = connection.prepareStatement("INSERT INTO district_chunks(district_id, chunk_long, dimension_id) VALUES(?, ?, ?)");
              PreparedStatement core = connection.prepareStatement("INSERT INTO district_cores(district_id, pos_long, dimension_id) VALUES(?, ?, ?)");
              PreparedStatement member = connection.prepareStatement("INSERT INTO district_members(district_id, player_id, player_name, role, dimension_id) VALUES(?, ?, ?, ?, ?)");) {
+            Set<String> liveCities = new HashSet<>();
+            try (Statement cities = connection.createStatement(); ResultSet rows = cities.executeQuery("SELECT city_id FROM cities")) {
+                while (rows.next()) liveCities.add(rows.getString(1));
+            }
             ListTag districts = tag.getList("Districts", CompoundTag.TAG_COMPOUND);
             for (int i = 0; i < districts.size(); i++) {
                 CompoundTag value = districts.getCompound(i);
+                String parentCityId = value.getUUID("ParentCityId").toString();
+                if (!liveCities.contains(parentCityId)) continue;
                 String districtId = value.getUUID("DistrictId").toString();
-                district.setString(1, districtId); district.setString(2, value.getUUID("ParentCityId").toString());
+                district.setString(1, districtId); district.setString(2, parentCityId);
                 district.setString(3, value.getString("Name")); district.setInt(4, value.getInt("Color")); district.setString(5, dimensionId); district.addBatch();
                 ListTag chunks = value.getList("Chunks", LongTag.TAG_LONG);
                 for (int j = 0; j < chunks.size(); j++) { chunk.setString(1, districtId); chunk.setLong(2, ((LongTag) chunks.get(j)).getAsLong()); chunk.setString(3, dimensionId); chunk.addBatch(); }

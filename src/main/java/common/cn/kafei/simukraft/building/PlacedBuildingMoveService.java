@@ -203,7 +203,8 @@ public final class PlacedBuildingMoveService {
                     destinationBounds.min(), destinationBounds.max(), building.completedAt(), movedBlocks,
                     building.poiDefinitions(), movedPois, building.unitDefinitions(), building.unitInstances());
             syncMovedPois(level, moved, transform);
-            moved = rebuildMovedUnitInstances(level, moved);
+            moved = rebuildMovedUnitInstances(level, moved)
+                    .withDistrictId(common.cn.kafei.simukraft.city.DistrictOwnershipSync.districtAt(level, moved.worldOrigin(), moved.cityId()));
             PlacedBuildingService.register(level, moved);
             syncMovedUnitAssignments(level, moved);
             CitizenHomeRestService.invalidateMovedHomes(level,
@@ -463,7 +464,7 @@ public final class PlacedBuildingMoveService {
                 building.buildingFileName(), building.displayName(), building.amount(), building.structureFileName(),
                 building.facing(), building.worldOrigin(), building.structureAnchor(), building.minPos(), building.maxPos(),
                 building.completedAt(), building.blocks(), building.poiDefinitions(), building.poiInstances(),
-                building.unitDefinitions(), unitInstances);
+                building.unitDefinitions(), unitInstances).withDistrictId(building.districtId());
     }
 
     /** isMovingBuildingBlock: 判断控制箱移除是否属于 RTS 整体搬迁事务。 */

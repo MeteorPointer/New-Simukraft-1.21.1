@@ -214,6 +214,10 @@ public final class CityManager extends SavedData {
         if (city == null || !city.hasPermission(operatorId, CityPermissionLevel.MAYOR)) {
             return false;
         }
+        ServerLevel currentLevel = level;
+        if (currentLevel != null) {
+            DistrictService.releaseCity(currentLevel, cityId);
+        }
         cities.remove(cityId);
         corePosIndex.remove(coreKey(city.dimensionId(), city.cityCorePos()));
         city.members().forEach(member -> playerCityIndex.remove(member.playerId(), cityId));
@@ -223,7 +227,6 @@ public final class CityManager extends SavedData {
         if (poiManager != null) {
             poiManager.releaseCity(cityId);
         }
-        ServerLevel currentLevel = level;
         if (currentLevel != null) {
             CitizenManager.get(currentLevel).releaseCity(cityId, currentLevel);
             LogisticsManager.get(currentLevel).releaseCity(cityId);

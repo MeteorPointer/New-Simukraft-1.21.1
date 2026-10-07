@@ -1,11 +1,15 @@
 package common.cn.kafei.simukraft.network.city;
 
 import common.cn.kafei.simukraft.SimuKraft;
+import common.cn.kafei.simukraft.city.CityData;
+import common.cn.kafei.simukraft.city.CityMemberData;
 import common.cn.kafei.simukraft.city.CityService;
 import common.cn.kafei.simukraft.city.DistrictData;
 import common.cn.kafei.simukraft.city.DistrictManager;
+import common.cn.kafei.simukraft.city.DistrictOwnershipSync;
 import common.cn.kafei.simukraft.city.DistrictRole;
 import common.cn.kafei.simukraft.city.CityChunkManager;
+import common.cn.kafei.simukraft.network.city.core.CityCoreAccessValidator;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.network.city.core.CityCoreOpenRequestPacket;
 import common.cn.kafei.simukraft.network.city.map.CityCoreMapRequestPacket;
@@ -71,14 +75,24 @@ public record DistrictActionPacket(Action action, BlockPos corePos, UUID distric
     }
 
     private static void execute(DistrictActionPacket packet, ServerPlayer player, ServerLevel level) {
-        var city = CityService.findPlayerCity(level, player.getUUID()).orElse(null);
-        if (city == null) { InfoToastService.warning(player, Component.translatable("message.simukraft.district.no_city")); return; }
+        if (!CityCoreAccessValidator.canAccess(level, player, packet.corePos())) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.city_core.too_far"));
+            return;
+        }
+        CityData city = CityService.findCityByCorePos(level, packet.corePos()).orElse(null);
+        if (city == null) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.city_core.not_found"));
+            return;
+        }
         DistrictManager manager = DistrictManager.get(level);
         boolean ok = false;
+        boolean announced = false;
+        boolean chunksChanged = false;
         Set<Long> chunks = packet.chunks().stream().collect(Collectors.toUnmodifiableSet());
+        boolean cityMayor = CityService.hasPermission(level, city.cityId(), player.getUUID(), common.cn.kafei.simukraft.city.CityPermissionLevel.MAYOR);
         switch (packet.action()) {
             case CREATE -> {
-                if (CityService.hasPermission(level, city.cityId(), player.getUUID(), common.cn.kafei.simukraft.city.CityPermissionLevel.MAYOR)) {
+                if (cityMayor) {
                     CityChunkManager chunkManager = CityChunkManager.get(level);
                     // A selection commonly contains the parent core chunk because the map is
                     // centered on it. Core chunks are protected and cannot belong to a district,
@@ -90,25 +104,39 @@ public record DistrictActionPacket(Action action, BlockPos corePos, UUID distric
                             .allMatch(chunk -> city.cityId().equals(chunkManager.getChunkOwner(chunk)) && manager.byChunk(chunk).isEmpty());
                     if (allParentChunks) {
                         ok = manager.create(city.cityId(), packet.name(), player.getUUID(), player.getName().getString(), eligibleChunks) != null;
+                        chunksChanged = ok;
                         if (ok) {
                             InfoToastService.success(player, Component.translatable("message.simukraft.district.created", manager.byChunk(eligibleChunks.iterator().next()).map(DistrictData::name).orElse(packet.name()), eligibleChunks.size()));
+                            announced = true;
                         }
                     } else if (eligibleChunks.isEmpty()) {
                         InfoToastService.warning(player, Component.translatable("message.simukraft.district.create_no_chunks"));
+                        announced = true;
                     } else if (eligibleChunks.stream().anyMatch(chunk -> manager.byChunk(chunk).isPresent())) {
                         InfoToastService.warning(player, Component.translatable("message.simukraft.district.create_existing"));
+                        announced = true;
                     } else {
                         InfoToastService.warning(player, Component.translatable("message.simukraft.district.create_not_owned"));
+                        announced = true;
                     }
                 } else {
                     InfoToastService.warning(player, Component.translatable("message.simukraft.district.no_permission"));
+                    announced = true;
                 }
             }
-            case ASSIGN -> ok = common.cn.kafei.simukraft.city.DistrictService.assign(level, city.cityId(), player.getUUID(), packet.districtId(), chunks);
-            case MOVE_TO_CITY -> ok = CityService.hasPermission(level, city.cityId(), player.getUUID(), common.cn.kafei.simukraft.city.CityPermissionLevel.MAYOR) && manager.moveToCity(city.cityId(), chunks);
+            case ASSIGN -> {
+                ok = common.cn.kafei.simukraft.city.DistrictService.assign(level, city.cityId(), player.getUUID(), packet.districtId(), chunks);
+                chunksChanged = ok;
+            }
+            case MOVE_TO_CITY -> {
+                ok = cityMayor && manager.moveToCity(city.cityId(), chunks);
+                chunksChanged = ok;
+            }
             case BIND_CORE -> {
                 DistrictData district = packet.districtId() == null ? manager.byChunk(new ChunkPos(packet.corePos())).orElse(null) : manager.get(packet.districtId()).orElse(null);
-                if (district != null && district.parentCityId().equals(city.cityId()) && (district.hasPermission(player.getUUID(), DistrictRole.OFFICIAL) || CityService.hasPermission(level, city.cityId(), player.getUUID(), common.cn.kafei.simukraft.city.CityPermissionLevel.MAYOR))) {
+                if (district != null && district.parentCityId().equals(city.cityId())
+                        && !CityService.hasCityAtCorePos(level, packet.corePos())
+                        && (district.hasPermission(player.getUUID(), DistrictRole.OFFICIAL) || cityMayor)) {
                     ok = level.getBlockState(packet.corePos()).is(common.cn.kafei.simukraft.registry.ModBlocks.CITY_CORE.get())
                             && PlacedBuildingService.findByContainedPos(level, packet.corePos()) == null
                             && manager.bindCore(district.districtId(), new ChunkPos(packet.corePos()), packet.corePos().asLong());
@@ -116,7 +144,9 @@ public record DistrictActionPacket(Action action, BlockPos corePos, UUID distric
             }
             case UNBIND_CORE -> {
                 DistrictData district = packet.districtId() == null ? null : manager.get(packet.districtId()).orElse(null);
-                if (district != null && (CityService.hasPermission(level, city.cityId(), player.getUUID(), common.cn.kafei.simukraft.city.CityPermissionLevel.MAYOR) || district.hasPermission(player.getUUID(), DistrictRole.MAYOR))) {
+                if (district != null && district.parentCityId().equals(city.cityId())
+                        && (cityMayor || district.hasPermission(player.getUUID(), DistrictRole.MAYOR))
+                        && !CityService.hasCityAtCorePos(level, packet.corePos())) {
                     ok = manager.unbindCore(district.districtId(), packet.corePos().asLong());
                     if (ok && level.getBlockState(packet.corePos()).is(common.cn.kafei.simukraft.registry.ModBlocks.CITY_CORE.get())) {
                         level.setBlock(packet.corePos(), net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
@@ -124,46 +154,78 @@ public record DistrictActionPacket(Action action, BlockPos corePos, UUID distric
                     }
                 }
             }
-            case RENAME -> ok = CityService.hasPermission(level, city.cityId(), player.getUUID(), common.cn.kafei.simukraft.city.CityPermissionLevel.MAYOR)
-                    && manager.rename(packet.districtId(), city.cityId(), packet.name());
+            case RENAME -> {
+                ok = cityMayor && manager.rename(packet.districtId(), city.cityId(), packet.name());
+                Component renameMessage = Component.translatable(ok ? "message.simukraft.district.renamed" : "message.simukraft.district.rename_failed", DistrictManager.normalizeDistrictName(packet.name()));
+                if (ok) {
+                    InfoToastService.success(player, renameMessage);
+                } else {
+                    InfoToastService.warning(player, renameMessage);
+                }
+                announced = true;
+            }
             case DELETE -> {
-                if (CityService.hasPermission(level, city.cityId(), player.getUUID(), common.cn.kafei.simukraft.city.CityPermissionLevel.MAYOR)) {
-                    DistrictData district = manager.get(packet.districtId()).orElse(null);
-                    List<Long> cores = district == null ? List.of() : List.copyOf(district.cores());
+                DistrictData district = packet.districtId() == null ? null : manager.get(packet.districtId()).orElse(null);
+                if (!cityMayor) {
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.district.no_permission"));
+                    announced = true;
+                } else if (district == null || !district.name().equals(packet.name())) {
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.district.delete_confirm_failed"));
+                    announced = true;
+                } else {
+                    List<Long> cores = List.copyOf(district.cores());
+                    String deletedName = district.name();
                     ok = manager.delete(packet.districtId(), city.cityId());
+                    chunksChanged = ok;
                     if (ok) {
                         for (long core : cores) {
                             BlockPos pos = BlockPos.of(core);
+                            if (CityService.hasCityAtCorePos(level, pos)) {
+                                continue;
+                            }
                             if (level.getBlockState(pos).is(common.cn.kafei.simukraft.registry.ModBlocks.CITY_CORE.get())) {
                                 level.setBlock(pos, net.minecraft.world.level.block.Blocks.AIR.defaultBlockState(), net.minecraft.world.level.block.Block.UPDATE_ALL);
                                 net.minecraft.world.level.block.Block.popResource(level, pos, new ItemStack(ModItems.PORTABLE_CITY_CORE.get()));
                             }
                         }
+                        InfoToastService.success(player, Component.translatable("message.simukraft.district.deleted", deletedName));
+                        announced = true;
                     }
                 }
             }
             case INVITE, REMOVE_MEMBER, SET_MAYOR, SET_OFFICIAL, REMOVE_OFFICIAL -> {
                 DistrictData district = packet.districtId() == null ? null : manager.get(packet.districtId()).orElse(null);
                 UUID target = packet.targetPlayerId();
-                if (district != null && target != null && district.parentCityId().equals(city.cityId())) {
-                    boolean cityMayor = CityService.hasPermission(level, city.cityId(), player.getUUID(), common.cn.kafei.simukraft.city.CityPermissionLevel.MAYOR);
+                CityMemberData cityMember = target == null ? null : city.member(target).orElse(null);
+                if (district == null || target == null || !district.parentCityId().equals(city.cityId())) {
+                    ok = false;
+                } else if (cityMember == null) {
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.district.not_city_member"));
+                    announced = true;
+                } else {
                     boolean districtMayor = district.hasPermission(player.getUUID(), DistrictRole.MAYOR);
-                    String targetName = level.getServer().getProfileCache().get(target).map(p -> p.getName()).orElse(target.toString());
+                    String targetName = cityMember.playerName();
                     if (packet.action() == Action.SET_MAYOR) ok = cityMayor && manager.setMayor(district.districtId(), target, targetName);
                     else if (packet.action() == Action.INVITE) ok = (cityMayor || districtMayor) && manager.addMember(district.districtId(), target, targetName, DistrictRole.RESIDENT);
                     else if (packet.action() == Action.REMOVE_MEMBER) ok = (cityMayor || districtMayor) && !target.equals(player.getUUID()) && manager.removeMember(district.districtId(), target);
-                    else if (packet.action() == Action.SET_OFFICIAL) ok = (cityMayor || districtMayor) && manager.setMemberRole(district.districtId(), target, DistrictRole.OFFICIAL);
+                    else if (packet.action() == Action.SET_OFFICIAL) ok = (cityMayor || districtMayor) && manager.grantRole(district.districtId(), target, targetName, DistrictRole.OFFICIAL);
                     else if (packet.action() == Action.REMOVE_OFFICIAL) ok = (cityMayor || districtMayor) && manager.setMemberRole(district.districtId(), target, DistrictRole.RESIDENT);
                 }
             }
         }
-        if (!ok) {
+        if (!ok && !announced) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.district.failed"));
+        }
+        if (chunksChanged) {
+            DistrictOwnershipSync.retagCity(level, city.cityId());
         }
         // Refresh the parent core snapshot so the management tab sees newly created,
         // renamed, assigned, or deleted districts without reopening the block.
         CityCoreOpenRequestPacket.openFor(level, player, packet.corePos());
-        CityCoreMapRequestPacket.sendMap(level, player, packet.corePos());
+        if (packet.action() == Action.CREATE || packet.action() == Action.ASSIGN || packet.action() == Action.MOVE_TO_CITY
+                || packet.action() == Action.BIND_CORE || packet.action() == Action.UNBIND_CORE) {
+            CityCoreMapRequestPacket.sendMap(level, player, packet.corePos());
+        }
     }
 
     private static boolean isProtectedCoreChunk(ServerLevel level, long chunkLong) {

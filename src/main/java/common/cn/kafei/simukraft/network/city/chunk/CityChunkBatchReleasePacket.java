@@ -3,6 +3,9 @@ package common.cn.kafei.simukraft.network.city.chunk;
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.city.CityChunkManager;
 import common.cn.kafei.simukraft.city.CityService;
+import common.cn.kafei.simukraft.city.DistrictData;
+import common.cn.kafei.simukraft.city.DistrictManager;
+import common.cn.kafei.simukraft.city.DistrictOwnershipSync;
 import common.cn.kafei.simukraft.city.group.CityGroupMessageService;
 import common.cn.kafei.simukraft.network.city.core.CityCoreAccessValidator;
 import common.cn.kafei.simukraft.network.city.map.CityCoreMapRequestPacket;
@@ -21,7 +24,9 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public record CityChunkBatchReleasePacket(BlockPos pos, List<ChunkEntry> chunks) implements CustomPacketPayload {
@@ -65,14 +70,33 @@ public record CityChunkBatchReleasePacket(BlockPos pos, List<ChunkEntry> chunks)
         }
         CityService.findCityByCorePos(serverLevel, packet.pos()).ifPresent(city -> {
             CityChunkManager chunkManager = CityChunkManager.get(serverLevel);
-            long coreChunkLong = ChunkPos.asLong(packet.pos().getX() >> 4, packet.pos().getZ() >> 4);
-            int released = 0;
+            DistrictManager districtManager = DistrictManager.get(serverLevel);
+            long parentCoreChunk = new ChunkPos(city.cityCorePos()).toLong();
+            Set<Long> detach = new LinkedHashSet<>();
+            List<Long> release = new ArrayList<>();
             for (ChunkEntry chunk : packet.chunks()) {
                 long chunkLong = ChunkPos.asLong(chunk.chunkX(), chunk.chunkZ());
-                if (chunkLong == coreChunkLong) continue;
+                if (chunkLong == parentCoreChunk || isDistrictCoreChunk(districtManager, city.cityId(), chunkLong)) {
+                    continue;
+                }
+                DistrictData district = districtManager.byChunk(chunkLong).orElse(null);
+                if (district != null && city.cityId().equals(district.parentCityId())) {
+                    detach.add(chunkLong);
+                }
+                release.add(chunkLong);
+            }
+            boolean detached = !detach.isEmpty() && districtManager.moveToCity(city.cityId(), detach);
+            int released = 0;
+            for (long chunkLong : release) {
+                if (detach.contains(chunkLong) && !detached) {
+                    continue;
+                }
                 if (chunkManager.unclaimChunk(city.cityId(), chunkLong)) {
                     released++;
                 }
+            }
+            if (detached || released > 0) {
+                DistrictOwnershipSync.retagCity(serverLevel, city.cityId());
             }
             if (released > 0) {
                 Component message = Component.translatable("message.simukraft.city_chunk.batch_released", released);
@@ -89,6 +113,14 @@ public record CityChunkBatchReleasePacket(BlockPos pos, List<ChunkEntry> chunks)
     @Override
     public @Nonnull Type<? extends CustomPacketPayload> type() {
         return TYPE;
+    }
+
+    private static boolean isDistrictCoreChunk(DistrictManager manager, java.util.UUID cityId, long chunkLong) {
+        DistrictData district = manager.byChunk(chunkLong).orElse(null);
+        if (district == null || !cityId.equals(district.parentCityId())) {
+            return false;
+        }
+        return district.cores().stream().anyMatch(core -> new ChunkPos(net.minecraft.core.BlockPos.of(core)).toLong() == chunkLong);
     }
 
     public record ChunkEntry(int chunkX, int chunkZ) {

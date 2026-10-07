@@ -222,7 +222,7 @@ public final class PlacedBuildingService {
                             poiInstances,
                             record.unitDefinitions(),
                             record.unitInstances()
-                    ));
+                    ).withDistrictId(record.districtId()));
                 }
             }
             if (poiInstances.stream().noneMatch(instance -> instance.poiType() == common.cn.kafei.simukraft.city.poi.CityPoiType.MEDICAL)) {
@@ -234,7 +234,7 @@ public final class PlacedBuildingService {
                             record.buildingFileName(), record.displayName(), record.amount(), record.structureFileName(),
                             record.facing(), record.worldOrigin(), record.structureAnchor(), record.minPos(), record.maxPos(),
                             record.completedAt(), record.blocks(), record.poiDefinitions(), poiInstances,
-                            record.unitDefinitions(), record.unitInstances()));
+                            record.unitDefinitions(), record.unitInstances()).withDistrictId(record.districtId()));
                 }
             }
             for (BuildingPoiInstance poi : poiInstances) {
@@ -272,7 +272,7 @@ public final class PlacedBuildingService {
                     record.amount(), record.structureFileName(), record.facing(),
                     record.worldOrigin(), record.structureAnchor(), record.minPos(),
                     record.maxPos(), record.completedAt(), record.blocks(),
-                    record.poiDefinitions(), record.poiInstances(), unitDefs, rebuilt));
+                    record.poiDefinitions(), record.poiInstances(), unitDefs, rebuilt).withDistrictId(record.districtId()));
             anyChanged = true;
         }
         if (anyChanged) {

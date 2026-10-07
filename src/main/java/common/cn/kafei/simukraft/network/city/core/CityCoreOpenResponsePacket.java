@@ -31,10 +31,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 
-public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds, int cityLevel, int memberCount, int cityPopulation, int housingCapacity, int cityChunkCount, int cityEnclaveCount, CityPermissionLevel permissionLevel, boolean canCreateCity, boolean canManageCity, List<FinanceEntry> financeEntries, List<PoiStat> poiStats, List<JobStat> jobStats, List<UpgradeTarget> upgradeTargets, UpgradeProgress upgradeProgress, List<DistrictSummary> districts, boolean districtContext, String districtName) implements CustomPacketPayload {
+public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds, int cityLevel, int memberCount, int cityPopulation, int housingCapacity, int cityChunkCount, int cityEnclaveCount, CityPermissionLevel permissionLevel, boolean canCreateCity, boolean canManageCity, List<FinanceEntry> financeEntries, List<PoiStat> poiStats, List<JobStat> jobStats, List<UpgradeTarget> upgradeTargets, UpgradeProgress upgradeProgress, List<DistrictSummary> districts, boolean districtContext, String districtName, List<CityMemberRef> cityMembers) implements CustomPacketPayload {
     private static final int MAX_FINANCE_ENTRIES = 128;
     private static final int MAX_POI_STATS = 64;
     private static final int MAX_JOB_STATS = 128;
+    private static final int MAX_CITY_MEMBERS = 256;
+    private static final int MAX_DISTRICT_MEMBERS = 64;
     public static final int MAX_UPGRADE_TARGETS = 32;
     public static final Type<CityCoreOpenResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_open_response"));
     public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreOpenResponsePacket> STREAM_CODEC = StreamCodec.of(CityCoreOpenResponsePacket::encode, CityCoreOpenResponsePacket::decode);
@@ -59,7 +61,7 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
                                       List<UpgradeTarget> upgradeTargets) {
         this(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity,
                 0, 0, permissionLevel, canCreateCity, canManageCity, financeEntries, poiStats, jobStats, upgradeTargets,
-                UpgradeProgress.NONE, List.of(), false, "");
+                UpgradeProgress.NONE, List.of(), false, "", List.of());
     }
 
     /** CityCoreOpenResponsePacket: 兼容现有城市核心统计响应并附加升级进度快照。 */
@@ -83,7 +85,7 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
                                       List<UpgradeTarget> upgradeTargets) {
         this(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity,
                 cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries,
-                poiStats, jobStats, upgradeTargets, UpgradeProgress.NONE, List.of(), false, "");
+                poiStats, jobStats, upgradeTargets, UpgradeProgress.NONE, List.of(), false, "", List.of());
     }
 
     public CityCoreOpenResponsePacket {
@@ -95,12 +97,16 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
         upgradeTargets = upgradeTargets == null ? List.of() : List.copyOf(upgradeTargets);
         upgradeProgress = upgradeProgress == null ? UpgradeProgress.NONE : upgradeProgress;
         districts = districts == null ? List.of() : List.copyOf(districts);
+        cityMembers = cityMembers == null ? List.of() : List.copyOf(cityMembers);
         districtName = districtName == null ? "" : districtName.trim();
         if (!districtContext) {
             districtName = "";
         }
         if (upgradeTargets.size() > MAX_UPGRADE_TARGETS) {
             throw new IllegalArgumentException("Too many city upgrade targets");
+        }
+        if (cityMembers.size() > MAX_CITY_MEMBERS) {
+            throw new IllegalArgumentException("Too many city members");
         }
     }
 
@@ -112,7 +118,7 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
                                       UpgradeProgress upgradeProgress) {
         this(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity,
                 cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries,
-                poiStats, jobStats, upgradeTargets, upgradeProgress, List.of(), false, "");
+                poiStats, jobStats, upgradeTargets, upgradeProgress, List.of(), false, "", List.of());
     }
 
     public CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds,
@@ -123,7 +129,19 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
                                       UpgradeProgress upgradeProgress, List<DistrictSummary> districts) {
         this(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity,
                 cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries,
-                poiStats, jobStats, upgradeTargets, upgradeProgress, districts, false, "");
+                poiStats, jobStats, upgradeTargets, upgradeProgress, districts, false, "", List.of());
+    }
+
+    public CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cityId, String cityName, double funds,
+                                      int cityLevel, int memberCount, int cityPopulation, int housingCapacity,
+                                      int cityChunkCount, int cityEnclaveCount, CityPermissionLevel permissionLevel,
+                                      boolean canCreateCity, boolean canManageCity, List<FinanceEntry> financeEntries,
+                                      List<PoiStat> poiStats, List<JobStat> jobStats, List<UpgradeTarget> upgradeTargets,
+                                      UpgradeProgress upgradeProgress, List<DistrictSummary> districts,
+                                      List<CityMemberRef> cityMembers) {
+        this(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity,
+                cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries,
+                poiStats, jobStats, upgradeTargets, upgradeProgress, districts, false, "", cityMembers);
     }
 
     @Override
@@ -187,9 +205,20 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
             buffer.writeVarInt(district.chunkCount());
             buffer.writeVarInt(district.coreCount());
             buffer.writeUtf(district.mayorName(), 64);
+            buffer.writeVarInt(district.members().size());
+            district.members().forEach(member -> {
+                buffer.writeUUID(member.playerId());
+                buffer.writeUtf(member.playerName(), 64);
+                buffer.writeVarInt(member.rolePower());
+            });
         });
         buffer.writeBoolean(packet.districtContext());
         buffer.writeUtf(packet.districtName(), 64);
+        buffer.writeVarInt(packet.cityMembers().size());
+        packet.cityMembers().forEach(member -> {
+            buffer.writeUUID(member.playerId());
+            buffer.writeUtf(member.playerName(), 64);
+        });
     }
 
     public static CityCoreOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
@@ -253,11 +282,33 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
         }
         List<DistrictSummary> districts = new ArrayList<>(districtSize);
         for (int i = 0; i < districtSize; i++) {
-            districts.add(new DistrictSummary(buffer.readUUID(), buffer.readUtf(64), buffer.readInt(), buffer.readVarInt(), buffer.readVarInt(), buffer.readUtf(64)));
+            UUID districtId = buffer.readUUID();
+            String name = buffer.readUtf(64);
+            int color = buffer.readInt();
+            int chunkCount = buffer.readVarInt();
+            int coreCount = buffer.readVarInt();
+            String mayorName = buffer.readUtf(64);
+            int memberSize = buffer.readVarInt();
+            if (memberSize < 0 || memberSize > MAX_DISTRICT_MEMBERS) {
+                throw new IllegalArgumentException("Too many district members");
+            }
+            List<DistrictMemberView> members = new ArrayList<>(memberSize);
+            for (int memberIndex = 0; memberIndex < memberSize; memberIndex++) {
+                members.add(new DistrictMemberView(buffer.readUUID(), buffer.readUtf(64), buffer.readVarInt()));
+            }
+            districts.add(new DistrictSummary(districtId, name, color, chunkCount, coreCount, mayorName, members));
         }
         boolean districtContext = buffer.readBoolean();
         String districtName = buffer.readUtf(64);
-        return new CityCoreOpenResponsePacket(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity, cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, List.copyOf(financeEntries), List.copyOf(poiStats), List.copyOf(jobStats), upgradeTargets, upgradeProgress, districts, districtContext, districtName);
+        int cityMemberSize = buffer.readVarInt();
+        if (cityMemberSize < 0 || cityMemberSize > MAX_CITY_MEMBERS) {
+            throw new IllegalArgumentException("Too many city members");
+        }
+        List<CityMemberRef> cityMembers = new ArrayList<>(cityMemberSize);
+        for (int memberIndex = 0; memberIndex < cityMemberSize; memberIndex++) {
+            cityMembers.add(new CityMemberRef(buffer.readUUID(), buffer.readUtf(64)));
+        }
+        return new CityCoreOpenResponsePacket(pos, hasCity, cityId, cityName, funds, cityLevel, memberCount, cityPopulation, housingCapacity, cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, List.copyOf(financeEntries), List.copyOf(poiStats), List.copyOf(jobStats), upgradeTargets, upgradeProgress, districts, districtContext, districtName, cityMembers);
     }
 
     public static void handle(CityCoreOpenResponsePacket packet, IPayloadContext context) {
@@ -337,12 +388,25 @@ public record CityCoreOpenResponsePacket(BlockPos pos, boolean hasCity, UUID cit
         return UpgradeTarget.NONE;
     }
 
-    public record DistrictSummary(UUID districtId, String name, int color, int chunkCount, int coreCount, String mayorName) {
+    public record DistrictSummary(UUID districtId, String name, int color, int chunkCount, int coreCount, String mayorName, List<DistrictMemberView> members) {
         public DistrictSummary {
             name = name == null ? "" : name;
             mayorName = mayorName == null ? "" : mayorName;
             chunkCount = Math.max(0, chunkCount);
             coreCount = Math.max(0, coreCount);
+            members = members == null ? List.of() : List.copyOf(members);
+        }
+    }
+
+    public record DistrictMemberView(UUID playerId, String playerName, int rolePower) {
+        public DistrictMemberView {
+            playerName = playerName == null ? "" : playerName;
+        }
+    }
+
+    public record CityMemberRef(UUID playerId, String playerName) {
+        public CityMemberRef {
+            playerName = playerName == null ? "" : playerName;
         }
     }
 

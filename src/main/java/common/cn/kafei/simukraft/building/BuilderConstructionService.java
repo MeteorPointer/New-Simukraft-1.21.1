@@ -379,7 +379,8 @@ public final class BuilderConstructionService {
                 }
             }
         }
-        PlacedBuildingRecord placedBuilding = new PlacedBuildingRecord(UUID.randomUUID(), cityId, task.dimensionId(), task.category(), task.buildingFileName(), task.displayName(), task.amount(), task.structureFileName(), BuildingTransform.directionFromRotation(task.rotationDegrees()).getSerializedName(), task.origin(), BlockPos.ZERO, minPos, maxPos, System.currentTimeMillis(), cached.blocks(), task.poiDefinitions(), poiInstances, unitDefs, unitInsts);
+        PlacedBuildingRecord placedBuilding = new PlacedBuildingRecord(UUID.randomUUID(), cityId, task.dimensionId(), task.category(), task.buildingFileName(), task.displayName(), task.amount(), task.structureFileName(), BuildingTransform.directionFromRotation(task.rotationDegrees()).getSerializedName(), task.origin(), BlockPos.ZERO, minPos, maxPos, System.currentTimeMillis(), cached.blocks(), task.poiDefinitions(), poiInstances, unitDefs, unitInsts)
+                .withDistrictId(common.cn.kafei.simukraft.city.DistrictOwnershipSync.districtAt(level, task.origin(), cityId));
         PlacedBuildingService.register(level, placedBuilding);
         NeoForge.EVENT_BUS.post(new BuildingConstructionEvent.Complete(level, task, citizen, placedBuilding));
         RtsBuildingBoundsRequestPacket.refreshNearbyPlayers(level, placedBuilding);

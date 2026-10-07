@@ -64,6 +64,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector2f;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -105,8 +106,15 @@ public final class CityCoreScreenOpener {
                     return;
                 }
             }
+            String restoreTab = null;
+            if (expectation == null) {
+                CityCoreWindow current = activeWindow;
+                if (isActiveScreen(minecraft, current) && current.matches(packet)) {
+                    restoreTab = restorableTab(current.currentTabId, packet);
+                }
+            }
             rememberSummary(packet);
-            show(minecraft, createUi(packet, expectation != null ? "upgrade" : null));
+            show(minecraft, createUi(packet, expectation != null ? "upgrade" : restoreTab));
         });
     }
 
@@ -116,6 +124,20 @@ public final class CityCoreScreenOpener {
         if (packet != null && packet.hasCity() && window != null && window.matches(packet)) {
             pendingUpgradeRefresh = new UpgradeRefreshExpectation(packet.pos(), packet.cityId(), window.instanceId);
         }
+    }
+
+    /** 分区列表和编辑页刷新后留在原标签，地图操作仍回到地图。 */
+    private static String restorableTab(String tab, CityCoreOpenResponsePacket packet) {
+        if (packet == null || !packet.hasCity() || tab == null || "info".equals(tab)) {
+            return null;
+        }
+        if ("districts".equals(tab) && !packet.districtContext() && packet.permissionLevel() == CityPermissionLevel.MAYOR) {
+            return "districts";
+        }
+        if (("edit".equals(tab) || "finance".equals(tab) || "upgrade".equals(tab)) && packet.canManageCity()) {
+            return tab;
+        }
+        return null;
     }
 
     /** takeUpgradeRefresh: 消费匹配的升级响应；不按时间降级为普通开窗响应。 */
@@ -364,24 +386,61 @@ public final class CityCoreScreenOpener {
                 layout.gapAll(3);
             });
             row.addChild(line(Component.translatable("screen.simukraft.city_core.districts.row", district.name(), district.chunkCount(), district.coreCount(), district.mayorName().isBlank() ? "-" : district.mayorName())));
-            TextField rename = textField(district.name(), 200);
+            if (district.members().isEmpty()) {
+                row.addChild(line(Component.translatable("screen.simukraft.city_core.districts.no_members")));
+            } else {
+                for (CityCoreOpenResponsePacket.DistrictMemberView member : district.members()) {
+                    row.addChild(line(Component.translatable("screen.simukraft.city_core.districts.member_row", member.playerName(), districtRoleText(member.rolePower()))));
+                }
+            }
+            TextField rename = textField(districtBaseName(district.name()), 200);
+            rename.getTextFieldStyle().placeholder(Component.translatable("screen.simukraft.city_core.districts.name_placeholder"));
             row.addChild(rename);
             row.addChild(contentButton("screen.simukraft.city_core.districts.rename", () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
                     common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.RENAME, packet.pos(), district.districtId(), rename.getValue(), List.of()))));
-            if (Minecraft.getInstance().level != null) {
-                for (var player : Minecraft.getInstance().level.players()) {
-                    UUID playerId = player.getUUID();
-                    String playerName = player.getName().getString();
-                    row.addChild(contentButton(Component.literal("-> " + playerName + " / " + Component.translatable("screen.simukraft.city_core.districts.set_mayor").getString()), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
-                            common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.SET_MAYOR, packet.pos(), district.districtId(), playerId, "", List.of()))));
-                    row.addChild(contentButton(Component.literal("-> " + playerName + " / " + Component.translatable("screen.simukraft.city_core.districts.set_official").getString()), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
-                            common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.SET_OFFICIAL, packet.pos(), district.districtId(), playerId, "", List.of()))));
+            row.addChild(line(Component.translatable("screen.simukraft.city_core.edit.district.delete_tip", district.name())));
+            TextField deleteConfirm = textField("", 200);
+            deleteConfirm.getTextFieldStyle().placeholder(Component.translatable("screen.simukraft.city_core.edit.district.delete_placeholder"));
+            row.addChild(deleteConfirm);
+            row.addChild(contentButton("screen.simukraft.city_core.districts.delete", () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                    common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.DELETE, packet.pos(), district.districtId(), deleteConfirm.getValue(), List.of()))));
+            UUID mayorId = district.members().stream().filter(member -> member.rolePower() >= 2).map(CityCoreOpenResponsePacket.DistrictMemberView::playerId).findFirst().orElse(null);
+            for (CityCoreOpenResponsePacket.CityMemberRef player : packet.cityMembers()) {
+                if (player.playerId().equals(mayorId)) {
+                    continue;
+                }
+                boolean official = district.members().stream().anyMatch(member -> member.playerId().equals(player.playerId()) && member.rolePower() == 1);
+                String playerName = player.playerName().isBlank() ? player.playerId().toString() : player.playerName();
+                row.addChild(contentButton(Component.translatable("screen.simukraft.city_core.districts.set_mayor_named", playerName), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                        common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.SET_MAYOR, packet.pos(), district.districtId(), player.playerId(), "", List.of()))));
+                if (official) {
+                    row.addChild(contentButton(Component.translatable("screen.simukraft.city_core.districts.remove_official_named", playerName), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                            common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.REMOVE_OFFICIAL, packet.pos(), district.districtId(), player.playerId(), "", List.of()))));
+                } else {
+                    row.addChild(contentButton(Component.translatable("screen.simukraft.city_core.districts.set_official_named", playerName), () -> PacketDistributor.sendToServer(new common.cn.kafei.simukraft.network.city.DistrictActionPacket(
+                            common.cn.kafei.simukraft.network.city.DistrictActionPacket.Action.SET_OFFICIAL, packet.pos(), district.districtId(), player.playerId(), "", List.of()))));
                 }
             }
             panel.addChild(row);
             panel.addChild(contentSpacer());
         }
         return scrollable(panel);
+    }
+
+    private static String districtBaseName(String name) {
+        if (name != null && name.endsWith("\u533a")) {
+            return name.substring(0, name.length() - 1);
+        }
+        return name == null ? "" : name;
+    }
+
+    private static Component districtRoleText(int rolePower) {
+        String key = switch (rolePower) {
+            case 2 -> "screen.simukraft.city_core.districts.role.mayor";
+            case 1 -> "screen.simukraft.city_core.districts.role.official";
+            default -> "screen.simukraft.city_core.districts.role.resident";
+        };
+        return Component.translatable(key);
     }
 
     private static String financeTypeText(CityCoreOpenResponsePacket.FinanceEntry entry) {
@@ -947,6 +1006,7 @@ public final class CityCoreScreenOpener {
         private final CityCoreMembersResponsePacket membersPacket;
         private final CityCoreMapResponsePacket mapPacket;
         private final String initialTabId;
+        private String currentTabId;
         private final ViewContainer rightTabs = new ViewContainer();
         private final Map<String, View> openedTabs = new ConcurrentHashMap<>();
         private final UIElement sidebarContainer = new UIElement();
@@ -998,10 +1058,12 @@ public final class CityCoreScreenOpener {
             List<CityCoreOpenResponsePacket.JobStat> jobStats = cached != null ? cached.jobStats() : List.of();
             List<CityCoreOpenResponsePacket.UpgradeTarget> upgradeTargets = cached != null ? cached.upgradeTargets() : List.of();
             CityCoreOpenResponsePacket.UpgradeProgress upgradeProgress = cached != null ? cached.upgradeProgress() : CityCoreOpenResponsePacket.UpgradeProgress.NONE;
-            return new CityCoreOpenResponsePacket(packet.pos(), true, packet.cityId(), packet.cityName(), packet.funds(), packet.cityLevel(), packet.members().size(), population, housingCapacity, cityChunkCount, cityEnclaveCount, packet.viewerPermission(), false, packet.canManageCity(), finances, poiStats, jobStats, upgradeTargets, upgradeProgress);
+            List<CityCoreOpenResponsePacket.DistrictSummary> districts = cached != null ? cached.districts() : List.of();
+            List<CityCoreOpenResponsePacket.CityMemberRef> cityMembers = cached != null ? cached.cityMembers() : List.of();
+            return new CityCoreOpenResponsePacket(packet.pos(), true, packet.cityId(), packet.cityName(), packet.funds(), packet.cityLevel(), packet.members().size(), population, housingCapacity, cityChunkCount, cityEnclaveCount, packet.viewerPermission(), false, packet.canManageCity(), finances, poiStats, jobStats, upgradeTargets, upgradeProgress, districts, cityMembers);
         }
 
-        /** summaryPacket：地图响应不带统计字段时，复用最近一次城市核心统计。 */
+        /** summaryPacket：地图响应不带统计字段时，复用最近一次城市核心统计。分区列表必须留下，否则管理页会显示暂无分区。 */
         private static CityCoreOpenResponsePacket summaryPacket(CityCoreMapResponsePacket packet) {
             CityCoreOpenResponsePacket cached = cachedSummary(packet.cityId(), packet.pos());
             int population = cached != null ? cached.cityPopulation() : 0;
@@ -1013,7 +1075,30 @@ public final class CityCoreScreenOpener {
             List<CityCoreOpenResponsePacket.JobStat> jobStats = cached != null ? cached.jobStats() : List.of();
             List<CityCoreOpenResponsePacket.UpgradeTarget> upgradeTargets = cached != null ? cached.upgradeTargets() : List.of();
             CityCoreOpenResponsePacket.UpgradeProgress upgradeProgress = cached != null ? cached.upgradeProgress() : CityCoreOpenResponsePacket.UpgradeProgress.NONE;
-            return new CityCoreOpenResponsePacket(packet.pos(), true, packet.cityId(), packet.cityName(), packet.funds(), packet.cityLevel(), packet.memberCount(), population, housingCapacity, cityChunkCount, cityEnclaveCount, packet.permissionLevel(), false, packet.canManageCity(), finances, poiStats, jobStats, upgradeTargets, upgradeProgress);
+            List<CityCoreOpenResponsePacket.CityMemberRef> cityMembers = cached != null ? cached.cityMembers() : List.of();
+            return new CityCoreOpenResponsePacket(packet.pos(), true, packet.cityId(), packet.cityName(), packet.funds(), packet.cityLevel(), packet.memberCount(), population, housingCapacity, cityChunkCount, cityEnclaveCount, packet.permissionLevel(), false, packet.canManageCity(), finances, poiStats, jobStats, upgradeTargets, upgradeProgress, mergeDistricts(cached, packet), cityMembers);
+        }
+
+        /** 地图包里的分区是刚从服务端拿到的，不能被缺少分区字段的统计快照覆盖成空列表。 */
+        private static List<CityCoreOpenResponsePacket.DistrictSummary> mergeDistricts(CityCoreOpenResponsePacket cached, CityCoreMapResponsePacket map) {
+            Map<UUID, CityCoreOpenResponsePacket.DistrictSummary> merged = new LinkedHashMap<>();
+            if (cached != null) {
+                for (CityCoreOpenResponsePacket.DistrictSummary district : cached.districts()) {
+                    merged.put(district.districtId(), district);
+                }
+            }
+            if (map != null) {
+                for (CityCoreMapResponsePacket.DistrictEntry entry : map.districts()) {
+                    CityCoreOpenResponsePacket.DistrictSummary existing = merged.get(entry.districtId());
+                    int chunks = entry.chunks().size();
+                    if (existing == null) {
+                        merged.put(entry.districtId(), new CityCoreOpenResponsePacket.DistrictSummary(entry.districtId(), entry.name(), entry.color(), chunks, 0, "", List.of()));
+                    } else if (existing.chunkCount() != chunks || !existing.name().equals(entry.name())) {
+                        merged.put(entry.districtId(), new CityCoreOpenResponsePacket.DistrictSummary(existing.districtId(), entry.name(), entry.color(), chunks, existing.coreCount(), existing.mayorName(), existing.members()));
+                    }
+                }
+            }
+            return List.copyOf(merged.values());
         }
 
         private void rebuildSidebar() {
@@ -1048,6 +1133,15 @@ public final class CityCoreScreenOpener {
             if ("upgrade".equals(initialTabId) && packet.hasCity() && packet.canManageCity()) {
                 openTab("info", "screen.simukraft.city_core.menu.info", scrollable(contentPanel(packet)));
                 openTab("upgrade", "screen.simukraft.city_core.menu.upgrade", upgradePanel(packet));
+            } else if ("districts".equals(initialTabId) && packet.hasCity() && !packet.districtContext() && packet.permissionLevel() == CityPermissionLevel.MAYOR) {
+                openTab("districts", "screen.simukraft.city_core.districts.title", districtsPanel(packet));
+            } else if ("edit".equals(initialTabId) && packet.hasCity() && packet.canManageCity()) {
+                String editMenuKey = packet.districtContext()
+                        ? "screen.simukraft.city_core.menu.edit_district"
+                        : "screen.simukraft.city_core.menu.edit";
+                openTab("edit", editMenuKey, editPanel(packet));
+            } else if ("finance".equals(initialTabId) && packet.hasCity() && packet.canManageCity()) {
+                openTab("finance", "screen.simukraft.city_core.menu.finance", financePanel(packet));
             } else if (mapPacket != null) {
                 openTab("info", "screen.simukraft.city_core.menu.info", scrollable(contentPanel(packet)));
                 openTab("map", "screen.simukraft.city_core.map_title", cityMapPanel(mapPacket));
@@ -1071,6 +1165,7 @@ public final class CityCoreScreenOpener {
         }
 
         private void openTab(String id, String titleKey, UIElement content) {
+            currentTabId = id;
             View existing = openedTabs.get(id);
             if (existing != null && rightTabs.hasView(existing)) {
                 rightTabs.selectView(existing);

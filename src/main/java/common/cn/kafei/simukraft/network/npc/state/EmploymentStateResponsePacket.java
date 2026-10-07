@@ -134,6 +134,7 @@ public record EmploymentStateResponsePacket(BlockPos sourcePos, String sourceTyp
             return;
         }
         citizen.setWorkplacePos(workplacePos);
+        common.cn.kafei.simukraft.city.DistrictOwnershipSync.applyCitizen(level, citizen);
         CitizenService.save(level, citizen.uuid());
     }
 

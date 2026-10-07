@@ -87,6 +87,7 @@ public final class NpcChildbirthService {
         child.setAge(1);
         child.setLastAgeGrowthDay(currentDay);
         child.setHomeId(vacantBedPoiId);
+        common.cn.kafei.simukraft.city.DistrictOwnershipSync.applyCitizen(level, child);
         child.setFamilyId(family.familyId());
         child.setOriginFamilyId(family.familyId());
         child.setCityId(wife.cityId());

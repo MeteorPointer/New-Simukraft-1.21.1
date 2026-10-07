@@ -52,6 +52,7 @@ public final class ResidentialControlBoxService {
                 .filter(citizen -> citizen.homeId() != null && residentialPoiIds.contains(citizen.homeId()))
                 .forEach(citizen -> {
                     citizen.setHomeId(null);
+                    common.cn.kafei.simukraft.city.DistrictOwnershipSync.applyCitizen(level, citizen);
                     CitizenService.save(level, citizen.uuid());
                 });
         // 停用所有住宅POI
@@ -272,7 +273,7 @@ public final class ResidentialControlBoxService {
                 mergePoiInstances(building.poiInstances(), bedPoiInstances),
                 building.unitDefinitions(),
                 building.unitInstances()
-        ));
+        ).withDistrictId(building.districtId()));
         return repaired;
     }
 
