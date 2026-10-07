@@ -13,13 +13,14 @@ import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.MapColor;
+import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 
 /** 医疗控制箱方块，负责打开管理界面和移除清理。 */
 
 public final class MedicalControlBoxBlock extends Block {
     public MedicalControlBoxBlock() {
-        super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(1.0F).sound(SoundType.METAL));
+        super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(1.0F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK));
     }
 
     /** useWithoutItem：玩家空手右键打开医疗控制箱。 */
