@@ -247,7 +247,9 @@ public final class BuilderConstructionService {
             return;
         }
         ensureWorkAreaTickets(level, taskRuntime, cached);
-        if (!settleDueConstructionBill(level, citizen, taskRuntime, task.currentBlockIndex(), false)) {
+        int builderLevel = CitizenLevelService.snapshot(citizen, CityJobType.BUILDER).level();
+        boolean chargePerBlock = ConstructionBilling.chargePerPlacedBlock(builderLevel);
+        if (!chargePerBlock && !settleDueConstructionBill(level, citizen, taskRuntime, task.currentBlockIndex(), false)) {
             return;
         }
         task = taskRuntime.task;
@@ -263,12 +265,21 @@ public final class BuilderConstructionService {
             BlockPos worldPos = block.relativePos();
             BlockState targetState = block.state();
             BlockState currentState = level.getBlockState(worldPos);
+            if (!level.isAreaLoaded(worldPos, 4)) {
+                break;
+            }
             if (currentState.equals(targetState)) {
+                if (!payPlacedBlock(level, citizen, taskRuntime, chargePerBlock, index + 1)) {
+                    return;
+                }
                 BuildingBlockPlacementService.applyBlockEntityData(level, worldPos, block.copyBlockEntityData());
                 index++;
                 continue;
             }
             if (NpcBlockProtectionPolicy.isProtected(currentState)) {
+                if (!payPlacedBlock(level, citizen, taskRuntime, chargePerBlock, index + 1)) {
+                    return;
+                }
                 NpcBlockProtectionPolicy.logSkipped("builder", level, worldPos, currentState);
                 index++;
                 placed++;
@@ -276,13 +287,15 @@ public final class BuilderConstructionService {
             }
             // 不替换空气：跳过结构中的空气方块，保留原有方块
             if (targetState.isAir() && !task.replaceWithAir()) {
+                if (!payPlacedBlock(level, citizen, taskRuntime, chargePerBlock, index + 1)) {
+                    return;
+                }
                 index++;
                 placed++;
                 continue;
             }
-            // 先检查目标区块是否加载，未加载则跳过（不消耗材料），等待下一 tick 重试
-            if (!level.isAreaLoaded(worldPos, 4)) {
-                break;
+            if (!payPlacedBlock(level, citizen, taskRuntime, chargePerBlock, index + 1)) {
+                return;
             }
             WorkMaterialResult materialResult = BuilderMaterialService.tryConsumeForBlock(level, taskRuntime.materialCache, targetState);
             if (!materialResult.available()) {
@@ -726,8 +739,17 @@ public final class BuilderConstructionService {
         return Component.Serializer.toJson(Component.translatable(translationKey, args), level.registryAccess());
     }
 
+    /** 5 级以下在推进这一块之前扣这一块的钱。5 级及以上不在这里扣。 */
+    private static boolean payPlacedBlock(ServerLevel level, CitizenData citizen, TaskRuntime taskRuntime, boolean chargePerBlock, int processedBlocks) {
+        if (!chargePerBlock) {
+            return true;
+        }
+        return settleDueConstructionBill(level, citizen, taskRuntime, processedBlocks, false);
+    }
+
     /**
-     * 到点后把本段已经处理的 NBT 方块一次扣掉。没到点不扣。钱不够就暂停，不在放下方块时扣款。
+     * 5 级及以上到点后把本段已经处理的 NBT 方块一次扣掉。5 级以下每处理一块扣一次。
+     * 钱不够就暂停，不在放下方块时继续盖。
      * finishing 为 true 时立刻结清剩余部分，避免建筑已经盖完却一直挂着未扣费用。
      */
     private static boolean settleDueConstructionBill(ServerLevel level, CitizenData citizen, TaskRuntime taskRuntime, int processedBlocks, boolean finishing) {
@@ -735,23 +757,25 @@ public final class BuilderConstructionService {
         int blockCount = Math.max(Math.max(task.totalBlocks(), processedBlocks), 1);
         double totalPrice = EconomyService.parseAmount(task.amount(), "construction");
         long now = level.getGameTime();
-        int interval = ConstructionBilling.chargeIntervalTicks(CitizenLevelService.snapshot(citizen, CityJobType.BUILDER).level());
-        if (taskRuntime.nextBillTick < 0L) {
+        int builderLevel = CitizenLevelService.snapshot(citizen, CityJobType.BUILDER).level();
+        boolean perBlock = ConstructionBilling.chargePerPlacedBlock(builderLevel);
+        int interval = ConstructionBilling.chargeIntervalTicks(builderLevel);
+        if (!perBlock && taskRuntime.nextBillTick < 0L) {
             taskRuntime.nextBillTick = now + interval;
         }
-        boolean due = finishing || now >= taskRuntime.nextBillTick;
+        boolean due = finishing || perBlock || now >= taskRuntime.nextBillTick;
         if (!due) {
             return BuildingTaskStatus.from(task.status()) != BuildingTaskStatus.WAITING_FUNDS;
         }
-        double dueAmount = EconomyService.normalizeAmount(
-                ConstructionBilling.costThrough(totalPrice, blockCount, processedBlocks)
-                        - ConstructionBilling.costThrough(totalPrice, blockCount, taskRuntime.billedBlocks));
-        if (dueAmount <= 0.0D) {
-            taskRuntime.billedBlocks = processedBlocks;
+        long dueCents = ConstructionBilling.centsThrough(totalPrice, blockCount, processedBlocks)
+                - ConstructionBilling.centsThrough(totalPrice, blockCount, taskRuntime.billedBlocks);
+        if (dueCents <= 0L) {
+            taskRuntime.billedBlocks = Math.max(taskRuntime.billedBlocks, processedBlocks);
             taskRuntime.nextBillTick = now + interval;
             resumeFromFundsWait(taskRuntime, task);
             return true;
         }
+        double dueAmount = EconomyService.normalizeAmount(dueCents / 100.0D);
         if (task.cityId() == null || !EconomyService.withdrawCityFunds(level, task.cityId(), null, dueAmount, "construction")) {
             markWaitingForFunds(level, citizen, taskRuntime, task);
             taskRuntime.nextBillTick = now + ConstructionBilling.TICKS_PER_SECOND;

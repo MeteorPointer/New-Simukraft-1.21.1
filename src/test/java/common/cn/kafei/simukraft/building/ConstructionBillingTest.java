@@ -3,6 +3,8 @@ package common.cn.kafei.simukraft.building;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConstructionBillingTest {
     @Test
@@ -13,12 +15,27 @@ class ConstructionBillingTest {
     }
 
     @Test
+    void centsThrough_keepsSubCentBlocksUntilTheyAddUp() {
+        assertEquals(0L, ConstructionBilling.centsThrough(10.0D, 50_000, 1));
+        assertEquals(1L, ConstructionBilling.centsThrough(10.0D, 50_000, 50));
+        assertEquals(1000L, ConstructionBilling.centsThrough(10.0D, 50_000, 50_000));
+        long paid = 0L;
+        int billed = 0;
+        for (int processed = 1; processed <= 50_000; processed++) {
+            paid += ConstructionBilling.centsThrough(10.0D, 50_000, processed)
+                    - ConstructionBilling.centsThrough(10.0D, 50_000, billed);
+            billed = processed;
+        }
+        assertEquals(1000L, paid);
+    }
+
+    @Test
     void chargeIntervalFollowsBuilderLevel() {
-        assertEquals(20, ConstructionBilling.chargeIntervalTicks(1));
-        assertEquals(20, ConstructionBilling.chargeIntervalTicks(4));
-        assertEquals(20, ConstructionBilling.chargeIntervalTicks(9));
-        assertEquals(100, ConstructionBilling.chargeIntervalTicks(10));
-        assertEquals(400, ConstructionBilling.chargeIntervalTicks(15));
-        assertEquals(1200, ConstructionBilling.chargeIntervalTicks(20));
+        assertTrue(ConstructionBilling.chargePerPlacedBlock(1));
+        assertTrue(ConstructionBilling.chargePerPlacedBlock(4));
+        assertFalse(ConstructionBilling.chargePerPlacedBlock(5));
+        assertFalse(ConstructionBilling.chargePerPlacedBlock(20));
+        assertEquals(20, ConstructionBilling.chargeIntervalTicks(5));
+        assertEquals(20, ConstructionBilling.chargeIntervalTicks(20));
     }
 }

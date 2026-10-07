@@ -10,10 +10,15 @@ import common.cn.kafei.simukraft.material.WorkMaterialPolicy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.state.BlockState;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public final class BuildingIntegrityService {
@@ -78,8 +83,9 @@ public final class BuildingIntegrityService {
             return new IntegrityPreview(false, 0, 0, 0, 0, 0.0D);
         }
         RepairPlan plan = repairPlan(level, building);
-        int repairableBlocks = plan.targets().size();
-        return new IntegrityPreview(true, snapshot.totalBlocks(), snapshot.intactBlocks(), repairableBlocks, plan.manualRepairBlocks(), repairCost(repairableBlocks));
+        int repairableBlocks = plan.paidTargets().size();
+        int manualRepairBlocks = plan.manualRepairBlocks() + plan.carriedTargets().size();
+        return new IntegrityPreview(true, snapshot.totalBlocks(), snapshot.intactBlocks(), repairableBlocks, manualRepairBlocks, repairCost(repairableBlocks));
     }
 
     public static double repairCost(int repairableBlocks) {
@@ -95,29 +101,43 @@ public final class BuildingIntegrityService {
             return new RepairResult(RepairStatus.UNAVAILABLE, 0, 0, 0.0D);
         }
         RepairPlan plan = repairPlan(level, building);
-        List<RepairTarget> targets = plan.targets();
-        if (targets.isEmpty()) {
-            RepairStatus status = plan.manualRepairBlocks() > 0 ? RepairStatus.MATERIALS_REQUIRED : RepairStatus.NO_REPAIR_NEEDED;
-            return new RepairResult(status, 0, plan.manualRepairBlocks(), 0.0D);
+        List<RepairTarget> paidTargets = plan.paidTargets();
+        List<RepairTarget> supplied = carriedBlocksToPlace(player, plan.carriedTargets());
+        int manualRepairBlocks = plan.manualRepairBlocks() + plan.carriedTargets().size() - supplied.size();
+        if (paidTargets.isEmpty() && supplied.isEmpty()) {
+            RepairStatus status = manualRepairBlocks > 0 ? RepairStatus.MATERIALS_REQUIRED : RepairStatus.NO_REPAIR_NEEDED;
+            return new RepairResult(status, 0, manualRepairBlocks, 0.0D);
         }
-        double cost = repairCost(targets.size());
+        double cost = repairCost(paidTargets.size());
         if (cost > 0.0D) {
             if (!EconomyService.canAfford(level, building.cityId(), cost) || !CityService.withdrawFunds(level, building.cityId(), cost)) {
-                return new RepairResult(RepairStatus.NOT_ENOUGH_FUNDS, targets.size(), plan.manualRepairBlocks(), cost);
+                return new RepairResult(RepairStatus.NOT_ENOUGH_FUNDS, paidTargets.size(), manualRepairBlocks, cost);
             }
             FinanceLedgerService.record(level, building.cityId(), player, -cost, EconomyService.getCityBalance(level, building.cityId()), FinanceTransactionData.Type.EXPENSE, "building_repair");
         }
-        for (RepairTarget target : targets) {
-            level.setBlock(target.pos(), BuildingBlockPlacementService.refreshedPlacementState(level, target.pos(), target.state()), 3);
+        int repairedBlocks = 0;
+        for (RepairTarget target : paidTargets) {
+            placeRepairedBlock(level, target);
+            repairedBlocks++;
         }
-        return new RepairResult(RepairStatus.SUCCESS, targets.size(), plan.manualRepairBlocks(), cost);
+        for (RepairTarget target : supplied) {
+            Item item = BuildingRepairBlacklist.carriedItem(target.state());
+            if (!consumeOne(player, item)) {
+                manualRepairBlocks++;
+                continue;
+            }
+            placeRepairedBlock(level, target);
+            repairedBlocks++;
+        }
+        return new RepairResult(RepairStatus.SUCCESS, repairedBlocks, manualRepairBlocks, cost);
     }
 
     private static RepairPlan repairPlan(ServerLevel level, PlacedBuildingRecord building) {
         if (level == null || building == null || building.blocks() == null || building.blocks().isEmpty()) {
-            return new RepairPlan(List.of(), 0);
+            return new RepairPlan(List.of(), List.of(), 0);
         }
-        List<RepairTarget> targets = new ArrayList<>();
+        List<RepairTarget> paidTargets = new ArrayList<>();
+        List<RepairTarget> carriedTargets = new ArrayList<>();
         int manualRepairBlocks = 0;
         for (BuildingBlockData block : building.blocks()) {
             if (block == null || block.state() == null || block.state().isAir()) {
@@ -129,13 +149,69 @@ public final class BuildingIntegrityService {
                     || PlacedBuildingService.isOccupiedByOtherBuilding(level, building.buildingId(), worldPos)) {
                 continue;
             }
+            if (BuildingRepairBlacklist.requiresCarriedBlock(block.state())) {
+                carriedTargets.add(new RepairTarget(worldPos, block.state()));
+                continue;
+            }
             if (WorkMaterialPolicy.requiresMaterial(block.state())) {
                 manualRepairBlocks++;
                 continue;
             }
-            targets.add(new RepairTarget(worldPos, block.state()));
+            paidTargets.add(new RepairTarget(worldPos, block.state()));
         }
-        return new RepairPlan(List.copyOf(targets), manualRepairBlocks);
+        return new RepairPlan(List.copyOf(paidTargets), List.copyOf(carriedTargets), manualRepairBlocks);
+    }
+
+    /** 按背包存量决定哪些黑名单方块这次能补，先不消耗。 */
+    private static List<RepairTarget> carriedBlocksToPlace(ServerPlayer player, List<RepairTarget> carriedTargets) {
+        if (player == null || carriedTargets.isEmpty()) {
+            return List.of();
+        }
+        Map<Item, Integer> stock = new HashMap<>();
+        List<RepairTarget> supplied = new ArrayList<>();
+        for (RepairTarget target : carriedTargets) {
+            Item item = BuildingRepairBlacklist.carriedItem(target.state());
+            if (item == Items.AIR) {
+                continue;
+            }
+            int have = stock.computeIfAbsent(item, key -> countCarried(player, key));
+            if (have <= 0) {
+                continue;
+            }
+            stock.put(item, have - 1);
+            supplied.add(target);
+        }
+        return supplied;
+    }
+
+    private static int countCarried(ServerPlayer player, Item item) {
+        int count = 0;
+        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            ItemStack stack = player.getInventory().getItem(slot);
+            if (!stack.isEmpty() && stack.is(item)) {
+                count += stack.getCount();
+            }
+        }
+        return count;
+    }
+
+    private static boolean consumeOne(ServerPlayer player, Item item) {
+        if (player == null || item == null || item == Items.AIR) {
+            return false;
+        }
+        for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
+            ItemStack stack = player.getInventory().getItem(slot);
+            if (stack.isEmpty() || !stack.is(item)) {
+                continue;
+            }
+            stack.shrink(1);
+            return true;
+        }
+        return false;
+    }
+
+    private static void placeRepairedBlock(ServerLevel level, RepairTarget target) {
+        level.setBlock(target.pos(), BuildingBlockPlacementService.refreshedPlacementState(level, target.pos(), target.state()), 3);
     }
 
     /**
@@ -199,7 +275,7 @@ public final class BuildingIntegrityService {
         MATERIALS_REQUIRED
     }
 
-    private record RepairPlan(List<RepairTarget> targets, int manualRepairBlocks) {
+    private record RepairPlan(List<RepairTarget> paidTargets, List<RepairTarget> carriedTargets, int manualRepairBlocks) {
     }
 
     private record RepairTarget(BlockPos pos, BlockState state) {

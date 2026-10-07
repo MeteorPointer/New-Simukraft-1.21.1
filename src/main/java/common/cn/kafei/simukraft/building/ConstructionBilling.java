@@ -3,7 +3,8 @@ package common.cn.kafei.simukraft.building;
 import common.cn.kafei.simukraft.economy.EconomyService;
 
 /**
- * 建造费按建筑 JSON 总价平摊到 NBT 方块数。扣款按建筑师等级定时结算，不在每放一块时扣一次。
+ * 建造费按建筑 JSON 总价平摊到 NBT 方块数，按分累计。
+ * 5 级以下每处理一块扣一次。5 级及以上每秒结算这一段已盖方块。
  */
 public final class ConstructionBilling {
     public static final int TICKS_PER_SECOND = 20;
@@ -19,31 +20,41 @@ public final class ConstructionBilling {
         return EconomyService.normalizeAmount(totalPrice / blockCount);
     }
 
-    /** 处理到第 processedBlocks 块时累计应扣金额。最后一块补齐四舍五入差额，使总额等于 JSON 总价。 */
+    /** 处理到第 processedBlocks 块时累计应扣金额。最后一块补齐差额，使总额等于 JSON 总价。 */
     public static double costThrough(double totalPrice, int blockCount, int processedBlocks) {
-        if (totalPrice <= 0.0D || blockCount <= 0 || processedBlocks <= 0) {
-            return 0.0D;
+        return centsThrough(totalPrice, blockCount, processedBlocks) / 100.0D;
+    }
+
+    /** 总价换成分。不足 1 分的零头留在累计里，不能每步先四舍五入再相减。 */
+    public static long totalCents(double totalPrice) {
+        if (totalPrice <= 0.0D) {
+            return 0L;
         }
-        if (processedBlocks >= blockCount) {
-            return EconomyService.normalizeAmount(totalPrice);
-        }
-        return EconomyService.normalizeAmount(totalPrice * processedBlocks / blockCount);
+        return Math.round(EconomyService.normalizeAmount(totalPrice) * 100.0D);
     }
 
     /**
-     * 结算间隔。5 级以下每秒一次，10 到 14 级每 5 秒，15 到 19 级每 20 秒，20 级及以上每 60 秒。
-     * 5 到 9 级仍按每秒，因为下一段从 10 级开始。
+     * 处理到第 processedBlocks 块时累计应扣的分。
+     * 用整数累计，避免每块不到 1 分时差额被收成 0、建造过程中完全不扣钱。
      */
+    public static long centsThrough(double totalPrice, int blockCount, int processedBlocks) {
+        if (totalPrice <= 0.0D || blockCount <= 0 || processedBlocks <= 0) {
+            return 0L;
+        }
+        long totalCents = totalCents(totalPrice);
+        if (processedBlocks >= blockCount) {
+            return totalCents;
+        }
+        return totalCents * processedBlocks / blockCount;
+    }
+
+    /** 5 级以下每放一块扣一次。5 级及以上按秒把这一段已盖方块合并扣。 */
+    public static boolean chargePerPlacedBlock(int npcLevel) {
+        return npcLevel < 5;
+    }
+
+    /** 5 级及以上的结算间隔：每秒一次。 */
     public static int chargeIntervalTicks(int npcLevel) {
-        if (npcLevel >= 20) {
-            return TICKS_PER_SECOND * 60;
-        }
-        if (npcLevel >= 15) {
-            return TICKS_PER_SECOND * 20;
-        }
-        if (npcLevel >= 10) {
-            return TICKS_PER_SECOND * 5;
-        }
         return TICKS_PER_SECOND;
     }
 }

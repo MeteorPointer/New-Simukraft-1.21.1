@@ -118,6 +118,7 @@ public final class ExchangeMarketService {
         double basis = current.costBasis + cost;
         holdings.put(companyId, new Holding(total, basis));
         SimuSqliteStorage.saveExchangeHolding(level, cityId, companyId, total, basis);
+        noteTrade(quote, shares);
         return new TradeResult(true, "message.simukraft.exchange.buy_ok");
     }
 
@@ -150,6 +151,7 @@ public final class ExchangeMarketService {
         }
         SimuSqliteStorage.saveExchangeHolding(level, cityId, companyId, remaining, basis);
         EconomyService.depositCityFunds(level, cityId, player, proceeds, "exchange_sell");
+        noteTrade(quote, -shares);
         return new TradeResult(true, "message.simukraft.exchange.sell_ok");
     }
 
@@ -178,8 +180,8 @@ public final class ExchangeMarketService {
             quote.volume = 0;
         }
         state.day = day;
-        state.regime = ExchangeMarketRegime.roll();
         state.lastHour = -1;
+        applyEconomy(level, state);
         SimuSqliteStorage.saveExchangeMarket(level, day, state.regime.name(), state.lastHour);
         persistQuotes(level, state);
     }
@@ -223,15 +225,25 @@ public final class ExchangeMarketService {
 
     private static void advanceHour(ServerLevel level, MarketState state, int hour) {
         state.lastHour = hour;
+        ExchangeEconomySnapshot economy = state.snapshot != null ? state.snapshot : ExchangeEconomySnapshot.idle();
         for (ExchangeCompany company : ExchangeCompanyLoader.INSTANCE.companies()) {
             Quote quote = state.quotes.computeIfAbsent(company.id(), ignored -> Quote.seed(company));
+            int traded = quote.pendingTradeShares;
+            int net = quote.pendingNetShares;
+            quote.pendingTradeShares = 0;
+            quote.pendingNetShares = 0;
             double previous = quote.price;
-            double next = ExchangePriceMath.nextPrice(previous, company, state.regime);
-            int volume = ExchangePriceMath.volume(previous, next);
+            double marked = ExchangePriceMath.tradeImpact(previous, company, net, 0.0D);
+            double fair = ExchangeFundamentals.fairPrice(company, economy);
+            double next = ExchangePriceMath.nextPrice(marked, company, fair, state.regime,
+                    ExchangeFundamentals.shock(company.id(), state.day, hour));
+            int volume = ExchangePriceMath.volume(previous, next, traded,
+                    ExchangeFundamentals.sectorScore(company.sector(), economy));
             quote.price = next;
             quote.volume += volume;
-            ExchangeCandle candle = new ExchangeCandle(state.day, hour, previous, Math.max(previous, next),
-                    Math.min(previous, next), next, volume);
+            double high = Math.max(previous, Math.max(marked, next));
+            double low = Math.min(previous, Math.min(marked, next));
+            ExchangeCandle candle = new ExchangeCandle(state.day, hour, previous, high, low, next, volume);
             quote.push(candle);
             SimuSqliteStorage.saveExchangeQuote(level, company.id(), quote.price, quote.previousClose, quote.volume);
             SimuSqliteStorage.saveExchangeCandle(level, company.id(), state.day, candle);
@@ -260,7 +272,6 @@ public final class ExchangeMarketService {
             state.lastHour = market.lastHour();
         } else {
             state.day = today;
-            state.regime = ExchangeMarketRegime.roll();
             state.lastHour = -1;
         }
         for (ExchangeCompany company : ExchangeCompanyLoader.INSTANCE.companies()) {
@@ -285,7 +296,8 @@ public final class ExchangeMarketService {
         }
         if (state.day != today) {
             rollNewDay(level, state, today);
-        } else if (market == null) {
+        } else {
+            applyEconomy(level, state);
             SimuSqliteStorage.saveExchangeMarket(level, state.day, state.regime.name(), state.lastHour);
         }
         return state;
@@ -377,10 +389,26 @@ public final class ExchangeMarketService {
         quote.volume = volume;
     }
 
+    /** noteTrade: 这一小时的买卖先记账，收盘时一起打进价格和成交量。 */
+    private static void noteTrade(Quote quote, int signedShares) {
+        if (quote == null || signedShares == 0) {
+            return;
+        }
+        quote.pendingNetShares += signedShares;
+        quote.pendingTradeShares += Math.abs(signedShares);
+    }
+
+    /** applyEconomy: 用当前城市经营重算当天市况。价格仍按小时慢慢靠过去。 */
+    private static void applyEconomy(ServerLevel level, MarketState state) {
+        state.snapshot = ExchangeEconomyProbe.capture(level);
+        state.regime = ExchangeFundamentals.regime(state.snapshot);
+    }
+
     private static final class MarketState {
         private long day;
         private ExchangeMarketRegime regime = ExchangeMarketRegime.MIXED;
         private int lastHour = -1;
+        private ExchangeEconomySnapshot snapshot = ExchangeEconomySnapshot.idle();
         private final ConcurrentMap<String, Quote> quotes = new ConcurrentHashMap<>();
         private final ConcurrentMap<UUID, ConcurrentMap<String, Holding>> holdings = new ConcurrentHashMap<>();
     }
@@ -389,6 +417,8 @@ public final class ExchangeMarketService {
         private double price = 1.0D;
         private double previousClose = 1.0D;
         private int volume;
+        private int pendingNetShares;
+        private int pendingTradeShares;
         private final List<ExchangeCandle> candles = new CopyOnWriteArrayList<>();
 
         private static Quote seed(ExchangeCompany company) {

@@ -5,10 +5,12 @@ import net.neoforged.api.distmarker.OnlyIn;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
 import client.cn.kafei.simukraft.client.ui.SimuKraftFlexLayout;
 import client.cn.kafei.simukraft.client.ui.SimuKraftWindowFrame;
+import client.cn.kafei.simukraft.client.city.map.SimuBlockColors;
 import client.cn.kafei.simukraft.client.city.map.SimuMapManager;
 import client.cn.kafei.simukraft.client.citizen.CitizenAvatarFactory;
 import client.cn.kafei.simukraft.client.citizen.CitizenFamilyGraphCanvas;
 import client.cn.kafei.simukraft.client.city.map.SimuMapRegion;
+import client.cn.kafei.simukraft.client.city.map.SimuMapRegionData;
 import common.cn.kafei.simukraft.city.CityPermissionLevel;
 import common.cn.kafei.simukraft.city.FinanceTransactionData;
 import common.cn.kafei.simukraft.network.city.chunk.CityChunkBatchPurchasePacket;
@@ -56,6 +58,7 @@ import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.util.Mth;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.ChunkPos;
@@ -63,6 +66,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
 import org.joml.Vector2f;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -1266,6 +1270,18 @@ public final class CityCoreScreenOpener {
         private int contextMenuHeight;
         private boolean contextMenuVisible;
         private boolean mapConsumerReleased;
+        private boolean threeDView;
+        private float threeYaw = 0.8F;
+        private float threeYawDragStart;
+        private double threeZoom = 2.2D;
+        private int modeButtonX;
+        private int modeButtonY;
+        private int modeButtonW;
+        private int modeButtonH;
+        private static final String THREE_D_DRAG = "city_map_3d_orbit";
+        private static final String THREE_D_PAN = "city_map_3d_pan";
+        private double threePanOffsetX;
+        private double threePanOffsetY;
 
         private CityChunkMapElement(CityCoreMapResponsePacket packet) {
             this.packet = packet;
@@ -1325,6 +1341,7 @@ public final class CityCoreScreenOpener {
             renderMap(guiContext, mapStartX, mapStartY, mapWidth, mapHeight);
             guiContext.graphics.flush();
             guiContext.disableScissor();
+            renderModeButton(guiContext, mapStartX, mapStartY, mapWidth);
         }
 
         private void renderMap(GUIContext guiContext, int startX, int startY, int width, int height) {
@@ -1338,6 +1355,10 @@ public final class CityCoreScreenOpener {
             int startChunkZ = (int) Math.floor((-offsetY - height / 2.0D) / chunkSize);
             int endChunkX = startChunkX + visibleChunksX;
             int endChunkZ = startChunkZ + visibleChunksY;
+            if (threeDView) {
+                render3DMap(guiContext, startX, startY, width, height, centerX, centerY);
+                return;
+            }
             renderWorldMapTerrain(guiContext, startX, startY, width, height, centerX, centerY);
             renderGridOverlay(guiContext, startX, startY, width, height, centerX, centerY, chunkSize, startChunkX, startChunkZ);
             renderHoveredChunk(guiContext, startX, startY, width, height, centerX, centerY, chunkSize);
@@ -1812,7 +1833,234 @@ public final class CityCoreScreenOpener {
             return mouseX < x || mouseX > x + width || mouseY < y || mouseY > y + height;
         }
 
+        private void renderModeButton(GUIContext guiContext, int mapStartX, int mapStartY, int mapWidth) {
+            Minecraft minecraft = Minecraft.getInstance();
+            Component label = Component.translatable(threeDView
+                    ? "screen.simukraft.city_core.map.mode_2d"
+                    : "screen.simukraft.city_core.map.mode_3d");
+            modeButtonW = minecraft.font.width(label) + 12;
+            modeButtonH = 14;
+            modeButtonX = mapStartX + mapWidth - modeButtonW - 4;
+            modeButtonY = mapStartY + 4;
+            guiContext.graphics.fill(modeButtonX, modeButtonY, modeButtonX + modeButtonW, modeButtonY + modeButtonH, threeDView ? 0xEE1E6B3A : 0xEE202020);
+            guiContext.graphics.fill(modeButtonX, modeButtonY, modeButtonX + modeButtonW, modeButtonY + 1, 0xFFFFFFFF);
+            guiContext.graphics.drawString(minecraft.font, label, modeButtonX + 6, modeButtonY + 3, 0xFFFFFFFF, false);
+        }
+
+        private boolean isInsideModeButton(double mouseX, double mouseY) {
+            return modeButtonW > 0 && !isOutside(mouseX, mouseY, modeButtonX, modeButtonY, modeButtonW, modeButtonH);
+        }
+
+        /** 用已扫描的高度和颜色画成可旋转的立体地形。格子四角按同一投影相连。 */
+        private void render3DMap(GUIContext guiContext, int startX, int startY, int width, int height, double centerX, double centerY) {
+            guiContext.graphics.fill(startX, startY, startX + width, startY + height, 0xFF101418);
+            int centerBlockX = (int) Math.floor(-offsetX / zoomLevel);
+            int centerBlockZ = (int) Math.floor(-offsetY / zoomLevel);
+            float scale = (float) threeZoom;
+            int radius = (int) Math.ceil((Math.max(width, height) / 2.0D) / Math.max(threeZoom, 0.6D)) + 2;
+            int step = 1;
+            while (step < 8 && radius / step > 64) {
+                step++;
+            }
+            if (step > 1) {
+                radius -= radius % step;
+            }
+            if (radius < step) {
+                radius = step;
+            }
+            int baseHeight = columnDisplayHeight(centerBlockX, centerBlockZ);
+            if (baseHeight == Integer.MIN_VALUE) {
+                baseHeight = 64;
+            }
+            float cos = Mth.cos(threeYaw);
+            float sin = Mth.sin(threeYaw);
+            ArrayList<int[]> columns = new ArrayList<>();
+            for (int dz = -radius; dz <= radius; dz += step) {
+                for (int dx = -radius; dx <= radius; dx += step) {
+                    int worldX = centerBlockX + dx;
+                    int worldZ = centerBlockZ + dz;
+                    int heightValue = columnDisplayHeight(worldX, worldZ);
+                    if (heightValue == Integer.MIN_VALUE) {
+                        continue;
+                    }
+                    float rz = (dx + step * 0.5F) * sin + (dz + step * 0.5F) * cos;
+                    int color = tintOwnedColumn(worldX, worldZ, sampleMapColor(worldX, worldZ));
+                    int north = sampleMapHeight(worldX, worldZ - 1);
+                    int west = sampleMapHeight(worldX - 1, worldZ);
+                    color = SimuBlockColors.adjustBrightness(color, SimuBlockColors.slopeBrightness(heightValue, north == Integer.MIN_VALUE ? heightValue : north, west == Integer.MIN_VALUE ? heightValue : west, false));
+                    if (isCoreChunk(worldX, worldZ)) {
+                        color = 0xFF4080FF;
+                    }
+                    columns.add(new int[] {worldX, worldZ, heightValue, color, Float.floatToRawIntBits(rz)});
+                }
+            }
+            columns.sort((left, right) -> Float.compare(Float.intBitsToFloat(right[4]), Float.intBitsToFloat(left[4])));
+            if (!columns.isEmpty()) {
+                guiContext.graphics.flush();
+                RenderSystem.enableBlend();
+                RenderSystem.defaultBlendFunc();
+                // 界面默认开着背面剔除，顶面绕序在屏幕坐标里是反的，不平地会被整片丢掉。
+                RenderSystem.disableCull();
+                RenderSystem.disableDepthTest();
+                RenderSystem.setShader(GameRenderer::getPositionColorShader);
+                RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+                Matrix4f matrix = guiContext.graphics.pose().last().pose();
+                BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+                float[] topA = new float[2];
+                float[] topB = new float[2];
+                float[] botA = new float[2];
+                float[] botB = new float[2];
+                for (int[] column : columns) {
+                    float x = column[0] - centerBlockX;
+                    float z = column[1] - centerBlockZ;
+                    int top = column[2];
+                    int argb = column[3];
+                    projectColumn(x, z, top, baseHeight, cos, sin, scale, centerX, centerY, topA);
+                    projectColumn(x + step, z, top, baseHeight, cos, sin, scale, centerX, centerY, topB);
+                    projectColumn(x + step, z + step, top, baseHeight, cos, sin, scale, centerX, centerY, botA);
+                    projectColumn(x, z + step, top, baseHeight, cos, sin, scale, centerX, centerY, botB);
+                    addQuad(buffer, matrix, topA[0], topA[1], topB[0], topB[1], botA[0], botA[1], botB[0], botB[1], argb);
+                    addDropFace(buffer, matrix, x + step, z, x + step, z + step, top, columnDisplayHeight(column[0] + step, column[1]),
+                            1.0F, 0.0F, baseHeight, cos, sin, scale, centerX, centerY, argb, 0.48F, topA, topB, botA, botB);
+                    addDropFace(buffer, matrix, x, z + step, x, z, top, columnDisplayHeight(column[0] - step, column[1]),
+                            -1.0F, 0.0F, baseHeight, cos, sin, scale, centerX, centerY, argb, 0.48F, topA, topB, botA, botB);
+                    addDropFace(buffer, matrix, x, z + step, x + step, z + step, top, columnDisplayHeight(column[0], column[1] + step),
+                            0.0F, 1.0F, baseHeight, cos, sin, scale, centerX, centerY, argb, 0.70F, topA, topB, botA, botB);
+                    addDropFace(buffer, matrix, x + step, z, x, z, top, columnDisplayHeight(column[0], column[1] - step),
+                            0.0F, -1.0F, baseHeight, cos, sin, scale, centerX, centerY, argb, 0.70F, topA, topB, botA, botB);
+                }
+                BufferUploader.drawWithShader(buffer.buildOrThrow());
+                RenderSystem.enableDepthTest();
+                RenderSystem.enableCull();
+                RenderSystem.disableBlend();
+            }
+            Minecraft minecraft = Minecraft.getInstance();
+            guiContext.graphics.drawString(minecraft.font, Component.translatable("screen.simukraft.city_core.map.mode_3d_hint"), startX + 6, startY + height - 12, 0xFFDDDDDD, false);
+        }
+
+        private boolean isCoreChunk(int worldX, int worldZ) {
+            return (worldX >> 4) == packet.centerChunkX() && (worldZ >> 4) == packet.centerChunkZ();
+        }
+
+        /** 城市核心所在区块抬高一格，方便在地形里认出来。 */
+        private int columnDisplayHeight(int worldX, int worldZ) {
+            int raw = sampleMapHeight(worldX, worldZ);
+            if (raw == Integer.MIN_VALUE) {
+                return Integer.MIN_VALUE;
+            }
+            return isCoreChunk(worldX, worldZ) ? raw + 1 : raw;
+        }
+
+        private static void projectColumn(float dx, float dz, int height, int baseHeight, float cos, float sin, float scale, double centerX, double centerY, float[] out) {
+            float rx = dx * cos - dz * sin;
+            float rz = dx * sin + dz * cos;
+            out[0] = (float) centerX + rx * scale;
+            out[1] = (float) centerY + rz * scale * 0.5F - (height - baseHeight) * scale * 0.55F;
+        }
+
+        /** 只画朝向镜头、并且比邻居更高的侧面。 */
+        private void addDropFace(BufferBuilder buffer, Matrix4f matrix, float x0, float z0, float x1, float z1, int top, int neighbor,
+                float normalX, float normalZ, int baseHeight, float cos, float sin, float scale, double centerX, double centerY,
+                int argb, float shadeFactor, float[] topA, float[] topB, float[] botA, float[] botB) {
+            if (normalX * -sin + normalZ * -cos <= 0.02F) {
+                return;
+            }
+            int bottom = neighbor == Integer.MIN_VALUE ? top - 4 : neighbor;
+            if (bottom >= top) {
+                return;
+            }
+            projectColumn(x0, z0, top, baseHeight, cos, sin, scale, centerX, centerY, topA);
+            projectColumn(x1, z1, top, baseHeight, cos, sin, scale, centerX, centerY, topB);
+            projectColumn(x0, z0, bottom, baseHeight, cos, sin, scale, centerX, centerY, botA);
+            projectColumn(x1, z1, bottom, baseHeight, cos, sin, scale, centerX, centerY, botB);
+            addQuad(buffer, matrix, topA[0], topA[1], topB[0], topB[1], botB[0], botB[1], botA[0], botA[1], shade(argb, shadeFactor));
+        }
+
+        private int tintOwnedColumn(int worldX, int worldZ, int argb) {
+            long chunkLong = ChunkPos.asLong(worldX >> 4, worldZ >> 4);
+            if (!cache.isChunkOwned(chunkLong)) {
+                return argb == 0 ? 0xFF6E8B5A : argb;
+            }
+            int tint = districtFillColor(chunkLong, cache.isChunkInCurrentCity(chunkLong));
+            return SimuBlockColors.blendColors(argb == 0 ? 0xFF6E8B5A : argb, tint | 0x66000000);
+        }
+
+        private int sampleMapHeight(int worldX, int worldZ) {
+            SimuMapRegionData data = mapColumnData(worldX, worldZ);
+            if (data == null) {
+                return Integer.MIN_VALUE;
+            }
+            int regionX = Math.floorDiv(worldX, SimuMapRegionData.SIZE);
+            int regionZ = Math.floorDiv(worldZ, SimuMapRegionData.SIZE);
+            short height = data.getHeight(worldX - regionX * SimuMapRegionData.SIZE, worldZ - regionZ * SimuMapRegionData.SIZE);
+            return height == SimuMapRegionData.HEIGHT_UNKNOWN ? Integer.MIN_VALUE : height;
+        }
+
+        private int sampleMapColor(int worldX, int worldZ) {
+            SimuMapRegionData data = mapColumnData(worldX, worldZ);
+            if (data == null) {
+                return 0xFF6E8B5A;
+            }
+            int regionX = Math.floorDiv(worldX, SimuMapRegionData.SIZE);
+            int regionZ = Math.floorDiv(worldZ, SimuMapRegionData.SIZE);
+            int color = data.getColor(worldX - regionX * SimuMapRegionData.SIZE, worldZ - regionZ * SimuMapRegionData.SIZE);
+            return color == 0 ? 0xFF6E8B5A : color;
+        }
+
+        private SimuMapRegionData mapColumnData(int worldX, int worldZ) {
+            SimuMapRegion region = mapManager.getRegion(Math.floorDiv(worldX, SimuMapRegionData.SIZE), Math.floorDiv(worldZ, SimuMapRegionData.SIZE));
+            return region == null ? null : region.getData();
+        }
+
+        private static int shade(int argb, float factor) {
+            int a = (argb >> 24) & 0xFF;
+            int r = Math.min(255, Math.max(0, (int) (((argb >> 16) & 0xFF) * factor)));
+            int g = Math.min(255, Math.max(0, (int) (((argb >> 8) & 0xFF) * factor)));
+            int b = Math.min(255, Math.max(0, (int) ((argb & 0xFF) * factor)));
+            return (a << 24) | (r << 16) | (g << 8) | b;
+        }
+
+        private static void addQuad(BufferBuilder buffer, Matrix4f matrix, float x0, float y0, float x1, float y1, float x2, float y2, float x3, float y3, int argb) {
+            int a = (argb >> 24) & 0xFF;
+            int r = (argb >> 16) & 0xFF;
+            int g = (argb >> 8) & 0xFF;
+            int b = argb & 0xFF;
+            if (a == 0) {
+                a = 255;
+            }
+            buffer.addVertex(matrix, x0, y0, 0).setColor(r, g, b, a);
+            buffer.addVertex(matrix, x1, y1, 0).setColor(r, g, b, a);
+            buffer.addVertex(matrix, x2, y2, 0).setColor(r, g, b, a);
+            buffer.addVertex(matrix, x3, y3, 0).setColor(r, g, b, a);
+        }
+
         private void onMouseDown(com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent event) {
+            if (event.button == 0 && isInsideModeButton(event.x, event.y)) {
+                threeDView = !threeDView;
+                contextMenuVisible = false;
+                batchClaimChunks.clear();
+                event.stopPropagation();
+                return;
+            }
+            if (threeDView && !isMouseOutsideMap(event.x, event.y)) {
+                if (event.button == 0) {
+                    threeYawDragStart = threeYaw;
+                    event.target.startDrag(THREE_D_DRAG, null);
+                    event.stopPropagation();
+                    return;
+                }
+                if (event.button == 1) {
+                    threePanOffsetX = offsetX;
+                    threePanOffsetY = offsetY;
+                    event.target.startDrag(THREE_D_PAN, null);
+                    event.stopPropagation();
+                    return;
+                }
+                if (event.button == 2) {
+                    event.stopPropagation();
+                    return;
+                }
+            }
             if (contextMenuVisible && event.button == 0 && handleContextMenuClick(event.x, event.y)) {
                 event.stopPropagation();
                 return;
@@ -1862,6 +2110,26 @@ public final class CityCoreScreenOpener {
 
         private void onDragUpdate(com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent event) {
             contextMenuVisible = false;
+            if (THREE_D_DRAG.equals(event.dragHandler.getDraggingObject())) {
+                threeYaw = threeYawDragStart + (float) (event.x - event.dragStartX) * 0.012F;
+                event.stopPropagation();
+                return;
+            }
+            if (THREE_D_PAN.equals(event.dragHandler.getDraggingObject())) {
+                double mouseX = event.x - event.dragStartX;
+                double mouseY = event.y - event.dragStartY;
+                float scale = (float) Math.max(threeZoom, 0.6D);
+                float cos = Mth.cos(threeYaw);
+                float sin = Mth.sin(threeYaw);
+                double ax = -mouseX / scale;
+                double ay = -mouseY / (scale * 0.5D);
+                double panDx = ax * cos + ay * sin;
+                double panDz = -ax * sin + ay * cos;
+                offsetX = threePanOffsetX - panDx * zoomLevel;
+                offsetY = threePanOffsetY - panDz * zoomLevel;
+                event.stopPropagation();
+                return;
+            }
             if (BATCH_CLAIM_DRAG_MARKER.equals(event.dragHandler.getDraggingObject())) {
                 updateBatchClaimBox(event.x, event.y);
                 event.stopPropagation();
@@ -1876,6 +2144,15 @@ public final class CityCoreScreenOpener {
 
         private void onMouseWheel(com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent event) {
             contextMenuVisible = false;
+            if (threeDView) {
+                if (event.deltaY > 0) {
+                    threeZoom = Math.min(threeZoom + 0.25D, 6.0D);
+                } else {
+                    threeZoom = Math.max(threeZoom - 0.25D, 0.6D);
+                }
+                event.stopPropagation();
+                return;
+            }
             double oldZoom = zoomLevel;
             if (event.deltaY > 0) {
                 zoomLevel = Math.min(zoomLevel + ZOOM_STEP, MAX_ZOOM);

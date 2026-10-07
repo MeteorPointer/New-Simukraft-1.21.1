@@ -1,9 +1,8 @@
 package common.cn.kafei.simukraft.exchange;
 
 import java.util.Locale;
-import java.util.concurrent.ThreadLocalRandom;
 
-/** ExchangeMarketRegime: 当日市况牌。 */
+/** ExchangeMarketRegime: 当日市况牌，由城市经营得分决定，不再开盘抽签。 */
 public enum ExchangeMarketRegime {
     MIXED(0.0D, 0.035D),
     BULL(0.018D, 0.022D),
@@ -29,13 +28,15 @@ public enum ExchangeMarketRegime {
         return "gui.simukraft.exchange.regime." + name().toLowerCase(Locale.ROOT);
     }
 
-    /** roll: 涨跌 50%、涨涨 25%、跌跌 25%。 */
-    public static ExchangeMarketRegime roll() {
-        int roll = ThreadLocalRandom.current().nextInt(100);
-        if (roll < 50) {
-            return MIXED;
+    /** fromScore: 大盘分高于 0.16 为景气，低于 -0.16 为低迷。 */
+    public static ExchangeMarketRegime fromScore(double marketScore) {
+        if (marketScore >= 0.16D) {
+            return BULL;
         }
-        return roll < 75 ? BULL : BEAR;
+        if (marketScore <= -0.16D) {
+            return BEAR;
+        }
+        return MIXED;
     }
 
     public static ExchangeMarketRegime fromName(String name) {
