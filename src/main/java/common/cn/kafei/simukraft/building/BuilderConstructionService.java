@@ -772,7 +772,7 @@ public final class BuilderConstructionService {
         if (dueCents <= 0L) {
             taskRuntime.billedBlocks = Math.max(taskRuntime.billedBlocks, processedBlocks);
             taskRuntime.nextBillTick = now + interval;
-            resumeFromFundsWait(taskRuntime, task);
+            resumeFromFundsWait(level, taskRuntime, task);
             return true;
         }
         double dueAmount = EconomyService.normalizeAmount(dueCents / 100.0D);
@@ -784,20 +784,27 @@ public final class BuilderConstructionService {
         HudSyncService.syncToCityGroup(level, task.cityId(), true);
         taskRuntime.billedBlocks = processedBlocks;
         taskRuntime.nextBillTick = now + interval;
-        resumeFromFundsWait(taskRuntime, task);
+        resumeFromFundsWait(level, taskRuntime, task);
+        boolean stillRunning = !finishing && processedBlocks < blockCount;
+        if (ConstructionFundsNotificationService.shouldWarnAfterSuccessfulCharge(
+                stillRunning, EconomyService.getCityBalance(level, task.cityId()))) {
+            ConstructionFundsNotificationService.notifyInsufficient(level, citizen, task);
+        }
         return true;
     }
 
-    private static void resumeFromFundsWait(TaskRuntime taskRuntime, BuildingTaskData task) {
+    private static void resumeFromFundsWait(ServerLevel level, TaskRuntime taskRuntime, BuildingTaskData task) {
         if (BuildingTaskStatus.from(task.status()) != BuildingTaskStatus.WAITING_FUNDS) {
             return;
         }
+        ConstructionFundsNotificationService.clear(level, task.cityId(), task.taskId());
         taskRuntime.task = task.withStatus(BuildingTaskStatus.BUILDING);
         taskRuntime.dirty = true;
         taskRuntime.lastPhaseKey = "";
     }
 
     private static void markWaitingForFunds(ServerLevel level, CitizenData citizen, TaskRuntime taskRuntime, BuildingTaskData task) {
+        ConstructionFundsNotificationService.notifyInsufficient(level, citizen, task);
         if (BuildingTaskStatus.from(task.status()) == BuildingTaskStatus.WAITING_FUNDS
                 && "funds".equals(taskRuntime.lastPhaseKey)) {
             return;

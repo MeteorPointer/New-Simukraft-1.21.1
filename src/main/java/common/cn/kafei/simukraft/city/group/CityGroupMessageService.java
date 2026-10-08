@@ -34,6 +34,11 @@ public final class CityGroupMessageService {
         return send(level, CityUserGroup.members(cityId), Component.translatable("toast.simukraft.material_title"), message, "warning", iconStack);
     }
 
+    // fundsToCity: 向城市用户组发送建造资金不足消息。
+    public static int fundsToCity(ServerLevel level, UUID cityId, Component message, ItemStack iconStack) {
+        return send(level, CityUserGroup.members(cityId), Component.translatable("toast.simukraft.funds_title"), message, "warning", iconStack);
+    }
+
     // send: 解析用户组并发送消息。
     public static int send(ServerLevel level, CityUserGroup group, Component title, Component message, String style, ItemStack iconStack) {
         return sendResolved(CityUserGroupService.onlinePlayers(level, group), title, message, style, iconStack);
