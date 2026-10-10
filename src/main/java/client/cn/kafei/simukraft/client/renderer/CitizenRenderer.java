@@ -24,13 +24,9 @@ import org.joml.Matrix4f;
 public class CitizenRenderer extends MobRenderer<CitizenEntity, CitizenModel> {
     private static final ResourceLocation DEFAULT_TEXTURE = ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "textures/entity/male/custom_male_entity_0.png");
     private static final ThreadLocal<Boolean> HIDE_OVERHEAD_TEXT = ThreadLocal.withInitial(() -> false);
-    private final CitizenModel slimModel;
-    private final CitizenModel defaultModel;
 
     public CitizenRenderer(EntityRendererProvider.Context context) {
         super(context, new CitizenModel(context.bakeLayer(ModelLayers.PLAYER_SLIM), true), 0.5F);
-        this.slimModel = this.model;
-        this.defaultModel = new CitizenModel(context.bakeLayer(ModelLayers.PLAYER), false);
         this.addLayer(new PregnancyBellyLayer(this));
         this.addLayer(new HumanoidArmorLayer<>(
                 this,
@@ -44,12 +40,6 @@ public class CitizenRenderer extends MobRenderer<CitizenEntity, CitizenModel> {
     @Override
     public ResourceLocation getTextureLocation(CitizenEntity entity) {
         return textureFromPath(entity.getSkinPath());
-    }
-
-    @Override
-    public void render(CitizenEntity entity, float entityYaw, float partialTicks, PoseStack poseStack, MultiBufferSource buffer, int packedLight) {
-        this.model = useDefaultModel(entity) ? defaultModel : slimModel;
-        super.render(entity, entityYaw, partialTicks, poseStack, buffer, packedLight);
     }
 
     private static final float ADULT_SCALE = 0.9375F;
@@ -119,22 +109,6 @@ public class CitizenRenderer extends MobRenderer<CitizenEntity, CitizenModel> {
         }
         ResourceLocation parsed = ResourceLocation.tryParse(skinPath);
         return parsed != null ? parsed : DEFAULT_TEXTURE;
-    }
-
-    private static boolean useDefaultModel(CitizenEntity entity) {
-        String skinPath = entity.getSkinPath();
-        if (skinPath == null) {
-            return false;
-        }
-        String fileName = skinPath;
-        int slash = Math.max(fileName.lastIndexOf('/'), fileName.lastIndexOf('\\'));
-        if (slash >= 0) {
-            fileName = fileName.substring(slash + 1);
-        }
-        if (fileName.endsWith(".png")) {
-            fileName = fileName.substring(0, fileName.length() - 4);
-        }
-        return fileName.endsWith("_f");
     }
 
     private void renderExtraLine(CitizenEntity entity, Component component, PoseStack poseStack, MultiBufferSource bufferSource, int packedLight, float yOffset, int color, float scale) {
