@@ -78,6 +78,8 @@
     "advancement.simukraft.logistics_server.description":  "物流....阿巴阿巴......",
     "advancement.simukraft.logistics_client.title":  "物流一定要能物流",
     "advancement.simukraft.logistics_client.description":  "送到我家吗...好耶!",
+    "advancement.simukraft.talking_light.title":  "会说话的......灯块?!",
+    "advancement.simukraft.talking_light.description":  "右键任意颜色的灯块看看会发生什么",
     "key.categories.simukraft":  "新模拟大都市",
     "key.simukraft.rts.toggle":  "切换 RTS 光标模式",
     "key.simukraft.rts.delete":  "拆除 RTS 选中目标",

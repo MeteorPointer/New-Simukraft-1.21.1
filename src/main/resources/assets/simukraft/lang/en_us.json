@@ -78,6 +78,8 @@
     "advancement.simukraft.logistics_server.description":  "Logistics... uh... aba aba...",
     "advancement.simukraft.logistics_client.title":  "Logistics Must Deliver",
     "advancement.simukraft.logistics_client.description":  "Will it deliver to my home... yay!",
+    "advancement.simukraft.talking_light.title":  "A Talking... Light Block?!",
+    "advancement.simukraft.talking_light.description":  "Right-click any colored light block and see what happens",
     "key.categories.simukraft":  "New Sim-U-Kraft",
     "key.simukraft.rts.toggle":  "Toggle RTS cursor mode",
     "key.simukraft.rts.delete":  "RTS demolish selected target",
