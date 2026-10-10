@@ -9,10 +9,19 @@ import org.junit.jupiter.api.Test;
 
 class CitizenVoiceServiceTest {
     @Test
-    void panelCue_usesMorningGreetAndEvening() {
-        assertEquals(CitizenVoiceService.Cue.MORNING, CitizenVoiceService.panelCue(800L));
-        assertEquals(CitizenVoiceService.Cue.GREET, CitizenVoiceService.panelCue(6_000L));
-        assertEquals(CitizenVoiceService.Cue.EVENING, CitizenVoiceService.panelCue(18_000L));
+    void nearbyTalkCue_greetsBeforeChatting() {
+        CitizenVoiceService.clearLocksForTest();
+        UUID id = UUID.randomUUID();
+        assertEquals(CitizenVoiceService.Cue.GREET, CitizenVoiceService.nearbyTalkCue(id, 0L));
+    }
+
+    @Test
+    void shopKind_usesBakeryAndKfcFolderNames() {
+        assertEquals(CitizenVoiceService.MealKind.BAKERY, CitizenVoiceService.shopKind("bakery_stall"));
+        assertEquals(CitizenVoiceService.MealKind.BAKERY, CitizenVoiceService.shopKind("\u9762\u5305\u5e97"));
+        assertEquals(CitizenVoiceService.MealKind.BURGER, CitizenVoiceService.shopKind("kfc_shop"));
+        assertEquals(CitizenVoiceService.MealKind.BURGER, CitizenVoiceService.shopKind("\u80af\u6253\u9e21"));
+        assertEquals(CitizenVoiceService.MealKind.OTHER, CitizenVoiceService.shopKind("grocery"));
     }
 
     @Test
@@ -28,8 +37,10 @@ class CitizenVoiceServiceTest {
     void ambientLock_allowsOnlyOneSpeakerPerLevel() {
         CitizenVoiceService.clearLocksForTest();
         assertTrue(CitizenVoiceService.isAmbientCue(CitizenVoiceService.Cue.CHAT));
-        assertTrue(CitizenVoiceService.isAmbientCue(CitizenVoiceService.Cue.FLEE));
-        assertFalse(CitizenVoiceService.isAmbientCue(CitizenVoiceService.Cue.GREET));
+        assertTrue(CitizenVoiceService.isAmbientCue(CitizenVoiceService.Cue.GREET));
+        assertTrue(CitizenVoiceService.isAmbientCue(CitizenVoiceService.Cue.MORNING));
+        assertTrue(CitizenVoiceService.isAmbientCue(CitizenVoiceService.Cue.EVENING));
+        assertFalse(CitizenVoiceService.isAmbientCue(CitizenVoiceService.Cue.PANEL));
         assertFalse(CitizenVoiceService.isAmbientCue(CitizenVoiceService.Cue.HURT));
 
         assertTrue(CitizenVoiceService.tryAmbientLock("overworld", 0L));

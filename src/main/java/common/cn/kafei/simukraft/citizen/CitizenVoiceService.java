@@ -87,15 +87,20 @@ public final class CitizenVoiceService {
         level.playSound(null, entity.blockPosition(), sound, SoundSource.NEUTRAL, 1.0F, 1.0F);
     }
 
-    public static Cue panelCue(long dayTime) {
-        long time = Math.floorMod(dayTime, 24_000L);
-        if (time < 4_000L) {
-            return Cue.MORNING;
-        }
-        if (time >= 12_000L) {
-            return Cue.EVENING;
+    /** nearbyTalkCue: 走近先问好，问好还在冷却时才闲聊。 */
+    public static Cue nearbyTalkCue(UUID uuid, long gameTime) {
+        if (uuid == null || isCoolingDown(uuid, Cue.GREET, gameTime)) {
+            return Cue.CHAT;
         }
         return Cue.GREET;
+    }
+
+    public static MealKind mealKind(@Nullable ItemStack stack, @Nullable String shopId) {
+        MealKind shop = shopKind(shopId);
+        if (shop != MealKind.OTHER) {
+            return shop;
+        }
+        return mealKind(stack);
     }
 
     public static MealKind mealKind(@Nullable ItemStack stack) {
@@ -109,6 +114,22 @@ public final class CitizenVoiceService {
         if (item == Items.BREAD || item == Items.COOKIE || item == Items.CAKE || item == Items.PUMPKIN_PIE
                 || item == ModItems.CHEESE_CHUNK.get()) {
             return MealKind.BAKERY;
+        }
+        return MealKind.OTHER;
+    }
+
+    public static MealKind shopKind(@Nullable String shopId) {
+        if (shopId == null || shopId.isBlank()) {
+            return MealKind.OTHER;
+        }
+        String lower = shopId.toLowerCase(Locale.ROOT);
+        if (lower.contains("baker") || lower.contains("bakery") || lower.contains("bread")
+                || shopId.contains("\u9762\u5305")) {
+            return MealKind.BAKERY;
+        }
+        if (lower.contains("burger") || lower.contains("kfc") || lower.contains("fries")
+                || lower.contains("fried") || shopId.contains("\u80af\u6253") || shopId.contains("\u6c49\u5821")) {
+            return MealKind.BURGER;
         }
         return MealKind.OTHER;
     }
@@ -170,7 +191,7 @@ public final class CitizenVoiceService {
     }
 
     static boolean isAmbientCue(Cue cue) {
-        return cue == Cue.CHAT || cue == Cue.FLEE;
+        return cue == Cue.CHAT || cue == Cue.GREET || cue == Cue.FLEE || cue == Cue.MORNING || cue == Cue.EVENING;
     }
 
     static boolean tryAmbientLock(String levelKey, long gameTime) {

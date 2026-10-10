@@ -125,7 +125,7 @@ public class CitizenEntity extends PathfinderMob {
                     return InteractionResult.sidedSuccess(level().isClientSide());
                 }
                 CitizenInfoMenuProvider.open(serverLevel, serverPlayer, this, data);
-                CitizenVoiceService.play(serverLevel, this, data, CitizenVoiceService.panelCue(serverLevel.getDayTime()));
+                CitizenVoiceService.play(serverLevel, this, data, CitizenVoiceService.Cue.PANEL);
             }
         }
         return InteractionResult.sidedSuccess(level().isClientSide());
@@ -273,7 +273,7 @@ public class CitizenEntity extends PathfinderMob {
             return;
         }
         if (!level.getEntitiesOfClass(Player.class, around, player -> player.isAlive() && !player.isSpectator()).isEmpty()) {
-            CitizenVoiceService.play(level, this, data, CitizenVoiceService.Cue.CHAT);
+            CitizenVoiceService.play(level, this, data, CitizenVoiceService.nearbyTalkCue(getUUID(), level.getGameTime()));
         }
     }
 

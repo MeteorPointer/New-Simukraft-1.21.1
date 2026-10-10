@@ -12,14 +12,19 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /** GeologicalSurveyHintPacket: 向客户端传递地质锤的短文本提示。 */
 
-public record GeologicalSurveyHintPacket(Component message) implements CustomPacketPayload {
+public record GeologicalSurveyHintPacket(Component message, boolean typewriter, int lingerMillis) implements CustomPacketPayload {
     public static final Type<GeologicalSurveyHintPacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "geological_survey_hint"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GeologicalSurveyHintPacket> STREAM_CODEC =
             StreamCodec.of(GeologicalSurveyHintPacket::encode, GeologicalSurveyHintPacket::decode);
 
+    public GeologicalSurveyHintPacket(Component message) {
+        this(message, false, 0);
+    }
+
     public GeologicalSurveyHintPacket {
         message = message != null ? message : Component.empty();
+        lingerMillis = Math.max(0, lingerMillis);
     }
 
     @Override
@@ -30,11 +35,16 @@ public record GeologicalSurveyHintPacket(Component message) implements CustomPac
     /** encode: 编码勘探提示文本。 */
     private static void encode(RegistryFriendlyByteBuf buffer, GeologicalSurveyHintPacket packet) {
         ComponentSerialization.STREAM_CODEC.encode(buffer, packet.message());
+        buffer.writeBoolean(packet.typewriter());
+        buffer.writeVarInt(packet.lingerMillis());
     }
 
     /** decode: 解码勘探提示文本。 */
     private static GeologicalSurveyHintPacket decode(RegistryFriendlyByteBuf buffer) {
-        return new GeologicalSurveyHintPacket(ComponentSerialization.STREAM_CODEC.decode(buffer));
+        return new GeologicalSurveyHintPacket(
+                ComponentSerialization.STREAM_CODEC.decode(buffer),
+                buffer.readBoolean(),
+                buffer.readVarInt());
     }
 
     /** handle: 将网络包切换到客户端线程处理。 */

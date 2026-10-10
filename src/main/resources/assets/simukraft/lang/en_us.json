@@ -50,6 +50,8 @@
     "message.simukraft.geological_hammer.definitions_unavailable": "Virtual vein definitions are not loaded",
     "message.simukraft.geological_hammer.database_unavailable": "The field archive is temporarily unavailable",
     "message.simukraft.geological_hammer.unsupported_worldgen": "This world generator does not support six-parameter analysis",
+    "message.simukraft.light_block.speech": "Hello, I am a lightbox. I bring light into the Minecraft world. Thanks for clicking me. There's a nice view from here. Thanks for placing me here. Have a nice day. Thank you for watching.",
+    "message.simukraft.light_block.speech.en": "Hello, I am a lightbox. I bring light into the Minecraft world. Thanks for clicking me. There's a nice view from here. Thanks for placing me here. Have a nice day. Thank you for watching.",
     "fluid.simukraft.milk":  "Milk",
     "entity.simukraft.citizen":  "Citizen",
     "entity.simukraft.citizen.named":  "Citizen %s",

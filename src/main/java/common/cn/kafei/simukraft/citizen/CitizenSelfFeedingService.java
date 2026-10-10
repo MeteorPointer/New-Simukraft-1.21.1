@@ -240,7 +240,8 @@ public final class CitizenSelfFeedingService {
         entity.setHunger(FULL_HUNGER);
         setStatus(level, manager, citizen, EATING_FOOD_STATUS, CommercialFoodMarketService.foodDetailKey(feeding.plan));
         CitizenJobVisualService.setMainHandOverride(citizen.uuid(), foodStack);
-        CitizenVoiceService.MealKind meal = CitizenVoiceService.mealKind(foodStack);
+        CitizenVoiceService.MealKind meal = CitizenVoiceService.mealKind(
+                foodStack, feeding.plan != null ? feeding.plan.definitionId() : null);
         if (meal == CitizenVoiceService.MealKind.BURGER) {
             CitizenVoiceService.play(level, entity, citizen, CitizenVoiceService.Cue.EAT_BURGER);
         } else if (meal == CitizenVoiceService.MealKind.BAKERY) {
@@ -248,7 +249,6 @@ public final class CitizenSelfFeedingService {
         } else {
             level.playSound(null, entity.blockPosition(), SoundEvents.GENERIC_EAT, SoundSource.NEUTRAL, 0.8F, 1.0F);
         }
-        CitizenVoiceService.play(level, entity, citizen, CitizenVoiceService.Cue.FULL);
         entity.swing(InteractionHand.MAIN_HAND);
         manager.syncEntity(entity);
     }
@@ -260,6 +260,7 @@ public final class CitizenSelfFeedingService {
         restoreOwnOverlay(level, manager, citizen, feeding);
         CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
         if (entity != null) {
+            CitizenVoiceService.play(level, entity, citizen, CitizenVoiceService.Cue.FULL);
             manager.syncEntity(entity);
         }
         if (restoreWorkplace && citizen.workStatusType() == CitizenWorkStatus.WORKING) {

@@ -251,6 +251,10 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
     /** handleGeologicalSurveyHint: 显示地质锤准星提示。 */
     @Override
     public void handleGeologicalSurveyHint(GeologicalSurveyHintPacket packet) {
-        GeologicalSurveyHintOverlay.show(packet.message());
+        if (packet.typewriter()) {
+            GeologicalSurveyHintOverlay.showTypewriter(packet.message(), packet.lingerMillis());
+        } else {
+            GeologicalSurveyHintOverlay.show(packet.message());
+        }
     }
 }

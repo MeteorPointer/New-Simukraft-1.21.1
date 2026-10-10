@@ -125,6 +125,8 @@ public final class CitizenHomeRestService {
                 }
                 manager.saveCitizenNow(citizen.uuid());
                 restedCitizens.add(citizen.uuid());
+                CitizenEntity goingHome = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+                CitizenVoiceService.play(level, goingHome, citizen, CitizenVoiceService.Cue.EVENING);
             }
         }
     }
@@ -186,6 +188,7 @@ public final class CitizenHomeRestService {
             CitizenEntity entityToWake = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
             if (entityToWake != null && entityToWake.isSleeping()) {
                 CitizenBedSleepService.wakeUp(level, entityToWake, null);
+                CitizenVoiceService.play(level, entityToWake, citizen, CitizenVoiceService.Cue.MORNING);
             } else {
                 CitizenBedSleepService.release(level, citizen.uuid());
             }
