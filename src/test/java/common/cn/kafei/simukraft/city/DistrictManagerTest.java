@@ -13,6 +13,30 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DistrictManagerTest {
     @Test
+    void districtNameAlwaysEndsWithTheDistrictSuffix() {
+        assertEquals("East\u533a", DistrictManager.normalizeDistrictName("East"));
+        assertEquals("East\u533a", DistrictManager.normalizeDistrictName("East\u533a"));
+        assertEquals("\u533a", DistrictManager.normalizeDistrictName(null));
+        assertEquals("\u533a", DistrictManager.normalizeDistrictName("  "));
+    }
+
+    @Test
+    void setMayorDemotesThePreviousMayor() {
+        DistrictManager manager = new DistrictManager();
+        UUID cityId = UUID.randomUUID();
+        UUID firstMayor = UUID.randomUUID();
+        UUID nextMayor = UUID.randomUUID();
+        DistrictData district = manager.create(cityId, "East", firstMayor, "Mayor", Set.of(1L));
+        assertNotNull(district);
+
+        assertTrue(manager.setMayor(district.districtId(), nextMayor, "Next"));
+        assertEquals(DistrictRole.MAYOR, district.member(nextMayor).role());
+        assertEquals(DistrictRole.RESIDENT, district.member(firstMayor).role());
+        assertFalse(manager.grantRole(district.districtId(), firstMayor, "Mayor", DistrictRole.MAYOR));
+        assertEquals(DistrictRole.RESIDENT, district.member(firstMayor).role());
+    }
+
+    @Test
     void mayorCannotBeDemotedByRoleChanges() {
         DistrictManager manager = new DistrictManager();
         UUID cityId = UUID.randomUUID();

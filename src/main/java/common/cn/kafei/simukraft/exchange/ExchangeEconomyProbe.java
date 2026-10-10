@@ -146,7 +146,7 @@ public final class ExchangeEconomyProbe {
     }
 
     /** skipped: 转账、命令发钱和股票自己的成交不算经营现金流。 */
-    private static boolean skipped(String reason) {
+    static boolean skipped(String reason) {
         if (reason == null || reason.isEmpty()) {
             return false;
         }

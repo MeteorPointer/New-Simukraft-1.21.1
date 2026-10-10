@@ -35,7 +35,21 @@ class ConstructionBillingTest {
         assertTrue(ConstructionBilling.chargePerPlacedBlock(4));
         assertFalse(ConstructionBilling.chargePerPlacedBlock(5));
         assertFalse(ConstructionBilling.chargePerPlacedBlock(20));
+        assertEquals(20, ConstructionBilling.chargeIntervalTicks(1));
         assertEquals(20, ConstructionBilling.chargeIntervalTicks(5));
         assertEquals(20, ConstructionBilling.chargeIntervalTicks(20));
+    }
+
+    @Test
+    void centsThrough_zeroAndOvershootStayAtTheJsonTotal() {
+        assertEquals(0.0D, ConstructionBilling.perBlockCost(0.0D, 4));
+        assertEquals(0.0D, ConstructionBilling.perBlockCost(10.0D, 0));
+        assertEquals(0L, ConstructionBilling.centsThrough(10.0D, 4, 0));
+        assertEquals(0L, ConstructionBilling.centsThrough(0.0D, 4, 2));
+        assertEquals(0L, ConstructionBilling.centsThrough(10.0D, 0, 2));
+        assertEquals(1000L, ConstructionBilling.centsThrough(10.0D, 4, 4));
+        assertEquals(1000L, ConstructionBilling.centsThrough(10.0D, 4, 99));
+        assertEquals(10.0D, ConstructionBilling.costThrough(10.0D, 4, 4));
+        assertEquals(10.0D, ConstructionBilling.costThrough(10.0D, 4, 8));
     }
 }

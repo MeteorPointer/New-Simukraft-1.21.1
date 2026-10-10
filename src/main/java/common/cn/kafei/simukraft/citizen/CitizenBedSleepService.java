@@ -45,6 +45,8 @@ public final class CitizenBedSleepService {
             CITIZEN_WAKEUP_POS.computeIfAbsent(levelKey, k -> new ConcurrentHashMap<>()).put(uuid, wakeupPos);
         }
         entity.startSleeping(bedHeadPos);
+        CitizenData sleeper = CitizenManager.get(level).getCitizen(uuid).orElse(null);
+        CitizenVoiceService.play(level, entity, sleeper, CitizenVoiceService.Cue.YAWN);
         return true;
     }
 

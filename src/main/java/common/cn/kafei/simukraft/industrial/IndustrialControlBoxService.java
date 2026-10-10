@@ -6,6 +6,8 @@ import common.cn.kafei.simukraft.building.BuildingIntegrityService;
 import common.cn.kafei.simukraft.building.PlacedBuildingService;
 import common.cn.kafei.simukraft.citizen.CitizenData;
 import common.cn.kafei.simukraft.citizen.CitizenService;
+import common.cn.kafei.simukraft.citizen.CitizenVoiceService;
+import common.cn.kafei.simukraft.registry.ModSoundEvents;
 import common.cn.kafei.simukraft.job.CitizenEmploymentService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
@@ -135,6 +137,15 @@ public final class IndustrialControlBoxService {
         data.setCurrentStep(Math.max(0, data.currentStep()));
         data.setStatusKey("gui.simukraft.industrial.status.running");
         data.setStatusText("");
+        if (CitizenVoiceService.isCheeseFactory(
+                data.buildingId(),
+                data.definitionId(),
+                building != null ? building.buildingFileName() : "",
+                building != null ? building.displayName() : "",
+                definition != null ? definition.id() : "",
+                definition != null ? definition.name() : "")) {
+            CitizenVoiceService.playAt(level, boxPos, ModSoundEvents.CHEESE_MACHINE_START.get());
+        }
         manager.persist(data);
         return true;
     }

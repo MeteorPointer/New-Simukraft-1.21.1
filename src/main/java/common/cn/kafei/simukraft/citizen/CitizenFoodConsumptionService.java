@@ -103,7 +103,17 @@ public final class CitizenFoodConsumptionService {
             CitizenService.save(level, data.uuid());
         }
         CitizenManager.get(level).syncEntity(entity);
-        level.playSound(null, entity.blockPosition(), SoundEvents.GENERIC_EAT, SoundSource.NEUTRAL, 0.8F, 1.0F);
+        CitizenVoiceService.MealKind meal = CitizenVoiceService.mealKind(visualStack);
+        if (meal == CitizenVoiceService.MealKind.BURGER) {
+            CitizenVoiceService.play(level, entity, data, CitizenVoiceService.Cue.EAT_BURGER);
+        } else if (meal == CitizenVoiceService.MealKind.BAKERY) {
+            CitizenVoiceService.play(level, entity, data, CitizenVoiceService.Cue.EAT_BAKERY);
+        } else {
+            level.playSound(null, entity.blockPosition(), SoundEvents.GENERIC_EAT, SoundSource.NEUTRAL, 0.8F, 1.0F);
+        }
+        if (nextHunger >= FULL_HUNGER) {
+            CitizenVoiceService.play(level, entity, data, CitizenVoiceService.Cue.FULL);
+        }
         entity.triggerWorkSwing(InteractionHand.MAIN_HAND);
         return true;
     }

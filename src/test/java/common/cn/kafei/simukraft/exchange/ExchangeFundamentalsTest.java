@@ -10,14 +10,32 @@ class ExchangeFundamentalsTest {
     private final ExchangeCompany mine = new ExchangeCompany("laozhang_mining", "老张矿业", "mining", 1.05D, 0.030D);
     private final ExchangeCompany realty = new ExchangeCompany("xu_realty", "许氏地产", "realty", 1.30D, 0.024D);
     private final ExchangeCompany industry = new ExchangeCompany("lapis_industry", "青金石工业", "industry", 1.10D, 0.022D);
+    private final ExchangeCompany construction = new ExchangeCompany("builder_co", "营造社", "construction", 1.00D, 0.020D);
+    private final ExchangeCompany medical = new ExchangeCompany("clinic", "诊所", "medical", 1.00D, 0.018D);
+    private final ExchangeCompany media = new ExchangeCompany("press", "传媒", "media", 1.00D, 0.018D);
+    private final ExchangeCompany tech = new ExchangeCompany("chip", "芯片", "tech", 1.00D, 0.022D);
 
     @Test
     void idleCityKeepsIssuePriceAndFlatMarket() {
         ExchangeEconomySnapshot idle = ExchangeEconomySnapshot.idle();
         assertEquals(0.0D, ExchangeFundamentals.marketScore(idle), 0.0001D);
+        assertEquals(0.0D, ExchangeFundamentals.marketScore(null), 0.0001D);
         assertEquals(0.0D, ExchangeFundamentals.sectorScore("agriculture", idle), 0.0001D);
+        assertEquals(0.0D, ExchangeFundamentals.sectorScore("agriculture", null), 0.0001D);
         assertEquals(ExchangeMarketRegime.MIXED, ExchangeFundamentals.regime(idle));
         assertEquals(farm.basePrice(), ExchangeFundamentals.fairPrice(farm, idle), 0.0001D);
+    }
+
+    @Test
+    void regimeThresholdsSitAtSixteenHundredths() {
+        assertEquals(ExchangeMarketRegime.BULL, ExchangeMarketRegime.fromScore(0.16D));
+        assertEquals(ExchangeMarketRegime.MIXED, ExchangeMarketRegime.fromScore(0.159D));
+        assertEquals(ExchangeMarketRegime.BEAR, ExchangeMarketRegime.fromScore(-0.16D));
+        assertEquals(ExchangeMarketRegime.MIXED, ExchangeMarketRegime.fromScore(-0.159D));
+        assertEquals(ExchangeMarketRegime.BULL, ExchangeMarketRegime.fromName("bull"));
+        assertEquals(ExchangeMarketRegime.BEAR, ExchangeMarketRegime.fromName("BEAR"));
+        assertEquals(ExchangeMarketRegime.MIXED, ExchangeMarketRegime.fromName("nope"));
+        assertEquals("gui.simukraft.exchange.regime.mixed", ExchangeMarketRegime.MIXED.translationKey());
     }
 
     @Test
@@ -75,6 +93,25 @@ class ExchangeFundamentalsTest {
         assertEquals(1.00D, ExchangePriceMath.tradeImpact(1.00D, industry, 0, 0.0D), 0.0001D);
         assertTrue(whale <= 1.08D + 0.001D);
         assertTrue(whale >= 1.00D);
+    }
+
+    @Test
+    void buildersRigsAndClinicsLiftTheirSectors() {
+        ExchangeEconomySnapshot busy = city(20, 20, 400, 40, 20, 80, 10, 40, 3, 3, 4, 2, 1, 2, 4, 5, 4, 4, 3, 3, 2, 3);
+        ExchangeEconomySnapshot quiet = city(20, 20, 400, 40, 20, 0, 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+        assertTrue(ExchangeFundamentals.fairPrice(construction, busy) > ExchangeFundamentals.fairPrice(construction, quiet));
+        assertTrue(ExchangeFundamentals.fairPrice(mine, busy) > ExchangeFundamentals.fairPrice(mine, quiet));
+        assertTrue(ExchangeFundamentals.fairPrice(medical, busy) > ExchangeFundamentals.fairPrice(medical, quiet));
+        assertTrue(ExchangeFundamentals.fairPrice(media, busy) > ExchangeFundamentals.fairPrice(media, quiet));
+        assertTrue(ExchangeFundamentals.fairPrice(tech, busy) > ExchangeFundamentals.fairPrice(tech, quiet));
+    }
+
+    @Test
+    void fairPriceStaysInsideTheDailyCollar() {
+        ExchangeEconomySnapshot boom = city(40, 32, 2000, 150, 40, 80, 30, 40, 3, 3, 4, 1, 1, 1, 3, 4, 4, 4, 2, 3, 1, 3);
+        ExchangeEconomySnapshot bust = city(3, 20, 8, 1, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1);
+        assertTrue(ExchangeFundamentals.fairPrice(industry, boom) <= industry.basePrice() * 1.85D + 0.0001D);
+        assertTrue(ExchangeFundamentals.fairPrice(industry, bust) >= industry.basePrice() * 0.55D - 0.0001D);
     }
 
     @Test

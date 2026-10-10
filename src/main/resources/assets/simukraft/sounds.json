@@ -58,5 +58,280 @@
     "sounds": [
       "simukraft:construction/complete"
     ]
+  },
+  "npc.hurt.male": {
+    "subtitle": "simukraft.subtitle.npc.hurt",
+    "sounds": [
+      "simukraft:npc/hurt_m"
+    ]
+  },
+  "npc.hurt.female": {
+    "subtitle": "simukraft.subtitle.npc.hurt",
+    "sounds": [
+      "simukraft:npc/hurt_f"
+    ]
+  },
+  "npc.panel.male": {
+    "subtitle": "simukraft.subtitle.npc.panel",
+    "sounds": [
+      "simukraft:npc/panel_m"
+    ]
+  },
+  "npc.panel.female": {
+    "subtitle": "simukraft.subtitle.npc.panel",
+    "sounds": [
+      "simukraft:npc/panel_f"
+    ]
+  },
+  "npc.greet.male": {
+    "subtitle": "simukraft.subtitle.npc.greet",
+    "sounds": [
+      "simukraft:npc/greet_m_a",
+      "simukraft:npc/greet_m_b",
+      "simukraft:npc/greet_m_c",
+      "simukraft:npc/greet_m_d"
+    ]
+  },
+  "npc.greet.female": {
+    "subtitle": "simukraft.subtitle.npc.greet",
+    "sounds": [
+      "simukraft:npc/greet_f_a",
+      "simukraft:npc/greet_f_b",
+      "simukraft:npc/greet_f_c"
+    ]
+  },
+  "npc.morning.male": {
+    "subtitle": "simukraft.subtitle.npc.morning",
+    "sounds": [
+      "simukraft:npc/morning_m_a",
+      "simukraft:npc/morning_m_b",
+      "simukraft:npc/morning_m_c",
+      "simukraft:npc/morning_m_d"
+    ]
+  },
+  "npc.morning.female": {
+    "subtitle": "simukraft.subtitle.npc.morning",
+    "sounds": [
+      "simukraft:npc/morning_f_a",
+      "simukraft:npc/morning_f_b",
+      "simukraft:npc/morning_f_c"
+    ]
+  },
+  "npc.evening.male": {
+    "subtitle": "simukraft.subtitle.npc.evening",
+    "sounds": [
+      "simukraft:npc/evening_m_a",
+      "simukraft:npc/evening_m_b",
+      "simukraft:npc/evening_m_c"
+    ]
+  },
+  "npc.evening.female": {
+    "subtitle": "simukraft.subtitle.npc.evening",
+    "sounds": [
+      "simukraft:npc/evening_f_a",
+      "simukraft:npc/evening_f_b",
+      "simukraft:npc/evening_f_c"
+    ]
+  },
+  "npc.sick.male": {
+    "subtitle": "simukraft.subtitle.npc.sick",
+    "sounds": [
+      "simukraft:npc/sick_m_a",
+      "simukraft:npc/sick_m_b"
+    ]
+  },
+  "npc.sick.female": {
+    "subtitle": "simukraft.subtitle.npc.sick",
+    "sounds": [
+      "simukraft:npc/sick_f_a",
+      "simukraft:npc/sick_f_b"
+    ]
+  },
+  "npc.hire.male": {
+    "subtitle": "simukraft.subtitle.npc.hire",
+    "sounds": [
+      "simukraft:npc/hire_m"
+    ]
+  },
+  "npc.hire.female": {
+    "subtitle": "simukraft.subtitle.npc.hire",
+    "sounds": [
+      "simukraft:npc/hire_f"
+    ]
+  },
+  "npc.eat.burger.male": {
+    "subtitle": "simukraft.subtitle.npc.eat.burger",
+    "sounds": [
+      "simukraft:npc/burger_m_a",
+      "simukraft:npc/burger_m_b",
+      "simukraft:npc/burger_m_c",
+      "simukraft:npc/burger_m_d",
+      "simukraft:npc/burger_m_e",
+      "simukraft:npc/burger_m_f"
+    ]
+  },
+  "npc.eat.burger.female": {
+    "subtitle": "simukraft.subtitle.npc.eat.burger",
+    "sounds": [
+      "simukraft:npc/burger_f_a",
+      "simukraft:npc/burger_f_b",
+      "simukraft:npc/burger_f_c",
+      "simukraft:npc/burger_f_d",
+      "simukraft:npc/burger_f_e",
+      "simukraft:npc/burger_f_f"
+    ]
+  },
+  "npc.eat.bakery.male": {
+    "subtitle": "simukraft.subtitle.npc.eat.bakery",
+    "sounds": [
+      "simukraft:npc/bakery_m"
+    ]
+  },
+  "npc.eat.bakery.female": {
+    "subtitle": "simukraft.subtitle.npc.eat.bakery",
+    "sounds": [
+      "simukraft:npc/bakery_f"
+    ]
+  },
+  "npc.full.male": {
+    "subtitle": "simukraft.subtitle.npc.full",
+    "sounds": [
+      "simukraft:npc/full_m"
+    ]
+  },
+  "npc.pregnant": {
+    "subtitle": "simukraft.subtitle.npc.pregnant",
+    "sounds": [
+      "simukraft:npc/pregnant"
+    ]
+  },
+  "npc.birth": {
+    "subtitle": "simukraft.subtitle.npc.birth",
+    "sounds": [
+      "simukraft:npc/birth"
+    ]
+  },
+  "npc.infant.sick": {
+    "subtitle": "simukraft.subtitle.npc.infant.sick",
+    "sounds": [
+      "simukraft:npc/infant_sick"
+    ]
+  },
+  "npc.yawn": {
+    "subtitle": "simukraft.subtitle.npc.yawn",
+    "sounds": [
+      "simukraft:npc/yawn"
+    ]
+  },
+  "npc.shears": {
+    "subtitle": "simukraft.subtitle.npc.shears",
+    "sounds": [
+      "simukraft:npc/shears"
+    ]
+  },
+  "npc.build": {
+    "subtitle": "simukraft.subtitle.npc.build",
+    "sounds": [
+      "simukraft:npc/build_a",
+      "simukraft:npc/build_b",
+      "simukraft:npc/build_c",
+      "simukraft:npc/build_d",
+      "simukraft:npc/build_e",
+      "simukraft:npc/build_f",
+      "simukraft:npc/build_g",
+      "simukraft:npc/build_h",
+      "simukraft:npc/build_i",
+      "simukraft:npc/build_j",
+      "simukraft:npc/build_k",
+      "simukraft:npc/build_l",
+      "simukraft:npc/build_m",
+      "simukraft:npc/build_n",
+      "simukraft:npc/build_o",
+      "simukraft:npc/build_p",
+      "simukraft:npc/build_q",
+      "simukraft:npc/build_r",
+      "simukraft:npc/build_s",
+      "simukraft:npc/build_t",
+      "simukraft:npc/build_u",
+      "simukraft:npc/build_v",
+      "simukraft:npc/build_w",
+      "simukraft:npc/build_x",
+      "simukraft:npc/build_y",
+      "simukraft:npc/build_z"
+    ]
+  },
+  "npc.flee": {
+    "subtitle": "simukraft.subtitle.npc.flee",
+    "sounds": [
+      "simukraft:npc/flee"
+    ]
+  },
+  "npc.chat.male": {
+    "subtitle": "simukraft.subtitle.npc.chat",
+    "sounds": [
+      "simukraft:npc/chat_m_a",
+      "simukraft:npc/chat_m_b",
+      "simukraft:npc/chat_m_c",
+      "simukraft:npc/chat_m_d",
+      "simukraft:npc/chat_m_e",
+      "simukraft:npc/chat_m_f",
+      "simukraft:npc/chat_m_g",
+      "simukraft:npc/chat_m_h",
+      "simukraft:npc/chat_m_i",
+      "simukraft:npc/chat_m_j",
+      "simukraft:npc/chat_m_k",
+      "simukraft:npc/chat_m_l",
+      "simukraft:npc/chat_m_m",
+      "simukraft:npc/chat_m_n",
+      "simukraft:npc/chat_m_o",
+      "simukraft:npc/chat_m_p",
+      "simukraft:npc/chat_m_q",
+      "simukraft:npc/chat_m_r",
+      "simukraft:npc/chat_m_s"
+    ]
+  },
+  "npc.chat.female": {
+    "subtitle": "simukraft.subtitle.npc.chat",
+    "sounds": [
+      "simukraft:npc/chat_f_a",
+      "simukraft:npc/chat_f_b",
+      "simukraft:npc/chat_f_c",
+      "simukraft:npc/chat_f_d",
+      "simukraft:npc/chat_f_e",
+      "simukraft:npc/chat_f_f",
+      "simukraft:npc/chat_f_g",
+      "simukraft:npc/chat_f_h",
+      "simukraft:npc/chat_f_i",
+      "simukraft:npc/chat_f_j",
+      "simukraft:npc/chat_f_k",
+      "simukraft:npc/chat_f_l",
+      "simukraft:npc/chat_f_m",
+      "simukraft:npc/chat_f_n",
+      "simukraft:npc/chat_f_o",
+      "simukraft:npc/chat_f_p",
+      "simukraft:npc/chat_f_q",
+      "simukraft:npc/chat_f_r",
+      "simukraft:npc/chat_f_s"
+    ]
+  },
+  "npc.chat.infant": {
+    "subtitle": "simukraft.subtitle.npc.chat",
+    "sounds": [
+      "simukraft:npc/chat_c_a",
+      "simukraft:npc/chat_c_b",
+      "simukraft:npc/chat_c_c"
+    ]
+  },
+  "block.light.use": {
+    "subtitle": "simukraft.subtitle.light.use",
+    "sounds": [
+      "simukraft:block/light_use"
+    ]
+  },
+  "block.cheese_machine.start": {
+    "subtitle": "simukraft.subtitle.cheese_machine.start",
+    "sounds": [
+      "simukraft:block/cheese_machine"
+    ]
   }
 }

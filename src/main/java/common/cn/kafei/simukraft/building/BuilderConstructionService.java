@@ -3,6 +3,9 @@ package common.cn.kafei.simukraft.building;
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.citizen.CitizenData;
 import common.cn.kafei.simukraft.citizen.CitizenHomeRestService;
+import common.cn.kafei.simukraft.citizen.CitizenTeleportService;
+import common.cn.kafei.simukraft.citizen.CitizenVoiceService;
+import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.citizen.CitizenLevelService;
 import common.cn.kafei.simukraft.citizen.CitizenService;
 import common.cn.kafei.simukraft.citizen.CitizenSelfFeedingService;
@@ -317,6 +320,8 @@ public final class BuilderConstructionService {
             level.setBlock(worldPos, BuildingBlockPlacementService.refreshedPlacementState(level, worldPos, targetState), 3);
             BuildingBlockPlacementService.applyBlockEntityData(level, worldPos, block.copyBlockEntityData());
             spawnBuildParticles(level, worldPos);
+            CitizenEntity builder = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+            CitizenVoiceService.play(level, builder, citizen, CitizenVoiceService.Cue.BUILD);
             addPendingBuilderXp(taskRuntime, 1);
             index++;
             placed++;

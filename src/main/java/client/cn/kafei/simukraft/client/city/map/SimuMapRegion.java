@@ -81,6 +81,22 @@ public class SimuMapRegion {
         return renderedImage;
     }
 
+    /**
+     * sampleRenderedArgb: 读 2D 已烘好的地形色。没有图像或该格透明时返回 0。
+     */
+    public int sampleRenderedArgb(int localX, int localZ) {
+        synchronized (this) {
+            if (renderedImage == null || localX < 0 || localX >= 512 || localZ < 0 || localZ >= 512) {
+                return 0;
+            }
+            int abgr = renderedImage.getPixelRGBA(localX, localZ);
+            if ((abgr >>> 24) == 0) {
+                return 0;
+            }
+            return SimuBlockColors.fromNativeColor(abgr);
+        }
+    }
+
     /** 标记纹理需要上传到 GPU。 */
     public void markTextureNeedsUpload() {
         textureNeedsUpload = true;

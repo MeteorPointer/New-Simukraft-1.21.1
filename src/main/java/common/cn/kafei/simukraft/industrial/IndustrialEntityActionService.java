@@ -1,6 +1,9 @@
 package common.cn.kafei.simukraft.industrial;
 
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
+import common.cn.kafei.simukraft.citizen.CitizenData;
+import common.cn.kafei.simukraft.citizen.CitizenManager;
+import common.cn.kafei.simukraft.citizen.CitizenVoiceService;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.material.GenericContainerAccess;
 import net.minecraft.core.BlockPos;
@@ -115,6 +118,10 @@ public final class IndustrialEntityActionService {
                 }
             }
             sheared++;
+        }
+        if (sheared > 0 && worker != null) {
+            CitizenData shearer = CitizenManager.get(level).getCitizen(worker.getUUID()).orElse(null);
+            CitizenVoiceService.play(level, worker, shearer, CitizenVoiceService.Cue.SHEARS);
         }
         return sheared > 0 ? ActionResult.SUCCESS : ActionResult.MISSING_ENTITIES;
     }

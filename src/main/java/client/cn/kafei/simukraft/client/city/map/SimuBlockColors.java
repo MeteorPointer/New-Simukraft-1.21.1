@@ -229,6 +229,101 @@ public class SimuBlockColors {
         }
     }
 
+    /** 未采样到地表时的 3D/2D 回退色。 */
+    public static final int FALLBACK_TERRAIN_COLOR = 0xFF6E8B5A;
+
+    /** 城市核心所在格叠一层半透明蓝，保留地表色。 */
+    public static final int CORE_HIGHLIGHT_OVERLAY = 0x994080FF;
+
+    /**
+     * opaqueTerrainColor: 透明采样当成未扫描，回退到默认地表色。
+     */
+    public static int opaqueTerrainColor(int argb) {
+        return (argb >>> 24) == 0 ? FALLBACK_TERRAIN_COLOR : argb | 0xFF000000;
+    }
+
+    /**
+     * composeMapColumnColor: 3D 柱体色 = 地表 + 坡度 + 领地填充 + 可选核心高亮。
+     * 领地填充必须用它自己的 alpha。再 OR 0x66 会把 0x55 变成 0x77，草地会被盖成亮绿。
+     */
+    public static int composeMapColumnColor(int terrainArgb, int territoryFillArgb, boolean highlightCore,
+                                            int height, int northHeight, int westHeight, boolean water) {
+        return composeThreeDColumnColor(
+                terrainArgb, territoryFillArgb, highlightCore,
+                height, northHeight, westHeight, Integer.MIN_VALUE, Integer.MIN_VALUE,
+                water, false);
+    }
+
+    /**
+     * composeThreeDColumnColor: 立体地图柱体色。
+     * 已烘过坡度的贴图像素不再乘一次西北坡；高差遮挡单独压暗，让建筑脚下落影。
+     */
+    public static int composeThreeDColumnColor(int terrainArgb, int overlayArgb, boolean highlightCore,
+                                               int height, int northHeight, int westHeight, int southHeight, int eastHeight,
+                                               boolean water, boolean alreadyShaded) {
+        int color = opaqueTerrainColor(terrainArgb);
+        int north = northHeight == Integer.MIN_VALUE ? height : northHeight;
+        int west = westHeight == Integer.MIN_VALUE ? height : westHeight;
+        float shade = alreadyShaded ? 0.0F : slopeBrightness(height, north, west, water);
+        shade += heightOcclusion(height, northHeight, westHeight, southHeight, eastHeight);
+        if (shade != 0.0F) {
+            color = adjustBrightness(color, Mth.clamp(shade, -0.5F, 0.38F));
+        }
+        if ((overlayArgb >>> 24) != 0) {
+            color = blendColors(color, overlayArgb);
+        }
+        if (highlightCore) {
+            color = blendColors(color, CORE_HIGHLIGHT_OVERLAY);
+        }
+        return color;
+    }
+
+    /**
+     * heightOcclusion: 四周更高的柱把脚下压暗，平坦草地几乎不变。
+     */
+    public static float heightOcclusion(int height, int north, int west, int south, int east) {
+        return occlusionFrom(height, north, 0.08F)
+                + occlusionFrom(height, west, 0.08F)
+                + occlusionFrom(height, south, 0.05F)
+                + occlusionFrom(height, east, 0.05F);
+    }
+
+    private static float occlusionFrom(int height, int neighbor, float weight) {
+        if (neighbor == Integer.MIN_VALUE || neighbor <= height) {
+            return 0.0F;
+        }
+        return -Math.min(weight * 2.0F, (neighbor - height) * weight * 0.5F);
+    }
+
+    /**
+     * lambertShade: 高度场法线点西北光。朝西北的坡更亮，朝东南的坡更暗。
+     */
+    public static float lambertShade(int west, int east, int north, int south, float cellSize) {
+        float span = Math.max(1.0F, cellSize);
+        float dx = (east - west) / (2.0F * span);
+        float dz = (south - north) / (2.0F * span);
+        float nx = -dx;
+        float ny = 1.0F;
+        float nz = -dz;
+        float inv = 1.0F / (float) Math.sqrt(nx * nx + ny * ny + nz * nz);
+        nx *= inv;
+        ny *= inv;
+        nz *= inv;
+        float lit = nx * -0.52F + ny * 0.78F + nz * -0.34F;
+        return Mth.clamp(0.42F + lit * 0.70F, 0.30F, 1.18F);
+    }
+
+    /**
+     * scaleColor: 按系数缩放 RGB，用于沙盘法线打光。
+     */
+    public static int scaleColor(int argb, float factor) {
+        int a = (argb >>> 24) & 0xFF;
+        int r = Mth.clamp((int) (((argb >> 16) & 0xFF) * factor + 0.5F), 0, 255);
+        int g = Mth.clamp((int) (((argb >> 8) & 0xFF) * factor + 0.5F), 0, 255);
+        int b = Mth.clamp((int) ((argb & 0xFF) * factor + 0.5F), 0, 255);
+        return (a << 24) | (r << 16) | (g << 8) | b;
+    }
+
     /**
      * 混合两个 ARGB 颜色。
      * 
@@ -297,5 +392,14 @@ public class SimuBlockColors {
         int g = (argb >> 8) & 0xFF;
         int b = argb & 0xFF;
         return (a << 24) | (b << 16) | (g << 8) | r;
+    }
+
+    /** fromNativeColor: NativeImage ABGR 转回 ARGB。 */
+    public static int fromNativeColor(int abgr) {
+        int a = (abgr >> 24) & 0xFF;
+        int b = (abgr >> 16) & 0xFF;
+        int g = (abgr >> 8) & 0xFF;
+        int r = abgr & 0xFF;
+        return (a << 24) | (r << 16) | (g << 8) | b;
     }
 }

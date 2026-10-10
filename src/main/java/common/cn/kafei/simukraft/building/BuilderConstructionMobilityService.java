@@ -1,7 +1,10 @@
 package common.cn.kafei.simukraft.building;
 
+import common.cn.kafei.simukraft.citizen.CitizenData;
+import common.cn.kafei.simukraft.citizen.CitizenManager;
 import common.cn.kafei.simukraft.citizen.CitizenPanicService;
 import common.cn.kafei.simukraft.citizen.CitizenTeleportService;
+import common.cn.kafei.simukraft.citizen.CitizenVoiceService;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.path.CitizenNavigationService;
 import net.minecraft.core.BlockPos;
@@ -31,6 +34,8 @@ public final class BuilderConstructionMobilityService {
         CitizenNavigationService.stop(level, citizenId);
         entity.getNavigation().stop();
         entity.setDeltaMovement(Vec3.ZERO);
+        CitizenData hired = CitizenManager.get(level).getCitizen(citizenId).orElse(null);
+        CitizenVoiceService.play(level, entity, hired, CitizenVoiceService.Cue.HIRE);
         if (entity.position().distanceToSqr(target) <= READY_DISTANCE_SQR) {
             return;
         }

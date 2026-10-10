@@ -240,7 +240,15 @@ public final class CitizenSelfFeedingService {
         entity.setHunger(FULL_HUNGER);
         setStatus(level, manager, citizen, EATING_FOOD_STATUS, CommercialFoodMarketService.foodDetailKey(feeding.plan));
         CitizenJobVisualService.setMainHandOverride(citizen.uuid(), foodStack);
-        level.playSound(null, entity.blockPosition(), SoundEvents.GENERIC_EAT, SoundSource.NEUTRAL, 0.8F, 1.0F);
+        CitizenVoiceService.MealKind meal = CitizenVoiceService.mealKind(foodStack);
+        if (meal == CitizenVoiceService.MealKind.BURGER) {
+            CitizenVoiceService.play(level, entity, citizen, CitizenVoiceService.Cue.EAT_BURGER);
+        } else if (meal == CitizenVoiceService.MealKind.BAKERY) {
+            CitizenVoiceService.play(level, entity, citizen, CitizenVoiceService.Cue.EAT_BAKERY);
+        } else {
+            level.playSound(null, entity.blockPosition(), SoundEvents.GENERIC_EAT, SoundSource.NEUTRAL, 0.8F, 1.0F);
+        }
+        CitizenVoiceService.play(level, entity, citizen, CitizenVoiceService.Cue.FULL);
         entity.swing(InteractionHand.MAIN_HAND);
         manager.syncEntity(entity);
     }

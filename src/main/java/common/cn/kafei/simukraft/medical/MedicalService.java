@@ -11,6 +11,7 @@ import common.cn.kafei.simukraft.citizen.CitizenManager;
 import common.cn.kafei.simukraft.citizen.CitizenPanicService;
 import common.cn.kafei.simukraft.citizen.CitizenService;
 import common.cn.kafei.simukraft.citizen.CitizenTeleportService;
+import common.cn.kafei.simukraft.citizen.CitizenVoiceService;
 import common.cn.kafei.simukraft.citizen.CitizenWorkStatus;
 import common.cn.kafei.simukraft.citizen.PregnancyStage;
 import common.cn.kafei.simukraft.city.poi.CityPoiData;
@@ -72,6 +73,8 @@ public final class MedicalService {
             DiseaseType[] choices = {DiseaseType.COLD, DiseaseType.FLU};
             citizen.setDisease(choices[random.nextInt(choices.length)], currentDay);
             CitizenService.save(level, citizen.uuid());
+            CitizenEntity sick = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+            CitizenVoiceService.play(level, sick, citizen, CitizenVoiceService.Cue.SICK);
         }
     }
 

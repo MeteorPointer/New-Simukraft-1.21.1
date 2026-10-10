@@ -96,6 +96,8 @@ public final class NpcChildbirthService {
 
         familyManager.addChild(level, family.familyId(), child.uuid());
         manager.saveCitizenNow(child.uuid());
+        CitizenEntity mother = CitizenTeleportService.findCitizenEntity(level, wife.uuid());
+        CitizenVoiceService.play(level, mother != null ? mother : childEntity, wife, CitizenVoiceService.Cue.BIRTH);
 
         wife.setPregnant(false);
         wife.setPregnantSince(0L);

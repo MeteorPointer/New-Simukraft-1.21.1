@@ -73,6 +73,8 @@ public final class NpcPregnancyService {
         }
 
         wife.setPregnant(true);
+        CitizenEntity wifeEntity = CitizenTeleportService.findCitizenEntity(level, wife.uuid());
+        CitizenVoiceService.play(level, wifeEntity, wife, CitizenVoiceService.Cue.PREGNANT);
         wife.setPregnantSince(level.getDayTime() / 24000L);
         wife.setReservedBabyBedPoiId(reservedBedId);
         wife.setStatusLabel(PregnancyStage.EARLY.translationKey());
@@ -125,6 +127,7 @@ public final class NpcPregnancyService {
         if (random.nextDouble() >= chance) return;
 
         wife.setPregnant(true);
+        CitizenVoiceService.play(level, CitizenTeleportService.findCitizenEntity(level, wife.uuid()), wife, CitizenVoiceService.Cue.PREGNANT);
         wife.setPregnantSince(currentDay);
         wife.setReservedBabyBedPoiId(reservedBedId); // 预约婴儿床位，防止并发抢占
         wife.setStatusLabel("pregnant");

@@ -13,6 +13,7 @@ import common.cn.kafei.simukraft.block.MedicalControlBoxBlock;
 import common.cn.kafei.simukraft.block.MineralDrillingControlBoxBlock;
 import common.cn.kafei.simukraft.block.MilkLiquidBlock;
 import common.cn.kafei.simukraft.block.IndustrialHousingTrapdoorBlock;
+import common.cn.kafei.simukraft.block.LightBlock;
 import common.cn.kafei.simukraft.block.ResidentialControlBoxBlock;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -124,7 +125,7 @@ public final class ModBlocks {
     }
 
     private static Block lightBlock() {
-        return new Block(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(1.0F).sound(SoundType.GLASS).lightLevel(state -> 15));
+        return new LightBlock();
     }
 
     @SuppressWarnings("deprecation")
