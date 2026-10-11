@@ -9,8 +9,8 @@ import org.joml.Matrix4f;
 import java.util.Arrays;
 
 /**
- * 城市核心立体沙盘：每格一块平顶柱体，高差处补立面，草地合并成大面。
- * 缩放只改投影。不画整张底座，避免远半边被同色大面盖住。
+ * 城市核心立体沙盘：每格一块完整立方柱，顶面、立面和底边分开着色。
+ * 顶点留在方块坐标系里，屏幕投影由调用方的正交矩阵完成。
  */
 @OnlyIn(Dist.CLIENT)
 public final class SimuMap3DMesh {
@@ -19,9 +19,7 @@ public final class SimuMap3DMesh {
     public static final int REBUILD_SLACK = 8;
     private static final int SKIRT_DEPTH = 10;
     private static final int BASE_COLOR = 0xFF101418;
-    private static final float HEIGHT_SCALE = 0.55F;
-    private static final float DEPTH_SCALE = 0.5F;
-    private static final float TOP_SHADE = 0.94F;
+    private static final float TOP_SHADE = 0.96F;
     private static final int MAX_GREEDY_SPAN = 8;
 
     public interface Source {
@@ -47,17 +45,10 @@ public final class SimuMap3DMesh {
     private final CellPick pick = new CellPick();
 
     private float[] fx = new float[0];
+    private float[] fy = new float[0];
     private float[] fz = new float[0];
-    private int[] fh = new int[0];
     private int[] fc = new int[0];
     private int faceCount;
-    private int[] faceOrder = new int[0];
-    private float[] faceDepth = new float[0];
-    private int sortedYawBucket = Integer.MIN_VALUE;
-    private final float[] p00 = new float[3];
-    private final float[] p10 = new float[3];
-    private final float[] p11 = new float[3];
-    private final float[] p01 = new float[3];
 
     public boolean isEmpty() {
         return faceCount <= 0;
@@ -113,7 +104,10 @@ public final class SimuMap3DMesh {
         cachedGameTime = Long.MIN_VALUE;
         lodStep = 0;
         faceCount = 0;
-        sortedYawBucket = Integer.MIN_VALUE;
+    }
+
+    public int baseHeight() {
+        return baseHeight;
     }
 
     public void rebuild(Source source, int centerBlockX, int centerBlockZ, int step, long gameTime) {
@@ -169,23 +163,20 @@ public final class SimuMap3DMesh {
         buildFaces();
     }
 
-    public void emit(BufferBuilder buffer, Matrix4f matrix, float yaw, float scale,
-                     double centerScreenX, double centerScreenY, int liveCenterX, int liveCenterZ) {
+    /**
+     * emit: 按方块坐标写出顶点。深度测试负责遮挡，调用方负责旋转和正交投影。
+     */
+    public void emit(BufferBuilder buffer, Matrix4f matrix, float shiftX, float shiftZ) {
         if (faceCount <= 0) {
             return;
         }
-        float cos = Mth.cos(yaw);
-        float sin = Mth.sin(yaw);
-        float shiftX = this.centerX - liveCenterX;
-        float shiftZ = this.centerZ - liveCenterZ;
-        sortFaces(sin, cos, shiftX, shiftZ);
         for (int i = 0; i < faceCount; i++) {
-            int o = faceOrder[i] * 4;
-            project(fx[o] + shiftX, fz[o] + shiftZ, fh[o], cos, sin, scale, centerScreenX, centerScreenY, p00);
-            project(fx[o + 1] + shiftX, fz[o + 1] + shiftZ, fh[o + 1], cos, sin, scale, centerScreenX, centerScreenY, p10);
-            project(fx[o + 2] + shiftX, fz[o + 2] + shiftZ, fh[o + 2], cos, sin, scale, centerScreenX, centerScreenY, p11);
-            project(fx[o + 3] + shiftX, fz[o + 3] + shiftZ, fh[o + 3], cos, sin, scale, centerScreenX, centerScreenY, p01);
-            quad(buffer, matrix, p00, fc[o], p10, fc[o + 1], p11, fc[o + 2], p01, fc[o + 3]);
+            int o = i * 4;
+            quad(buffer, matrix,
+                    fx[o] + shiftX, fy[o], fz[o] + shiftZ, fc[o],
+                    fx[o + 1] + shiftX, fy[o + 1], fz[o + 1] + shiftZ, fc[o + 1],
+                    fx[o + 2] + shiftX, fy[o + 2], fz[o + 2] + shiftZ, fc[o + 2],
+                    fx[o + 3] + shiftX, fy[o + 3], fz[o + 3] + shiftZ, fc[o + 3]);
         }
     }
 
@@ -275,7 +266,6 @@ public final class SimuMap3DMesh {
 
     private void buildFaces() {
         faceCount = 0;
-        sortedYawBucket = Integer.MIN_VALUE;
         Arrays.fill(visited, false);
         int n = cells;
         for (int iz = 0; iz < n; iz++) {
@@ -375,20 +365,20 @@ public final class SimuMap3DMesh {
         ensureFaceCapacity();
         int o = faceCount * 4;
         fx[o] = x0;
+        fy[o] = h0;
         fz[o] = z0;
-        fh[o] = h0;
         fc[o] = c0;
         fx[o + 1] = x1;
+        fy[o + 1] = h1;
         fz[o + 1] = z1;
-        fh[o + 1] = h1;
         fc[o + 1] = c1;
         fx[o + 2] = x2;
+        fy[o + 2] = h2;
         fz[o + 2] = z2;
-        fh[o + 2] = h2;
         fc[o + 2] = c2;
         fx[o + 3] = x3;
+        fy[o + 3] = h3;
         fz[o + 3] = z3;
-        fh[o + 3] = h3;
         fc[o + 3] = c3;
         faceCount++;
     }
@@ -400,8 +390,8 @@ public final class SimuMap3DMesh {
         }
         int cap = Math.max(256, Math.max(needed, fx.length * 2));
         fx = Arrays.copyOf(fx, cap);
+        fy = Arrays.copyOf(fy, cap);
         fz = Arrays.copyOf(fz, cap);
-        fh = Arrays.copyOf(fh, cap);
         fc = Arrays.copyOf(fc, cap);
     }
 
@@ -411,65 +401,6 @@ public final class SimuMap3DMesh {
         }
         int height = heights[ix + iz * cells];
         return height == Integer.MIN_VALUE ? fallback : height;
-    }
-
-    private void project(float dx, float dz, int height, float cos, float sin, float scale,
-                         double centerScreenX, double centerScreenY, float[] out) {
-        float rx = dx * cos - dz * sin;
-        float rz = dx * sin + dz * cos;
-        out[0] = (float) centerScreenX + rx * scale;
-        out[1] = (float) centerScreenY + rz * scale * DEPTH_SCALE - (height - baseHeight) * scale * HEIGHT_SCALE;
-        out[2] = 0.0F;
-    }
-
-    private void sortFaces(float sin, float cos, float shiftX, float shiftZ) {
-        int bucket = Mth.floor((Mth.atan2(sin, cos) + (float) Math.PI) / ((float) Math.PI / 8.0F)) & 15;
-        if (bucket == sortedYawBucket && faceOrder.length >= faceCount) {
-            return;
-        }
-        if (faceOrder.length < faceCount) {
-            faceOrder = new int[faceCount];
-            faceDepth = new float[faceCount];
-        }
-        for (int i = 0; i < faceCount; i++) {
-            faceOrder[i] = i;
-            int o = i * 4;
-            float ax = (fx[o] + fx[o + 1] + fx[o + 2] + fx[o + 3]) * 0.25F + shiftX;
-            float az = (fz[o] + fz[o + 1] + fz[o + 2] + fz[o + 3]) * 0.25F + shiftZ;
-            float ah = (fh[o] + fh[o + 1] + fh[o + 2] + fh[o + 3]) * 0.25F;
-            faceDepth[i] = ax * sin + az * cos - (ah - baseHeight) * 0.4F;
-        }
-        sortOrder(0, faceCount - 1);
-        sortedYawBucket = bucket;
-    }
-
-    private void sortOrder(int left, int right) {
-        int[] order = faceOrder;
-        float[] depth = faceDepth;
-        int lo = left;
-        int hi = right;
-        float pivot = depth[order[(left + right) >>> 1]];
-        while (lo <= hi) {
-            while (depth[order[lo]] > pivot) {
-                lo++;
-            }
-            while (depth[order[hi]] < pivot) {
-                hi--;
-            }
-            if (lo <= hi) {
-                int tmp = order[lo];
-                order[lo] = order[hi];
-                order[hi] = tmp;
-                lo++;
-                hi--;
-            }
-        }
-        if (left < hi) {
-            sortOrder(left, hi);
-        }
-        if (lo < right) {
-            sortOrder(lo, right);
-        }
     }
 
     private static float wallLight(int nx, int nz) {
@@ -486,11 +417,14 @@ public final class SimuMap3DMesh {
     }
 
     private static void quad(BufferBuilder buffer, Matrix4f matrix,
-                             float[] a, int ca, float[] b, int cb, float[] c, int cc, float[] d, int cd) {
-        buffer.addVertex(matrix, a[0], a[1], a[2]).setColor(SimuBlockColors.opaqueTerrainColor(ca));
-        buffer.addVertex(matrix, b[0], b[1], b[2]).setColor(SimuBlockColors.opaqueTerrainColor(cb));
-        buffer.addVertex(matrix, c[0], c[1], c[2]).setColor(SimuBlockColors.opaqueTerrainColor(cc));
-        buffer.addVertex(matrix, d[0], d[1], d[2]).setColor(SimuBlockColors.opaqueTerrainColor(cd));
+                             float x0, float y0, float z0, int c0,
+                             float x1, float y1, float z1, int c1,
+                             float x2, float y2, float z2, int c2,
+                             float x3, float y3, float z3, int c3) {
+        buffer.addVertex(matrix, x0, y0, z0).setColor(SimuBlockColors.opaqueTerrainColor(c0));
+        buffer.addVertex(matrix, x1, y1, z1).setColor(SimuBlockColors.opaqueTerrainColor(c1));
+        buffer.addVertex(matrix, x2, y2, z2).setColor(SimuBlockColors.opaqueTerrainColor(c2));
+        buffer.addVertex(matrix, x3, y3, z3).setColor(SimuBlockColors.opaqueTerrainColor(c3));
     }
 
     static final class CellPick {
