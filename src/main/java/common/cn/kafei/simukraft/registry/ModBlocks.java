@@ -14,9 +14,12 @@ import common.cn.kafei.simukraft.block.MineralDrillingControlBoxBlock;
 import common.cn.kafei.simukraft.block.MilkLiquidBlock;
 import common.cn.kafei.simukraft.block.IndustrialHousingTrapdoorBlock;
 import common.cn.kafei.simukraft.block.LightBlock;
+import common.cn.kafei.simukraft.block.MiningBoxBlock;
+import common.cn.kafei.simukraft.block.CautionTapeBlock;
 import common.cn.kafei.simukraft.block.ResidentialControlBoxBlock;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
@@ -47,6 +50,7 @@ public final class ModBlocks {
 
     public static final DeferredBlock<Block> BLUE_LIGHT_BLOCK = registerBlock("blue_light_block", ModBlocks::lightBlock);
     public static final DeferredBlock<Block> BUILD_BOX = registerBlock("build_box", common.cn.kafei.simukraft.block.BuildBoxBlock::new);
+    public static final DeferredBlock<Block> CAUTION_TAPE = registerNamedItemBlock("caution_tape", CautionTapeBlock::new);
     public static final DeferredBlock<Block> CHEESE_BLOCK = registerBlock("cheese_block", ModBlocks::cheeseBlock);
     public static final DeferredBlock<Block> CITY_CORE = registerBlock("city_core", CityCoreBlock::new);
     public static final DeferredBlock<Block> COMMERCIAL_CONTROL_BOX = registerBlock("commercial_control_box", CommercialControlBoxBlock::new);
@@ -58,6 +62,7 @@ public final class ModBlocks {
     /** INDUSTRIAL_HOUSING_TRAPDOOR: 黄色铁质栈道，仅水平上/下置，不可打开 */
     public static final DeferredBlock<Block> INDUSTRIAL_HOUSING_TRAPDOOR = registerBlock("industrial_housing_trapdoor", ModBlocks::industrialHousingTrapdoor);
     public static final DeferredBlock<Block> MINERAL_DRILLING_CONTROL_BOX = registerBlock("mineral_drilling_control_box", MineralDrillingControlBoxBlock::new);
+    public static final DeferredBlock<Block> MINING_BOX = registerBlock("mining_box", MiningBoxBlock::new);
     public static final DeferredBlock<Block> LOGISTICS_CLIENT_BOX = registerBlock("logistics_client_box", LogisticsClientBoxBlock::new);
     public static final DeferredBlock<Block> LOGISTICS_SERVER_BOX = registerBlock("logistics_server_box", LogisticsServerBoxBlock::new);
     public static final DeferredBlock<Block> MEDICAL_CONTROL_BOX = registerBlock("medical_control_box", MedicalControlBoxBlock::new);
@@ -86,6 +91,13 @@ public final class ModBlocks {
     private static DeferredBlock<Block> registerBlock(String name, Supplier<Block> blockSupplier) {
         DeferredBlock<Block> block = BLOCKS.register(name, blockSupplier);
         ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
+        return block;
+    }
+
+    /** 物品名与方块名分开：物品显示成卷胶带，放置后是警戒线。 */
+    private static DeferredBlock<Block> registerNamedItemBlock(String name, Supplier<Block> blockSupplier) {
+        DeferredBlock<Block> block = BLOCKS.register(name, blockSupplier);
+        ITEMS.register(name, () -> new ItemNameBlockItem(block.get(), new Item.Properties()));
         return block;
     }
 

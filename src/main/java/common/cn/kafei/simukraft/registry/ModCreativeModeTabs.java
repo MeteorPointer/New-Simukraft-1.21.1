@@ -33,6 +33,7 @@ public final class ModCreativeModeTabs {
                 output.accept(ModBlocks.LOGISTICS_SERVER_BOX.get());
                 output.accept(ModBlocks.LOGISTICS_CLIENT_BOX.get());
                 output.accept(ModBlocks.NSUK_FARMLAND_BOX.get());
+                output.accept(ModBlocks.MINING_BOX.get());
                 // 杂项
                 output.accept(ModBlocks.CHEESE_BLOCK.get());
                 output.accept(ModItems.MANIFEST.get());
@@ -63,6 +64,7 @@ public final class ModCreativeModeTabs {
                 output.accept(ModBlocks.INDUSTRIAL_HOUSING_TRAPDOOR.get());
                 // 金属栏杆
                 output.accept(ModBlocks.METAL_RAILING.get());
+                output.accept(ModBlocks.CAUTION_TAPE.get());
                 // 发光方块（彩虹顺序）
                 output.accept(ModBlocks.RED_LIGHT_BLOCK.get());
                 output.accept(ModBlocks.ORANGE_LIGHT_BLOCK.get());

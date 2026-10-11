@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "simukraft:block/mining_box"
+    }
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "ambientocclusion": false,
+  "render_type": "minecraft:cutout",
+  "textures": {
+    "tape": "simukraft:block/caution_tape",
+    "particle": "simukraft:block/caution_tape"
+  },
+  "elements": [
+    {
+      "from": [7.5, 0, 8],
+      "to": [8.5, 16, 16],
+      "faces": {
+        "east": {"uv": [4, 0, 8, 16], "texture": "#tape"},
+        "west": {"uv": [8, 0, 4, 16], "texture": "#tape"},
+        "south": {"uv": [4, 0, 4.5, 16], "texture": "#tape", "cullface": "south"}
+      }
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "multipart": [
+    {
+      "when": { "north": "true", "south": "true" },
+      "apply": { "model": "simukraft:block/caution_tape_straight" }
+    },
+    {
+      "when": { "east": "true", "west": "true" },
+      "apply": { "model": "simukraft:block/caution_tape_straight", "y": 90 }
+    },
+    {
+      "when": { "south": "true", "east": "true", "north": "false", "west": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side_corner" }
+    },
+    {
+      "when": { "south": "true", "east": "true", "north": "false", "west": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side_corner", "y": 270 }
+    },
+    {
+      "when": { "south": "true", "west": "true", "north": "false", "east": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side_corner", "y": 90 }
+    },
+    {
+      "when": { "south": "true", "west": "true", "north": "false", "east": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side_corner" }
+    },
+    {
+      "when": { "north": "true", "west": "true", "south": "false", "east": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side_corner", "y": 180 }
+    },
+    {
+      "when": { "north": "true", "west": "true", "south": "false", "east": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side_corner", "y": 90 }
+    },
+    {
+      "when": { "north": "true", "east": "true", "south": "false", "west": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side_corner", "y": 270 }
+    },
+    {
+      "when": { "north": "true", "east": "true", "south": "false", "west": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side_corner", "y": 180 }
+    },
+    {
+      "when": { "south": "true", "north": "false", "east": "false", "west": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side" }
+    },
+    {
+      "when": { "south": "true", "north": "false", "east": "true", "west": "true" },
+      "apply": { "model": "simukraft:block/caution_tape_side" }
+    },
+    {
+      "when": { "north": "true", "south": "false", "east": "false", "west": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side", "y": 180 }
+    },
+    {
+      "when": { "north": "true", "south": "false", "east": "true", "west": "true" },
+      "apply": { "model": "simukraft:block/caution_tape_side", "y": 180 }
+    },
+    {
+      "when": { "east": "true", "west": "false", "north": "false", "south": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side", "y": 270 }
+    },
+    {
+      "when": { "east": "true", "west": "false", "north": "true", "south": "true" },
+      "apply": { "model": "simukraft:block/caution_tape_side", "y": 270 }
+    },
+    {
+      "when": { "west": "true", "east": "false", "north": "false", "south": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_side", "y": 90 }
+    },
+    {
+      "when": { "west": "true", "east": "false", "north": "true", "south": "true" },
+      "apply": { "model": "simukraft:block/caution_tape_side", "y": 90 }
+    }
+  ]
+}
