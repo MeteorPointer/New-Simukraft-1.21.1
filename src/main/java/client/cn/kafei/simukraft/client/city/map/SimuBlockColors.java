@@ -387,19 +387,18 @@ public class SimuBlockColors {
 
     /** 将 ARGB 转换为 NativeImage 使用的 ABGR 格式。 */
     public static int toNativeColor(int argb) {
-        int a = (argb >> 24) & 0xFF;
-        int r = (argb >> 16) & 0xFF;
-        int g = (argb >> 8) & 0xFF;
-        int b = argb & 0xFF;
-        return (a << 24) | (b << 16) | (g << 8) | r;
+        return switchFormat(argb);
     }
 
     /** fromNativeColor: NativeImage ABGR 转回 ARGB。 */
     public static int fromNativeColor(int abgr) {
-        int a = (abgr >> 24) & 0xFF;
-        int b = (abgr >> 16) & 0xFF;
-        int g = (abgr >> 8) & 0xFF;
-        int r = abgr & 0xFF;
-        return (a << 24) | (r << 16) | (g << 8) | b;
+        return switchFormat(abgr);
+    }
+
+    private static int switchFormat(int inp) {
+        int i = (inp >> 16) & 0x000000FF;
+        int j = (inp & 0x00000000FF) << 16;
+        int k = inp & 0xFF00FF00;
+        return k | j | i;
     }
 }
