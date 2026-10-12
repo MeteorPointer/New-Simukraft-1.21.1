@@ -23,7 +23,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * 警戒线：无碰撞薄面。按邻接连接，32×32 右半张作为拐角贴图。
+ * 警戒线：无碰撞薄带。贴图裁掉透明行后高 8 像素，模型与选中框只包住这条带子，并渲染顶面和底面。
+ * 32×8 贴图右半张作为拐角。
  */
 public final class CautionTapeBlock extends Block {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -32,10 +33,10 @@ public final class CautionTapeBlock extends Block {
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
     public static final BooleanProperty WEST = BlockStateProperties.WEST;
 
-    private static final VoxelShape ARM_NORTH = Block.box(7.0, 0.0, 0.0, 9.0, 16.0, 9.0);
-    private static final VoxelShape ARM_SOUTH = Block.box(7.0, 0.0, 7.0, 9.0, 16.0, 16.0);
-    private static final VoxelShape ARM_WEST = Block.box(0.0, 0.0, 7.0, 9.0, 16.0, 9.0);
-    private static final VoxelShape ARM_EAST = Block.box(7.0, 0.0, 7.0, 16.0, 16.0, 9.0);
+    private static final VoxelShape ARM_NORTH = Block.box(7.5, 8.5, 0.0, 8.5, 12.5, 8.0);
+    private static final VoxelShape ARM_SOUTH = Block.box(7.5, 8.5, 8.0, 8.5, 12.5, 16.0);
+    private static final VoxelShape ARM_WEST = Block.box(0.0, 8.5, 7.5, 8.0, 12.5, 8.5);
+    private static final VoxelShape ARM_EAST = Block.box(8.0, 8.5, 7.5, 16.0, 12.5, 8.5);
     private static final VoxelShape[] SHAPES = makeShapes();
 
     public CautionTapeBlock() {
