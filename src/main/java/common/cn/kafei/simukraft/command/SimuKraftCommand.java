@@ -45,6 +45,7 @@ import common.cn.kafei.simukraft.config.ServerConfig;
 import common.cn.kafei.simukraft.economy.EconomyService;
 import common.cn.kafei.simukraft.entity.CitizenEntity;
 import common.cn.kafei.simukraft.network.building.BuildingCacheReloadPacket;
+import common.cn.kafei.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.kafei.simukraft.network.hud.HudSyncService;
 import common.cn.kafei.simukraft.path.CitizenNavigationService;
 import common.cn.kafei.simukraft.path.CitizenWanderService;
@@ -549,6 +550,7 @@ public final class SimuKraftCommand {
         int count = 0;
         for (ServerPlayer player : source.getServer().getPlayerList().getPlayers()) {
             PacketDistributor.sendToPlayer(player, new BuildingCacheReloadPacket());
+            PacketDistributor.sendToPlayer(player, new ReloadGuideBookPacket());
             count++;
         }
         final int reloadedPlayerCount = count;
@@ -612,6 +614,7 @@ public final class SimuKraftCommand {
         int count = 0;
         for (ServerPlayer player : source.getServer().getPlayerList().getPlayers()) {
             PacketDistributor.sendToPlayer(player, new BuildingCacheReloadPacket());
+            PacketDistributor.sendToPlayer(player, new ReloadGuideBookPacket());
             count++;
         }
         final int syncedCount = count;

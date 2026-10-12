@@ -1,0 +1,46 @@
+{
+  "left_title": "guidebook.directory.title",
+  "right_title": "guidebook.directory.title",
+  "left_content": [
+    {
+      "type": "text",
+      "content": "guidebook.directory.description",
+      "spacing": 8
+    }
+  ],
+  "right_content": [
+    {
+      "type": "link",
+      "content": "guidebook.directory.prologue.name",
+      "target": "prologue",
+      "spacing": 4
+    },
+    {
+      "type": "text",
+      "content": "guidebook.directory.prologue.desc",
+      "spacing": 8
+    },
+    {
+      "type": "link",
+      "content": "guidebook.directory.items.name",
+      "target": "items",
+      "spacing": 4
+    },
+    {
+      "type": "text",
+      "content": "guidebook.directory.items.desc",
+      "spacing": 0
+    },
+    {
+      "type": "link",
+      "spacing": 4,
+      "content": "guidebook.chapter.directory.page0_right_el4",
+      "target": "start"
+    },
+    {
+      "type": "text",
+      "spacing": 4,
+      "content": "guidebook.chapter.directory.page0_right_el5"
+    }
+  ]
+}

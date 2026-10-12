@@ -40,6 +40,7 @@
     "item.simukraft.cheese_chunk":  "NSUK-奶酪",
     "item.simukraft.cheese_burger":  "NSUK-奶酪汉堡",
     "item.simukraft.manifest":  "NSUK-清单",
+    "item.simukraft.guide_book":  "New:Sim-U-Kraft指南",
     "item.simukraft.portable_city_core":  "NSUK-便携式城市核心",
     "item.simukraft.geological_hammer":  "NSUK-地质锤",
     "tooltip.simukraft.geological_hammer.description": "NSUK-地质锤可以分析附近的矿脉痕迹，帮助你找到矿脉位置。",

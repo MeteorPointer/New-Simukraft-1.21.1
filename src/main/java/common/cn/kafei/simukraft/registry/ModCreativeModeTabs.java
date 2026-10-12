@@ -37,6 +37,7 @@ public final class ModCreativeModeTabs {
                 // 杂项
                 output.accept(ModBlocks.CHEESE_BLOCK.get());
                 output.accept(ModItems.MANIFEST.get());
+                output.accept(ModItems.GUIDE_BOOK.get());
                 output.accept(ModItems.COPPER_COIN.get());
                 output.accept(ModItems.SILVER_COIN.get());
                 output.accept(ModItems.GOLD_COIN.get());

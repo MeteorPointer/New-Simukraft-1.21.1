@@ -1,0 +1,45 @@
+{
+  "parent": "directory",
+  "tab_icon": "tab_city",
+  "tab_index": 0,
+  "pages": [
+    {
+      "left_title": "guidebook.chapter.prologue.page1.left_title",
+      "right_title": "guidebook.chapter.prologue.page1.right_title",
+      "left_content": [
+        {
+          "type": "item",
+          "item_id": "simukraft:build_box",
+          "spacing": 4
+        },
+        {
+          "type": "text",
+          "content": "guidebook.chapter.prologue.page1.left_1",
+          "spacing": 8
+        },
+        {
+          "type": "text",
+          "content": "guidebook.chapter.prologue.page1.left_2",
+          "spacing": 8
+        },
+        {
+          "type": "text",
+          "content": "guidebook.chapter.prologue.page1.left_3",
+          "spacing": 0
+        }
+      ],
+      "right_content": [
+        {
+          "type": "hint",
+          "content": "guidebook.chapter.prologue.page1.right_1",
+          "spacing": 0
+        },
+        {
+          "type": "hint",
+          "spacing": 4,
+          "content": "guidebook.chapter.prologue.page0_right_el1_1"
+        }
+      ]
+    }
+  ]
+}

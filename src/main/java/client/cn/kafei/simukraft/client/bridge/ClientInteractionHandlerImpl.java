@@ -1,8 +1,10 @@
 package client.cn.kafei.simukraft.client.bridge;
 
 import client.cn.kafei.simukraft.client.buildbox.BuildBoxScreenOpener;
+import client.cn.kafei.simukraft.client.guidebook.GuideBookScreen;
 import client.cn.kafei.simukraft.client.manifest.ManifestScreen;
 import common.cn.kafei.simukraft.clientbridge.ClientInteractionHandler;
+import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
@@ -27,5 +29,11 @@ public final class ClientInteractionHandlerImpl implements ClientInteractionHand
     @Override
     public void openManifest(ItemStack stack, InteractionHand hand) {
         ManifestScreen.open(stack, hand);
+    }
+
+    @Override
+    public void openGuideBook(ItemStack stack) {
+        ItemStack previewStack = stack == null || stack.isEmpty() ? ItemStack.EMPTY : stack.copy();
+        Minecraft.getInstance().setScreen(new GuideBookScreen(previewStack));
     }
 }

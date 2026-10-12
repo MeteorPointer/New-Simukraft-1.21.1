@@ -94,13 +94,14 @@ import common.cn.kafei.simukraft.network.rts.RtsOpenTargetPacket;
 import common.cn.kafei.simukraft.network.rts.RtsPlaceBlockPacket;
 import common.cn.kafei.simukraft.network.toast.InfoToastPacket;
 import common.cn.kafei.simukraft.network.geology.GeologicalSurveyHintPacket;
+import common.cn.kafei.simukraft.network.guidebook.ReloadGuideBookPacket;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 
 public final class ModNetwork {
-    private static final String NETWORK_VERSION = "33";
+    private static final String NETWORK_VERSION = "34";
 
     private ModNetwork() {
     }
@@ -201,6 +202,7 @@ public final class ModNetwork {
         registrar.playToClient(NpcPathDebugSyncPacket.TYPE, NpcPathDebugSyncPacket.STREAM_CODEC, NpcPathDebugSyncPacket::handle);
         registrar.playToClient(InfoToastPacket.TYPE, InfoToastPacket.STREAM_CODEC, InfoToastPacket::handle);
         registrar.playToClient(GeologicalSurveyHintPacket.TYPE, GeologicalSurveyHintPacket.STREAM_CODEC, GeologicalSurveyHintPacket::handle);
+        registrar.playToClient(ReloadGuideBookPacket.TYPE, ReloadGuideBookPacket.STREAM_CODEC, ReloadGuideBookPacket::handle);
         registrar.playToClient(RtsBuildingBoundsSyncPacket.TYPE, RtsBuildingBoundsSyncPacket.STREAM_CODEC, RtsBuildingBoundsSyncPacket::handle);
     }
 }

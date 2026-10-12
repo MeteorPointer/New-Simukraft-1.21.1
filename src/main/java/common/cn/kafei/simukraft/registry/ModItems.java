@@ -2,6 +2,7 @@ package common.cn.kafei.simukraft.registry;
 
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.item.CoinItems;
+import common.cn.kafei.simukraft.item.GuideBookItem;
 import common.cn.kafei.simukraft.item.ManifestItem;
 import common.cn.kafei.simukraft.item.GeologicalHammerItem;
 import common.cn.kafei.simukraft.item.PortableCityCoreItem;
@@ -17,6 +18,7 @@ public final class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(SimuKraft.MOD_ID);
 
     public static final DeferredHolder<Item, Item> MANIFEST = ITEMS.register("manifest", ManifestItem::new);
+    public static final DeferredHolder<Item, Item> GUIDE_BOOK = ITEMS.register("guide_book", GuideBookItem::new);
     public static final DeferredHolder<Item, Item> PORTABLE_CITY_CORE = ITEMS.register("portable_city_core", PortableCityCoreItem::new);
     public static final DeferredHolder<Item, Item> COPPER_COIN = ITEMS.register("copper_coin", () -> new Item(new Item.Properties().stacksTo(CoinItems.MAX_STACK))); // 铜币，一组 1000
     public static final DeferredHolder<Item, Item> SILVER_COIN = ITEMS.register("silver_coin", () -> new Item(new Item.Properties().stacksTo(CoinItems.MAX_STACK))); // 银币，一组 1000

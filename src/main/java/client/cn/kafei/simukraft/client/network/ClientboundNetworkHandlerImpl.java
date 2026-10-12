@@ -22,6 +22,8 @@ import client.cn.kafei.simukraft.client.medical.MedicalControlBoxScreenOpener;
 import client.cn.kafei.simukraft.client.path.NpcPathDebugRenderer;
 import client.cn.kafei.simukraft.client.toast.ClientInfoToast;
 import client.cn.kafei.simukraft.client.geology.GeologicalSurveyHintOverlay;
+import client.cn.kafei.simukraft.client.guidebook.GuideBookLang;
+import client.cn.kafei.simukraft.client.guidebook.GuideBookLoader;
 import common.cn.kafei.simukraft.network.building.BuildingCacheReloadPacket;
 import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxBoundsUpdatePacket;
 import common.cn.kafei.simukraft.network.building.controlbox.ResidentialControlBoxOpenResponsePacket;
@@ -38,6 +40,7 @@ import common.cn.kafei.simukraft.network.commercial.CommercialTradeOpenResponseP
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxBoundsResponsePacket;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
 import common.cn.kafei.simukraft.network.geology.GeologicalSurveyHintPacket;
+import common.cn.kafei.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.kafei.simukraft.network.hud.HudSyncPacket;
 import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxOpenResponsePacket;
 import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxViewUpdatePacket;
@@ -55,6 +58,7 @@ import common.cn.kafei.simukraft.network.path.NpcPathDebugSyncPacket;
 import common.cn.kafei.simukraft.network.planner.PlannerMaterialScanResponsePacket;
 import common.cn.kafei.simukraft.network.toast.InfoToastPacket;
 import common.cn.kafei.simukraft.network.rts.RtsBuildingBoundsSyncPacket;
+import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
@@ -256,5 +260,15 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
         } else {
             GeologicalSurveyHintOverlay.show(packet.message());
         }
+    }
+
+    @Override
+    public void handleReloadGuideBook(ReloadGuideBookPacket packet) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.getResourceManager() == null) {
+            return;
+        }
+        GuideBookLang.reload(minecraft.getResourceManager());
+        GuideBookLoader.reload(minecraft.getResourceManager());
     }
 }

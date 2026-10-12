@@ -40,6 +40,7 @@
     "item.simukraft.cheese_chunk":  "NSUK Cheese Chunk",
     "item.simukraft.cheese_burger":  "NSUK Cheese Burger",
     "item.simukraft.manifest":  "NSUK Manifest",
+    "item.simukraft.guide_book":  "New:Sim-U-Kraft Guide",
     "item.simukraft.portable_city_core":  "NSUK Portable City Core",
     "item.simukraft.geological_hammer":  "NSUK Geological Hammer",
     "tooltip.simukraft.geological_hammer.description": "NSUK Geological Hammer can analyze nearby vein traces to help you locate veins.",

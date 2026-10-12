@@ -1,0 +1,506 @@
+{
+  "parent": "directory",
+  "tab_icon": "tab_city",
+  "tab_index": 2,
+  "pages": [
+    {
+      "left_title": "start.left_title",
+      "right_title": "start.right_title",
+      "left_content": [
+        {
+          "type": "text",
+          "content": "start.intro",
+          "spacing": 8
+        },
+        {
+          "type": "item",
+          "spacing": 4,
+          "item_id": "simukraft:city_core"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page0_left_el2"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page0_left_el3"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page0_right_el0"
+        },
+        {
+          "type": "hint",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page0_right_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page0_right_el2"
+        },
+        {
+          "type": "hint",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page0_right_el3"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.items.page3_left_title",
+      "right_title": "guidebook.chapter.items.guidebook",
+      "left_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page1_left_el0"
+        },
+        {
+          "type": "item",
+          "spacing": 4,
+          "item_id": "simukraft:build_box"
+        },
+        {
+          "type": "hint",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page1_left_el2"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page0_left_el4"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page1_right_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page1_right_el2"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page1_right_el0"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page2_left_title",
+      "right_title": "guidebook.chapter.start.page2_right_title",
+      "left_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page2_left_el3"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page2_left_el4"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page2_left_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page2_left_el2"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page2_right_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page2_right_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page2_right_el2"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page3_left_title_1",
+      "right_title": "guidebook.chapter.items.page4_right_title",
+      "left_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page3_left_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page3_left_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page3_left_el2"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page3_right_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page3_right_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page3_right_el2"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page3_right_el3"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page4_left_title",
+      "right_title": "guidebook.chapter.start.page1_right_el3",
+      "left_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page4_left_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page4_left_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page4_left_el2"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page4_right_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page4_right_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page4_right_el2"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page5_left_title",
+      "right_title": "guidebook.chapter.start.page5_right_title",
+      "left_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page5_left_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page5_left_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page5_left_el2"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page5_right_el0"
+        },
+        {
+          "type": "image",
+          "spacing": 4,
+          "image_url": "routan.png",
+          "image_width": 128,
+          "image_height": 74
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page5_right_el2"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page6_left_title",
+      "right_title": "guidebook.chapter.start.page6_right_title",
+      "left_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page6_left_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page6_left_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page6_left_el2"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page6_left_el3"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "image",
+          "spacing": 4,
+          "image_url": "industry.png",
+          "image_width": 256,
+          "image_height": 256
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page7_left_title",
+      "right_title": "guidebook.chapter.start.page7_right_title",
+      "left_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page7_left_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page7_left_el1"
+        },
+        {
+          "type": "image",
+          "spacing": 4,
+          "image_url": "commercial.png",
+          "image_width": 256,
+          "image_height": 128
+        }
+      ],
+      "right_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page7_right_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page7_right_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page7_right_el2"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page8_left_title",
+      "right_title": "guidebook.chapter.start.page8_right_title",
+      "left_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page8_left_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page8_left_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page8_left_el2"
+        },
+        {
+          "type": "item",
+          "spacing": 4,
+          "item_id": "simukraft:logistics_server_box"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "image",
+          "spacing": 4,
+          "image_url": "save.png",
+          "image_width": 256,
+          "image_height": 128
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page8_right_el1"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page9_left_title",
+      "right_title": "guidebook.chapter.start.page9_right_title",
+      "left_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page9_left_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page9_left_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page9_left_el2"
+        },
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page10_left_el3"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page9_right_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page9_right_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page9_right_el2"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page10_left_title",
+      "right_title": "guidebook.chapter.start.page9_left_el3",
+      "left_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page10_left_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page10_left_el1"
+        },
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page10_left_el2"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page10_left_el3"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page10_right_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page10_right_el1"
+        },
+        {
+          "type": "title",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page10_right_el2"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page10_right_el3"
+        }
+      ]
+    },
+    {
+      "left_title": "guidebook.chapter.start.page11_left_title",
+      "right_title": "guidebook.editor.generated",
+      "left_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page11_left_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page11_left_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page11_left_el2"
+        }
+      ],
+      "right_content": [
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page11_right_el0"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page11_right_el1"
+        },
+        {
+          "type": "text",
+          "spacing": 4,
+          "content": "guidebook.chapter.start.page11_right_el2"
+        }
+      ]
+    }
+  ]
+}

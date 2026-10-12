@@ -18,4 +18,8 @@ public interface ClientInteractionHandler {
     /** openManifest: 打开材料清单客户端界面。 */
     default void openManifest(ItemStack stack, InteractionHand hand) {
     }
+
+    /** openGuideBook: 打开指南书客户端界面。 */
+    default void openGuideBook(ItemStack stack) {
+    }
 }

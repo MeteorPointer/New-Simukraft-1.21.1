@@ -15,6 +15,7 @@ import common.cn.kafei.simukraft.network.commercial.CommercialTradeOpenResponseP
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxBoundsResponsePacket;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
 import common.cn.kafei.simukraft.network.geology.GeologicalSurveyHintPacket;
+import common.cn.kafei.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.kafei.simukraft.network.hud.HudSyncPacket;
 import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxOpenResponsePacket;
 import common.cn.kafei.simukraft.network.industrial.IndustrialControlBoxViewUpdatePacket;
@@ -152,6 +153,10 @@ public interface ClientboundNetworkHandler {
 
     /** handleGeologicalSurveyHint: 处理地质锤准星提示。 */
     default void handleGeologicalSurveyHint(GeologicalSurveyHintPacket packet) {
+    }
+
+    /** handleReloadGuideBook: 重新读取指南书页面。 */
+    default void handleReloadGuideBook(ReloadGuideBookPacket packet) {
     }
 
     /** handleRtsBuildingBoundsSync: 更新 RTS 客户端建筑边界快照。 */

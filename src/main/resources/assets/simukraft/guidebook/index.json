@@ -1,0 +1,9 @@
+{
+  "index_page": "directory",
+  "pages": [
+    "directory.json",
+    "prologue.json",
+    "items.json",
+    "start.json"
+  ]
+}

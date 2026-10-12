@@ -2,6 +2,7 @@ package common.cn.kafei.simukraft.event;
 
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.BuildingPackVersionChecker;
+import common.cn.kafei.simukraft.registry.ModItems;
 import common.cn.kafei.simukraft.registry.ModSoundEvents;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
@@ -15,6 +16,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.Map;
 import java.util.UUID;
@@ -26,6 +28,7 @@ public final class PlayerWelcomeService {
             ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "story/first_dream");
     private static final String FIRST_DREAM_CRITERION = "first_join";
     private static final String FIRST_DREAM_PLAYED_TAG = "simukraft_first_dream_played";
+    private static final String GUIDE_BOOK_GRANTED_TAG = "simukraft_guide_book_granted";
     private static final int FIRST_DREAM_START_DELAY_TICKS = 40;
     private static final int FIRST_DREAM_GRANT_DELAY_TICKS = 220;
     private static final Map<UUID, FirstDreamPendingState> PENDING_FIRST_DREAM = new ConcurrentHashMap<>();
@@ -39,6 +42,7 @@ public final class PlayerWelcomeService {
             return;
         }
         sendWelcomeMessages(player);
+        grantGuideBookOnFirstWorldJoin(player);
         scheduleFirstDreamSequence(player);
     }
 
@@ -146,6 +150,19 @@ public final class PlayerWelcomeService {
         if (player.getAdvancements().award(advancement, FIRST_DREAM_CRITERION)) {
             markFirstDreamPlayed(player);
         }
+    }
+
+    private static void grantGuideBookOnFirstWorldJoin(ServerPlayer player) {
+        CompoundTag persistedData = player.getPersistentData().getCompound(Player.PERSISTED_NBT_TAG);
+        if (persistedData.getBoolean(GUIDE_BOOK_GRANTED_TAG)) {
+            return;
+        }
+        ItemStack guideBook = new ItemStack(ModItems.GUIDE_BOOK.get());
+        if (!player.addItem(guideBook)) {
+            player.drop(guideBook, false);
+        }
+        persistedData.putBoolean(GUIDE_BOOK_GRANTED_TAG, true);
+        player.getPersistentData().put(Player.PERSISTED_NBT_TAG, persistedData);
     }
 
     private static boolean hasPlayedFirstDream(ServerPlayer player) {
