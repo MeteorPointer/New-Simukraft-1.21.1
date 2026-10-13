@@ -2,6 +2,8 @@ package client.cn.kafei.simukraft.client.guidebook;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import common.cn.kafei.simukraft.guidebook.markdown.GuideBookMarkdownDocument;
+import common.cn.kafei.simukraft.guidebook.markdown.GuideBookMarkdownParser;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
@@ -52,6 +54,42 @@ public final class GuideBookPage {
             pages.add(BookPage.EMPTY);
         }
         return new GuideBookPage(id, pages, parentId, tabIcon, tabIndex);
+    }
+
+    public static GuideBookPage fromMarkdown(String id, String source) {
+        return fromMarkdown(id, GuideBookMarkdownParser.parse(source));
+    }
+
+    public static GuideBookPage fromMarkdown(String id, GuideBookMarkdownDocument document) {
+        List<BookPage> pages = new ArrayList<>();
+        for (GuideBookMarkdownDocument.Spread spread : document.spreads()) {
+            pages.add(new BookPage(
+                    spread.leftTitle(),
+                    spread.rightTitle(),
+                    mapMarkdown(spread.left()),
+                    mapMarkdown(spread.right())));
+        }
+        if (pages.isEmpty()) {
+            pages.add(BookPage.EMPTY);
+        }
+        return new GuideBookPage(id, pages, document.parentId(), document.tabIcon(), document.tabIndex());
+    }
+
+    private static List<PageElement> mapMarkdown(List<GuideBookMarkdownDocument.Block> blocks) {
+        List<PageElement> elements = new ArrayList<>();
+        for (GuideBookMarkdownDocument.Block block : blocks) {
+            elements.add(new PageElement(
+                    block.kind().wireName(),
+                    block.content(),
+                    block.spacing(),
+                    block.itemId(),
+                    block.itemNbt(),
+                    block.target(),
+                    block.imageUrl(),
+                    block.imageWidth(),
+                    block.imageHeight()));
+        }
+        return elements;
     }
 
     public String getId() {
@@ -156,11 +194,18 @@ public final class GuideBookPage {
             if (key == null || key.isEmpty()) {
                 return Component.empty();
             }
-            String translated = GuideBookLang.get(key);
-            if (!translated.equals(key)) {
-                return Component.literal(translated);
+            if (GuideBookLang.has(key) || looksLikeLangKey(key)) {
+                String translated = GuideBookLang.get(key);
+                if (GuideBookLang.has(key) || !translated.equals(key)) {
+                    return Component.literal(translated);
+                }
+                return Component.translatable(key);
             }
-            return Component.translatable(key);
+            return Component.literal(GuideBookLang.get(key));
+        }
+
+        private static boolean looksLikeLangKey(String key) {
+            return key.startsWith("guidebook.") || key.startsWith("start.");
         }
     }
 
@@ -195,14 +240,7 @@ public final class GuideBookPage {
         }
 
         public Component getContent() {
-            if (contentKey == null || contentKey.isEmpty()) {
-                return Component.empty();
-            }
-            String translated = GuideBookLang.get(contentKey);
-            if (!translated.equals(contentKey)) {
-                return Component.literal(translated);
-            }
-            return Component.translatable(contentKey);
+            return BookPage.translate(contentKey);
         }
 
         public boolean isHint() {

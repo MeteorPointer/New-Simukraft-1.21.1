@@ -49,6 +49,10 @@ public final class GuideBookLang {
         return loaded;
     }
 
+    public static boolean has(@Nonnull String key) {
+        return TRANSLATIONS.containsKey(key);
+    }
+
     public static @Nonnull String get(@Nonnull String key) {
         return replaceVariables(TRANSLATIONS.getOrDefault(key, key));
     }
