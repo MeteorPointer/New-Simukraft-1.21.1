@@ -1,0 +1,12 @@
+name:奶酪工厂
+name_en:Cheese Factory
+size:18 x 10 x 20
+amount:51.84元
+author:枫烨
+description:通过牛奶（至少20桶）生产奶酪，建议配置牛奶和牛奶桶的物流循环
+description_en:Makes cheese from milk (at least 20 buckets). A milk and bucket logistics loop is recommended.
+tags:price_high,material_medium,stage_middle
+job_type:cheese_maker
+job_name:奶酪厂工人
+held_item:simukraft:cheese_chunk
+unlockLevel:

@@ -1,5 +1,6 @@
 package client.cn.kafei.simukraft.client.exchange;
 
+import client.cn.kafei.simukraft.client.building.BuildingIntegrityUi;
 import client.cn.kafei.simukraft.client.hire.NpcHireScreen;
 import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
 import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
@@ -12,6 +13,7 @@ import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
 import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.ProgressBar;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
 import common.cn.kafei.simukraft.economy.CoinDenominations;
 import common.cn.kafei.simukraft.exchange.ExchangeControlBoxService;
@@ -19,6 +21,7 @@ import common.cn.kafei.simukraft.exchange.ExchangeMarketClock;
 import common.cn.kafei.simukraft.exchange.ExchangeQuote;
 import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxActionPacket;
 import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxDemolishPacket;
+import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxRepairPacket;
 import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxOpenRequestPacket;
 import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxOpenResponsePacket;
 import common.cn.kafei.simukraft.network.npc.hire.NpcHireFirePacket;
@@ -48,6 +51,8 @@ public final class ExchangeControlBoxScreenOpener {
     private static final String DAY_LINE_ID = "simukraft-exchange-day-line";
     private static final String FUNDS_LINE_ID = "simukraft-exchange-funds-line";
     private static final String STATUS_LINE_ID = "simukraft-exchange-status-line";
+    private static final String INTEGRITY_ID = "simukraft-exchange-integrity";
+    private static final String REPAIR_ID = "simukraft-exchange-repair";
     private static final String COMPANY_ROW_PREFIX = "simukraft-exchange-company-";
     private static ExchangeControlBoxOpenResponsePacket currentPacket;
     private static String selectedId = "";
@@ -184,6 +189,9 @@ public final class ExchangeControlBoxScreenOpener {
                 SimuKraftUiTheme.TEXT_MUTED_COLOR, metrics.infoLineHeight());
         statusLine.setId(STATUS_LINE_ID);
         header.addChild(statusLine);
+        UIElement integrity = BuildingIntegrityUi.progressBar(packet.integrityAvailable(), packet.integrityPercent(), metrics.infoLineHeight());
+        integrity.setId(INTEGRITY_ID);
+        header.addChild(integrity);
         return header;
     }
 
@@ -350,10 +358,14 @@ public final class ExchangeControlBoxScreenOpener {
                 packet.hasBuilding() && !packet.hasBroker(), metrics.actionWidth(), metrics.actionHeight()));
         row.addChild(chromeButton(Component.translatable("gui.simukraft.exchange.fire"),
                 () -> fire(packet), packet.hasBroker(), metrics.actionWidth(), metrics.actionHeight()));
+        Button repair = chromeButton(BuildingIntegrityUi.repairText(packet.integrityRepairCost()),
+                ExchangeControlBoxScreenOpener::repair, canRepair(packet), metrics.actionWidth(), metrics.actionHeight());
+        repair.setId(REPAIR_ID);
+        row.addChild(repair);
         return row;
     }
 
-    private static UIElement chromeButton(Component text, Runnable action, boolean active, int width, int height) {
+    private static Button chromeButton(Component text, Runnable action, boolean active, int width, int height) {
         Button button = new Button();
         button.setText(text);
         button.setActive(active);
@@ -401,6 +413,20 @@ public final class ExchangeControlBoxScreenOpener {
         writeLabel(ui, DAY_LINE_ID, dayLineText(packet), 0xFFF5F5A0);
         writeLabel(ui, FUNDS_LINE_ID, fundsLineText(packet), UP);
         writeLabel(ui, STATUS_LINE_ID, Component.translatable(packet.statusKey()), SimuKraftUiTheme.TEXT_MUTED_COLOR);
+        if (ui.getElementById(INTEGRITY_ID) instanceof ProgressBar bar) {
+            bar.setProgress(packet.integrityAvailable() ? (float) packet.integrityPercent() : 0.0F);
+            bar.label.setText(packet.integrityAvailable()
+                    ? Component.translatable("gui.simukraft.building_integrity.progress", String.format(java.util.Locale.ROOT, "%.1f", packet.integrityPercent()))
+                    : Component.translatable("gui.simukraft.building_integrity.unavailable"));
+        }
+        if (ui.getElementById(REPAIR_ID) instanceof Button repairButton) {
+            repairButton.setText(BuildingIntegrityUi.repairText(packet.integrityRepairCost()));
+            boolean active = canRepair(packet);
+            repairButton.setActive(active);
+            if (active) {
+                repairButton.setOnClick(event -> repair());
+            }
+        }
         for (ExchangeQuote quote : packet.quotes()) {
             writeLabel(ui, companyPriceId(quote.id()), companyPriceText(quote), quote.change() >= 0 ? UP : DOWN);
         }
@@ -432,6 +458,18 @@ public final class ExchangeControlBoxScreenOpener {
                 row.removeClass("simukraft_large_button");
             }
         }
+    }
+
+    private static boolean canRepair(ExchangeControlBoxOpenResponsePacket packet) {
+        return packet.integrityAvailable()
+                && (packet.integrityRepairableBlocks() > 0 || packet.integrityManualRepairBlocks() > 0);
+    }
+
+    private static void repair() {
+        if (currentPacket == null) {
+            return;
+        }
+        PacketDistributor.sendToServer(new ExchangeControlBoxRepairPacket(currentPacket.boxPos()));
     }
 
     private static void trade(boolean buy) {
@@ -570,7 +608,7 @@ public final class ExchangeControlBoxScreenOpener {
         int chromeHeight = clamp(titleBarHeight - 2, 16, 22);
         int chromeWidth = clamp(Math.round(panelWidth * 0.12F), 44, 62);
         int actionHeight = clamp(Math.round(panelHeight * 0.075F), 18, 22);
-        int actionWidth = clamp((panelWidth - panelPadding * 2 - gap * 3) / 4, 56, 90);
+        int actionWidth = clamp((panelWidth - panelPadding * 2 - gap * 4) / 5, 52, 84);
         int listWidth = clamp(Math.round(panelWidth * 0.28F), 90, 150);
         int volumeHeight = clamp(Math.round(panelHeight * 0.18F), 36, 70);
         int rowHeight = clamp(Math.round(panelHeight * 0.09F), 22, 30);

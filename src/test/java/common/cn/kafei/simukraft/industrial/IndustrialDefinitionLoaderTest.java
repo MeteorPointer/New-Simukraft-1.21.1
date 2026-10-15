@@ -8,7 +8,6 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -89,19 +88,12 @@ class IndustrialDefinitionLoaderTest {
 
     @Test
     void bundledIndustrialJsonFilesLoad() throws Exception {
-        Path packageFile = copyOfficialPackage();
-        try (ZipFile zipFile = new ZipFile(packageFile.toFile())) {
-            var entries = zipFile.entries();
-            while (entries.hasMoreElements()) {
-                var entry = entries.nextElement();
-                if (entry.isDirectory() || !entry.getName().startsWith("buildings/industry/") || !entry.getName().endsWith(".json")) {
-                    continue;
-                }
-                Path file = tempDir.resolve(Path.of(entry.getName()).getFileName().toString());
-                byte[] jsonBytes;
-                try (var input = zipFile.getInputStream(entry)) {
-                    jsonBytes = input.readAllBytes();
-                }
+        var marker = IndustrialDefinitionLoaderTest.class.getResource("/assets/simukraft/building/buildings/industry/brick_kiln.json");
+        assertNotNull(marker);
+        Path industry = Path.of(marker.toURI()).getParent();
+        try (var files = Files.list(industry)) {
+            for (Path source : files.filter(path -> path.getFileName().toString().endsWith(".json")).toList()) {
+                byte[] jsonBytes = Files.readAllBytes(source);
                 var json = JsonParser.parseString(new String(jsonBytes, StandardCharsets.UTF_8)).getAsJsonObject();
                 if ((json.has("buildingType")
                         && "drilling_platform".equalsIgnoreCase(json.get("buildingType").getAsString()))
@@ -110,6 +102,7 @@ class IndustrialDefinitionLoaderTest {
                         || "simukraft:drilling".equalsIgnoreCase(json.get("type").getAsString())))) {
                     continue;
                 }
+                Path file = tempDir.resolve(source.getFileName().toString());
                 Files.write(file, jsonBytes);
                 IndustrialDefinitionLoader.LoadResult result = IndustrialDefinitionLoader.load(file);
 
@@ -119,15 +112,6 @@ class IndustrialDefinitionLoaderTest {
                 assertTrue(result.definition().recipes().stream().allMatch(recipe -> !recipe.steps().isEmpty()), file.getFileName().toString());
             }
         }
-    }
-
-    private Path copyOfficialPackage() throws Exception {
-        Path packageFile = tempDir.resolve("official_building_" + System.nanoTime() + ".zip");
-        try (var input = IndustrialDefinitionLoaderTest.class.getResourceAsStream("/assets/simukraft/building/official_building.zip")) {
-            assertNotNull(input);
-            Files.copy(input, packageFile);
-        }
-        return packageFile;
     }
 
     @Test

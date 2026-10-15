@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.BuildingCatalog;
+import common.cn.kafei.simukraft.building.BuildingLocale;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 
 import javax.annotation.Nullable;
@@ -58,7 +59,7 @@ public final class MedicalDefinitionLoader {
         try {
             JsonObject root = JsonParser.parseString(text).getAsJsonObject();
             String id = string(root, "id", fallbackId);
-            String name = string(root, "name", id);
+            String name = BuildingLocale.text(root, "name", id);
             int requestedRings = integer(root, "serviceRangeRings", MedicalDefinition.DEFAULT_SERVICE_RANGE_RINGS);
             int safeRings = Math.clamp(requestedRings, 1, MedicalDefinition.MAX_SERVICE_RANGE_RINGS);
             if (requestedRings != safeRings) {

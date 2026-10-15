@@ -32,7 +32,12 @@ public record ExchangeControlBoxOpenResponsePacket(BlockPos boxPos,
                                                    boolean marketOpen,
                                                    ExchangeMarketRegime regime,
                                                    String selectedCompanyId,
-                                                   List<ExchangeQuote> quotes) implements CustomPacketPayload {
+                                                   List<ExchangeQuote> quotes,
+                                                   boolean integrityAvailable,
+                                                   double integrityPercent,
+                                                   int integrityRepairableBlocks,
+                                                   int integrityManualRepairBlocks,
+                                                   double integrityRepairCost) implements CustomPacketPayload {
     public static final Type<ExchangeControlBoxOpenResponsePacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "exchange_control_box_open_response"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ExchangeControlBoxOpenResponsePacket> STREAM_CODEC =
@@ -45,6 +50,10 @@ public record ExchangeControlBoxOpenResponsePacket(BlockPos boxPos,
         brokerName = brokerName != null ? brokerName : "";
         selectedCompanyId = selectedCompanyId != null ? selectedCompanyId : "";
         regime = regime != null ? regime : ExchangeMarketRegime.MIXED;
+        integrityPercent = Math.max(0.0D, Math.min(100.0D, integrityPercent));
+        integrityRepairableBlocks = Math.max(0, integrityRepairableBlocks);
+        integrityManualRepairBlocks = Math.max(0, integrityManualRepairBlocks);
+        integrityRepairCost = Math.max(0.0D, integrityRepairCost);
     }
 
     @Override
@@ -94,6 +103,11 @@ public record ExchangeControlBoxOpenResponsePacket(BlockPos boxPos,
                 buffer.writeVarInt(candle.volume());
             }
         }
+        buffer.writeBoolean(packet.integrityAvailable());
+        buffer.writeDouble(packet.integrityPercent());
+        buffer.writeVarInt(packet.integrityRepairableBlocks());
+        buffer.writeVarInt(packet.integrityManualRepairBlocks());
+        buffer.writeDouble(packet.integrityRepairCost());
     }
 
     /** decode: 读取股市快照。 */
@@ -130,8 +144,14 @@ public record ExchangeControlBoxOpenResponsePacket(BlockPos boxPos,
             }
             quotes.add(new ExchangeQuote(id, name, price, previous, volume, shares, basis, candles));
         }
+        boolean integrityAvailable = buffer.readBoolean();
+        double integrityPercent = buffer.readDouble();
+        int integrityRepairableBlocks = buffer.readVarInt();
+        int integrityManualRepairBlocks = buffer.readVarInt();
+        double integrityRepairCost = buffer.readDouble();
         return new ExchangeControlBoxOpenResponsePacket(boxPos, hasBuilding, buildingName, cityId, statusKey,
-                hasBroker, brokerId, brokerName, cityFunds, playerCash, marketDay, marketOpen, regime, selected, quotes);
+                hasBroker, brokerId, brokerName, cityFunds, playerCash, marketDay, marketOpen, regime, selected, quotes,
+                integrityAvailable, integrityPercent, integrityRepairableBlocks, integrityManualRepairBlocks, integrityRepairCost);
     }
 
     /** handle: 打开客户端股市界面。 */

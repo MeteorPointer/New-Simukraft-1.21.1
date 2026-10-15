@@ -1,0 +1,14 @@
+name:伐木工小屋
+name_en:Lumberjack's Hut
+size:12 x 8 x 12
+amount:18.0元
+author:SimuKraft
+description:辐射型工业建筑，采伐自然树木并补种树苗
+description_en:A radius industry building. Fells natural trees and replants saplings.
+tags:price_low,material_low,stage_early
+job_type:lumberjack
+job_name:伐木工
+held_item:minecraft:iron_axe
+industrial:lumberjacks_house.json
+structure:lumberjacks_house.nbt
+unlockLevel:

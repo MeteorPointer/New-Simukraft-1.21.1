@@ -1,0 +1,15 @@
+name:现代小型公寓2
+name_en:Modern Small Apartment 2
+size:16 x 30 x 11
+amount:180.00元
+author:XiaoFei小非
+description:小型单身公寓，帮助您引进更多年轻人。
+description_en:A small studio apartment for bringing in more young citizens.
+tags:price_high,material_medium,stage_medium
+unit:101, 5,1,1~15,3,8
+unit:201, 5,5,1~15,7,8
+unit:301, 5,9,1~15,11,8
+unit:401, 5,13,1~15,15,8
+unit:501, 5,17,1~15,19,8
+unit:601, 5,21,1~15,23,8
+unlockLevel:

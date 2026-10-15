@@ -1,0 +1,10 @@
+name:海船之商（水产店）
+name_en:Seaboat Market (Fish Shop)
+size:28 x 24 x 21
+amount:30.24元
+author:莫吉托鸡尾酒
+description:“模拟杯”村庄改造大赛获奖作品：向市民卖鱼的地方，建议从渔人小屋进货~
+description_en:A SimuCup village renovation winner. Sells fish to citizens. Stock it from the fisher's hut.
+tags:price_medium,material_medium,stage_middle
+job_type:fishSeller
+unlockLevel:

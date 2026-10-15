@@ -1,0 +1,10 @@
+name:肯打鸡
+name_en:Simu Fried Chicken
+size:16 x 10 x 11
+amount:50.24元
+author:b站@饼干鱼_BF
+description:一家肯打鸡店，给模拟大都市的市民一点小小炸鸡汉堡震撼。提示：可用建筑清单shift右键控制盒获得原料信息。
+description_en:Fried chicken and burgers for the city. Shift-right-click the control box with a building manifest for the ingredient list.
+tags:price_medium,material_high,stage_middle
+job_type:SimuFriedChickenOwner
+unlockLevel:

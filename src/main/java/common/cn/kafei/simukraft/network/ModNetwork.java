@@ -64,6 +64,7 @@ import common.cn.kafei.simukraft.network.bank.BankControlBoxDemolishPacket;
 import common.cn.kafei.simukraft.network.bank.BankControlBoxOpenRequestPacket;
 import common.cn.kafei.simukraft.network.bank.BankControlBoxOpenResponsePacket;
 import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxActionPacket;
+import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxRepairPacket;
 import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxDemolishPacket;
 import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxOpenRequestPacket;
 import common.cn.kafei.simukraft.network.exchange.ExchangeControlBoxOpenResponsePacket;
@@ -101,7 +102,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 
 public final class ModNetwork {
-    private static final String NETWORK_VERSION = "34";
+    private static final String NETWORK_VERSION = "35";
 
     private ModNetwork() {
     }
@@ -148,6 +149,7 @@ public final class ModNetwork {
         registrar.playToServer(ExchangeControlBoxOpenRequestPacket.TYPE, ExchangeControlBoxOpenRequestPacket.STREAM_CODEC, ExchangeControlBoxOpenRequestPacket::handle);
         registrar.playToServer(ExchangeControlBoxActionPacket.TYPE, ExchangeControlBoxActionPacket.STREAM_CODEC, ExchangeControlBoxActionPacket::handle);
         registrar.playToServer(ExchangeControlBoxDemolishPacket.TYPE, ExchangeControlBoxDemolishPacket.STREAM_CODEC, ExchangeControlBoxDemolishPacket::handle);
+        registrar.playToServer(ExchangeControlBoxRepairPacket.TYPE, ExchangeControlBoxRepairPacket.STREAM_CODEC, ExchangeControlBoxRepairPacket::handle);
         registrar.playToServer(MineralDrillingControlBoxOpenRequestPacket.TYPE, MineralDrillingControlBoxOpenRequestPacket.STREAM_CODEC, MineralDrillingControlBoxOpenRequestPacket::handle);
         registrar.playToServer(MedicalControlBoxDemolishPacket.TYPE, MedicalControlBoxDemolishPacket.STREAM_CODEC, MedicalControlBoxDemolishPacket::handle);
         registrar.playToServer(CommercialControlBoxActionPacket.TYPE, CommercialControlBoxActionPacket.STREAM_CODEC, CommercialControlBoxActionPacket::handle);

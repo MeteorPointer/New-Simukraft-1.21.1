@@ -38,10 +38,6 @@ sourceSets.main.resources {
     // Exclude common development only resources from finalized outputs
     exclude("**/*.bbmodel") // BlockBench project files
     exclude("src/generated/**/.cache") // datagen cache files
-    exclude("assets/simukraft/building/**/*.sk") // Building files are shipped only as official_building.zip
-    exclude("assets/simukraft/building/**/*.nbt")
-    exclude("assets/simukraft/building/**/*.json")
-    exclude("assets/simukraft/building/**/_files.txt")
 }
 
 repositories {

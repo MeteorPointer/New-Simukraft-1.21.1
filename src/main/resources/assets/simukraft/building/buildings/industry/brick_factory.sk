@@ -1,0 +1,12 @@
+name:砖厂
+name_en:Brick Factory
+size:19 x 10 x 17
+amount:15.0元
+author:惯宣
+description:模拟杯村改大赛获奖作品 在这里可以用泥土和水瓶（不消耗）生产红砖。
+description_en:A SimuCup village renovation winner. Turns dirt and water bottles (not consumed) into bricks.
+tags:price_medium,material_medium,stage_middle
+job_type:brick_maker
+job_name:制砖人
+held_item:minecraft:brick
+unlockLevel:

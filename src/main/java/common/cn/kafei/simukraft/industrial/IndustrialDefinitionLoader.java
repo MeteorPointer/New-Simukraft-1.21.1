@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import common.cn.kafei.simukraft.SimuKraft;
 import common.cn.kafei.simukraft.building.BuildingCatalog;
+import common.cn.kafei.simukraft.building.BuildingLocale;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import net.minecraft.core.BlockPos;
 
@@ -73,9 +74,9 @@ public final class IndustrialDefinitionLoader {
         JsonObject root = JsonParser.parseString(text).getAsJsonObject();
         List<String> errors = new ArrayList<>();
         String id = string(root, "id", fallbackId);
-        String name = string(root, "name", id);
+        String name = BuildingLocale.text(root, "name", id);
         String jobType = stringAny(root, "industrial_worker", "jobType", "JobType", "job_type");
-        String jobName = stringAny(root, name, "jobName", "JobName", "job_name");
+        String jobName = BuildingLocale.textAny(root, name, "jobName", "JobName", "job_name");
         String heldItem = string(root, "heldItem", "");
         Map<String, IndustrialDefinition.PointDefinition> points = parsePoints(root.getAsJsonObject("points"), errors);
         Map<String, IndustrialDefinition.ContainerDefinition> containers = parseContainers(root.getAsJsonObject("containers"), errors);
@@ -221,7 +222,7 @@ public final class IndustrialDefinitionLoader {
             String id = string(object, "id", "recipe_" + i);
             recipes.add(new IndustrialDefinition.RecipeDefinition(
                     id,
-                    string(object, "name", id),
+                    BuildingLocale.text(object, "name", id),
                     string(object, "heldItem", ""),
                     parseInputs(object.getAsJsonArray("inputs"), errors, "recipe:" + id + ":inputs"),
                     parseOutputs(object.getAsJsonArray("outputs"), errors, "recipe:" + id + ":outputs"),

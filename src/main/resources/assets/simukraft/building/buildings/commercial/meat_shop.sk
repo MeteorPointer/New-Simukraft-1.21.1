@@ -1,0 +1,10 @@
+name:肉铺
+name_en:Butcher Shop
+size:13 x 6 x 9
+amount:10.4元
+author:枫烨
+description:肉铺老板刀工了得，切肉如切豆腐，但前提是你得给他生牛肉或者生猪肉。
+description_en:The butcher can slice meat like tofu, as long as you supply raw beef or raw pork.
+tags:price_low,material_medium,stage_early
+job_type:meatShopOwner
+unlockLevel:

@@ -32,9 +32,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
-import java.util.zip.ZipInputStream;
 
 /**
  * 把建筑包里的每一座建筑登记成数据包结构，让 FTB Quests 的结构列表能选到它们。
@@ -93,18 +91,27 @@ public final class BuildingStructureDataPack {
 
     private static Map<String, ResourceLocation> scanBuildings() {
         Map<String, ResourceLocation> structures = new LinkedHashMap<>();
-        readZip(BuildingBuiltinResourceService.openOfficialPackage(), "official_building.zip", structures);
         Path root = FMLPaths.GAMEDIR.get().resolve(BuildingPackageCatalog.ROOT_DIR);
+        try {
+            BuildingBuiltinResourceService.ensureCopied(root);
+            BuildingZipMerger.mergeDroppedZips(root);
+        } catch (RuntimeException exception) {
+            SimuKraft.LOGGER.error("Simukraft: Failed to prepare building packages; kept the files already in {}", root, exception);
+        }
         if (!Files.isDirectory(root)) {
             return structures;
         }
+        boolean officialDirectory = Files.isDirectory(root.resolve(BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME));
         try (var stream = Files.list(root)) {
             List<Path> packages = stream
-                    .filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".zip"))
+                    .filter(path -> BuildingPackageCatalog.isPackagePath(path, officialDirectory))
                     .sorted(Comparator.comparing(path -> path.getFileName().toString().toLowerCase(Locale.ROOT)))
                     .toList();
             for (Path packagePath : packages) {
+                if (Files.isDirectory(packagePath)) {
+                    readDirectory(packagePath, structures);
+                    continue;
+                }
                 try (ZipFile zipFile = new ZipFile(packagePath.toFile(), StandardCharsets.UTF_8)) {
                     var entries = zipFile.entries();
                     while (entries.hasMoreElements()) {
@@ -120,17 +127,17 @@ public final class BuildingStructureDataPack {
         return structures;
     }
 
-    private static void readZip(InputStream inputStream, String sourceName, Map<String, ResourceLocation> structures) {
-        if (inputStream == null) {
+    private static void readDirectory(Path packagePath, Map<String, ResourceLocation> structures) {
+        Path buildings = packagePath.resolve("buildings");
+        if (!Files.isDirectory(buildings)) {
             return;
         }
-        try (InputStream stream = inputStream; ZipInputStream zip = new ZipInputStream(stream, StandardCharsets.UTF_8)) {
-            ZipEntry entry;
-            while ((entry = zip.getNextEntry()) != null) {
-                addEntry(entry.getName(), structures);
+        try (var walk = Files.walk(buildings)) {
+            for (Path file : walk.filter(Files::isRegularFile).toList()) {
+                addEntry(packagePath.relativize(file).toString(), structures);
             }
         } catch (IOException exception) {
-            SimuKraft.LOGGER.warn("Simukraft: Failed to read {} while exposing structures", sourceName, exception);
+            SimuKraft.LOGGER.warn("Simukraft: Failed to read building directory {} while exposing structures", packagePath, exception);
         }
     }
 

@@ -1502,6 +1502,7 @@
     "message.simukraft.district.rename_failed": "分区重命名失败。",
     "message.simukraft.district.deleted": "分区 %s 已删除，区块已回归主城区。",
     "message.simukraft.district.delete_failed": "分区删除失败。",
+    "message.simukraft.district.core_set_from_city": "请从上级城市核心菜单设置该区划核心",
     "message.simukraft.district.delete_confirm_failed": "删除确认失败，请完整输入分区名称。",
     "screen.simukraft.city_core.map.menu.district": "创建分区",
     "screen.simukraft.city_core.map.mode_3d": "3D地图",

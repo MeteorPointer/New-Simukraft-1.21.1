@@ -1,0 +1,10 @@
+name:矿物钻井平台
+name_en:Mineral Drilling Platform
+size:11 x 56 x 11
+amount:1000元
+author:咖啡&梦蓝
+description:用于矿物钻探的工业钻井平台。
+description_en:An industrial drilling platform for mineral prospecting.
+structure:minetor.nbt
+drilling:minetor.drilling.json
+unlockLevel:5

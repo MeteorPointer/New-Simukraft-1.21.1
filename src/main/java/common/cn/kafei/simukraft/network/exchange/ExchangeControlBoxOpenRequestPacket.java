@@ -1,6 +1,7 @@
 package common.cn.kafei.simukraft.network.exchange;
 
 import common.cn.kafei.simukraft.SimuKraft;
+import common.cn.kafei.simukraft.building.BuildingIntegrityService;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.citizen.CitizenData;
 import common.cn.kafei.simukraft.economy.CoinDenominations;
@@ -74,6 +75,7 @@ public record ExchangeControlBoxOpenRequestPacket(BlockPos pos, String selectedC
     /** snapshot: 组装股市数据包。 */
     public static ExchangeControlBoxOpenResponsePacket snapshot(ServerLevel level, ServerPlayer player, BlockPos pos, String selectedCompanyId) {
         PlacedBuildingRecord building = ExchangeControlBoxService.resolveBuilding(level, pos);
+        BuildingIntegrityService.IntegrityPreview integrity = BuildingIntegrityService.preview(level, building);
         CitizenData broker = ExchangeControlBoxService.findAssignedBroker(level, pos);
         UUID cityId = building != null ? building.cityId() : null;
         String statusKey = building == null
@@ -97,6 +99,11 @@ public record ExchangeControlBoxOpenRequestPacket(BlockPos pos, String selectedC
                 ExchangeMarketClock.isOpen(level.getDayTime()),
                 ExchangeMarketService.regime(level),
                 selectedCompanyId != null ? selectedCompanyId : "",
-                ExchangeMarketService.snapshot(level, cityId));
+                ExchangeMarketService.snapshot(level, cityId),
+                integrity.available(),
+                integrity.percent(),
+                integrity.repairableBlocks(),
+                integrity.manualRepairBlocks(),
+                integrity.repairCost());
     }
 }

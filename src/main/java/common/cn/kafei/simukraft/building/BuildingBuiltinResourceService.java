@@ -4,21 +4,31 @@ import common.cn.kafei.simukraft.SimuKraft;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
+import java.util.Comparator;
+import java.util.Enumeration;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 public final class BuildingBuiltinResourceService {
-    private static final String RESOURCE_PATH = "assets/simukraft/building/" + BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME;
+    private static final String RESOURCE_ROOT = "assets/simukraft/building/";
+    private static final String PACK_JSON = RESOURCE_ROOT + "pack.json";
     private static final Set<String> COPIED_ROOTS = ConcurrentHashMap.newKeySet();
 
     private BuildingBuiltinResourceService() {
     }
 
-    /** ensureCopied: 将官方建筑 zip 原样复制到建筑包目录，已存在时不覆盖。 */
+    /** ensureCopied: 将官方建筑目录复制到建筑包目录，已存在时不覆盖。 */
     public static void ensureCopied(Path rootDirectory) {
         if (rootDirectory == null) {
             return;
@@ -32,12 +42,16 @@ public final class BuildingBuiltinResourceService {
             if (COPIED_ROOTS.contains(rootKey)) {
                 return;
             }
-            copyOfficialPackage(normalizedRoot);
+            try {
+                copyOfficialPackage(normalizedRoot);
+            } catch (RuntimeException exception) {
+                SimuKraft.LOGGER.error("Simukraft: Failed to copy official building package into {}", normalizedRoot, exception);
+            }
             COPIED_ROOTS.add(rootKey);
         }
     }
 
-    /** forceOverwrite: 强制用 jar 内置包覆写磁盘上的官方建筑 zip，无论文件是否存在。 */
+    /** forceOverwrite: 用内置官方建筑目录覆写游戏目录中的同名文件夹。 */
     public static void forceOverwrite(Path rootDirectory) {
         if (rootDirectory == null) {
             return;
@@ -51,22 +65,17 @@ public final class BuildingBuiltinResourceService {
                 SimuKraft.LOGGER.error("Simukraft: Failed to create building package directory {}", normalizedRoot, exception);
                 return;
             }
-            Path targetFile = normalizedRoot.resolve(BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME).normalize();
-            if (!targetFile.startsWith(normalizedRoot)) {
-                SimuKraft.LOGGER.error("Simukraft: Refused unsafe official building package path {}", targetFile);
+            Path target = officialTarget(normalizedRoot);
+            if (target == null) {
                 return;
             }
-            try (InputStream inputStream = openResource()) {
-                if (inputStream == null) {
-                    SimuKraft.LOGGER.warn("Simukraft: Missing built-in official building package {}", RESOURCE_PATH);
-                    return;
-                }
-                Files.copy(inputStream, targetFile, StandardCopyOption.REPLACE_EXISTING);
-                SimuKraft.LOGGER.info("Simukraft: Force-overwrote official building package at {}", targetFile);
+            try {
+                deleteRecursively(target);
+                copyBuiltin(target);
+                SimuKraft.LOGGER.info("Simukraft: Force-overwrote official building package at {}", target);
             } catch (IOException exception) {
-                SimuKraft.LOGGER.error("Simukraft: Failed to overwrite official building package at {}", targetFile, exception);
+                SimuKraft.LOGGER.error("Simukraft: Failed to overwrite official building package at {}", target, exception);
             }
-            // 重置标记，下次 ensureCopied 可正常判断
             COPIED_ROOTS.remove(rootKey);
         }
     }
@@ -76,11 +85,6 @@ public final class BuildingBuiltinResourceService {
         COPIED_ROOTS.clear();
     }
 
-    /** openOfficialPackage: 打开 jar 内置官方建筑包，调用方负责关闭。 */
-    public static InputStream openOfficialPackage() {
-        return openResource();
-    }
-
     private static void copyOfficialPackage(Path rootDirectory) {
         try {
             Files.createDirectories(rootDirectory);
@@ -88,33 +92,129 @@ public final class BuildingBuiltinResourceService {
             SimuKraft.LOGGER.error("Simukraft: Failed to create building package directory {}", rootDirectory, exception);
             return;
         }
-
-        Path targetFile = rootDirectory.resolve(BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME).normalize();
-        if (!targetFile.startsWith(rootDirectory)) {
-            SimuKraft.LOGGER.error("Simukraft: Refused unsafe official building package path {}", targetFile);
+        Path target = officialTarget(rootDirectory);
+        if (target == null) {
             return;
         }
-        if (Files.exists(targetFile)) {
-            SimuKraft.LOGGER.info("Simukraft: Kept existing official building package {}", targetFile);
+        if (Files.isDirectory(target)) {
+            SimuKraft.LOGGER.info("Simukraft: Kept existing official building package {}", target);
             return;
         }
-
-        try (InputStream inputStream = openResource()) {
-            if (inputStream == null) {
-                SimuKraft.LOGGER.warn("Simukraft: Missing built-in official building package {}", RESOURCE_PATH);
-                return;
-            }
-            Files.copy(inputStream, targetFile);
-            SimuKraft.LOGGER.info("Simukraft: Copied official building package to {}", targetFile);
+        try {
+            copyBuiltin(target);
+            SimuKraft.LOGGER.info("Simukraft: Copied official building package to {}", target);
         } catch (IOException exception) {
-            SimuKraft.LOGGER.error("Simukraft: Failed to copy official building package to {}", targetFile, exception);
+            SimuKraft.LOGGER.error("Simukraft: Failed to copy official building package to {}", target, exception);
         }
     }
 
-    private static InputStream openResource() {
+    private static Path officialTarget(Path rootDirectory) {
+        Path target = rootDirectory.resolve(BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME).normalize();
+        if (!target.startsWith(rootDirectory)) {
+            SimuKraft.LOGGER.error("Simukraft: Refused unsafe official building package path {}", target);
+            return null;
+        }
+        return target;
+    }
+
+    private static void copyBuiltin(Path target) throws IOException {
         ClassLoader classLoader = BuildingBuiltinResourceService.class.getClassLoader();
-        return classLoader == null
-                ? ClassLoader.getSystemResourceAsStream(RESOURCE_PATH)
-                : classLoader.getResourceAsStream(RESOURCE_PATH);
+        URL url = classLoader == null
+                ? ClassLoader.getSystemResource(PACK_JSON)
+                : classLoader.getResource(PACK_JSON);
+        if (url == null) {
+            SimuKraft.LOGGER.warn("Simukraft: Missing built-in official building package {}", PACK_JSON);
+            return;
+        }
+        Path source = resourceDirectory(url);
+        if (source != null) {
+            copyTree(source, target);
+            return;
+        }
+        extractJarPrefix(url, target);
+    }
+
+    /**
+     * resourceDirectory: 开发环境资源在 union 文件系统上，直接走已挂载的 Path。
+     * 不能把 union:/C:/... 按 jar: 前缀裁成 n:/...。
+     */
+    private static Path resourceDirectory(URL url) {
+        try {
+            Path packJson = Path.of(url.toURI());
+            Path source = packJson.getParent();
+            if (source != null && Files.isDirectory(source)) {
+                return source;
+            }
+        } catch (URISyntaxException | FileSystemNotFoundException | IllegalArgumentException exception) {
+            SimuKraft.LOGGER.debug("Simukraft: Building resource is not a mounted path: {}", url, exception);
+        }
+        return null;
+    }
+
+    private static void copyTree(Path source, Path target) throws IOException {
+        if (source == null || !Files.isDirectory(source)) {
+            throw new IOException("Missing building directory " + source);
+        }
+        try (var walk = Files.walk(source)) {
+            for (Path file : walk.filter(Files::isRegularFile).toList()) {
+                Path relative = source.relativize(file);
+                Path dest = target.resolve(relative).normalize();
+                if (!dest.startsWith(target)) {
+                    continue;
+                }
+                Files.createDirectories(dest.getParent());
+                Files.copy(file, dest, StandardCopyOption.REPLACE_EXISTING);
+            }
+        }
+    }
+
+    private static void extractJarPrefix(URL url, Path target) throws IOException {
+        String external = url.toExternalForm();
+        if (!external.regionMatches(true, 0, "jar:", 0, 4)) {
+            throw new IOException("Unrecognized building resource " + external);
+        }
+        int split = external.indexOf("!/");
+        if (split < 5) {
+            throw new IOException("Unrecognized building resource " + external);
+        }
+        Path jarPath;
+        try {
+            jarPath = Path.of(URI.create(external.substring(4, split)));
+        } catch (IllegalArgumentException | FileSystemNotFoundException exception) {
+            throw new IOException("Unrecognized building resource " + external, exception);
+        }
+        try (ZipFile zipFile = new ZipFile(jarPath.toFile(), StandardCharsets.UTF_8)) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                String name = entry.getName().replace('\\', '/');
+                if (entry.isDirectory() || !name.startsWith(RESOURCE_ROOT)) {
+                    continue;
+                }
+                String relative = name.substring(RESOURCE_ROOT.length());
+                if (relative.isBlank() || relative.contains("..")) {
+                    continue;
+                }
+                Path dest = target.resolve(relative).normalize();
+                if (!dest.startsWith(target)) {
+                    continue;
+                }
+                Files.createDirectories(dest.getParent());
+                try (InputStream inputStream = zipFile.getInputStream(entry)) {
+                    Files.copy(inputStream, dest, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+    }
+
+    private static void deleteRecursively(Path path) throws IOException {
+        if (!Files.exists(path)) {
+            return;
+        }
+        try (var walk = Files.walk(path)) {
+            for (Path file : walk.sorted(Comparator.reverseOrder()).toList()) {
+                Files.deleteIfExists(file);
+            }
+        }
     }
 }
