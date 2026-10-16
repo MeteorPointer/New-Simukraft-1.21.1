@@ -1,6 +1,6 @@
 {
   "required": true,
-  "package": "client.cn.kafei.simukraft.mixin",
+  "package": "client.cn.nsimu.simukraft.mixin",
   "compatibilityLevel": "JAVA_21",
   "refmap": "simukraft.refmap.json",
   "client": [

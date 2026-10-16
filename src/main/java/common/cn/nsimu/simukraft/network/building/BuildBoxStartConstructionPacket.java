@@ -1,0 +1,174 @@
+package common.cn.nsimu.simukraft.network.building;
+
+import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.building.BuildingBlockData;
+import common.cn.nsimu.simukraft.building.BuildingCatalog;
+import common.cn.nsimu.simukraft.building.BuildingStructure;
+import common.cn.nsimu.simukraft.event.BuildingConstructionEvent;
+import common.cn.nsimu.simukraft.building.BuildingTaskStatus;
+import common.cn.nsimu.simukraft.building.BuilderConstructionMobilityService;
+import common.cn.nsimu.simukraft.building.BuilderConstructionService;
+import common.cn.nsimu.simukraft.building.BuildingStructureService;
+import common.cn.nsimu.simukraft.building.BuildingTerritoryValidator;
+import common.cn.nsimu.simukraft.building.BuildingTaskData;
+import common.cn.nsimu.simukraft.citizen.CitizenData;
+import common.cn.nsimu.simukraft.citizen.CitizenService;
+import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
+import common.cn.nsimu.simukraft.city.CityService;
+import common.cn.nsimu.simukraft.city.DistrictService;
+import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
+import common.cn.nsimu.simukraft.config.ServerConfig;
+import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
+import common.cn.nsimu.simukraft.job.CityJobType;
+import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
+import common.cn.nsimu.simukraft.network.toast.InfoToastService;
+import net.minecraft.core.BlockPos;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.ChunkPos;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+
+public record BuildBoxStartConstructionPacket(BlockPos buildBoxPos,
+                                              String category,
+                                              String buildingFileName,
+                                              BlockPos origin,
+                                              int rotationDegrees,
+                                              boolean replaceWithAir) implements CustomPacketPayload {
+    public static final Type<BuildBoxStartConstructionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "build_box_start_construction"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, BuildBoxStartConstructionPacket> STREAM_CODEC = StreamCodec.of(BuildBoxStartConstructionPacket::encode, BuildBoxStartConstructionPacket::decode);
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void encode(RegistryFriendlyByteBuf buffer, BuildBoxStartConstructionPacket packet) {
+        buffer.writeBlockPos(packet.buildBoxPos());
+        buffer.writeUtf(packet.category(), 32);
+        buffer.writeUtf(packet.buildingFileName(), 256);
+        buffer.writeBlockPos(packet.origin());
+        buffer.writeInt(packet.rotationDegrees());
+        buffer.writeBoolean(packet.replaceWithAir());
+    }
+
+    public static BuildBoxStartConstructionPacket decode(RegistryFriendlyByteBuf buffer) {
+        return new BuildBoxStartConstructionPacket(buffer.readBlockPos(), buffer.readUtf(32), buffer.readUtf(256), buffer.readBlockPos(), buffer.readInt(), buffer.readBoolean());
+    }
+
+    public static void handle(BuildBoxStartConstructionPacket packet, IPayloadContext context) {
+        if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
+            return;
+        }
+        if (!player.blockPosition().closerThan(packet.buildBoxPos(), 24.0D)
+                && !RtsRemoteMenuAccess.hasAccess(player, packet.buildBoxPos())) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.build_box.too_far"));
+            return;
+        }
+        UUID citizenId = CitizenService.findAssignedCitizen(level, CitizenEmploymentService.workplaceId("build_box", "builder", packet.buildBoxPos()));
+        if (citizenId == null) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.hire_npc.not_found"));
+            return;
+        }
+        Optional<CitizenData> citizenOptional = CitizenService.findCitizen(level, citizenId);
+        if (citizenOptional.isEmpty()) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.hire_npc.not_found"));
+            return;
+        }
+        CitizenData citizen = citizenOptional.get();
+        if (citizen.dead()) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.hire_npc.not_found"));
+            return;
+        }
+        UUID cityId = citizen.cityId();
+        Optional<BuildingCatalog.BuildingDefinition> definitionOptional = BuildingCatalog.findBuilding(packet.category(), packet.buildingFileName());
+        if (definitionOptional.isEmpty()) {
+            InfoToastService.error(player, Component.translatable("message.simukraft.build_box.structure_not_found"));
+            return;
+        }
+        BuildingCatalog.BuildingDefinition definition = definitionOptional.get();
+        int cityLevel = CityService.findCity(level, cityId).map(city -> city.cityLevel()).orElse(0);
+        if (definition.unlockLevel() > 0 && cityLevel < definition.unlockLevel()) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.build_box.level_locked", definition.unlockLevel()));
+            return;
+        }
+        Optional<BuildingStructure> structureOptional = BuildingStructureService.loadStructure(definition);
+        if (structureOptional.isEmpty()) {
+            InfoToastService.error(player, Component.translatable("message.simukraft.build_box.structure_not_found"));
+            return;
+        }
+        BuildingStructure structure = structureOptional.get();
+        List<BuildingBlockData> placedBlocks = BuildingStructureService.resolvePlacedBlocks(structure, packet.origin(), packet.rotationDegrees());
+        if (!canConstruct(level, cityId, player.getUUID(), placedBlocks)) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.build_box.no_permission"));
+            return;
+        }
+        if (ServerConfig.claimProtectionEnabled() && !BuildingTerritoryValidator.blockBoundsInCity(level, cityId, placedBlocks)) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.construction.outside_city"));
+            return;
+        }
+        BuilderConstructionService.cancelTask(level, citizen.uuid());
+        long now = System.currentTimeMillis();
+        BuildingTaskData task = new BuildingTaskData(
+                UUID.randomUUID(),
+                citizen.uuid(),
+                citizen.cityId(),
+                level.dimension().location().toString(),
+                packet.buildBoxPos(),
+                packet.category(),
+                packet.buildingFileName(),
+                structure.displayName(),
+                structure.amount(),
+                structure.structureFileName(),
+                packet.origin(),
+                packet.rotationDegrees(),
+                0,
+                structure.blockCount(),
+                BuildingTaskStatus.QUEUED.id(),
+                now,
+                now,
+                structure.poiDefinitions(),
+                packet.replaceWithAir()
+        );
+        BuilderConstructionService.startTask(level, task);
+        NeoForge.EVENT_BUS.post(new BuildingConstructionEvent.Start(level, task, citizen));
+        String statusLabel = Component.Serializer.toJson(
+                Component.translatable("status.simukraft.builder.building", structure.displayName()),
+                level.registryAccess());
+        CitizenEmploymentService.assign(level, citizen.uuid(), CityJobType.BUILDER, CitizenEmploymentService.workplaceId("build_box", "builder", packet.buildBoxPos()), packet.buildBoxPos(), CitizenWorkStatus.WORKING, statusLabel);
+        BuilderConstructionMobilityService.prepareForConstruction(level, citizen.uuid(), packet.buildBoxPos());
+        citizen.setWorkNeedDetail("build:" + task.taskId());
+        citizen.setStatusLabel(statusLabel);
+        CitizenService.save(level, citizen.uuid());
+        CityGroupMessageService.successToCity(level, cityId, Component.translatable("message.simukraft.build_box.construction_started", structure.displayName()));
+    }
+
+    /** 城市官员覆盖全市；分区官员必须让建筑的每个区块都落在自己已启用的分区里。 */
+    private static boolean canConstruct(ServerLevel level, UUID cityId, UUID playerId, List<BuildingBlockData> placedBlocks) {
+        if (placedBlocks == null || placedBlocks.isEmpty()) {
+            return false;
+        }
+        for (BuildingBlockData block : placedBlocks) {
+            BlockPos pos = block == null ? null : block.relativePos();
+            if (pos == null) {
+                return false;
+            }
+            long chunkLong = ChunkPos.asLong(pos.getX() >> 4, pos.getZ() >> 4);
+            if (!DistrictService.canBuild(level, cityId, playerId, chunkLong)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+}

@@ -603,12 +603,12 @@ CityManager 修改数据
 建议拆分：
 
 ```text
-common/cn/kafei/simukraft/block/CityCoreBlock.java
-common/cn/kafei/simukraft/city/CityManager.java
-common/cn/kafei/simukraft/city/CityData.java
-client/cn/kafei/simukraft/client/screen/CityCoreScreen.java
-client/cn/kafei/simukraft/client/screen/CityCoreUiFactory.java
-common/cn/kafei/simukraft/network/city/*.java
+common/cn/nsimu/simukraft/block/CityCoreBlock.java
+common/cn/nsimu/simukraft/city/CityManager.java
+common/cn/nsimu/simukraft/city/CityData.java
+client/cn/nsimu/simukraft/client/screen/CityCoreScreen.java
+client/cn/nsimu/simukraft/client/screen/CityCoreUiFactory.java
+common/cn/nsimu/simukraft/network/city/*.java
 ```
 
 ## 18. 后续开发建议

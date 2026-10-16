@@ -1,0 +1,461 @@
+package common.cn.nsimu.simukraft.citizen;
+
+import common.cn.nsimu.simukraft.city.poi.CityPoiData;
+import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
+import common.cn.nsimu.simukraft.city.poi.CityPoiType;
+import common.cn.nsimu.simukraft.city.CityRuntimeService;
+import common.cn.nsimu.simukraft.entity.CitizenEntity;
+import common.cn.nsimu.simukraft.job.CityJobType;
+import common.cn.nsimu.simukraft.path.CitizenNavigationService;
+import common.cn.nsimu.simukraft.path.MovementIntent;
+import common.cn.nsimu.simukraft.medical.MedicalService;
+import common.cn.nsimu.simukraft.util.SaveScopedCacheKey;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BedPart;
+import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Queue;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+
+
+public final class CitizenHomeRestService {
+    public static final String HOME_REST_MARKER = "home_rest";
+    public static final String HOME_REST_STATUS_KEY = "gui.simukraft.citizen.status.home_rest";
+    private static final int HOME_TARGET_SEARCH_RADIUS = 4;
+    private static final int HOME_ANCHOR_SEARCH_RADIUS = 8;
+    private static final int REST_START_TIME = 13000;
+    private static final int REST_END_TIME = 0;
+    // 记录本晚已经处理过的居民，避免每 40 tick 反复传送造成抖动。
+    private static final ConcurrentMap<String, Set<UUID>> RESTED_CITIZENS_BY_LEVEL = new ConcurrentHashMap<>();
+    // 缓存每个 POI 当晚的 home target，仅计算一次，天亮时随 RESTED_CITIZENS_BY_LEVEL 一起清除。
+    private static final ConcurrentMap<String, ConcurrentMap<UUID, Vec3>> HOME_TARGETS_BY_LEVEL = new ConcurrentHashMap<>();
+
+    private CitizenHomeRestService() {
+    }
+
+    public static void tick(ServerLevel level) {
+        if (level == null || level.isClientSide()) {
+            return;
+        }
+        String levelKey = SaveScopedCacheKey.levelKey(level);
+        if (!isRestTime(level)) {
+            RESTED_CITIZENS_BY_LEVEL.remove(levelKey);
+            if (level.getGameTime() % 20L == 0L) {
+                restoreHomeRestingCitizens(level);
+            }
+            if (level.getGameTime() % 100L == 0L) {
+                retryBlockedWorkNavigation(level);
+            }
+            return;
+        }
+        if (level.getGameTime() % 40L != 0L) {
+            return;
+        }
+        Set<UUID> restedCitizens = RESTED_CITIZENS_BY_LEVEL.computeIfAbsent(levelKey, ignored -> ConcurrentHashMap.newKeySet());
+        // 同一张床可能分给多个居民，夜间只计算一次安全落点并跨 tick 复用。
+        ConcurrentMap<UUID, Vec3> homeTargets = HOME_TARGETS_BY_LEVEL.computeIfAbsent(levelKey, ignored -> new ConcurrentHashMap<>());
+        CityPoiManager poiManager = CityPoiManager.get(level);
+        CitizenManager manager = CitizenManager.get(level);
+        String dimensionId = level.dimension().location().toString();
+        long currentDay = level.getDayTime() / 24_000L;
+        for (CitizenData citizen : manager.allCitizens()) {
+            if (citizen.dead()) {
+                continue;
+            }
+            if (MedicalService.isAdmitted(citizen)) {
+                continue;
+            }
+            if (!dimensionId.equals(citizen.dimensionId())) {
+                continue;
+            }
+            if (!CityRuntimeService.isCitizenActive(level, citizen)) {
+                continue;
+            }
+            if (citizen.homeId() == null) {
+                continue;
+            }
+            CityPoiData home = poiManager.getPoi(citizen.homeId());
+            if (home == null || !home.active() || home.type() != CityPoiType.RESIDENTIAL || !level.isLoaded(home.pos())) {
+                continue;
+            }
+            Vec3 homeTarget = homeTargets.computeIfAbsent(home.poiId(), ignored -> resolveHomeTarget(level, home.pos()));
+            boolean keepMedicalStatus = shouldKeepMedicalStatus(citizen, currentDay);
+            CitizenEntity sleepingEntity = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+            if (sleepingEntity != null && sleepingEntity.isSleeping()) {
+                if (!restedCitizens.contains(citizen.uuid())) {
+                    CitizenBedSleepService.restoreSleeping(level, sleepingEntity, homeTarget);
+                }
+                citizen.setWorkStatus(CitizenWorkStatus.RESTING);
+                if (!keepMedicalStatus) {
+                    citizen.setWorkNeedDetail(HOME_REST_MARKER);
+                }
+                restedCitizens.add(citizen.uuid());
+                continue;
+            }
+            if (restedCitizens.contains(citizen.uuid())) {
+                CitizenTeleportService.reconcileLoadedCitizenEntities(level, citizen.uuid(), homeTarget);
+                CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+                if (entity != null && !entity.isSleeping()
+                        && entity.getNavigation().isDone()
+                        && entity.distanceToSqr(homeTarget) <= 2.25
+                        && !CitizenBedSleepService.isOccupiedByOther(levelKey, home.pos(), citizen.uuid())) {
+                    CitizenBedSleepService.tryStartSleeping(level, entity, home.pos(), homeTarget);
+                }
+                continue;
+            }
+            if (moveOrTeleportHome(level, citizen, homeTarget)) {
+                citizen.setWorkStatus(CitizenWorkStatus.RESTING);
+                if (!keepMedicalStatus) {
+                    citizen.setStatusLabel(HOME_REST_STATUS_KEY);
+                    citizen.setWorkNeedDetail(HOME_REST_MARKER);
+                }
+                manager.saveCitizenNow(citizen.uuid());
+                restedCitizens.add(citizen.uuid());
+                CitizenEntity goingHome = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+                CitizenVoiceService.play(level, goingHome, citizen, CitizenVoiceService.Cue.EVENING);
+            }
+        }
+    }
+
+    private static void retryBlockedWorkNavigation(ServerLevel level) {
+        String dimensionId = level.dimension().location().toString();
+        for (CitizenData citizen : CitizenManager.get(level).allCitizens()) {
+            if (citizen.dead() || !dimensionId.equals(citizen.dimensionId())
+                    || !CityRuntimeService.isCitizenActive(level, citizen)
+                    || citizen.workplaceId() == null
+                    || citizen.jobType() == CityJobType.UNEMPLOYED
+                    || citizen.workStatusType() != CitizenWorkStatus.WORKING) continue;
+            if (CitizenNavigationService.isNavigating(level, citizen.uuid())) continue;
+            CitizenWorkplaceMoveService.returnToWorkplace(level, citizen);
+        }
+    }
+
+    /** shouldKeepMedicalStatus：夜间回家不能覆盖住院/孕晚期/产后静养标签，否则清晨会被当成普通上班。 */
+    private static boolean shouldKeepMedicalStatus(CitizenData citizen, long currentDay) {
+        return MedicalService.MEDICAL_CARE_MARKER.equals(citizen.workNeedDetail())
+                || MedicalService.isAdmitted(citizen)
+                || MedicalService.isOnMedicalLeave(citizen, currentDay);
+    }
+
+    private static boolean moveOrTeleportHome(ServerLevel level, CitizenData citizen, Vec3 homeTarget) {
+        CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+        if (entity == null) {
+            CityRuntimeService.requestCitizenRecovery(level, citizen);
+            return false;
+        }
+        if (CitizenPanicService.isFleeing(level, citizen.uuid())) {
+            return false;
+        }
+        if (CitizenNavigationService.requestMove(level, citizen.uuid(), homeTarget, MovementIntent.RETURN_HOME)) {
+            return true;
+        }
+        return CitizenTeleportService.teleportLoadedCitizen(level, citizen, homeTarget);
+    }
+
+    private static void restoreHomeRestingCitizens(ServerLevel level) {
+        CitizenManager manager = CitizenManager.get(level);
+        String dimensionId = level.dimension().location().toString();
+        for (CitizenData citizen : manager.allCitizens()) {
+            if (citizen.dead()) {
+                continue;
+            }
+            if (!dimensionId.equals(citizen.dimensionId())) {
+                continue;
+            }
+            if (!CityRuntimeService.isCitizenActive(level, citizen)) {
+                continue;
+            }
+            if (!HOME_REST_MARKER.equals(citizen.workNeedDetail())) {
+                continue;
+            }
+            if (shouldKeepMedicalStatus(citizen, level.getDayTime() / 24_000L)) {
+                continue;
+            }
+            CitizenEntity entityToWake = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+            if (entityToWake != null && entityToWake.isSleeping()) {
+                CitizenBedSleepService.wakeUp(level, entityToWake, null);
+                CitizenVoiceService.play(level, entityToWake, citizen, CitizenVoiceService.Cue.MORNING);
+            } else {
+                CitizenBedSleepService.release(level, citizen.uuid());
+            }
+            CitizenWorkStatus nextStatus = citizen.workplaceId() != null && citizen.jobType() != CityJobType.UNEMPLOYED
+                    ? CitizenWorkStatus.WORKING
+                    : CitizenWorkStatus.IDLE;
+            citizen.setWorkStatus(nextStatus);
+            citizen.setStatusLabel("");
+            citizen.setWorkNeedDetail("");
+            manager.saveCitizenNow(citizen.uuid());
+            CitizenEntity entity = entityToWake;
+            if (entity != null) {
+                manager.syncEntity(entity);
+            }
+            if (nextStatus == CitizenWorkStatus.WORKING) {
+                CitizenWorkplaceMoveService.returnToWorkplace(level, citizen);
+            }
+        }
+    }
+
+    // isRestTime：统一夜间休息窗口，建筑师、规划师、农民和回家服务共用同一判定。
+    public static boolean isRestTime(ServerLevel level) {
+        int time = (int) Math.floorMod(level.getDayTime(), 24000L);
+        int start = REST_START_TIME;
+        int end = REST_END_TIME;
+        if (start == end) {
+            return false;
+        }
+        if (start < end) {
+            return time >= start && time < end;
+        }
+        return time >= start || time < end;
+    }
+
+    // 清理指定存档的夜间回家标记，防止同一维度名在不同存档间复用。
+    public static void clearServerCaches(MinecraftServer server) {
+        String serverKey = SaveScopedCacheKey.serverKey(server);
+        String prefix = serverKey + "|";
+        RESTED_CITIZENS_BY_LEVEL.keySet().removeIf(key -> key.startsWith(prefix));
+        HOME_TARGETS_BY_LEVEL.keySet().removeIf(key -> key.startsWith(prefix));
+        CitizenBedSleepService.clearServerCaches(server);
+    }
+
+    /** invalidateMovedHomes：建筑搬迁后清理居民住宅落点、床位和回家导航缓存。 */
+    public static void invalidateMovedHomes(ServerLevel level, Set<UUID> homePoiIds) {
+        if (level == null || homePoiIds == null || homePoiIds.isEmpty()) {
+            return;
+        }
+        String levelKey = SaveScopedCacheKey.levelKey(level);
+        ConcurrentMap<UUID, Vec3> homeTargets = HOME_TARGETS_BY_LEVEL.get(levelKey);
+        if (homeTargets != null) {
+            homePoiIds.forEach(homeTargets::remove);
+        }
+        Set<UUID> restedCitizens = RESTED_CITIZENS_BY_LEVEL.get(levelKey);
+        CityPoiManager poiManager = CityPoiManager.get(level);
+        for (CitizenData citizen : CitizenManager.get(level).allCitizens()) {
+            if (citizen.dead() || citizen.homeId() == null || !homePoiIds.contains(citizen.homeId())) {
+                continue;
+            }
+            if (restedCitizens != null) {
+                restedCitizens.remove(citizen.uuid());
+            }
+            CitizenNavigationService.stopReturnHome(level, citizen.uuid());
+            CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+            CitizenBedSleepService.release(level, citizen.uuid());
+            if (entity == null || !entity.isSleeping()) {
+                continue;
+            }
+            CityPoiData home = poiManager.getPoi(citizen.homeId());
+            Vec3 fallback = home != null && home.active() && home.type() == CityPoiType.RESIDENTIAL
+                    ? resolveHomeTarget(level, home.pos())
+                    : null;
+            CitizenBedSleepService.wakeUp(level, entity, fallback);
+        }
+    }
+
+    // resolveHomeTarget：解析住宅床边的安全脚底坐标，供回家和新入住生成共用。
+    public static Vec3 resolveHomeTarget(ServerLevel level, BlockPos homePos) {
+        BlockPos anchor = resolveHomeAnchor(level, homePos);
+        List<BlockPos> bedsideCandidates = collectBedsideCandidates(level, anchor);
+        if (!bedsideCandidates.isEmpty()) {
+            return bedsideCandidates.stream()
+                    .min(Comparator.comparingInt(candidate -> bedsideTargetScore(level, anchor, candidate)))
+                    .map(Vec3::atBottomCenterOf)
+                    .orElseGet(() -> Vec3.atBottomCenterOf(anchor));
+        }
+        List<BlockPos> candidates = collectHomeTargetCandidates(level, anchor);
+        // 优先选择和床在同一可行走空间的点，避免 NPC 被传到墙外。
+        List<BlockPos> reachableCandidates = collectReachableCandidates(level, anchor, candidates);
+        List<BlockPos> preferredCandidates = !reachableCandidates.isEmpty()
+                ? reachableCandidates
+                : candidates.stream().filter(candidate -> hasClearPath(level, anchor, candidate)).toList();
+        if (preferredCandidates.isEmpty()) {
+            preferredCandidates = candidates;
+        }
+        return preferredCandidates.stream()
+                .min(Comparator.comparingInt(candidate -> homeTargetScore(anchor, candidate)))
+                .map(Vec3::atBottomCenterOf)
+                .orElseGet(() -> Vec3.atBottomCenterOf(level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, homePos)));
+    }
+
+    private static BlockPos resolveHomeAnchor(ServerLevel level, BlockPos homePos) {
+        if (isSupportedBedHead(level.getBlockState(homePos))) {
+            return homePos;
+        }
+        // 旧存档里 POI 可能记录在床侧，先回找床头作为安全点搜索中心。
+        ArrayList<BlockPos> beds = new ArrayList<>();
+        for (int yOffset = -2; yOffset <= 2; yOffset++) {
+            for (int xOffset = -HOME_ANCHOR_SEARCH_RADIUS; xOffset <= HOME_ANCHOR_SEARCH_RADIUS; xOffset++) {
+                for (int zOffset = -HOME_ANCHOR_SEARCH_RADIUS; zOffset <= HOME_ANCHOR_SEARCH_RADIUS; zOffset++) {
+                    BlockPos candidate = homePos.offset(xOffset, yOffset, zOffset);
+                    if (isResidentialBedHead(level.getBlockState(candidate))) {
+                        beds.add(candidate.immutable());
+                    }
+                }
+            }
+        }
+        return beds.stream()
+                .min(Comparator.comparingInt(candidate -> homeTargetScore(homePos, candidate)))
+                .orElse(homePos);
+    }
+
+    private static List<BlockPos> collectBedsideCandidates(ServerLevel level, BlockPos bedHeadPos) {
+        if (!isSupportedBedHead(level.getBlockState(bedHeadPos))) {
+            return List.of();
+        }
+        BlockPos bedFootPos = resolveBedFootPos(bedHeadPos, level.getBlockState(bedHeadPos));
+        if (bedFootPos == null) {
+            return List.of();
+        }
+        ArrayList<BlockPos> candidates = new ArrayList<>();
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dz = -1; dz <= 1; dz++) {
+                if (dx == 0 && dz == 0) continue;
+                BlockPos candidate = bedFootPos.offset(dx, 0, dz);
+                if (!candidate.equals(bedHeadPos) && canStandAt(level, candidate)) {
+                    candidates.add(candidate.immutable());
+                }
+            }
+        }
+        return candidates.stream().distinct().toList();
+    }
+
+    private static BlockPos resolveBedFootPos(BlockPos bedHeadPos, BlockState bedHeadState) {
+        if (!bedHeadState.hasProperty(BlockStateProperties.HORIZONTAL_FACING)) {
+            return null;
+        }
+        Direction facing = bedHeadState.getValue(BlockStateProperties.HORIZONTAL_FACING);
+        return bedHeadPos.relative(facing.getOpposite());
+    }
+
+    private static int bedsideTargetScore(ServerLevel level, BlockPos bedHeadPos, BlockPos candidate) {
+        int baseScore = homeTargetScore(bedHeadPos, candidate);
+        BlockPos bedFootPos = resolveBedFootPos(bedHeadPos, level.getBlockState(bedHeadPos));
+        if (bedFootPos != null && candidate.distManhattan(bedFootPos) == 1) {
+            baseScore -= 32;
+        }
+        return baseScore;
+    }
+
+    private static List<BlockPos> collectHomeTargetCandidates(ServerLevel level, BlockPos anchor) {
+        ArrayList<BlockPos> candidates = new ArrayList<>();
+        for (int yOffset = -1; yOffset <= 2; yOffset++) {
+            for (int xOffset = -HOME_TARGET_SEARCH_RADIUS; xOffset <= HOME_TARGET_SEARCH_RADIUS; xOffset++) {
+                for (int zOffset = -HOME_TARGET_SEARCH_RADIUS; zOffset <= HOME_TARGET_SEARCH_RADIUS; zOffset++) {
+                    BlockPos candidate = anchor.offset(xOffset, yOffset, zOffset);
+                    if (canStandAt(level, candidate)) {
+                        candidates.add(candidate.immutable());
+                    }
+                }
+            }
+        }
+        return List.copyOf(candidates);
+    }
+
+    private static List<BlockPos> collectReachableCandidates(ServerLevel level, BlockPos anchor, List<BlockPos> candidates) {
+        Set<BlockPos> safePositions = ConcurrentHashMap.newKeySet();
+        safePositions.addAll(candidates);
+        Set<BlockPos> visited = ConcurrentHashMap.newKeySet();
+        Queue<BlockPos> queue = new ArrayDeque<>();
+        // 从床旁无遮挡的安全点开始泛洪，只保留同房间连通区域。
+        for (BlockPos candidate : candidates) {
+            if (isHomeSeed(level, anchor, candidate) && visited.add(candidate)) {
+                queue.add(candidate);
+            }
+        }
+        ArrayList<BlockPos> reachable = new ArrayList<>();
+        while (!queue.isEmpty()) {
+            BlockPos current = queue.poll();
+            reachable.add(current);
+            for (Direction direction : Direction.values()) {
+                BlockPos next = current.relative(direction);
+                if (safePositions.contains(next) && visited.add(next)) {
+                    queue.add(next);
+                }
+            }
+        }
+        return List.copyOf(reachable);
+    }
+
+    private static boolean isHomeSeed(ServerLevel level, BlockPos anchor, BlockPos candidate) {
+        // 种子点必须离床很近且无遮挡，防止从墙外台阶启动连通搜索。
+        int dx = Math.abs(candidate.getX() - anchor.getX());
+        int dy = Math.abs(candidate.getY() - anchor.getY());
+        int dz = Math.abs(candidate.getZ() - anchor.getZ());
+        return dx + dy + dz <= 2 && dy <= 1 && hasClearPath(level, anchor, candidate);
+    }
+
+    private static int homeTargetScore(BlockPos homePos, BlockPos candidate) {
+        int dx = candidate.getX() - homePos.getX();
+        int dy = candidate.getY() - homePos.getY();
+        int dz = candidate.getZ() - homePos.getZ();
+        int horizontalDistance = dx * dx + dz * dz;
+        int verticalPenalty = Math.abs(dy) * 6;
+        int sameLevelBonus = dy == 0 ? -2 : 0;
+        return horizontalDistance * 16 + verticalPenalty + sameLevelBonus;
+    }
+
+    private static boolean hasClearPath(ServerLevel level, BlockPos homePos, BlockPos candidate) {
+        if (homePos.equals(candidate)) {
+            return true;
+        }
+        Vec3 start = Vec3.atBottomCenterOf(homePos).add(0.0D, 0.9D, 0.0D);
+        Vec3 end = Vec3.atBottomCenterOf(candidate).add(0.0D, 0.9D, 0.0D);
+        Vec3 delta = end.subtract(start);
+        // 采样高度接近 NPC 腰部，比只看脚下更容易识别墙体遮挡。
+        int steps = Math.max(1, (int) Math.ceil(Math.max(Math.max(Math.abs(delta.x), Math.abs(delta.y)), Math.abs(delta.z)) * 4.0D));
+        for (int index = 1; index < steps; index++) {
+            Vec3 sample = start.add(delta.scale((double) index / (double) steps));
+            BlockPos samplePos = BlockPos.containing(sample);
+            if (samplePos.equals(homePos) || samplePos.equals(candidate)) {
+                continue;
+            }
+            BlockState state = level.getBlockState(samplePos);
+            if (!state.getCollisionShape(level, samplePos).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean canStandAt(ServerLevel level, BlockPos pos) {
+        if (level.isOutsideBuildHeight(pos) || level.isOutsideBuildHeight(pos.above()) || level.isOutsideBuildHeight(pos.below())) {
+            return false;
+        }
+        BlockState floor = level.getBlockState(pos.below());
+        BlockState body = level.getBlockState(pos);
+        BlockState head = level.getBlockState(pos.above());
+        // 安全落点要求脚下可站、身体和头部无碰撞，并排除水/岩浆。
+        return floor.isFaceSturdy(level, pos.below(), Direction.UP)
+                && isSafeSpace(level, pos, body)
+                && isSafeSpace(level, pos.above(), head)
+                && body.getFluidState().isEmpty()
+                && head.getFluidState().isEmpty();
+    }
+
+    private static boolean isSafeSpace(ServerLevel level, BlockPos pos, BlockState state) {
+        return state.getCollisionShape(level, pos).isEmpty();
+    }
+
+    public static boolean isResidentialBedHead(BlockState state) {
+        return state.is(Blocks.RED_BED)
+                && (!state.hasProperty(BlockStateProperties.BED_PART) || state.getValue(BlockStateProperties.BED_PART) == BedPart.HEAD);
+    }
+
+    private static boolean isSupportedBedHead(BlockState state) {
+        return isResidentialBedHead(state)
+                || common.cn.nsimu.simukraft.building.MedicalBedPoiService.isWhiteBedHead(state);
+    }
+}

@@ -1,0 +1,167 @@
+package common.cn.nsimu.simukraft.citizen;
+
+import common.cn.nsimu.simukraft.building.BuilderConstructionService;
+import common.cn.nsimu.simukraft.city.CityRuntimeService;
+import common.cn.nsimu.simukraft.city.poi.CityPoiData;
+import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
+import common.cn.nsimu.simukraft.config.ServerConfig;
+import common.cn.nsimu.simukraft.entity.CitizenEntity;
+import common.cn.nsimu.simukraft.industrial.IndustrialControlBoxService;
+import common.cn.nsimu.simukraft.job.CityJobType;
+import common.cn.nsimu.simukraft.medical.MedicalService;
+import common.cn.nsimu.simukraft.path.CitizenNavigationService;
+import common.cn.nsimu.simukraft.path.MovementIntent;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.phys.Vec3;
+
+import java.util.Optional;
+
+
+public final class CitizenWorkplaceMoveService {
+    private static final double ARRIVED_DISTANCE_SQR = 4.0D;
+    private static final int[] WORKPLACE_Y_OFFSETS = {0, 1, -1, -2, -3};
+    private static final int[][] WORKPLACE_STAND_OFFSETS = {
+            {1, 0}, {-1, 0}, {0, 1}, {0, -1},
+            {1, 1}, {1, -1}, {-1, 1}, {-1, -1},
+            {2, 0}, {-2, 0}, {0, 2}, {0, -2}
+    };
+    private static final int[][] CONTROL_BOX_STAND_OFFSETS = {
+            {1, 0}, {-1, 0}, {0, 1}, {0, -1}
+    };
+
+    private CitizenWorkplaceMoveService() {
+    }
+
+    // returnToWorkplace：让市民恢复上班时优先走寻路，失败或距离过远时由传送兜底。
+    public static boolean returnToWorkplace(ServerLevel level, CitizenData citizen) {
+        return moveToWorkplace(level, citizen, false);
+    }
+
+    /** recoverToWorkplace：实体从强加载来源区块恢复后，强制完成一次岗位复位。 */
+    public static boolean recoverToWorkplace(ServerLevel level, CitizenData citizen) {
+        return moveToWorkplace(level, citizen, true);
+    }
+
+    private static boolean moveToWorkplace(ServerLevel level, CitizenData citizen, boolean recoveringFromUnloadedChunk) {
+        if (level == null || citizen == null || citizen.dead() || citizen.workplaceId() == null || citizen.jobType() == CityJobType.UNEMPLOYED) {
+            return false;
+        }
+        if (CitizenSelfFeedingService.isSelfFeeding(level, citizen.uuid())) {
+            return false;
+        }
+        if (CitizenPanicService.isFleeing(level, citizen.uuid())) {
+            return false;
+        }
+        if (!CityRuntimeService.isCitizenActive(level, citizen)) {
+            return false;
+        }
+        if (MedicalService.isOnMedicalLeave(citizen, level.getDayTime() / 24_000L)) {
+            return false;
+        }
+        if (!recoveringFromUnloadedChunk && citizen.jobType() == CityJobType.INDUSTRIAL_WORKER
+                && IndustrialControlBoxService.isRunningAssignedWorker(level, citizen)) {
+            return true;
+        }
+        Optional<Vec3> targetOptional = resolveWorkplaceTarget(level, citizen);
+        if (targetOptional.isEmpty()) {
+            return false;
+        }
+        Vec3 target = targetOptional.get();
+        CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
+        if (entity == null) {
+            CityRuntimeService.requestCitizenRecovery(level, citizen);
+            return false;
+        }
+        if (entity != null && entity.position().distanceToSqr(target) <= ARRIVED_DISTANCE_SQR) {
+            return true;
+        }
+        CitizenNavigationService.stop(level, citizen.uuid());
+        double farMovementDistance = ServerConfig.pathFarMovementTeleportDistance();
+        if (recoveringFromUnloadedChunk && entity.position().distanceToSqr(target)
+                >= farMovementDistance * farMovementDistance) {
+            Vec3 source = entity.position();
+            boolean teleported = CitizenTeleportService.teleportLoadedCitizen(level, citizen, target);
+            if (teleported) {
+                CitizenTeleportService.refreshClientTracking(level, entity);
+            }
+            common.cn.nsimu.simukraft.SimuKraft.LOGGER.debug(
+                    "Simukraft: recovery workplace teleport citizen {} result={} source={} target={} final={}",
+                    citizen.uuid(), teleported, source, target, entity.position());
+            return teleported;
+        }
+        if (CitizenNavigationService.requestMove(level, citizen.uuid(), target, MovementIntent.WORK)) {
+            return true;
+        }
+        return CitizenTeleportService.teleportLoadedCitizen(level, citizen, target);
+    }
+
+    // resolveWorkplaceTarget：解析普通城市 POI 或建筑师当前施工控制盒的岗位落点。
+    public static Optional<Vec3> resolveWorkplaceTarget(ServerLevel level, CitizenData citizen) {
+        if (level == null || citizen == null || citizen.workplaceId() == null) {
+            return Optional.empty();
+        }
+        CityPoiData poi = CityPoiManager.get(level).getPoi(citizen.workplaceId());
+        if (poi != null) {
+            return poi.active() && (citizen.cityId() == null || citizen.cityId().equals(poi.cityId()))
+                    ? targetNearWorkplace(level, poi.pos())
+                    : Optional.empty();
+        }
+        if (citizen.jobType() == CityJobType.BUILDER) {
+            BlockPos buildBoxPos = BuilderConstructionService.findBuildBoxPos(level, citizen.uuid());
+            if (buildBoxPos != null) {
+                return targetNearWorkplace(level, buildBoxPos);
+            }
+        }
+        if (citizen.jobType() == CityJobType.COMMERCIAL_WORKER && citizen.workplacePos() != null) {
+            return targetAdjacentToWorkplace(level, citizen.workplacePos());
+        }
+        if (citizen.workplacePos() != null) {
+            return targetNearWorkplace(level, citizen.workplacePos());
+        }
+        return Optional.empty();
+    }
+
+    // targetAdjacentToWorkplace：商业控制箱岗位只允许紧邻四格落点，避免职员隔墙站到建筑外侧。
+    public static Optional<Vec3> targetAdjacentToWorkplace(ServerLevel level, BlockPos pos) {
+        if (level == null || pos == null) {
+            return Optional.empty();
+        }
+        for (int yOffset : WORKPLACE_Y_OFFSETS) {
+            for (int[] offset : CONTROL_BOX_STAND_OFFSETS) {
+                Vec3 landing = safeLanding(level, pos.offset(offset[0], yOffset, offset[1]));
+                if (landing != null) {
+                    return Optional.of(landing);
+                }
+            }
+        }
+        Vec3 topLanding = safeLanding(level, pos.above());
+        return Optional.ofNullable(topLanding);
+    }
+
+    // targetNearWorkplace：优先选择岗位方块周围的安全脚底点，避免把 NPC 放到工作盒顶上或旧路径外侧。
+    public static Optional<Vec3> targetNearWorkplace(ServerLevel level, BlockPos pos) {
+        if (level == null || pos == null) {
+            return Optional.empty();
+        }
+        for (int yOffset : WORKPLACE_Y_OFFSETS) {
+            for (int[] offset : WORKPLACE_STAND_OFFSETS) {
+                Vec3 landing = safeLanding(level, pos.offset(offset[0], yOffset, offset[1]));
+                if (landing != null) {
+                    return Optional.of(landing);
+                }
+            }
+        }
+        for (int yDown = 0; yDown >= -5; yDown--) {
+            Vec3 landing = safeLanding(level, pos.offset(0, yDown, 0));
+            if (landing != null) {
+                return Optional.of(landing);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private static Vec3 safeLanding(ServerLevel level, BlockPos feet) {
+        return level.isLoaded(feet) ? CitizenTeleportService.safeLandingTarget(level, feet) : null;
+    }
+}
