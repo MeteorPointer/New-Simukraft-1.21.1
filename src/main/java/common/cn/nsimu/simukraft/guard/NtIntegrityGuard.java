@@ -1,4 +1,6 @@
-package common.cn.kafei.simukraft.guard;
+package common.cn.nsimu.simukraft.guard;
+
+import net.neoforged.fml.ModList;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,19 +52,19 @@ public final class NtIntegrityGuard {
 
         if (!ModList.get().isLoaded(NT_MOD_ID)) {
             throw new IllegalStateException(
-                "\n\n" +
-                "========================================================================\n" +
-                "  [SimuKraft] 内测版完整性校验失败\n" +
-                "  \n" +
-                "  NT 保护层（mod id: " + NT_MOD_ID + "）未加载！\n" +
-                "  \n" +
-                "  可能原因：\n" +
-                "  - 手动修改了 mod 文件（删除了嵌入的 JiJ 文件）\n" +
-                "  - 使用了非官方修改版本\n" +
-                "  \n" +
-                "  解决方法：\n" +
-                "  请使用从官方渠道获取的未经修改的内测版本。\n" +
-                "========================================================================\n"
+                    "\n\n" +
+                            "========================================================================\n" +
+                            "  [SimuKraft] 内测版完整性校验失败\n" +
+                            "  \n" +
+                            "  NT 保护层（mod id: " + NT_MOD_ID + "）未加载！\n" +
+                            "  \n" +
+                            "  可能原因：\n" +
+                            "  - 手动修改了 mod 文件（删除了嵌入的 JiJ 文件）\n" +
+                            "  - 使用了非官方修改版本\n" +
+                            "  \n" +
+                            "  解决方法：\n" +
+                            "  请使用从官方渠道获取的未经修改的内测版本。\n" +
+                            "========================================================================\n"
             );
         }
     }
