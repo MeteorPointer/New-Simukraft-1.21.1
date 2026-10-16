@@ -188,11 +188,12 @@ class GuideBookMarkdownParserTest {
         assertEquals("simukraft:logistics_server_box", start.spreads().get(8).left().get(3).itemId());
 
         GuideBookMarkdownDocument items = parseResource("assets/simukraft/guidebook/zh_cn/items.md");
-        assertEquals(6, items.spreads().size());
+        assertEquals(7, items.spreads().size());
         assertEquals("tab_commerce", items.tabIcon());
         assertEquals("simukraft:mineral_drilling_control_box", items.spreads().get(2).right().get(0).itemId());
         assertEquals("simukraft:drill_rod_segment", items.spreads().get(2).right().get(2).itemId());
-        assertEquals("simukraft:guide_book", items.spreads().get(3).right().get(0).itemId());
+        assertEquals("simukraft:shallow_drill_bit", items.spreads().get(3).left().get(0).itemId());
+        assertEquals("simukraft:guide_book", items.spreads().get(4).right().get(0).itemId());
 
         GuideBookMarkdownDocument directory = parseResource("assets/simukraft/guidebook/zh_cn/directory.md");
         assertNull(directory.parentId());
