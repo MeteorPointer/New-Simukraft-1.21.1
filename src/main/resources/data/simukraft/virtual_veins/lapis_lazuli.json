@@ -1,6 +1,7 @@
 {
   "id": "lapis_lazuli_vein",
   "display_name": "青金石矿脉",
+  "display_name_en": "Lapis Lazuli Vein",
   "priority": 50,
   "conditions": {
     "continentalness": [0.0300, 1.0000],

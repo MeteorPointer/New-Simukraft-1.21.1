@@ -16,6 +16,7 @@ import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ProgressBar;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
 import common.cn.kafei.simukraft.economy.CoinDenominations;
+import common.cn.kafei.simukraft.exchange.ExchangeCompanyLoader;
 import common.cn.kafei.simukraft.exchange.ExchangeControlBoxService;
 import common.cn.kafei.simukraft.exchange.ExchangeMarketClock;
 import common.cn.kafei.simukraft.exchange.ExchangeQuote;
@@ -299,7 +300,7 @@ public final class ExchangeControlBoxScreenOpener {
             layout.justifyContent(AlignContent.CENTER);
             layout.flexShrink(0);
         });
-        button.addChild(label(Component.literal(quote.displayName()), Horizontal.LEFT, 0xFFFFFFFF, 10));
+        button.addChild(label(Component.literal(companyName(quote)), Horizontal.LEFT, 0xFFFFFFFF, 10));
         Label price = label(companyPriceText(quote), Horizontal.LEFT, quote.change() >= 0 ? UP : DOWN, 10);
         price.setId(companyPriceId(quote.id()));
         button.addChild(price);
@@ -460,6 +461,13 @@ public final class ExchangeControlBoxScreenOpener {
         }
     }
 
+    private static String companyName(ExchangeQuote quote) {
+        if (quote == null) {
+            return "";
+        }
+        return ExchangeCompanyLoader.INSTANCE.localizedName(quote.id(), quote.displayName());
+    }
+
     private static boolean canRepair(ExchangeControlBoxOpenResponsePacket packet) {
         return packet.integrityAvailable()
                 && (packet.integrityRepairableBlocks() > 0 || packet.integrityManualRepairBlocks() > 0);
@@ -564,7 +572,7 @@ public final class ExchangeControlBoxScreenOpener {
         }
         return Component.translatable("gui.simukraft.exchange.price_line", CoinDenominations.formatYuan(selected.price()))
                 .append(Component.literal("  "))
-                .append(Component.translatable("gui.simukraft.exchange.viewing", selected.displayName()));
+                .append(Component.translatable("gui.simukraft.exchange.viewing", companyName(selected)));
     }
 
     private static Component sharesText(ExchangeQuote selected) {

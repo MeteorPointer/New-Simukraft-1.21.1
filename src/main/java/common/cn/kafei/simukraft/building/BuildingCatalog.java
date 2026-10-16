@@ -17,7 +17,7 @@ public final class BuildingCatalog {
             return "";
         }
         return findBuilding(building.category(), building.buildingFileName())
-                .map(BuildingDefinition::displayName)
+                .map(BuildingDefinition::localizedDisplayName)
                 .filter(name -> name != null && !name.isBlank())
                 .orElse(building.displayName() == null ? "" : building.displayName());
     }
@@ -81,10 +81,12 @@ public final class BuildingCatalog {
 
     public record BuildingDefinition(String category,
                                      String displayName,
+                                     String displayNameEn,
                                      String size,
                                      String amount,
                                      String author,
                                      String description,
+                                     String descriptionEn,
                                      int unlockLevel,
                                      String metaFileName,
                                      String structureFileName,
@@ -108,6 +110,33 @@ public final class BuildingCatalog {
         /** isExchange: 公共 JSON type 为交易所。 */
         public boolean isExchange() {
             return buildingType == BuildingType.EXCHANGE;
+        }
+
+        /** localizedDisplayName: 按当前玩家语言选择建筑名。 */
+        public String localizedDisplayName() {
+            if (BuildingLocale.preferEnglish() && displayNameEn != null && !displayNameEn.isBlank()) {
+                return displayNameEn;
+            }
+            return displayName == null ? "" : displayName;
+        }
+
+        /** localizedDescription: 按当前玩家语言选择建筑说明。 */
+        public String localizedDescription() {
+            if (BuildingLocale.preferEnglish() && descriptionEn != null && !descriptionEn.isBlank()) {
+                return descriptionEn;
+            }
+            return description == null ? "" : description;
+        }
+
+        /** localizedAmount: 英文界面去掉造价里的“元”。 */
+        public String localizedAmount() {
+            if (amount == null) {
+                return "";
+            }
+            if (BuildingLocale.preferEnglish()) {
+                return amount.replace("元", "").trim();
+            }
+            return amount;
         }
 
         public Optional<InputStream> openMeta() throws IOException {

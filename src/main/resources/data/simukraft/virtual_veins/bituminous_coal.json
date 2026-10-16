@@ -1,6 +1,7 @@
 {
   "id": "bituminous_coal_vein",
   "display_name": "烟煤矿脉",
+  "display_name_en": "Bituminous Coal Vein",
   "priority": 20,
   "conditions": {
     "continentalness": [0.0300, 1.0000],

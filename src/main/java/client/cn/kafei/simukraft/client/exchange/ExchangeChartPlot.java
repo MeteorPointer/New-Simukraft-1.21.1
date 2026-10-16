@@ -3,6 +3,7 @@ package client.cn.kafei.simukraft.client.exchange;
 import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
 import common.cn.kafei.simukraft.economy.CoinDenominations;
 import common.cn.kafei.simukraft.exchange.ExchangeCandle;
+import common.cn.kafei.simukraft.exchange.ExchangeCompanyLoader;
 import common.cn.kafei.simukraft.exchange.ExchangeMarketClock;
 import common.cn.kafei.simukraft.exchange.ExchangePriceMath;
 import common.cn.kafei.simukraft.exchange.ExchangeQuote;
@@ -121,7 +122,7 @@ final class ExchangeChartPlot {
         double amplitudePct = prev <= 0.0D ? 0.0D : amplitude / prev;
         int color = change >= 0 ? UP : DOWN;
         List<Component> lines = new ArrayList<>();
-        lines.add(Component.literal(quote.displayName()).withStyle(style -> style.withColor(0xFFFFFF)));
+        lines.add(Component.literal(ExchangeCompanyLoader.INSTANCE.localizedName(quote.id(), quote.displayName())).withStyle(style -> style.withColor(0xFFFFFF)));
         lines.add(Component.translatable("gui.simukraft.exchange.candle.time", candle.marketDay() + 1,
                 ExchangeMarketClock.clockLabel(candle.hourIndex())));
         lines.add(Component.translatable("gui.simukraft.exchange.candle.open", CoinDenominations.formatYuan(candle.open())));

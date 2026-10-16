@@ -251,11 +251,13 @@ public final class BuildingPackageCatalog {
         }
         String baseName = stripExtension(metaFile);
         String meta = metaText.get();
-        String displayName = localizedText(meta, "name", "name_en", baseName);
+        String displayName = findValue(meta, "name", baseName);
+        String displayNameEn = findDeclaredValue(meta, "name_en");
         String author = findValue(meta, "author", "External");
         String size = findValue(meta, "size", "-");
-        String amount = displayAmount(findValue(meta, "amount", findValue(meta, "price", "-")));
-        String description = localizedText(meta, "description", "description_en", findValue(meta, "desc", ""));
+        String amount = findValue(meta, "amount", findValue(meta, "price", "-"));
+        String description = findValue(meta, "description", findValue(meta, "desc", ""));
+        String descriptionEn = findDeclaredValue(meta, "description_en");
         int unlockLevel = readUnlockLevel(metaText.get());
         String structureFile = findValue(metaText.get(), "structure", findValue(metaText.get(), "file", ""));
         if (structureFile.isBlank()) {
@@ -271,10 +273,12 @@ public final class BuildingPackageCatalog {
         return new BuildingCatalog.BuildingDefinition(
                 category,
                 displayName,
+                displayNameEn == null ? "" : displayNameEn,
                 size,
                 amount,
                 author,
                 description,
+                descriptionEn == null ? "" : descriptionEn,
                 unlockLevel,
                 metaFile,
                 actualStructureFile,

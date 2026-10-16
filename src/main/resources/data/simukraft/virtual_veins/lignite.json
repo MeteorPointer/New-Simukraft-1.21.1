@@ -1,6 +1,7 @@
 {
   "id": "lignite_vein",
   "display_name": "褐煤矿脉",
+  "display_name_en": "Lignite Vein",
   "priority": 10,
   "conditions": {
     "continentalness": [-0.1100, 0.3000],

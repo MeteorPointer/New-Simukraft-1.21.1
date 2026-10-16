@@ -926,6 +926,7 @@ public final class IndustrialWorkService {
         return new IndustrialDefinition.RecipeDefinition(
                 recipe.id(),
                 recipe.name(),
+                recipe.nameEn(),
                 recipe.heldItem(),
                 step.inputsOverride() ? step.inputs() : recipe.inputs(),
                 step.outputsOverride() ? step.outputs() : recipe.outputs(),

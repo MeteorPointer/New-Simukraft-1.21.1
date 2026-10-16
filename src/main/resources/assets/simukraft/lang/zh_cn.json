@@ -66,6 +66,7 @@
     "toast.simukraft.construction_title":  "建造完成",
     "message.welcome":  "欢迎使用New:SimuKraft！",
     "message.simukraft.welcome":  "感谢您下载并游玩 新:模拟大都市(New:SimuKraft)！本模组由 NSUK新模拟大都市开发组 重置开发。",
+    "message.simukraft.welcome.english_save_notice":  "如果你是英语玩家请注意：存档里已经生成的 NPC 或已经建造的建筑如果带着中文名，英语化可能不会生效。需要删除存档或手动修改数据库。抱歉带来不好的体验，我们尽力了。",
     "message.simukraft.welcome.divider":  "-----------------------------------------------------",
     "message.simukraft.welcome.refactor_edition":  "官方问题反馈讨论QQ群：1046985079 | 638462178 | 1084921979。\n【如果您是付费购买的该内容，恭喜您，您被骗了！】",
     "advancement.simukraft.first_dream.title":  "大梦一场",

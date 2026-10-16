@@ -1,6 +1,7 @@
 {
   "id": "diamond_vein",
   "display_name": "钻石矿脉",
+  "display_name_en": "Diamond Vein",
   "priority": 80,
   "conditions": {
     "continentalness": [0.0300, 1.0000],

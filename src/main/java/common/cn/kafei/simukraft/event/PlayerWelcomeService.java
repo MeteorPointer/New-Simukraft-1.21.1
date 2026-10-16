@@ -89,6 +89,8 @@ public final class PlayerWelcomeService {
         player.sendSystemMessage(Component.translatable("message.simukraft.welcome.divider"));
         player.sendSystemMessage(Component.translatable("message.simukraft.welcome"));
         player.sendSystemMessage(Component.translatable("message.simukraft.welcome.refactor_edition"));
+        player.sendSystemMessage(Component.translatable("message.simukraft.welcome.english_save_notice")
+                .withStyle(style -> style.withColor(ChatFormatting.RED)));
         player.sendSystemMessage(Component.translatable("message.simukraft.welcome.divider"));
         sendBuildingPackUpdateNotice(player);
     }

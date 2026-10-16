@@ -1,6 +1,7 @@
 {
   "id": "emerald_vein",
   "display_name": "绿宝石矿脉",
+  "display_name_en": "Emerald Vein",
   "priority": 70,
   "conditions": {
     "continentalness": [0.0300, 1.0000],

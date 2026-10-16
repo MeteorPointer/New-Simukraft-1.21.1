@@ -12,6 +12,7 @@ import common.cn.kafei.simukraft.job.CitizenEmploymentService;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
 import common.cn.kafei.simukraft.registry.ModBlocks;
 import common.cn.kafei.simukraft.registry.ModItems;
+import common.cn.kafei.simukraft.virtualvein.VirtualVeinDefinitionLoader;
 import common.cn.kafei.simukraft.virtualvein.VirtualVeinLookupResult;
 import common.cn.kafei.simukraft.virtualvein.VirtualVeinService;
 import common.cn.kafei.simukraft.virtualvein.VirtualVeinSlot;
@@ -77,7 +78,7 @@ public final class MineralDrillingControlBoxService {
                 maxDepth,
                 statusKey,
                 data.statusText(),
-                selected != null ? selected.displayName() : "",
+                selected != null ? VirtualVeinDefinitionLoader.INSTANCE.localizedName(selected.veinId(), selected.displayName()) : "",
                 selected != null ? selected.productId().toString() : "",
                 markers,
                 building != null,
@@ -385,7 +386,7 @@ public final class MineralDrillingControlBoxService {
             }
             markers.add(new MineralDrillingControlBoxView.VeinMarker(
                     slot.veinId(),
-                    slot.displayName(),
+                    VirtualVeinDefinitionLoader.INSTANCE.localizedName(slot.veinId(), slot.displayName()),
                     slot.productId().toString(),
                     slot.minY(),
                     slot.maxY(),

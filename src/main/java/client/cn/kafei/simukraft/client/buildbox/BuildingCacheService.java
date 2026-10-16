@@ -62,11 +62,11 @@ public final class BuildingCacheService {
     private static BuildingMeta toMeta(BuildingCatalog.BuildingDefinition definition) {
         return new BuildingMeta(
                 definition.category(),
-                definition.displayName(),
+                definition.localizedDisplayName(),
                 definition.size(),
-                definition.amount(),
+                definition.localizedAmount(),
                 definition.author(),
-                definition.description(),
+                definition.localizedDescription(),
                 definition.unlockLevel(),
                 definition.metaFileName(),
                 definition.structureFileName(),

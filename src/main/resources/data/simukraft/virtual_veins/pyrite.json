@@ -1,6 +1,7 @@
 {
   "id": "pyrite_vein",
   "display_name": "黄铁矿脉",
+  "display_name_en": "Pyrite Vein",
   "priority": 40,
   "conditions": {
     "continentalness": [0.0300, 1.0000],

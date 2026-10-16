@@ -66,6 +66,7 @@
     "toast.simukraft.construction_title":  "Construction Complete",
     "message.welcome":  "Welcome to New:SimuKraft!",
     "message.simukraft.welcome":  "Thank you for downloading and playing New:SimuKraft (NSUK)! This mod is redeveloped by NSUK New SimuKraft Development Team.",
+    "message.simukraft.welcome.english_save_notice":  "If you play in English, please note: NPCs or buildings already saved with Chinese names may stay in Chinese. Delete the save or edit the database file by hand to replace them. Sorry for the poor experience. We did our best.",
     "message.simukraft.welcome.divider":  "-----------------------------------------------------",
     "message.simukraft.welcome.refactor_edition":  "Official Discord Server: https://discord.gg/BJH7hhn8c\n[If you paid for this content, congratulations, you've been scammed!]",
     "advancement.simukraft.first_dream.title":  "A Grand Dream",

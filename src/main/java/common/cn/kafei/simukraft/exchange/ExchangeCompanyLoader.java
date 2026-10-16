@@ -34,6 +34,18 @@ public final class ExchangeCompanyLoader implements PreparableReloadListener {
         return loaded == null || loaded.isEmpty() ? defaults() : loaded;
     }
 
+    /** localizedName: 客户端按公司 id 取当前语言的名称。 */
+    public String localizedName(String companyId, String fallback) {
+        if (companyId != null) {
+            for (ExchangeCompany company : companies()) {
+                if (companyId.equals(company.id())) {
+                    return company.localizedName();
+                }
+            }
+        }
+        return fallback == null ? "" : fallback;
+    }
+
     @Override
     public CompletableFuture<Void> reload(PreparationBarrier barrier,
                                           ResourceManager resourceManager,

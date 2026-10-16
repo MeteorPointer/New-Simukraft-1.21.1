@@ -1,7 +1,10 @@
 package common.cn.kafei.simukraft.building;
 
 import com.google.gson.JsonObject;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.Locale;
 
@@ -10,20 +13,53 @@ public final class BuildingLocale {
     private BuildingLocale() {
     }
 
-    /** preferEnglish: 集成客户端且当前语言不是中文时读取英文字段。专用服务器始终用中文键。 */
+    /**
+     * preferEnglish: 当前玩家语言不是中文时用英文字段。
+     * 服务端类加载器看不到 Minecraft 客户端，所以优先读在线玩家上报的语言。
+     */
     public static boolean preferEnglish() {
-        if (FMLEnvironment.dist == null || FMLEnvironment.dist.isDedicatedServer()) {
-            return false;
+        String language = activeLanguage();
+        return language == null || !language.toLowerCase(Locale.ROOT).startsWith("zh");
+    }
+
+    private static String activeLanguage() {
+        String online = onlinePlayerLanguage();
+        if (online != null) {
+            return online;
         }
+        if (FMLEnvironment.dist == null || FMLEnvironment.dist.isDedicatedServer()) {
+            return "zh_cn";
+        }
+        return clientLanguage();
+    }
+
+    private static String onlinePlayerLanguage() {
+        try {
+            MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
+            if (server == null) {
+                return null;
+            }
+            for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+                String language = player.clientInformation().language();
+                if (language != null && !language.isBlank()) {
+                    return language;
+                }
+            }
+        } catch (RuntimeException exception) {
+            return null;
+        }
+        return null;
+    }
+
+    private static String clientLanguage() {
         try {
             Class<?> minecraft = Class.forName("net.minecraft.client.Minecraft");
             Object instance = minecraft.getMethod("getInstance").invoke(null);
             Object languageManager = minecraft.getMethod("getLanguageManager").invoke(instance);
             Object selected = languageManager.getClass().getMethod("getSelected").invoke(languageManager);
-            String language = selected instanceof String value ? value : null;
-            return language == null || !language.toLowerCase(Locale.ROOT).startsWith("zh");
+            return selected instanceof String value ? value : null;
         } catch (ReflectiveOperationException | RuntimeException exception) {
-            return false;
+            return null;
         }
     }
 

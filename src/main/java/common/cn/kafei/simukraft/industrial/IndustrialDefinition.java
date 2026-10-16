@@ -1,5 +1,6 @@
 package common.cn.kafei.simukraft.industrial;
 
+import common.cn.kafei.simukraft.building.BuildingLocale;
 import net.minecraft.core.BlockPos;
 
 import java.nio.file.Path;
@@ -9,8 +10,10 @@ import java.util.Map;
 
 public record IndustrialDefinition(String id,
                                    String name,
+                                   String nameEn,
                                    String jobType,
                                    String jobName,
+                                   String jobNameEn,
                                    String heldItem,
                                    Map<String, PointDefinition> points,
                                    Map<String, ContainerDefinition> containers,
@@ -18,6 +21,22 @@ public record IndustrialDefinition(String id,
                                    List<RecipeDefinition> recipes,
                                    SpawnEntityDefinition spawnEntity,
                                    Path sourcePath) {
+    /** localizedName: 按当前玩家语言选择工厂名。 */
+    public String localizedName() {
+        if (BuildingLocale.preferEnglish() && nameEn != null && !nameEn.isBlank()) {
+            return nameEn;
+        }
+        return name == null ? "" : name;
+    }
+
+    /** localizedJobName: 按当前玩家语言选择岗位名。 */
+    public String localizedJobName() {
+        if (BuildingLocale.preferEnglish() && jobNameEn != null && !jobNameEn.isBlank()) {
+            return jobNameEn;
+        }
+        return jobName == null || jobName.isBlank() ? localizedName() : jobName;
+    }
+
     public RecipeDefinition recipeById(String recipeId) {
         if (recipeId == null || recipeId.isBlank()) {
             return null;
@@ -54,10 +73,19 @@ public record IndustrialDefinition(String id,
 
     public record RecipeDefinition(String id,
                                    String name,
+                                   String nameEn,
                                    String heldItem,
                                    List<InputRequirement> inputs,
                                    List<ProductOutput> outputs,
                                    List<StepDefinition> steps) {
+        /** localizedName: 按当前玩家语言选择配方名。 */
+        public String localizedName() {
+            if (BuildingLocale.preferEnglish() && nameEn != null && !nameEn.isBlank()) {
+                return nameEn;
+            }
+            return name == null ? "" : name;
+        }
+
         public String effectiveHeldItem(String fallback) {
             return heldItem != null && !heldItem.isBlank() ? heldItem : fallback;
         }

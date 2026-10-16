@@ -1,6 +1,7 @@
 {
   "id": "gold_vein",
   "display_name": "金矿脉",
+  "display_name_en": "Gold Vein",
   "priority": 60,
   "conditions": {
     "continentalness": [0.0300, 1.0000],

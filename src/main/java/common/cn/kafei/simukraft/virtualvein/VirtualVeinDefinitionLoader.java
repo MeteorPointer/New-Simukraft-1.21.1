@@ -37,6 +37,18 @@ public final class VirtualVeinDefinitionLoader implements PreparableReloadListen
         return definitions.get();
     }
 
+    /** localizedName: 按矿脉 id 取当前语言的名称，旧存档里的中文名只作后备。 */
+    public String localizedName(String veinId, String fallback) {
+        if (veinId != null) {
+            for (VirtualVeinDefinition definition : definitions()) {
+                if (veinId.equals(definition.id())) {
+                    return definition.localizedName();
+                }
+            }
+        }
+        return fallback == null ? "" : fallback;
+    }
+
     @Override
     public CompletableFuture<Void> reload(PreparationBarrier barrier,
                                           ResourceManager resourceManager,
@@ -71,6 +83,7 @@ public final class VirtualVeinDefinitionLoader implements PreparableReloadListen
     static VirtualVeinDefinition parse(ResourceLocation resourceId, JsonObject root) {
         String id = text(root, "id");
         String displayName = text(root, "display_name");
+        String displayNameEn = optionalText(root, "display_name_en");
         int priority = integer(root, "priority");
         JsonObject conditions = requiredObject(root, "conditions");
         int[] yRange = integerRange(root, "y_range");
@@ -82,6 +95,7 @@ public final class VirtualVeinDefinitionLoader implements PreparableReloadListen
         return new VirtualVeinDefinition(
                 id,
                 displayName,
+                displayNameEn,
                 priority,
                 decimalRange(conditions, "continentalness"),
                 decimalRange(conditions, "erosion"),
@@ -136,6 +150,15 @@ public final class VirtualVeinDefinitionLoader implements PreparableReloadListen
             throw new IllegalArgumentException("Missing text " + key);
         }
         return value.getAsString();
+    }
+
+    private static String optionalText(JsonObject root, String key) {
+        JsonElement value = root.get(key);
+        if (value == null || !value.isJsonPrimitive()) {
+            return "";
+        }
+        String text = value.getAsString();
+        return text == null ? "" : text.trim();
     }
 
     private static int integer(JsonObject root, String key) {

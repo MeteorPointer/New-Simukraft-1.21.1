@@ -1,6 +1,7 @@
 {
   "id": "malachite_vein",
   "display_name": "孔雀石矿脉",
+  "display_name_en": "Malachite Vein",
   "priority": 35,
   "conditions": {
     "continentalness": [-0.1100, 0.5500],
