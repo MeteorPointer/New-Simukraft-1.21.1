@@ -48,9 +48,9 @@ public final class GuideBookMarkdownParser {
     public static final int DEFAULT_TAB_INDEX = -1;
 
     private static final Pattern HEADING = Pattern.compile("^(#{1,6})\\s+(.*)$");
-    private static final Pattern ITEM = Pattern.compile("^:item\\[([^\\]]+)](?:\\{([^}]*)})?\\s*$");
-    private static final Pattern IMAGE = Pattern.compile("^!\\[([^\\]]*)]\\(([^)]+)\\)(?:\\{([^}]*)})?\\s*$");
-    private static final Pattern LINK = Pattern.compile("^\\[([^\\]]+)]\\(([^)]+)\\)(?:\\{([^}]*)})?\\s*$");
+    private static final Pattern ITEM = Pattern.compile("^:item\\[([^\\]]+)]\\s*(?:\\{([^}]*)})?\\s*$");
+    private static final Pattern IMAGE = Pattern.compile("^!\\[([^\\]]*)]\\(([^)]+)\\)\\s*(?:\\{([^}]*)})?\\s*$");
+    private static final Pattern LINK = Pattern.compile("^\\[([^\\]]+)]\\(([^)]+)\\)\\s*(?:\\{([^}]*)})?\\s*$");
     private static final Pattern FENCE = Pattern.compile("^:::\\s*(\\S+)?\\s*$");
     private static final Pattern ATTRS_TAIL = Pattern.compile("^(.*)\\{([^{}]+)}\\s*$");
 

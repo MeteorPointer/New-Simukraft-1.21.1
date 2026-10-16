@@ -94,6 +94,9 @@ public record NpcHireFirePacket(BlockPos sourcePos, String sourceType, String ro
             if (ExchangeControlBoxService.HIRE_SOURCE_TYPE.equals(access.sourceType())) {
                 PacketDistributor.sendToPlayer(player, ExchangeControlBoxOpenRequestPacket.snapshot(level, player, access.sourcePos(), ""));
             }
+            if (common.cn.kafei.simukraft.mining.MiningBoxService.HIRE_SOURCE_TYPE.equals(access.sourceType())) {
+                PacketDistributor.sendToPlayer(player, common.cn.kafei.simukraft.network.mining.MiningBoxOpenRequestPacket.snapshot(level, access.sourcePos()));
+            }
             CityGroupMessageService.successToCity(level, access.cityId(), Component.translatable("message.simukraft.fire_npc.success", citizen.name()));
         }
     }

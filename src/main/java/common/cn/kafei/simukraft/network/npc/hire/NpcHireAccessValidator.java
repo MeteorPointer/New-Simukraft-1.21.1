@@ -17,6 +17,7 @@ import common.cn.kafei.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.kafei.simukraft.logistics.LogisticsConstants;
 import common.cn.kafei.simukraft.logistics.LogisticsControlBoxService;
 import common.cn.kafei.simukraft.medical.MedicalControlBoxService;
+import common.cn.kafei.simukraft.mining.MiningBoxService;
 import common.cn.kafei.simukraft.mineraldrilling.MineralDrillingConstants;
 import common.cn.kafei.simukraft.mineraldrilling.MineralDrillingControlBoxService;
 import common.cn.kafei.simukraft.network.toast.InfoToastService;
@@ -138,6 +139,11 @@ final class NpcHireAccessValidator {
             PlacedBuildingRecord building = BankControlBoxService.resolveBuilding(level, sourcePos);
             return building != null ? building.cityId() : null;
         }
+        if (MiningBoxService.HIRE_SOURCE_TYPE.equals(sourceType)
+                && MiningBoxService.HIRE_ROLE.equals(role)
+                && level.getBlockState(sourcePos).is(ModBlocks.MINING_BOX.get())) {
+            return CityChunkManager.get(level).getChunkOwner(new ChunkPos(sourcePos).toLong());
+        }
         if (ExchangeControlBoxService.HIRE_SOURCE_TYPE.equals(sourceType)
                 && ExchangeControlBoxService.HIRE_ROLE.equals(role)
                 && level.getBlockState(sourcePos).is(ModBlocks.EXCHANGE_CONTROL_BOX.get())) {
@@ -195,6 +201,9 @@ final class NpcHireAccessValidator {
         }
         if (ExchangeControlBoxService.HIRE_SOURCE_TYPE.equals(sourceType)) {
             return "message.simukraft.exchange.too_far";
+        }
+        if (MiningBoxService.HIRE_SOURCE_TYPE.equals(sourceType)) {
+            return "message.simukraft.mining_box.too_far";
         }
         if (LogisticsConstants.SERVER_SOURCE_TYPE.equals(sourceType)) {
             return "message.simukraft.logistics.too_far";

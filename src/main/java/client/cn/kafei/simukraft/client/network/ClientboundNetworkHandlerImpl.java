@@ -204,6 +204,11 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
     }
 
     @Override
+    public void handleMiningBoxOpenResponse(common.cn.kafei.simukraft.network.mining.MiningBoxOpenResponsePacket packet) {
+        client.cn.kafei.simukraft.client.mining.MiningBoxScreenOpener.open(packet);
+    }
+
+    @Override
     public void handleCommercialTradeOpenResponse(CommercialTradeOpenResponsePacket packet) {
         CommercialTradeUiRoot.refreshActive(packet);
     }

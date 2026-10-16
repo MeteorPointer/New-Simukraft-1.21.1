@@ -115,6 +115,10 @@ public interface ClientboundNetworkHandler {
     default void handleExchangeControlBoxOpenResponse(ExchangeControlBoxOpenResponsePacket packet) {
     }
 
+    /** handleMiningBoxOpenResponse: 打开挖矿盒界面。 */
+    default void handleMiningBoxOpenResponse(common.cn.kafei.simukraft.network.mining.MiningBoxOpenResponsePacket packet) {
+    }
+
     /** handleCommercialTradeOpenResponse: 处理 NPC 商业交易界面响应。 */
     default void handleCommercialTradeOpenResponse(CommercialTradeOpenResponsePacket packet) {
     }

@@ -310,6 +310,7 @@ public final class SimuKraft {
             BuilderConstructionService.tick(level);
             PlannerWorkService.tick(level);
             IndustrialWorkService.tick(level);
+            common.cn.kafei.simukraft.mining.MiningBoxWorkService.tick(level);
             MineralDrillingWorkService.tick(level);
             CommercialWorkService.tick(level);
             LogisticsWorkService.tick(level);

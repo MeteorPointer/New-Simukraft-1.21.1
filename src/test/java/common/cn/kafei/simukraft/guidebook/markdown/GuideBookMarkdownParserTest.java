@@ -56,6 +56,23 @@ class GuideBookMarkdownParserTest {
     }
 
     @Test
+    void parse_readsItemWithSpacedSpacingAttribute() {
+        GuideBookMarkdownDocument document = GuideBookMarkdownParser.parse("""
+                # 物品
+
+                :item[simukraft:mineral_drilling_control_box] {spacing=1}
+
+                :item[simukraft:drill_rod_segment] {spacing=1}
+                """);
+
+        Spread spread = document.spreads().get(0);
+        assertEquals(Block.Kind.ITEM, spread.left().get(0).kind());
+        assertEquals("simukraft:mineral_drilling_control_box", spread.left().get(0).itemId());
+        assertEquals(1, spread.left().get(0).spacing());
+        assertEquals("simukraft:drill_rod_segment", spread.left().get(1).itemId());
+    }
+
+    @Test
     void parse_startsNewSpreadOnHeading() {
         GuideBookMarkdownDocument document = GuideBookMarkdownParser.parse("""
                 # 一 | A
@@ -173,9 +190,11 @@ class GuideBookMarkdownParserTest {
         assertEquals("simukraft:logistics_server_box", start.spreads().get(8).left().get(3).itemId());
 
         GuideBookMarkdownDocument items = parseResource("assets/simukraft/guidebook/zh_cn/items.md");
-        assertEquals(5, items.spreads().size());
+        assertEquals(6, items.spreads().size());
         assertEquals("tab_commerce", items.tabIcon());
-        assertEquals("simukraft:guide_book", items.spreads().get(2).right().get(0).itemId());
+        assertEquals("simukraft:mineral_drilling_control_box", items.spreads().get(2).right().get(0).itemId());
+        assertEquals("simukraft:drill_rod_segment", items.spreads().get(2).right().get(2).itemId());
+        assertEquals("simukraft:guide_book", items.spreads().get(3).right().get(0).itemId());
 
         GuideBookMarkdownDocument directory = parseResource("assets/simukraft/guidebook/zh_cn/directory.md");
         assertNull(directory.parentId());

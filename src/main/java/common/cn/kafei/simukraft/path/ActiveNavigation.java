@@ -233,7 +233,7 @@ final class ActiveNavigation {
         if (isJumpAction(waypoint.mode()) && index > 0 && !jumpTriggered) {
             PathWaypoint start = waypoints.get(index - 1);
             if (!isAtActionLaunch(citizen, waypoint.mode(), start, waypoint)) {
-                return JumpWaypointPolicy.launchTarget(start, waypoint, citizen.getBbWidth());
+                return launchTargetOrWaypoint(start, waypoint, citizen.getBbWidth());
             }
         }
         if (waypoint.mode() == MovementMode.CLIMB) {
@@ -294,11 +294,24 @@ final class ActiveNavigation {
     /** isAtActionLaunch: 按动作类型选择陆地翻越或水面上岸的起跳预备点。 */
     private boolean isAtActionLaunch(CitizenEntity citizen, MovementMode mode,
                                      PathWaypoint start, PathWaypoint landing) {
-        if (mode == MovementMode.SWIM_EXIT) {
-            return JumpWaypointPolicy.isAtFluidLaunchPoint(citizen.position(), start, landing,
-                    citizen.getBbWidth());
+        try {
+            if (mode == MovementMode.SWIM_EXIT) {
+                return JumpWaypointPolicy.isAtFluidLaunchPoint(citizen.position(), start, landing,
+                        citizen.getBbWidth());
+            }
+            return JumpWaypointPolicy.isAtLaunchPoint(citizen.position(), start, landing, citizen.getBbWidth());
+        } catch (LinkageError error) {
+            return true;
         }
-        return JumpWaypointPolicy.isAtLaunchPoint(citizen.position(), start, landing, citizen.getBbWidth());
+    }
+
+    /** launchTargetOrWaypoint: 起跳策略类缺失时退回路径点，避免寻路把服务器打崩。 */
+    private Vec3 launchTargetOrWaypoint(PathWaypoint start, PathWaypoint landing, double bodyWidth) {
+        try {
+            return JumpWaypointPolicy.launchTarget(start, landing, bodyWidth);
+        } catch (LinkageError error) {
+            return landing.position();
+        }
     }
 
     /** isJumpAction: 判断路径节点是否需要手动触发跳跃。 */

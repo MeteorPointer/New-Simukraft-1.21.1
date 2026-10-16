@@ -12,6 +12,8 @@ import client.cn.kafei.simukraft.client.ui.SimuKraftUiTheme;
 import client.cn.kafei.simukraft.client.ui.SlidingInfoPanel;
 import common.cn.kafei.simukraft.logistics.LogisticsDirection;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxOpenRequestPacket;
+import common.cn.kafei.simukraft.network.mining.MiningBoxOpenRequestPacket;
+import common.cn.kafei.simukraft.network.mining.MiningBoxSetAreaPacket;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
 import common.cn.kafei.simukraft.network.farmland.FarmlandBoxSetAreaPacket;
 import common.cn.kafei.simukraft.network.logistics.LogisticsBoxActionPacket;
@@ -73,6 +75,14 @@ public final class TwoPointSelectionScreen extends Screen implements FreeCameraS
         if (mc == null) return;
         mc.execute(() -> mc.setScreen(new TwoPointSelectionScreen(
                 TwoPointSelectionManager.SelectionMode.FARMLAND, packet.boxPos(), null, null)));
+    }
+
+    /** openMining: 打开挖矿盒两点选区。两点可以不在同一高度，挖掘从更高的 Y 开始。 */
+    public static void openMining(BlockPos boxPos) {
+        Minecraft mc = Minecraft.getInstance();
+        if (mc == null) return;
+        mc.execute(() -> mc.setScreen(new TwoPointSelectionScreen(
+                TwoPointSelectionManager.SelectionMode.MINING, boxPos, null, null)));
     }
 
     /** openLogistics: 打开物流批量绑定两点选区。 */
@@ -239,6 +249,7 @@ public final class TwoPointSelectionScreen extends Screen implements FreeCameraS
     private Component modeTitle() {
         return switch (mode) {
             case FARMLAND  -> Component.translatable("gui.simukraft.area_selection.mode.farmland");
+            case MINING    -> Component.translatable("gui.simukraft.area_selection.mode.mining");
             case LOGISTICS -> Component.translatable("gui.simukraft.area_selection.title_mode",
                     Component.translatable(logisticsAction != null
                             ? "gui.simukraft.logistics.action." + logisticsAction.name().toLowerCase()
@@ -291,6 +302,11 @@ public final class TwoPointSelectionScreen extends Screen implements FreeCameraS
             closeSelection(null);
             return;
         }
+        if (mode == TwoPointSelectionManager.SelectionMode.MINING) {
+            PacketDistributor.sendToServer(new MiningBoxSetAreaPacket(ownerPos, state.point1(), state.point2()));
+            closeSelection(null);
+            return;
+        }
         if (mode == TwoPointSelectionManager.SelectionMode.LOGISTICS && logisticsAction != null) {
             TwoPointSelectionManager.clear();
             PacketDistributor.sendToServer(new LogisticsBoxActionPacket(
@@ -307,6 +323,11 @@ public final class TwoPointSelectionScreen extends Screen implements FreeCameraS
     private void cancel() {
         if (mode == TwoPointSelectionManager.SelectionMode.FARMLAND) {
             PacketDistributor.sendToServer(new FarmlandBoxOpenRequestPacket(ownerPos));
+            closeSelection(null);
+            return;
+        }
+        if (mode == TwoPointSelectionManager.SelectionMode.MINING) {
+            PacketDistributor.sendToServer(new MiningBoxOpenRequestPacket(ownerPos));
             closeSelection(null);
             return;
         }

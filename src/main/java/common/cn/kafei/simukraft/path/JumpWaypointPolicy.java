@@ -3,7 +3,7 @@ package common.cn.kafei.simukraft.path;
 import net.minecraft.world.phys.Vec3;
 
 /** 为一格高跳跃节点计算稳定的起跳预备点。 */
-final class JumpWaypointPolicy {
+public final class JumpWaypointPolicy {
     private static final double BLOCK_EDGE_DISTANCE = 0.5D;
     private static final double LIP_CLEARANCE = 0.05D;
     private static final double MIN_LAUNCH_DISTANCE = 0.05D;
