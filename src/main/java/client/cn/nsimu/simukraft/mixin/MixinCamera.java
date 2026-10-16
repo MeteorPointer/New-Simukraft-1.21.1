@@ -20,10 +20,11 @@ public abstract class MixinCamera {
     @Shadow
     protected abstract void setPosition(Vec3 position);
 
-    @Shadow
+    // NeoForge added this overload; it is not in the official obfuscation map.
+    @Shadow(remap = false)
     protected abstract void setRotation(float yRot, float xRot, float roll);
 
-    /** simukraft$setup: 完成原版相机初始化后覆盖为独立 RTS 相机姿态。 */
+    /** simukraft$setup: finish vanilla camera setup, then apply the RTS camera pose. */
     @Inject(method = "setup", at = @At("TAIL"))
     private void simukraft$setup(BlockGetter level, Entity entity, boolean detached, boolean mirrored, float partialTick, CallbackInfo callbackInfo) {
         if (FreeCameraManager.isActive() && entity instanceof LocalPlayer) {
@@ -32,3 +33,4 @@ public abstract class MixinCamera {
         }
     }
 }
+
