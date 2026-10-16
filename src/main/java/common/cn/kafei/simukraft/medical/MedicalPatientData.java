@@ -82,6 +82,15 @@ public final class MedicalPatientData {
         diseaseTreatmentTicks = Math.max(0L, diseaseTreatmentTicks + Math.max(0L, ticks));
     }
 
+    /** postponeDiseaseAnchor：卸载期间把发病日往后推，治疗 tick 和病种保持不变。 */
+    public boolean postponeDiseaseAnchor(long days) {
+        if (days <= 0L || disease == DiseaseType.NONE) {
+            return false;
+        }
+        diseaseSinceDay += days;
+        return true;
+    }
+
     public UUID medicalBedPoiId() {
         return medicalBedPoiId;
     }

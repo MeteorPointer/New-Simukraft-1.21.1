@@ -408,7 +408,11 @@ public final class CitizenManager extends SavedData {
             return;
         }
         if (currentDay <= lastFamilyTickDay) return;
+        long elapsedDays = lastFamilyTickDay < 0L ? 0L : currentDay - lastFamilyTickDay;
         lastFamilyTickDay = currentDay;
+        if (elapsedDays > 0L) {
+            freezeUnloadedCitizens(level, elapsedDays);
+        }
         RandomSource random = level.random;
         NpcGrowthService.tickGrowth(level, random, currentDay);
         NpcChildbirthService.tickChildbirths(level, random, currentDay);
@@ -424,6 +428,22 @@ public final class CitizenManager extends SavedData {
                         && common.cn.kafei.simukraft.city.CityRuntimeService.isCityActive(level, family.cityId())) {
                     common.cn.kafei.simukraft.citizen.FamilyRelocationService.tryRelocate(level, family);
                 }
+            }
+        }
+    }
+
+    /** freezeUnloadedCitizens：实体没在 tick 的市民只后移倒计时锚点，不发病、不治疗、不死亡。 */
+    private void freezeUnloadedCitizens(ServerLevel level, long elapsedDays) {
+        String dimensionId = level.dimension().location().toString();
+        for (CitizenData citizen : citizens.values()) {
+            if (citizen.dead() || !dimensionId.equals(citizen.dimensionId())) {
+                continue;
+            }
+            if (CitizenVitalGate.entityIsTicking(level, citizen)) {
+                continue;
+            }
+            if (CitizenVitalGate.holdUnloadedDays(citizen, elapsedDays)) {
+                saveCitizenIncremental(citizen);
             }
         }
     }

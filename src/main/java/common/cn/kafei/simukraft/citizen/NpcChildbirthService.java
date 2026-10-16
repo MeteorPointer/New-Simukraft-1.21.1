@@ -37,6 +37,7 @@ public final class NpcChildbirthService {
             CitizenData wife = manager.getCitizen(family.wifeId()).orElse(null);
             if (wife == null || wife.dead() || !wife.pregnant()) continue;
             if (!CityRuntimeService.isCitizenActive(level, wife)) continue;
+            if (!CitizenVitalGate.entityIsTicking(level, wife)) continue;
             if (currentDay < wife.pregnantSince() + duration) continue;
 
             giveBirth(level, manager, familyManager, family, wife, random, currentDay);

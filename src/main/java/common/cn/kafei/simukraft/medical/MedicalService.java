@@ -11,6 +11,7 @@ import common.cn.kafei.simukraft.citizen.CitizenManager;
 import common.cn.kafei.simukraft.citizen.CitizenPanicService;
 import common.cn.kafei.simukraft.citizen.CitizenService;
 import common.cn.kafei.simukraft.citizen.CitizenTeleportService;
+import common.cn.kafei.simukraft.citizen.CitizenVitalGate;
 import common.cn.kafei.simukraft.citizen.CitizenVoiceService;
 import common.cn.kafei.simukraft.citizen.CitizenWorkStatus;
 import common.cn.kafei.simukraft.citizen.PregnancyStage;
@@ -63,11 +64,16 @@ public final class MedicalService {
             return;
         }
         for (CitizenData citizen : CitizenManager.get(level).allCitizens()) {
+            // 区块未加载时不抽病，避免离线市民和医生被全局日切传染。
+            if (!CitizenVitalGate.mayContractDisease(
+                    CitizenVitalGate.entityIsTicking(level, citizen), citizen.dead(), citizen.disease().isActive())) {
+                continue;
+            }
             // 医生职业因职业知识降低患病概率
             double chance = citizen.jobType() == common.cn.kafei.simukraft.job.CityJobType.DOCTOR
                     ? 0.009D
                     : ServerConfig.medicalDiseaseChancePerDay();
-            if (citizen.dead() || citizen.disease().isActive() || random.nextDouble() >= chance) {
+            if (random.nextDouble() >= chance) {
                 continue;
             }
             DiseaseType[] choices = {DiseaseType.COLD, DiseaseType.FLU};
@@ -174,7 +180,35 @@ public final class MedicalService {
         return new BuildingSnapshot(bedIds.size(), patients.size(), patients);
     }
 
+    /** pauseUnloadedTreatment：只处理还留着治疗锚点的市民，每秒一次，不给未加载市民回血或加治疗 tick。 */
+    private static void pauseUnloadedTreatment(ServerLevel level) {
+        String dimensionId = level.dimension().location().toString();
+        for (CitizenData citizen : CitizenManager.get(level).allCitizens()) {
+            if (citizen.dead() || citizen.medical().lastHospitalProgressDayTime() == 0L) {
+                continue;
+            }
+            if (!dimensionId.equals(citizen.dimensionId()) || CitizenVitalGate.entityIsTicking(level, citizen)) {
+                continue;
+            }
+            if (CitizenVitalGate.pauseTreatmentClock(citizen)) {
+                CitizenService.save(level, citizen.uuid());
+            }
+        }
+    }
+
+    /** skipFrozenCitizen：实体没在 tick 时停掉治疗锚点，不收治、不传染、不出院。 */
+    private static boolean skipFrozenCitizen(ServerLevel level, CitizenData citizen) {
+        if (CitizenVitalGate.entityIsTicking(level, citizen)) {
+            return false;
+        }
+        if (CitizenVitalGate.pauseTreatmentClock(citizen)) {
+            CitizenService.save(level, citizen.uuid());
+        }
+        return true;
+    }
+
     private static void runTick(ServerLevel level) {
+        pauseUnloadedTreatment(level);
         long currentDay = level.getDayTime() / 24_000L;
         List<Hospital> hospitals = findOperationalHospitals(level);
         Map<UUID, Hospital> hospitalByBed = new ConcurrentHashMap<>();
@@ -192,6 +226,9 @@ public final class MedicalService {
                 .toList();
         Set<UUID> occupiedBeds = ConcurrentHashMap.newKeySet();
         for (CitizenData citizen : citizens) {
+            if (skipFrozenCitizen(level, citizen)) {
+                continue;
+            }
             UUID bedId = citizen.medical().medicalBedPoiId();
             if (bedId == null) {
                 expirePostpartumIfNeeded(level, citizen, currentDay);
@@ -220,7 +257,7 @@ public final class MedicalService {
 
         List<CitizenData> candidates = new ArrayList<>();
         for (CitizenData citizen : citizens) {
-            if (isAdmitted(citizen)) {
+            if (!CitizenVitalGate.entityIsTicking(level, citizen) || isAdmitted(citizen)) {
                 continue;
             }
             if (needsCare(level, citizen, currentDay)) {
@@ -326,8 +363,10 @@ public final class MedicalService {
         }
         CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
         Vec3 target = CitizenHomeRestService.resolveHomeTarget(level, bed.pos());
-        if (entity == null) {
-            CityRuntimeService.requestCitizenRecovery(level, citizen);
+        if (entity == null || !level.isPositionEntityTicking(entity.blockPosition())) {
+            if (CitizenVitalGate.pauseTreatmentClock(citizen)) {
+                CitizenService.save(level, citizen.uuid());
+            }
             return;
         }
         // 已加载实体的血量是权威值。先对齐再出院，避免档案和实体不一致时满血仍躺在诊所。
@@ -459,8 +498,7 @@ public final class MedicalService {
         CityPoiData home = CityPoiManager.get(level).getPoi(citizen.homeId());
         if (home == null || !home.active() || home.type() != CityPoiType.RESIDENTIAL || !level.isLoaded(home.pos())) return;
         Vec3 homeTarget = CitizenHomeRestService.resolveHomeTarget(level, home.pos());
-        if (CitizenTeleportService.findCitizenEntity(level, citizen.uuid()) == null) {
-            CityRuntimeService.requestCitizenRecovery(level, citizen);
+        if (!CitizenVitalGate.entityIsTicking(level, citizen)) {
             return;
         }
         if (CitizenPanicService.isFleeing(level, citizen.uuid())) {

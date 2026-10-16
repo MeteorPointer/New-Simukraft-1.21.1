@@ -35,6 +35,7 @@ public final class NpcPregnancyService {
             }
             // 城市休眠时跳过孕期标签刷新
             if (!CityRuntimeService.isCityActive(level, data.cityId())) continue;
+            if (!CitizenVitalGate.entityIsTicking(level, data)) continue;
             PregnancyStage stage = PregnancyStage.resolve(
                     currentDay - data.pregnantSince(), ServerConfig.familyPregnancyDurationDays());
             if (!MedicalService.isAdmitted(data) && !MedicalService.MEDICAL_CARE_MARKER.equals(data.workNeedDetail())
@@ -110,6 +111,7 @@ public final class NpcPregnancyService {
 
         CitizenData wife = manager.getCitizen(family.wifeId()).orElse(null);
         if (!canStartPregnancy(wife, currentDay)) return;
+        if (!CitizenVitalGate.entityIsTicking(level, wife)) return;
 
         // 夫妻任意一方仍与原生家庭成员同住时不允许怀孕（等搬出再生育）
         CitizenData husband = family.husbandId() != null

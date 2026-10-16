@@ -16,6 +16,7 @@ import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.DoorBlock;
 import net.minecraft.world.level.block.FenceGateBlock;
 import net.minecraft.world.level.block.TrapDoorBlock;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.BlockState;
@@ -196,6 +197,7 @@ final class PathSnapshotBuilder {
                 for (int y = bounds.minY() - 1; y <= bounds.maxY() + 1; y++) {
                     mutable.set(x, y, z);
                     addOpenTrapdoorBarriers(data, mutable, bounds, horizontalBarriers);
+                    addOpenDoorBarriers(data, mutable, bounds, horizontalBarriers);
                 }
             }
         }
@@ -395,6 +397,32 @@ final class PathSnapshotBuilder {
                 mask, bounds);
         addBarrierIfInBounds(barriers, trapdoorPos.getX(), trapdoorPos.getY() - 1, trapdoorPos.getZ(),
                 mask, bounds);
+    }
+
+    /**
+     * 打开的门扇贴在门轴一侧，厚度 0.1875。中心脚印碰不到它，格子会被当成空气，
+     * 跟随直线穿过格子中心时身体会卡在门轴上。只挡住门扇所在的那条边。
+     */
+    private static void addOpenDoorBarriers(BlockDataSource cache, BlockPos doorPos,
+                                             SnapshotBounds bounds, Long2ByteOpenHashMap barriers) {
+        BlockState state = cache.state(doorPos);
+        if (!(state.getBlock() instanceof DoorBlock)
+                || !state.hasProperty(DoorBlock.OPEN)
+                || !state.getValue(DoorBlock.OPEN)
+                || !state.hasProperty(DoorBlock.HALF)
+                || state.getValue(DoorBlock.HALF) != DoubleBlockHalf.LOWER
+                || !state.hasProperty(DoorBlock.FACING)
+                || !state.hasProperty(DoorBlock.HINGE)) {
+            return;
+        }
+        Direction edge = openDoorPanelEdge(state.getValue(DoorBlock.FACING), state.getValue(DoorBlock.HINGE));
+        addBarrierIfInBounds(barriers, doorPos.getX(), doorPos.getY(), doorPos.getZ(),
+                PathSnapshot.barrierMask(edge), bounds);
+    }
+
+    /** openDoorPanelEdge: 门打开后，门扇贴住的那一侧。FACING 是关闭时门的朝向。 */
+    static Direction openDoorPanelEdge(Direction facing, DoorHingeSide hinge) {
+        return hinge == DoorHingeSide.LEFT ? facing.getCounterClockWise() : facing.getClockWise();
     }
 
     private static void addBarrierIfInBounds(Long2ByteOpenHashMap barriers, int x, int y, int z,

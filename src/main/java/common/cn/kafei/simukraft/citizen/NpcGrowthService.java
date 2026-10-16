@@ -23,6 +23,8 @@ public final class NpcGrowthService {
             if (data.dead()) continue;
             // 城市休眠时跳过年龄增长
             if (!CityRuntimeService.isCityActive(level, data.cityId())) continue;
+            // 实体没在 tick 时不增龄、不判自然死亡。卸载天数已由日期锚点后移抵消。
+            if (!CitizenVitalGate.entityIsTicking(level, data)) continue;
             long lastGrowthDay = data.lastAgeGrowthDay();
             if (lastGrowthDay == -1L || currentDay < lastGrowthDay) {
                 data.setLastAgeGrowthDay(currentDay);
