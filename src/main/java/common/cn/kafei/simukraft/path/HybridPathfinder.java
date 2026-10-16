@@ -126,7 +126,7 @@ final class HybridPathfinder {
                     continue;
                 }
                 PathCell next = snapshot.cell(current.x() + dx, current.y(), current.z() + dz);
-                if (next != null && canWalkOnSameLayer(current, next)) {
+                if (next != null && canWalkOnSameLayer(current, next) && headroomAllowsStandChange(snapshot, current, next)) {
                     if (dx != 0 && dz != 0 && !hasClearWalkLine(snapshot, current.pos(), next.pos())) {
                         continue;
                     }
@@ -314,7 +314,7 @@ final class HybridPathfinder {
                         continue;
                     }
                     if (dy == 0) {
-                        if (!canWalkOnSameLayer(current, next)) {
+                        if (!canWalkOnSameLayer(current, next) || !headroomAllowsStandChange(snapshot, current, next)) {
                             continue;
                         }
                         if (diagonal && !hasClearWalkLine(snapshot, current.pos(), next.pos())) {
@@ -497,6 +497,20 @@ final class HybridPathfinder {
     }
 
     /**
+     * A half-slab step stays on the same layer, but the body keeps the higher feet until the step
+     * is finished. Both columns must clear that higher stand, or a 2-block tunnel past a bottom
+     * slab is only 1.5 blocks above the real head and the shorter chord walks straight into it.
+     */
+    private static boolean headroomAllowsStandChange(PathSnapshot snapshot, PathCell from, PathCell to) {
+        double raised = Math.max(from.standY(), to.standY());
+        if (raised - from.standY() <= 0.02D && raised - to.standY() <= 0.02D) {
+            return true;
+        }
+        Long2ObjectOpenHashMap<VoxelShape> shapes = snapshot.collisionShapes();
+        return clearsStand(from, raised, shapes) && clearsStand(to, raised, shapes);
+    }
+
+    /**
      * Rebuilds the ordered waypoint list by walking parent links back from the goal node.
      */
     private static List<PathWaypoint> reconstruct(SearchNode end) {
@@ -652,7 +666,8 @@ final class HybridPathfinder {
     private static boolean hasClearWalkLine(PathSnapshot snapshot, BlockPos from, BlockPos to) {
         PathCell previous = snapshot.cell(from);
         PathCell target = snapshot.cell(to);
-        if (previous == null || target == null || !canWalkOnSameLayer(previous, target)) {
+        if (previous == null || target == null || !canWalkOnSameLayer(previous, target)
+                || !headroomAllowsStandChange(snapshot, previous, target)) {
             return false;
         }
 
@@ -681,7 +696,8 @@ final class HybridPathfinder {
                 return false;
             }
             PathCell current = snapshot.cell(x, from.getY(), z);
-            if (current == null || !canWalkOnSameLayer(previous, current)) {
+            if (current == null || !canWalkOnSameLayer(previous, current)
+                    || !headroomAllowsStandChange(snapshot, previous, current)) {
                 return false;
             }
             if (stepX == 0 || stepZ == 0) {
@@ -759,15 +775,20 @@ final class HybridPathfinder {
      * is free of intersection with any captured block collision shape.
      */
     private static boolean hasCitizenClearance(PathCell cell, Long2ObjectOpenHashMap<VoxelShape> shapes) {
+        return clearsStand(cell, cell.standY(), shapes);
+    }
+
+    /** clearsStand: 用给定脚底高度复核这一格的头顶，半砖抬高后不能再沿用更低的净空。 */
+    private static boolean clearsStand(PathCell cell, double standY, Long2ObjectOpenHashMap<VoxelShape> shapes) {
         if (shapes == null || shapes.isEmpty()) {
             return true;
         }
         double centerX = cell.x() + 0.5D;
         double centerZ = cell.z() + 0.5D;
         AABB npcBox = new AABB(
-                centerX - NPC_HALF_WIDTH, cell.standY(),
+                centerX - NPC_HALF_WIDTH, standY,
                 centerZ - NPC_HALF_WIDTH,
-                centerX + NPC_HALF_WIDTH, cell.standY() + NPC_HEIGHT,
+                centerX + NPC_HALF_WIDTH, standY + NPC_HEIGHT,
                 centerZ + NPC_HALF_WIDTH);
         int minX = (int) Math.floor(npcBox.minX);
         int minY = (int) Math.floor(npcBox.minY) - 1;

@@ -14,7 +14,7 @@ import common.cn.kafei.simukraft.block.MineralDrillingControlBoxBlock;
 import common.cn.kafei.simukraft.block.MilkLiquidBlock;
 import common.cn.kafei.simukraft.block.IndustrialHousingTrapdoorBlock;
 import common.cn.kafei.simukraft.block.LightBlock;
-import common.cn.kafei.simukraft.block.MiningBoxBlock;
+
 import common.cn.kafei.simukraft.block.CautionTapeBlock;
 import common.cn.kafei.simukraft.item.CautionTapeRollItem;
 
@@ -69,7 +69,6 @@ public final class ModBlocks {
     /** INDUSTRIAL_HOUSING_TRAPDOOR: 黄色铁质栈道，仅水平上/下置，不可打开 */
     public static final DeferredBlock<Block> INDUSTRIAL_HOUSING_TRAPDOOR = registerBlock("industrial_housing_trapdoor", ModBlocks::industrialHousingTrapdoor);
     public static final DeferredBlock<Block> MINERAL_DRILLING_CONTROL_BOX = registerBlock("mineral_drilling_control_box", MineralDrillingControlBoxBlock::new);
-    public static final DeferredBlock<Block> MINING_BOX = registerBlock("mining_box", MiningBoxBlock::new);
     public static final DeferredBlock<Block> LOGISTICS_CLIENT_BOX = registerBlock("logistics_client_box", LogisticsClientBoxBlock::new);
     public static final DeferredBlock<Block> LOGISTICS_SERVER_BOX = registerBlock("logistics_server_box", LogisticsServerBoxBlock::new);
     public static final DeferredBlock<Block> MEDICAL_CONTROL_BOX = registerBlock("medical_control_box", MedicalControlBoxBlock::new);

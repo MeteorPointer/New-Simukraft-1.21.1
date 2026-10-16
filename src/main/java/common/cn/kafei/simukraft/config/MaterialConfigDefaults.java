@@ -23,8 +23,7 @@ public final class MaterialConfigDefaults {
             "simukraft:exchange_control_box",
             "simukraft:logistics_client_box",
             "simukraft:logistics_server_box",
-            "simukraft:nsuk_farmland_box",
-            "simukraft:mining_box"
+            "simukraft:nsuk_farmland_box"
     );
 
     public static final List<String> BASIC_MATERIALS = List.of(
@@ -85,7 +84,6 @@ public final class MaterialConfigDefaults {
             "simukraft:beef_farm_control_box",
             "simukraft:nsuk_meat_shop_control_box",
             "simukraft:nsuk_farmland_box",
-            "simukraft:mining_box",
             "simukraft:fruit_shop_control_box",
             "simukraft:bakery_control_box",
             "minecraft:petrified_oak_slab",

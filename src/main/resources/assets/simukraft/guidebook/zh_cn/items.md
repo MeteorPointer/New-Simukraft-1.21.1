@@ -39,10 +39,6 @@ tab_index: 1
 
 :::right
 
-:item[simukraft:mining_box]
-
-挖掘盒：雇佣矿工圈定区域向下挖掘{spacing=1}
-
 :item[simukraft:nsuk_farmland_box]
 
 农田盒：自动化农业生产的核心，在这里可以雇佣农民进行耕种。{spacing=8}

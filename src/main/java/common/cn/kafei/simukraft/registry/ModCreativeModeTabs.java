@@ -33,7 +33,6 @@ public final class ModCreativeModeTabs {
                 output.accept(ModBlocks.LOGISTICS_SERVER_BOX.get());
                 output.accept(ModBlocks.LOGISTICS_CLIENT_BOX.get());
                 output.accept(ModBlocks.NSUK_FARMLAND_BOX.get());
-                output.accept(ModBlocks.MINING_BOX.get());
                 // 杂项
                 output.accept(ModBlocks.CHEESE_BLOCK.get());
                 output.accept(ModItems.MANIFEST.get());
