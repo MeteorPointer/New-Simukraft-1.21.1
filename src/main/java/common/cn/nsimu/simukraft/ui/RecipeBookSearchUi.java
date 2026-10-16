@@ -27,12 +27,16 @@ public final class RecipeBookSearchUi {
     private RecipeBookSearchUi() {
     }
 
-    /** createField: 创建原版配方书搜索框文本输入层。 */
+    /**
+     * createField: 创建原版配方书搜索框文本输入层。
+     */
     public static TextField createField(int left, int top, String value, Consumer<String> responder) {
         return createField(left, top, TEXT_WIDTH, TEXT_HEIGHT, value, responder);
     }
 
-    /** createField: 创建可自定义尺寸的配方书搜索框文本输入层。 */
+    /**
+     * createField: 创建可自定义尺寸的配方书搜索框文本输入层。
+     */
     public static TextField createField(int left, int top, int width, int height, String value, Consumer<String> responder) {
         TextField field = new TextField();
         field.setAnyString();
@@ -54,17 +58,23 @@ public final class RecipeBookSearchUi {
         return field;
     }
 
-    /** frameElement: 创建只负责绘制原版配方书搜索框外框的视觉层。 */
+    /**
+     * frameElement: 创建只负责绘制原版配方书搜索框外框的视觉层。
+     */
     public static UIElement frameElement(int left, int top) {
         return frameElement(left, top, FRAME_WIDTH);
     }
 
-    /** frameElement: 创建可变宽搜索框外观，保留原版放大镜图标。 */
+    /**
+     * frameElement: 创建可变宽搜索框外观，保留原版放大镜图标。
+     */
     public static UIElement frameElement(int left, int top, int width) {
         return frameElement(left, top, width, FRAME_HEIGHT);
     }
 
-    /** frameElement: 创建可变宽高搜索框外观，用于和同排按钮保持高度一致。 */
+    /**
+     * frameElement: 创建可变宽高搜索框外观，用于和同排按钮保持高度一致。
+     */
     public static UIElement frameElement(int left, int top, int width, int height) {
         int frameWidth = Math.max(FRAME_WIDTH, width);
         int frameHeight = Math.max(FRAME_HEIGHT, height);
@@ -78,7 +88,9 @@ public final class RecipeBookSearchUi {
                         .height(frameHeight));
     }
 
-    /** renderFrame: 绘制原版配方书搜索框贴图和文本底色。 */
+    /**
+     * renderFrame: 绘制原版配方书搜索框贴图和文本底色。
+     */
     public static void renderFrame(GUIContext guiContext, int left, int top, int frameWidth, int frameTextureWidth,
                                    int frameHeight, int textOffsetX, int textOffsetY, int textWidth, int textHeight) {
         int textureTop = top + Math.max(0, (frameHeight - FRAME_HEIGHT) / 2);
@@ -111,7 +123,9 @@ public final class RecipeBookSearchUi {
             setAllowHitTest(false);
         }
 
-        /** drawBackgroundAdditional: 绘制搜索框外框，不参与交互。 */
+        /**
+         * drawBackgroundAdditional: 绘制搜索框外框，不参与交互。
+         */
         @Override
         public void drawBackgroundAdditional(GUIContext guiContext) {
             renderFrame(guiContext, (int) getPositionX(), (int) getPositionY(), frameWidth, frameTextureWidth,

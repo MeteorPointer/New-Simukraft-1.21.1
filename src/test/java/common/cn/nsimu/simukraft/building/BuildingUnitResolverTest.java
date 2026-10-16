@@ -10,7 +10,9 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BuildingUnitResolverTest {
-    /** residentialPoiGroupsRespectBuildingRotation：验证按建筑朝向还原坐标后床位仍归属各自单元。 */
+    /**
+     * residentialPoiGroupsRespectBuildingRotation：验证按建筑朝向还原坐标后床位仍归属各自单元。
+     */
     @Test
     void residentialPoiGroupsRespectBuildingRotation() {
         BlockPos origin = new BlockPos(80, 64, -32);
@@ -20,7 +22,7 @@ class BuildingUnitResolverTest {
         BuildingUnitDefinition secondUnit = new BuildingUnitDefinition("second", new BlockPos(-2, 0, 4), new BlockPos(-2, 2, 4));
 
         for (int rotationDegrees : List.of(0, 90, 180, 270)) {
-            
+
             PlacedBuildingRecord building = building(
                     origin,
                     rotationDegrees,
@@ -37,7 +39,9 @@ class BuildingUnitResolverTest {
         }
     }
 
-    /** missingUnitDefinitionsTreatBuildingAsOneHousehold：验证未定义单元的住宅维持整栋一户。 */
+    /**
+     * missingUnitDefinitionsTreatBuildingAsOneHousehold：验证未定义单元的住宅维持整栋一户。
+     */
     @Test
     void missingUnitDefinitionsTreatBuildingAsOneHousehold() {
         UUID firstBedId = UUID.randomUUID();
@@ -53,7 +57,9 @@ class BuildingUnitResolverTest {
                 BuildingUnitResolver.resolveResidentialPoiGroups(building));
     }
 
-    /** reversedApartmentRangesStillResolveOneHouseholdPerFloor：验证反向范围也能按楼层拆分住户。 */
+    /**
+     * reversedApartmentRangesStillResolveOneHouseholdPerFloor：验证反向范围也能按楼层拆分住户。
+     */
     @Test
     void reversedApartmentRangesStillResolveOneHouseholdPerFloor() {
         List<BuildingUnitDefinition> units = List.of(
@@ -79,8 +85,8 @@ class BuildingUnitResolverTest {
     }
 
     private static PlacedBuildingRecord building(BlockPos origin, int rotationDegrees,
-                                                  List<BuildingPoiInstance> pois,
-                                                  List<BuildingUnitDefinition> units) {
+                                                 List<BuildingPoiInstance> pois,
+                                                 List<BuildingUnitDefinition> units) {
         return new PlacedBuildingRecord(
                 UUID.randomUUID(), UUID.randomUUID(), "minecraft:overworld", "residential", "test.sk", "test", "",
                 "test.nbt", BuildingTransform.directionFromRotation(rotationDegrees).getSerializedName(), origin,

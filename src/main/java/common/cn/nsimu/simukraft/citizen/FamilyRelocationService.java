@@ -87,7 +87,9 @@ public final class FamilyRelocationService {
                 .collect(Collectors.toSet());
     }
 
-    /** getFamilyHomeIds：收集家庭所有在世成员当前的 homeId，用于从占用集合中排除。 */
+    /**
+     * getFamilyHomeIds：收集家庭所有在世成员当前的 homeId，用于从占用集合中排除。
+     */
     private static Set<UUID> getFamilyHomeIds(CitizenManager manager, FamilyData family) {
         Set<UUID> ids = new HashSet<>();
         List<UUID> memberIds = new ArrayList<>();
@@ -104,7 +106,7 @@ public final class FamilyRelocationService {
     }
 
     private static PlacedBuildingRecord findCurrentBuilding(ServerLevel level, FamilyData family,
-            CitizenManager manager, CityPoiManager poiManager) {
+                                                            CitizenManager manager, CityPoiManager poiManager) {
         // 用妻子或丈夫的 homeId 找到当前建筑
         UUID memberId = family.wifeId() != null ? family.wifeId() : family.husbandId();
         if (memberId == null) return null;
@@ -124,8 +126,8 @@ public final class FamilyRelocationService {
     }
 
     private static void relocateFamily(ServerLevel level, CitizenManager manager,
-            FamilyData family,
-            PlacedBuildingRecord targetBuilding, List<UUID> targetHousehold, Set<UUID> occupiedPoiIds) {
+                                       FamilyData family,
+                                       PlacedBuildingRecord targetBuilding, List<UUID> targetHousehold, Set<UUID> occupiedPoiIds) {
         List<UUID> vacantPoiIds = targetHousehold.stream()
                 .filter(poiId -> !occupiedPoiIds.contains(poiId))
                 .toList();

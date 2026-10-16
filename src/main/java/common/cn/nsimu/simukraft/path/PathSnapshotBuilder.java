@@ -1,25 +1,17 @@
 package common.cn.nsimu.simukraft.path;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ByteMaps;
-import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
-import it.unimi.dsi.fastutil.longs.LongSets;
+import it.unimi.dsi.fastutil.longs.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.DoorBlock;
-import net.minecraft.world.level.block.FenceGateBlock;
-import net.minecraft.world.level.block.TrapDoorBlock;
-import net.minecraft.world.level.block.state.properties.DoorHingeSide;
-import net.minecraft.world.level.pathfinder.PathComputationType;
-import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.DoorHingeSide;
+import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
@@ -87,7 +79,9 @@ final class PathSnapshotBuilder {
         }
     }
 
-    /** Immutable raw data for one 16x16x16 world section. */
+    /**
+     * Immutable raw data for one 16x16x16 world section.
+     */
     record SectionDataCapture(
             Long2ObjectOpenHashMap<BlockState> states,
             Long2ObjectOpenHashMap<VoxelShape> shapes) {
@@ -124,7 +118,9 @@ final class PathSnapshotBuilder {
         return new ChunkDataCapture(states, shapes, bounds, level.dimension().location(), level.getGameTime(), complete);
     }
 
-    /** captureSection: 在主线程冻结一个区段的方块状态与实际碰撞形状。 */
+    /**
+     * captureSection: 在主线程冻结一个区段的方块状态与实际碰撞形状。
+     */
     static SectionDataCapture captureSection(ServerLevel level, int sectionX, int sectionY, int sectionZ) {
         Long2ObjectOpenHashMap<BlockState> states = new Long2ObjectOpenHashMap<>();
         Long2ObjectOpenHashMap<VoxelShape> shapes = new Long2ObjectOpenHashMap<>();
@@ -143,14 +139,18 @@ final class PathSnapshotBuilder {
         return new SectionDataCapture(states, shapes);
     }
 
-    /** composeCapture: 创建独立区段索引视图，避免在主线程复制区段中的每个方块。 */
+    /**
+     * composeCapture: 创建独立区段索引视图，避免在主线程复制区段中的每个方块。
+     */
     static ChunkDataCapture composeCapture(ServerLevel level, SnapshotBounds bounds,
                                            Long2ObjectOpenHashMap<SectionDataCapture> sections, boolean complete) {
         return new ChunkDataCapture(null, null, sections, bounds,
                 level.dimension().location(), level.getGameTime(), complete);
     }
 
-    /** captureBlock: 省略空气和空碰撞，保留异步构建所需的完整非空气状态。 */
+    /**
+     * captureBlock: 省略空气和空碰撞，保留异步构建所需的完整非空气状态。
+     */
     private static void captureBlock(ServerLevel level, BlockPos.MutableBlockPos pos,
                                      Long2ObjectOpenHashMap<BlockState> states,
                                      Long2ObjectOpenHashMap<VoxelShape> shapes) {
@@ -351,7 +351,9 @@ final class PathSnapshotBuilder {
         return clearsNpcBodySlice(cache.shape(pos, state), localMinY, localMaxY);
     }
 
-    /** clearsNpcBodySlice: 检查中心脚印在指定垂直切片里是否避开碰撞体。 */
+    /**
+     * clearsNpcBodySlice: 检查中心脚印在指定垂直切片里是否避开碰撞体。
+     */
     static boolean clearsNpcBodySlice(VoxelShape shape, double localMinY, double localMaxY) {
         if (shape.isEmpty()) {
             return true;
@@ -404,7 +406,7 @@ final class PathSnapshotBuilder {
      * 跟随直线穿过格子中心时身体会卡在门轴上。只挡住门扇所在的那条边。
      */
     private static void addOpenDoorBarriers(BlockDataSource cache, BlockPos doorPos,
-                                             SnapshotBounds bounds, Long2ByteOpenHashMap barriers) {
+                                            SnapshotBounds bounds, Long2ByteOpenHashMap barriers) {
         BlockState state = cache.state(doorPos);
         if (!(state.getBlock() instanceof DoorBlock)
                 || !state.hasProperty(DoorBlock.OPEN)
@@ -420,13 +422,15 @@ final class PathSnapshotBuilder {
                 PathSnapshot.barrierMask(edge), bounds);
     }
 
-    /** openDoorPanelEdge: 门打开后，门扇贴住的那一侧。FACING 是关闭时门的朝向。 */
+    /**
+     * openDoorPanelEdge: 门打开后，门扇贴住的那一侧。FACING 是关闭时门的朝向。
+     */
     static Direction openDoorPanelEdge(Direction facing, DoorHingeSide hinge) {
         return hinge == DoorHingeSide.LEFT ? facing.getCounterClockWise() : facing.getClockWise();
     }
 
     private static void addBarrierIfInBounds(Long2ByteOpenHashMap barriers, int x, int y, int z,
-                                              byte mask, SnapshotBounds bounds) {
+                                             byte mask, SnapshotBounds bounds) {
         if (y < bounds.minY() || y > bounds.maxY()) {
             return;
         }
@@ -488,7 +492,9 @@ final class PathSnapshotBuilder {
         return supportTop(supportPos, cache.shape(supportPos, supportState));
     }
 
-    /** supportTop: 返回能接触 NPC 脚印的最高支撑面，避免竖直薄板被误当成地板。 */
+    /**
+     * supportTop: 返回能接触 NPC 脚印的最高支撑面，避免竖直薄板被误当成地板。
+     */
     static OptionalDouble supportTop(BlockPos supportPos, VoxelShape shape) {
         if (shape.isEmpty()) {
             return OptionalDouble.empty();
@@ -506,7 +512,9 @@ final class PathSnapshotBuilder {
         return OptionalDouble.of(top);
     }
 
-    /** isGridFloorSupport: 判断支撑面是否正好承托当前脚部格，而不是上一层或下一层。 */
+    /**
+     * isGridFloorSupport: 判断支撑面是否正好承托当前脚部格，而不是上一层或下一层。
+     */
     static boolean isGridFloorSupport(BlockPos pos, OptionalDouble standY) {
         return standY.isPresent() && Math.abs(standY.getAsDouble() - pos.getY()) <= FLOOR_TOP_EPSILON;
     }
@@ -520,7 +528,9 @@ final class PathSnapshotBuilder {
                 && box.maxZ > minZ && box.minZ < maxZ;
     }
 
-    /** isNpcPassableDoorLikeBlock: 门、栅栏门、活板门仅在当前陆地寻路状态可通过时放行。 */
+    /**
+     * isNpcPassableDoorLikeBlock: 门、栅栏门、活板门仅在当前陆地寻路状态可通过时放行。
+     */
     static boolean isNpcPassableDoorLikeBlock(BlockState state) {
         Block block = state.getBlock();
         return isDoorLikeBlock(block) && state.isPathfindable(PathComputationType.LAND);
@@ -596,9 +606,12 @@ final class PathSnapshotBuilder {
         }
     }
 
-    /** Common block-data access used by classify and clearance checks. */
+    /**
+     * Common block-data access used by classify and clearance checks.
+     */
     private interface BlockDataSource {
         BlockState state(BlockPos pos);
+
         VoxelShape shape(BlockPos pos, BlockState state);
     }
 
@@ -644,7 +657,9 @@ final class PathSnapshotBuilder {
             return s != null ? s : EMPTY;
         }
 
-        /** sectionKey: 根据方块坐标定位只读的 16x16x16 快照区段。 */
+        /**
+         * sectionKey: 根据方块坐标定位只读的 16x16x16 快照区段。
+         */
         private static long sectionKey(BlockPos pos) {
             return SectionPos.asLong(
                     SectionPos.blockToSectionCoord(pos.getX()),

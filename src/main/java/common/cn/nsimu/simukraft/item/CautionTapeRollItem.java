@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** CautionTapeRollItem: 一卷可铺 50 格。右键定起点，再瞄同一高度的直线终点。 */
+/**
+ * CautionTapeRollItem: 一卷可铺 50 格。右键定起点，再瞄同一高度的直线终点。
+ */
 public final class CautionTapeRollItem extends ItemNameBlockItem {
     public static final int USES_PER_ROLL = 50;
 

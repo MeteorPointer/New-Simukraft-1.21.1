@@ -1,7 +1,7 @@
 package common.cn.nsimu.simukraft.network.npc.hire;
 
-import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -14,7 +14,8 @@ import java.util.List;
 import java.util.UUID;
 
 
-public record NpcHireListResponsePacket(BlockPos sourcePos, String sourceType, String role, UUID assignedCitizenId, List<HireCandidate> candidates) implements CustomPacketPayload {
+public record NpcHireListResponsePacket(BlockPos sourcePos, String sourceType, String role, UUID assignedCitizenId,
+                                        List<HireCandidate> candidates) implements CustomPacketPayload {
     public static final Type<NpcHireListResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "npc_hire_list_response"));
     public static final StreamCodec<RegistryFriendlyByteBuf, NpcHireListResponsePacket> STREAM_CODEC = StreamCodec.of(NpcHireListResponsePacket::encode, NpcHireListResponsePacket::decode);
 

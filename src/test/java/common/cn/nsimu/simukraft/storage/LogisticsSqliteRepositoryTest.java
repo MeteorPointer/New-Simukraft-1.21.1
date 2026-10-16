@@ -11,7 +11,9 @@ import java.sql.Statement;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** M7 回归：损坏的行数据不得在加载时把 IllegalArgumentException 抛向主线程，必须降级并返回 null。 */
+/**
+ * M7 回归：损坏的行数据不得在加载时把 IllegalArgumentException 抛向主线程，必须降级并返回 null。
+ */
 class LogisticsSqliteRepositoryTest {
     @TempDir
     Path tempDir;

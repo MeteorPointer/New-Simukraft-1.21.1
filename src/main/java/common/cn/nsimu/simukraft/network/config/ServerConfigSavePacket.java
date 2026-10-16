@@ -237,7 +237,9 @@ public record ServerConfigSavePacket(
         NpcBlockProtectionPolicy.clearCache();
     }
 
-    /** safeNameStyle: 防御空网络字段，避免保存配置时写入非法枚举。 */
+    /**
+     * safeNameStyle: 防御空网络字段，避免保存配置时写入非法枚举。
+     */
     private static CitizenNameStyle safeNameStyle(CitizenNameStyle style) {
         return style == null ? CitizenNameStyle.CHINESE : style;
     }

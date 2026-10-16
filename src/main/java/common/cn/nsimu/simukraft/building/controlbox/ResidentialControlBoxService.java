@@ -1,13 +1,6 @@
 package common.cn.nsimu.simukraft.building.controlbox;
 
-import common.cn.nsimu.simukraft.building.BuildingCatalog;
-import common.cn.nsimu.simukraft.building.BuildingUnitInstance;
-import common.cn.nsimu.simukraft.building.BuilderConstructionService;
-import common.cn.nsimu.simukraft.building.BuildingPoiInstance;
-import common.cn.nsimu.simukraft.building.BuildingIntegrityService;
-import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
-import common.cn.nsimu.simukraft.building.ResidentialOccupancyService;
+import common.cn.nsimu.simukraft.building.*;
 import common.cn.nsimu.simukraft.citizen.CitizenManager;
 import common.cn.nsimu.simukraft.citizen.CitizenService;
 import common.cn.nsimu.simukraft.city.CityService;
@@ -17,9 +10,9 @@ import common.cn.nsimu.simukraft.city.poi.CityPoiType;
 import common.cn.nsimu.simukraft.economy.EconomyService;
 import common.cn.nsimu.simukraft.economy.ResidentialRentService;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
@@ -35,7 +28,9 @@ public final class ResidentialControlBoxService {
     private ResidentialControlBoxService() {
     }
 
-    /** onRemoved：控制箱被移除时清理住户、停用POI并注销建筑记录。 */
+    /**
+     * onRemoved：控制箱被移除时清理住户、停用POI并注销建筑记录。
+     */
     public static void onRemoved(ServerLevel level, BlockPos boxPos) {
         PlacedBuildingRecord building = resolveBuilding(level, boxPos);
         if (building == null) return;
@@ -104,7 +99,9 @@ public final class ResidentialControlBoxService {
         return resolveBuilding(level, controlBoxPos);
     }
 
-    /** canManageBuilding: 城市官员或管理员权限才能驱离和改入住开关。 */
+    /**
+     * canManageBuilding: 城市官员或管理员权限才能驱离和改入住开关。
+     */
     public static boolean canManageBuilding(ServerLevel level, ServerPlayer player, PlacedBuildingRecord building) {
         if (level == null || player == null || building == null || building.cityId() == null) {
             return false;
@@ -112,7 +109,9 @@ public final class ResidentialControlBoxService {
         return player.hasPermissions(2) || CityService.canManageCity(level, building.cityId(), player.getUUID());
     }
 
-    /** toggleOccupancy: 切换该住宅是否允许被分配系统入住。 */
+    /**
+     * toggleOccupancy: 切换该住宅是否允许被分配系统入住。
+     */
     public static boolean toggleOccupancy(ServerLevel level, PlacedBuildingRecord building) {
         if (level == null || building == null) {
             return false;
@@ -122,7 +121,9 @@ public final class ResidentialControlBoxService {
         return next;
     }
 
-    /** evictResidents: 按该建筑租金扣费后清除本楼全部住户。 */
+    /**
+     * evictResidents: 按该建筑租金扣费后清除本楼全部住户。
+     */
     public static EvictResult evictResidents(ServerLevel level, ServerPlayer player, PlacedBuildingRecord building) {
         if (level == null || building == null || building.cityId() == null) {
             return new EvictResult(EvictResult.Status.NO_BUILDING, 0, 0.0D);
@@ -144,7 +145,9 @@ public final class ResidentialControlBoxService {
         return EvictResult.success(residents.size(), cost);
     }
 
-    /** EvictResult: 驱离结果，供网络层选择提示。 */
+    /**
+     * EvictResult: 驱离结果，供网络层选择提示。
+     */
     public record EvictResult(Status status, int evictedCount, double cost) {
         public static EvictResult success(int evictedCount, double cost) {
             return new EvictResult(Status.SUCCESS, evictedCount, cost);

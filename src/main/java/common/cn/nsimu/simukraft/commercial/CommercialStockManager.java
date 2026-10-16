@@ -23,7 +23,9 @@ public final class CommercialStockManager extends SavedData {
     private volatile boolean sqliteLoaded;
     private volatile ServerLevel level;
 
-    /** get: 获取当前维度的商业库存管理器。 */
+    /**
+     * get: 获取当前维度的商业库存管理器。
+     */
     public static CommercialStockManager get(ServerLevel level) {
         CommercialStockManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
         manager.level = level;
@@ -49,7 +51,9 @@ public final class CommercialStockManager extends SavedData {
         return tag;
     }
 
-    /** saveToSqlite: 将商业库存写入 SQLite。 */
+    /**
+     * saveToSqlite: 将商业库存写入 SQLite。
+     */
     public synchronized void saveToSqlite(ServerLevel level) {
         if (level != null) {
             SimuSqliteStorage.saveCommercialStock(level, save(new CompoundTag(), level.registryAccess()));
@@ -76,7 +80,9 @@ public final class CommercialStockManager extends SavedData {
         stock.putAll(loaded.stock);
     }
 
-    /** get: 获取指定库存条目。 */
+    /**
+     * get: 获取指定库存条目。
+     */
     public CommercialStockData get(BlockPos boxPos, String itemId) {
         if (boxPos == null || itemId == null) {
             return null;
@@ -85,13 +91,17 @@ public final class CommercialStockManager extends SavedData {
         return map != null ? map.get(itemId) : null;
     }
 
-    /** getOrCreate: 获取或创建指定库存条目。 */
+    /**
+     * getOrCreate: 获取或创建指定库存条目。
+     */
     public CommercialStockData getOrCreate(BlockPos boxPos, CommercialOffer.StockRule rule, long gameTime) {
         return stock.computeIfAbsent(boxPos.immutable(), ignored -> new ConcurrentHashMap<>())
                 .computeIfAbsent(rule.itemId(), ignored -> new CommercialStockData(boxPos, rule.itemId(), rule.initial(), rule.max(), gameTime));
     }
 
-    /** persist: 持久化单个库存条目。写入的合并与排序由存储层写队列负责。 */
+    /**
+     * persist: 持久化单个库存条目。写入的合并与排序由存储层写队列负责。
+     */
     public void persist(CommercialStockData data) {
         if (data == null) return;
         data.touch();
@@ -102,7 +112,9 @@ public final class CommercialStockManager extends SavedData {
         SimuSqliteStorage.saveCommercialStockEntry(lv, data.toTag());
     }
 
-    /** removeBox: 删除指定商业箱的所有库存。 */
+    /**
+     * removeBox: 删除指定商业箱的所有库存。
+     */
     public void removeBox(BlockPos boxPos) {
         if (boxPos == null) {
             return;
@@ -116,13 +128,17 @@ public final class CommercialStockManager extends SavedData {
         }
     }
 
-    /** allAt: 返回指定商业箱的库存快照。 */
+    /**
+     * allAt: 返回指定商业箱的库存快照。
+     */
     public Map<String, CommercialStockData> allAt(BlockPos boxPos) {
         Map<String, CommercialStockData> map = boxPos != null ? stock.get(boxPos.immutable()) : null;
         return map != null ? Map.copyOf(map) : Map.of();
     }
 
-    /** all: 返回全部库存条目快照。 */
+    /**
+     * all: 返回全部库存条目快照。
+     */
     public List<CommercialStockData> all() {
         return stock.values().stream().flatMap(map -> map.values().stream()).toList();
     }

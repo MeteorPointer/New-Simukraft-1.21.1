@@ -10,7 +10,9 @@ import java.util.List;
 import java.util.Map;
 
 
-/** Drives a single citizen's per-tick movement along an already-computed {@link PathResult}. */
+/**
+ * Drives a single citizen's per-tick movement along an already-computed {@link PathResult}.
+ */
 final class ActiveNavigation {
     private static final double PASSED_WAYPOINT_DOT_EPSILON = 1.05D;
     private static final double PASSED_WAYPOINT_LATERAL_TOLERANCE = 0.45D;
@@ -53,10 +55,10 @@ final class ActiveNavigation {
         this.turnFlags = new boolean[n];
         for (int i = 1; i < n - 1; i++) {
             Vec3 prev = waypoints.get(i - 1).position();
-            Vec3 cur  = waypoints.get(i).position();
-            Vec3 nxt  = waypoints.get(i + 1).position();
+            Vec3 cur = waypoints.get(i).position();
+            Vec3 nxt = waypoints.get(i + 1).position();
             double inX = cur.x - prev.x, inZ = cur.z - prev.z;
-            double outX = nxt.x - cur.x,  outZ = nxt.z - cur.z;
+            double outX = nxt.x - cur.x, outZ = nxt.z - cur.z;
             double inLen = Math.sqrt(inX * inX + inZ * inZ);
             double outLen = Math.sqrt(outX * outX + outZ * outZ);
             if (inLen >= 1.0E-4D && outLen >= 1.0E-4D) {
@@ -66,7 +68,7 @@ final class ActiveNavigation {
         this.segmentLengths = new double[n];
         for (int i = 1; i < n; i++) {
             Vec3 from = waypoints.get(i - 1).position();
-            Vec3 to   = waypoints.get(i).position();
+            Vec3 to = waypoints.get(i).position();
             double dx = to.x - from.x, dy = to.y - from.y, dz = to.z - from.z;
             this.segmentLengths[i] = Math.sqrt(dx * dx + dy * dy + dz * dz);
         }
@@ -227,7 +229,9 @@ final class ActiveNavigation {
         return hasPassedWaypoint(position, index, waypoint);
     }
 
-    /** commandTarget: 未到台阶起跳预备点时只推进到边缘，避免在上一格中心提前起跳。 */
+    /**
+     * commandTarget: 未到台阶起跳预备点时只推进到边缘，避免在上一格中心提前起跳。
+     */
     private Vec3 commandTarget(CitizenEntity citizen, int index, PathWaypoint waypoint, PathWaypoint commandWaypoint) {
         Vec3 position = citizen.position();
         if (isJumpAction(waypoint.mode()) && index > 0 && !jumpTriggered) {
@@ -291,7 +295,9 @@ final class ActiveNavigation {
                 : citizen.onGround();
     }
 
-    /** isAtActionLaunch: 按动作类型选择陆地翻越或水面上岸的起跳预备点。 */
+    /**
+     * isAtActionLaunch: 按动作类型选择陆地翻越或水面上岸的起跳预备点。
+     */
     private boolean isAtActionLaunch(CitizenEntity citizen, MovementMode mode,
                                      PathWaypoint start, PathWaypoint landing) {
         try {
@@ -305,7 +311,9 @@ final class ActiveNavigation {
         }
     }
 
-    /** launchTargetOrWaypoint: 起跳策略类缺失时退回路径点，避免寻路把服务器打崩。 */
+    /**
+     * launchTargetOrWaypoint: 起跳策略类缺失时退回路径点，避免寻路把服务器打崩。
+     */
     private Vec3 launchTargetOrWaypoint(PathWaypoint start, PathWaypoint landing, double bodyWidth) {
         try {
             return JumpWaypointPolicy.launchTarget(start, landing, bodyWidth);
@@ -314,12 +322,16 @@ final class ActiveNavigation {
         }
     }
 
-    /** isJumpAction: 判断路径节点是否需要手动触发跳跃。 */
+    /**
+     * isJumpAction: 判断路径节点是否需要手动触发跳跃。
+     */
     private boolean isJumpAction(MovementMode mode) {
         return mode == MovementMode.JUMP || mode == MovementMode.SWIM_EXIT;
     }
 
-    /** applyShoreExitImpulse: 水中上岸时直接施加垂直上浮速度，绕过水中无效的普通跳跃控制。 */
+    /**
+     * applyShoreExitImpulse: 水中上岸时直接施加垂直上浮速度，绕过水中无效的普通跳跃控制。
+     */
     private void applyShoreExitImpulse(CitizenEntity citizen) {
         Vec3 motion = citizen.getDeltaMovement();
         citizen.setDeltaMovement(motion.x, Math.max(motion.y, SHORE_EXIT_VERTICAL_SPEED), motion.z);
@@ -366,7 +378,9 @@ final class ActiveNavigation {
         citizen.fallDistance = 0.0F;
     }
 
-    /** applyClimbExitDetach: 离梯下落阶段只轻微离墙并压低竖直速度，避免触发爬梯上行。 */
+    /**
+     * applyClimbExitDetach: 离梯下落阶段只轻微离墙并压低竖直速度，避免触发爬梯上行。
+     */
     private void applyClimbExitDetach(CitizenEntity citizen, Vec3 direction) {
         if (direction.lengthSqr() < 1.0E-4D) {
             return;
@@ -379,12 +393,16 @@ final class ActiveNavigation {
         citizen.fallDistance = 0.0F;
     }
 
-    /** shouldApplyClimbExitDetach: 只在未落地的陆地下梯阶段施加脱离力。 */
+    /**
+     * shouldApplyClimbExitDetach: 只在未落地的陆地下梯阶段施加脱离力。
+     */
     private boolean shouldApplyClimbExitDetach(CitizenEntity citizen, PathWaypoint waypoint) {
         return waypoint.mode() != MovementMode.SWIM && !citizen.onGround();
     }
 
-    /** climbExitFallbackDirection: 路径没有水平出口时，真实梯子才按方块朝向兜底离墙。 */
+    /**
+     * climbExitFallbackDirection: 路径没有水平出口时，真实梯子才按方块朝向兜底离墙。
+     */
     private Vec3 climbExitFallbackDirection(ServerLevel level, PathWaypoint climbWaypoint) {
         BlockState state = level.getBlockState(climbWaypoint.blockPos());
         if (state.getBlock() instanceof LadderBlock && state.hasProperty(LadderBlock.FACING)) {

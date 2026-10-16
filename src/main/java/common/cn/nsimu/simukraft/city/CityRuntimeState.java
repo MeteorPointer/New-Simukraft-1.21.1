@@ -1,6 +1,8 @@
 package common.cn.nsimu.simukraft.city;
 
-/** 城市实体模拟的运行状态。 */
+/**
+ * 城市实体模拟的运行状态。
+ */
 public enum CityRuntimeState {
     ACTIVE,
     SLEEPING

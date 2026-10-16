@@ -18,7 +18,9 @@ final class LogisticsContainerBindingService {
     private LogisticsContainerBindingService() {
     }
 
-    /** bindWarehouseAdjacent: 绑定服务器盒相邻实体容器。 */
+    /**
+     * bindWarehouseAdjacent: 绑定服务器盒相邻实体容器。
+     */
     static LogisticsControlBoxService.ActionResult bindWarehouseAdjacent(ServerLevel level, BlockPos boxPos) {
         LogisticsWarehouseData warehouse = LogisticsManager.get(level).warehouseAt(boxPos);
         if (warehouse == null) {
@@ -41,7 +43,9 @@ final class LogisticsContainerBindingService {
         return LogisticsControlBoxService.ActionResult.SUCCESS;
     }
 
-    /** bindWarehouseArea: 通过两点选区批量绑定仓库容器。 */
+    /**
+     * bindWarehouseArea: 通过两点选区批量绑定仓库容器。
+     */
     static LogisticsControlBoxService.ActionResult bindWarehouseArea(ServerLevel level, BlockPos boxPos, BlockPos areaMin, BlockPos areaMax) {
         LogisticsWarehouseData warehouse = LogisticsManager.get(level).warehouseAt(boxPos);
         if (warehouse == null) {
@@ -66,7 +70,9 @@ final class LogisticsContainerBindingService {
         return LogisticsControlBoxService.ActionResult.SUCCESS;
     }
 
-    /** bindClientAdjacent: 绑定客户端盒相邻实体容器端口。 */
+    /**
+     * bindClientAdjacent: 绑定客户端盒相邻实体容器端口。
+     */
     static LogisticsControlBoxService.ActionResult bindClientAdjacent(ServerLevel level, BlockPos boxPos) {
         LogisticsClientData client = LogisticsManager.get(level).clientAt(boxPos);
         if (client == null) {
@@ -90,7 +96,9 @@ final class LogisticsContainerBindingService {
         return LogisticsControlBoxService.ActionResult.SUCCESS;
     }
 
-    /** bindClientArea: 通过两点选区批量绑定客户端端口容器。 */
+    /**
+     * bindClientArea: 通过两点选区批量绑定客户端端口容器。
+     */
     static LogisticsControlBoxService.ActionResult bindClientArea(ServerLevel level, BlockPos boxPos, BlockPos areaMin, BlockPos areaMax) {
         LogisticsClientData client = LogisticsManager.get(level).clientAt(boxPos);
         if (client == null) {
@@ -121,7 +129,9 @@ final class LogisticsContainerBindingService {
         return LogisticsControlBoxService.ActionResult.SUCCESS;
     }
 
-    /** scanContainersInArea: 扫描两点选区内的实体容器并做双箱归一化。 */
+    /**
+     * scanContainersInArea: 扫描两点选区内的实体容器并做双箱归一化。
+     */
     private static List<BlockPos> scanContainersInArea(ServerLevel level, BlockPos first, BlockPos second) {
         if (level == null || first == null || second == null || exceedsSelectionLimit(first, second)) {
             return List.of();
@@ -146,7 +156,9 @@ final class LogisticsContainerBindingService {
         return List.copyOf(result);
     }
 
-    /** exceedsSelectionLimit: 防止异常大选区造成单 tick 卡顿。 */
+    /**
+     * exceedsSelectionLimit: 防止异常大选区造成单 tick 卡顿。
+     */
     private static boolean exceedsSelectionLimit(BlockPos first, BlockPos second) {
         if (first == null || second == null) {
             return true;
@@ -159,7 +171,9 @@ final class LogisticsContainerBindingService {
                 || z > MAX_SELECTION_SCAN_BLOCKS / (x * y);
     }
 
-    /** manualPortId: 按容器坐标生成稳定手动端口 ID。 */
+    /**
+     * manualPortId: 按容器坐标生成稳定手动端口 ID。
+     */
     private static String manualPortId(BlockPos pos) {
         return "manual_" + Long.toUnsignedString(pos.asLong(), 36);
     }

@@ -21,7 +21,9 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
 
-/** BankControlBoxOpenRequestPacket: 客户端请求打开银行控制箱。 */
+/**
+ * BankControlBoxOpenRequestPacket: 客户端请求打开银行控制箱。
+ */
 public record BankControlBoxOpenRequestPacket(BlockPos pos) implements CustomPacketPayload {
     public static final Type<BankControlBoxOpenRequestPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "bank_control_box_open_request"));
@@ -33,24 +35,32 @@ public record BankControlBoxOpenRequestPacket(BlockPos pos) implements CustomPac
         return TYPE;
     }
 
-    /** encode: 写入坐标。 */
+    /**
+     * encode: 写入坐标。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, BankControlBoxOpenRequestPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode: 读取坐标。 */
+    /**
+     * decode: 读取坐标。
+     */
     public static BankControlBoxOpenRequestPacket decode(RegistryFriendlyByteBuf buffer) {
         return new BankControlBoxOpenRequestPacket(buffer.readBlockPos());
     }
 
-    /** handle: 服务端校验后下发视图。 */
+    /**
+     * handle: 服务端校验后下发视图。
+     */
     public static void handle(BankControlBoxOpenRequestPacket packet, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             openFor(level, player, packet.pos());
         }
     }
 
-    /** openFor: 校验距离和方块后发送银行视图。 */
+    /**
+     * openFor: 校验距离和方块后发送银行视图。
+     */
     public static void openFor(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (!player.blockPosition().closerThan(pos, 16.0D) && !RtsRemoteMenuAccess.hasAccess(player, pos)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.bank.too_far"));
@@ -63,7 +73,9 @@ public record BankControlBoxOpenRequestPacket(BlockPos pos) implements CustomPac
         PacketDistributor.sendToPlayer(player, snapshot(level, player, pos));
     }
 
-    /** snapshot: 组装当前银行界面数据包。 */
+    /**
+     * snapshot: 组装当前银行界面数据包。
+     */
     public static BankControlBoxOpenResponsePacket snapshot(ServerLevel level, ServerPlayer player, BlockPos pos) {
         PlacedBuildingRecord building = BankControlBoxService.resolveBuilding(level, pos);
         UUID cityId = building != null ? building.cityId() : null;

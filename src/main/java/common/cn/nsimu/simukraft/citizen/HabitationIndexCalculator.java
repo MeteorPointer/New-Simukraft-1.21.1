@@ -15,12 +15,12 @@ public final class HabitationIndexCalculator {
     }
 
     public static double calculate(PlacedBuildingRecord building,
-            CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
+                                   CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
         return calculate(null, building, poiManager, occupiedPoiIds);
     }
 
     public static double calculate(ServerLevel level, PlacedBuildingRecord building,
-            CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
+                                   CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
         double vol = volumeScore(building);
         double vac = vacancyScore(building, poiManager, occupiedPoiIds);
         int abandonment = level != null
@@ -30,12 +30,12 @@ public final class HabitationIndexCalculator {
     }
 
     public static double preferenceScore(PlacedBuildingRecord building,
-            CityPoiManager poiManager, Set<UUID> occupiedPoiIds, int expectedBeds) {
+                                         CityPoiManager poiManager, Set<UUID> occupiedPoiIds, int expectedBeds) {
         return preferenceScore(null, building, poiManager, occupiedPoiIds, expectedBeds);
     }
 
     public static double preferenceScore(ServerLevel level, PlacedBuildingRecord building,
-            CityPoiManager poiManager, Set<UUID> occupiedPoiIds, int expectedBeds) {
+                                         CityPoiManager poiManager, Set<UUID> occupiedPoiIds, int expectedBeds) {
         double index = calculate(level, building, poiManager, occupiedPoiIds);
         int vacant = countVacantResidential(building, poiManager, occupiedPoiIds);
         double matchCoeff;
@@ -49,7 +49,7 @@ public final class HabitationIndexCalculator {
     }
 
     static int countVacantResidential(PlacedBuildingRecord building,
-            CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
+                                      CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
         int count = 0;
         for (var instance : building.poiInstances()) {
             if (instance.poiType() != CityPoiType.RESIDENTIAL) continue;
@@ -83,7 +83,7 @@ public final class HabitationIndexCalculator {
     }
 
     private static double vacancyScore(PlacedBuildingRecord building,
-            CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
+                                       CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
         int total = countTotalResidential(building);
         if (total == 0) return 50; // 无床位：中性值
         int vacant = countVacantResidential(building, poiManager, occupiedPoiIds);

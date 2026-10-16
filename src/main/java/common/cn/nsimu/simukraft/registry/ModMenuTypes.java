@@ -2,8 +2,8 @@ package common.cn.nsimu.simukraft.registry;
 
 import com.lowdragmc.lowdraglib2.gui.holder.ModularUIContainerMenu;
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.commercial.CommercialTradeMenuProvider;
 import common.cn.nsimu.simukraft.citizen.CitizenInfoMenuProvider;
+import common.cn.nsimu.simukraft.commercial.CommercialTradeMenuProvider;
 import common.cn.nsimu.simukraft.logistics.menu.LogisticsWarehouseGridMenu;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingMenuProvider;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -36,7 +36,9 @@ public final class ModMenuTypes {
     private ModMenuTypes() {
     }
 
-    /** register: 注册模组容器菜单类型。 */
+    /**
+     * register: 注册模组容器菜单类型。
+     */
     public static void register(IEventBus modEventBus) {
         MENUS.register(modEventBus);
     }

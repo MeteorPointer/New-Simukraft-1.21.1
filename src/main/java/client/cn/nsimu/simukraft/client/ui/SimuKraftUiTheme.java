@@ -1,15 +1,15 @@
 package client.cn.nsimu.simukraft.client.ui;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import common.cn.nsimu.simukraft.SimuKraft;
 import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.UI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.style.Stylesheet;
 import com.lowdragmc.lowdraglib2.gui.ui.style.StylesheetManager;
+import common.cn.nsimu.simukraft.SimuKraft;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.List;
 
@@ -30,7 +30,9 @@ public final class SimuKraftUiTheme {
     private SimuKraftUiTheme() {
     }
 
-    /** 创建主题化 UI：先加载 LDLib 主题，再叠加本模组同名 LSS 扩展。 */
+    /**
+     * 创建主题化 UI：先加载 LDLib 主题，再叠加本模组同名 LSS 扩展。
+     */
     public static UI createUi(UIElement root) {
         return UI.of(root, stylesheets(DEFAULT_STYLESHEET));
     }
@@ -39,7 +41,9 @@ public final class SimuKraftUiTheme {
         return UI.of(root, stylesheets(stylesheet));
     }
 
-    /** 获取样式表：当前 LDLib 版本必须使用精确 .lss 路径。 */
+    /**
+     * 获取样式表：当前 LDLib 版本必须使用精确 .lss 路径。
+     */
     public static Stylesheet stylesheet() {
         return stylesheet(DEFAULT_STYLESHEET);
     }
@@ -48,7 +52,9 @@ public final class SimuKraftUiTheme {
         return StylesheetManager.INSTANCE.getStylesheetSafe(normalize(stylesheet));
     }
 
-    /** 灰色全覆盖主面板：只负责背景，不参与点击，避免遮挡按钮。 */
+    /**
+     * 灰色全覆盖主面板：只负责背景，不参与点击，避免遮挡按钮。
+     */
     public static UIElement createShellPanel(int screenWidth, int screenHeight) {
         return new UIElement()
                 .setAllowHitTest(false)
@@ -62,7 +68,9 @@ public final class SimuKraftUiTheme {
                 .addClass("simukraft_shell_panel");
     }
 
-    /** 城市核心同色背景层：先添加背景，再添加文本和按钮，保证文字永远在上层。 */
+    /**
+     * 城市核心同色背景层：先添加背景，再添加文本和按钮，保证文字永远在上层。
+     */
     public static UIElement createCityCoreBackground(int screenWidth, int screenHeight) {
         return createCityCoreBackground(0, 0, screenWidth, screenHeight);
     }
@@ -81,7 +89,9 @@ public final class SimuKraftUiTheme {
     }
 
     /** 创建选中白框：按钮外侧留 1px 间隔，白框自身 1px。 */
-    /** 创建绝对定位装饰层：只负责视觉层次，不拦截鼠标事件。 */
+    /**
+     * 创建绝对定位装饰层：只负责视觉层次，不拦截鼠标事件。
+     */
     public static UIElement createDecorationLayer(int left, int top, int width, int height, String className) {
         return new UIElement()
                 .setAllowHitTest(false)

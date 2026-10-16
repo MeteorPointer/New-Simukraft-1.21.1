@@ -30,7 +30,9 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** BankControlBoxScreenOpener: 银行存取转账界面，Ore 主题并按 GUI 缩放收缩。 */
+/**
+ * BankControlBoxScreenOpener: 银行存取转账界面，Ore 主题并按 GUI 缩放收缩。
+ */
 @OnlyIn(Dist.CLIENT)
 public final class BankControlBoxScreenOpener {
     private static final int MAX_PANEL_WIDTH = 400;
@@ -39,12 +41,16 @@ public final class BankControlBoxScreenOpener {
     private BankControlBoxScreenOpener() {
     }
 
-    /** request: 请求打开银行控制箱。 */
+    /**
+     * request: 请求打开银行控制箱。
+     */
     public static void request(BlockPos pos) {
         PacketDistributor.sendToServer(new BankControlBoxOpenRequestPacket(pos));
     }
 
-    /** open: 打开或刷新银行界面。 */
+    /**
+     * open: 打开或刷新银行界面。
+     */
     public static void open(BankControlBoxOpenResponsePacket packet) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {

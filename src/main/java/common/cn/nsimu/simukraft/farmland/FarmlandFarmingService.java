@@ -1,11 +1,6 @@
 package common.cn.nsimu.simukraft.farmland;
 
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenHomeRestService;
-import common.cn.nsimu.simukraft.citizen.CitizenService;
-import common.cn.nsimu.simukraft.citizen.CitizenSelfFeedingService;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
-import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
+import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.material.GenericContainerAccess;
@@ -24,8 +19,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.BonemealableBlock;
 import net.minecraft.world.level.block.FarmBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
@@ -542,9 +537,11 @@ public final class FarmlandFarmingService {
         private int cursor(FarmlandWorkPhase phase) {
             return cursors[phase.ordinal()];
         }
+
         private void setCursor(FarmlandWorkPhase phase, int cursor) {
             cursors[phase.ordinal()] = cursor;
         }
+
         private void setVisual(ItemStack tool, boolean active) {
             visualTool = FarmlandFarmerVisualService.normalize(tool);
             visualActive = active;

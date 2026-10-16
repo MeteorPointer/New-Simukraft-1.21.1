@@ -29,7 +29,9 @@ final class CitizenDoorService {
     private CitizenDoorService() {
     }
 
-    /** A wooden door a citizen opened, tracked so it can be closed once cleared. */
+    /**
+     * A wooden door a citizen opened, tracked so it can be closed once cleared.
+     */
     record OpenedDoor(UUID citizenId, long openedAt) {
     }
 
@@ -87,7 +89,7 @@ final class CitizenDoorService {
         if (openedDoors.isEmpty()) {
             return;
         }
-        for (Iterator<Map.Entry<Long, OpenedDoor>> iterator = openedDoors.entrySet().iterator(); iterator.hasNext();) {
+        for (Iterator<Map.Entry<Long, OpenedDoor>> iterator = openedDoors.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<Long, OpenedDoor> entry = iterator.next();
             BlockPos pos = BlockPos.of(entry.getKey());
             BlockState state = level.getBlockState(pos);

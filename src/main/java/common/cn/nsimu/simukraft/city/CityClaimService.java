@@ -9,15 +9,19 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 
 public final class CityClaimService {
-    /** MAX_CITY_ENCLAVES：每座城市允许购买的独立飞地数量上限。 */
+    /**
+     * MAX_CITY_ENCLAVES：每座城市允许购买的独立飞地数量上限。
+     */
     public static final int MAX_CITY_ENCLAVES = CityLevelDefinition.DEFAULT_UNLOCKED_ENCLAVES;
-    /** ENCLAVE_CHUNK_PRICE：不与城市主领地连通的飞地区块固定价格。 */
+    /**
+     * ENCLAVE_CHUNK_PRICE：不与城市主领地连通的飞地区块固定价格。
+     */
     public static final double ENCLAVE_CHUNK_PRICE = 50.0D;
 
     private CityClaimService() {
     }
 
-    
+
     public static synchronized ClaimResult buyChunk(ServerLevel level, ServerPlayer player, CityData city, int chunkX, int chunkZ) {
         if (level == null || player == null || city == null) {
             return ClaimResult.failed(Component.translatable("message.simukraft.city_chunk.claim_failed"));

@@ -19,7 +19,9 @@ public final class CommercialTradeMenuHolder implements IContainerUIHolder {
         this.packet = packet;
     }
 
-    /** createUI: 创建包含真实玩家背包槽位的 LDLib 交易 UI。 */
+    /**
+     * createUI: 创建包含真实玩家背包槽位的 LDLib 交易 UI。
+     */
     @Override
     public ModularUI createUI(Player player) {
         if (FMLEnvironment.dist == Dist.DEDICATED_SERVER) {
@@ -28,7 +30,9 @@ public final class CommercialTradeMenuHolder implements IContainerUIHolder {
         return ModularUI.of(UI.of(new CommercialTradeUiRoot(packet)), player);
     }
 
-    /** isStillValid: 校验容器使用期间玩家仍在交易范围内。 */
+    /**
+     * isStillValid: 校验容器使用期间玩家仍在交易范围内。
+     */
     @Override
     public boolean isStillValid(Player player) {
         if (player == null || player.level().isClientSide()) {

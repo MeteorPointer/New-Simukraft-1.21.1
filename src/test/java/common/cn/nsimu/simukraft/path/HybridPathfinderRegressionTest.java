@@ -1,14 +1,8 @@
 package common.cn.nsimu.simukraft.path;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import it.unimi.dsi.fastutil.longs.LongSets;
-import java.util.List;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.EmptyBlockGetter;
@@ -19,9 +13,14 @@ import net.minecraft.world.level.block.TrapDoorBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.block.state.properties.Half;
-import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.shapes.VoxelShape;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Regression tests for {@link HybridPathfinder} that lock in the corner-cutting / gap-crossing fixes
@@ -237,7 +236,9 @@ class HybridPathfinderRegressionTest {
         assertNoDiagonalVerticalTransitions(result);
     }
 
-    /** An open floor trapdoor must expose a same-column fall into the lower room. */
+    /**
+     * An open floor trapdoor must expose a same-column fall into the lower room.
+     */
     @Test
     void openTrapdoorShaftAllowsDirectDrop() {
         Scene scene = new Scene();
@@ -286,7 +287,9 @@ class HybridPathfinderRegressionTest {
         assertNoDiagonalVerticalTransitions(result);
     }
 
-    /** 陆地一格台阶仍使用普通 JUMP，不得被上岸动作替换。 */
+    /**
+     * 陆地一格台阶仍使用普通 JUMP，不得被上岸动作替换。
+     */
     @Test
     void landStepRemainsRegularJump() {
         Scene scene = new Scene();
@@ -299,7 +302,9 @@ class HybridPathfinderRegressionTest {
                 "陆地台阶必须保持 JUMP 动作");
     }
 
-    /** 翻越 1 格方块的代价高于绕行，中间有空地时应走路而不是跳上箱子。 */
+    /**
+     * 翻越 1 格方块的代价高于绕行，中间有空地时应走路而不是跳上箱子。
+     */
     @Test
     void prefersWalkAroundOneBlockObstacle() {
         Scene scene = new Scene();
@@ -409,10 +414,12 @@ class HybridPathfinderRegressionTest {
         assertNoDiagonalClimbElevation(result);
         assertTrue(result.result().waypoints().stream()
                         .anyMatch(waypoint -> waypoint.mode() == MovementMode.CLIMB && waypoint.blockPos().getY() >= 65),
-                        "citizen never mounted the raised ladder rung");
+                "citizen never mounted the raised ladder rung");
     }
 
-    /** A raised ladder cell with a solid floor below must be entered by jumping onto that floor. */
+    /**
+     * A raised ladder cell with a solid floor below must be entered by jumping onto that floor.
+     */
     @Test
     void supportedRaisedLadderTargetUsesJumpEntry() {
         Scene scene = new Scene();
@@ -597,7 +604,9 @@ class HybridPathfinderRegressionTest {
             return cell(x, y, z, y, false, true, false, 2.0D);
         }
 
-        /** supportedClimb: 创建下方带可落脚支撑面的梯子格，用于高位入梯回归测试。 */
+        /**
+         * supportedClimb: 创建下方带可落脚支撑面的梯子格，用于高位入梯回归测试。
+         */
         private Scene supportedClimb(int x, int y, int z) {
             return cell(x, y, z, y, false, true, false, true, 2.0D);
         }
@@ -610,7 +619,9 @@ class HybridPathfinderRegressionTest {
             return cell(x, y, z, standY, water, climbable, woodenDoor, !water && !climbable, cost);
         }
 
-        /** cell: 写入带明确支撑面标记的路径单元，并同步登记实体可通过空间。 */
+        /**
+         * cell: 写入带明确支撑面标记的路径单元，并同步登记实体可通过空间。
+         */
         private Scene cell(int x, int y, int z, double standY, boolean water, boolean climbable,
                            boolean woodenDoor, boolean floorSupported, double cost) {
             cells.put(PathCell.key(x, y, z), new PathCell(new BlockPos(x, y, z), x, y, z, standY,

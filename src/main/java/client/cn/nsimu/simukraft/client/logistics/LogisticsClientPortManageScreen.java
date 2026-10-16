@@ -26,7 +26,9 @@ final class LogisticsClientPortManageScreen extends Screen {
         this.packet = packet;
     }
 
-    /** init: 创建返回按钮和可见端口删除按钮。 */
+    /**
+     * init: 创建返回按钮和可见端口删除按钮。
+     */
     @Override
     protected void init() {
         int bottomY = this.height - 28;
@@ -52,13 +54,17 @@ final class LogisticsClientPortManageScreen extends Screen {
         }
     }
 
-    /** renderBackground: 绘制旧版深色背景。 */
+    /**
+     * renderBackground: 绘制旧版深色背景。
+     */
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
     }
 
-    /** render: 绘制端口列表。 */
+    /**
+     * render: 绘制端口列表。
+     */
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         renderBackground(graphics, mouseX, mouseY, partialTick);
@@ -86,12 +92,16 @@ final class LogisticsClientPortManageScreen extends Screen {
         return false;
     }
 
-    /** send: 向服务端发送客户端端口管理操作。 */
+    /**
+     * send: 向服务端发送客户端端口管理操作。
+     */
     private void send(LogisticsBoxActionPacket.Action action, UUID channelId, String value) {
         PacketDistributor.sendToServer(new LogisticsBoxActionPacket(packet.boxPos(), action, null, channelId, BlockPos.ZERO, value, LogisticsDirection.WAREHOUSE_TO_CLIENT));
     }
 
-    /** renameEndpoint: 把输入框中的名称提交为当前客户端端点名。 */
+    /**
+     * renameEndpoint: 把输入框中的名称提交为当前客户端端点名。
+     */
     private void renameEndpoint() {
         String name = nameField != null ? nameField.getValue() : packet.name();
         send(LogisticsBoxActionPacket.Action.RENAME_CLIENT, null, name);

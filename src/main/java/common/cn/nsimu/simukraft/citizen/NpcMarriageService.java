@@ -1,18 +1,17 @@
 package common.cn.nsimu.simukraft.citizen;
 
+import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
+import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.citizen.family.FamilyData;
 import common.cn.nsimu.simukraft.citizen.family.FamilyManager;
 import common.cn.nsimu.simukraft.citizen.family.FamilyStatus;
 import common.cn.nsimu.simukraft.city.CityRuntimeService;
 import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
+import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
-
-import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
-import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
 
 import java.util.*;
 
@@ -76,7 +75,7 @@ public final class NpcMarriageService {
     }
 
     private static void marry(ServerLevel level, CitizenManager manager,
-            FamilyManager familyManager, CitizenData husband, CitizenData wife) {
+                              FamilyManager familyManager, CitizenData husband, CitizenData wife) {
         FamilyData family = familyManager.createFamily(level, husband.cityId(), husband.uuid(), wife.uuid());
         husband.setFamilyId(family.familyId());
         wife.setFamilyId(family.familyId());
@@ -97,9 +96,11 @@ public final class NpcMarriageService {
         }
     }
 
-    /** tryMoveInToExistingHome: 若一方已独占足够大的房子，把另一方迁入，返回是否成功。 */
+    /**
+     * tryMoveInToExistingHome: 若一方已独占足够大的房子，把另一方迁入，返回是否成功。
+     */
     private static boolean tryMoveInToExistingHome(ServerLevel level, CitizenManager manager,
-            CitizenData husband, CitizenData wife) {
+                                                   CitizenData husband, CitizenData wife) {
         int needed = 2; // 夫妻各占一张床即可共同居住
         if (tryMoveIn(level, manager, husband, wife, needed)) return true;
         if (tryMoveIn(level, manager, wife, husband, needed)) return true;
@@ -107,7 +108,7 @@ public final class NpcMarriageService {
     }
 
     private static boolean tryMoveIn(ServerLevel level, CitizenManager manager,
-            CitizenData owner, CitizenData guest, int needed) {
+                                     CitizenData owner, CitizenData guest, int needed) {
         if (owner.homeId() == null) return false;
         if (isLivingWithOriginFamily(level, manager, owner)) return false;
         PlacedBuildingRecord building = PlacedBuildingService.findByPoi(level, owner.homeId());
@@ -128,7 +129,9 @@ public final class NpcMarriageService {
         return true;
     }
 
-    /** isLivingWithOriginFamily: 判断市民是否仍与原生家庭的直系父母同住在同一栋建筑（排除兄弟姐妹等旁系）。 */
+    /**
+     * isLivingWithOriginFamily: 判断市民是否仍与原生家庭的直系父母同住在同一栋建筑（排除兄弟姐妹等旁系）。
+     */
     static boolean isLivingWithOriginFamily(ServerLevel level, CitizenManager manager, CitizenData citizen) {
         if (citizen.homeId() == null || citizen.originFamilyId() == null) return false;
         common.cn.nsimu.simukraft.citizen.family.FamilyData originFamily =

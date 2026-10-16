@@ -7,11 +7,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -58,7 +54,9 @@ public final class BuildingStructureSqliteSchema {
         }
     }
 
-    /** createV2Schema: 全新档直接建带 payload 的目录表，不创建方块行表。 */
+    /**
+     * createV2Schema: 全新档直接建带 payload 的目录表，不创建方块行表。
+     */
     private static void createV2Schema(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS placed_buildings("
@@ -79,7 +77,9 @@ public final class BuildingStructureSqliteSchema {
         }
     }
 
-    /** createV1Baseline: 旧档幂等建出折叠前的三张表。 */
+    /**
+     * createV1Baseline: 旧档幂等建出折叠前的三张表。
+     */
     private static void createV1Baseline(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS placed_buildings(building_id TEXT PRIMARY KEY, city_id TEXT, district_id TEXT, dimension_id TEXT NOT NULL, category TEXT NOT NULL, building_file_name TEXT NOT NULL, display_name TEXT NOT NULL, amount TEXT NOT NULL DEFAULT '', structure_file_name TEXT NOT NULL, facing TEXT NOT NULL, origin_x INTEGER NOT NULL, origin_y INTEGER NOT NULL, origin_z INTEGER NOT NULL, anchor_x INTEGER NOT NULL, anchor_y INTEGER NOT NULL, anchor_z INTEGER NOT NULL, min_x INTEGER NOT NULL, min_y INTEGER NOT NULL, min_z INTEGER NOT NULL, max_x INTEGER NOT NULL, max_y INTEGER NOT NULL, max_z INTEGER NOT NULL, completed_at INTEGER NOT NULL)");

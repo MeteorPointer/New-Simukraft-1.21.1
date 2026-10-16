@@ -38,7 +38,9 @@ public final class CitizenWorkplaceMoveService {
         return moveToWorkplace(level, citizen, false);
     }
 
-    /** recoverToWorkplace：实体从强加载来源区块恢复后，强制完成一次岗位复位。 */
+    /**
+     * recoverToWorkplace：实体从强加载来源区块恢复后，强制完成一次岗位复位。
+     */
     public static boolean recoverToWorkplace(ServerLevel level, CitizenData citizen) {
         return moveToWorkplace(level, citizen, true);
     }

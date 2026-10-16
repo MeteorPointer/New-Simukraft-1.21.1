@@ -4,13 +4,7 @@ import common.cn.nsimu.simukraft.material.GenericContainerAccess;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 /**
  * 工业输入规划器：在消耗前先确定 AND/OR 表达式实际使用哪一组物品。

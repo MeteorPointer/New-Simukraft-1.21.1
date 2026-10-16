@@ -10,8 +10,8 @@ import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ProgressBar;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
-import common.cn.nsimu.simukraft.network.city.core.CityCoreOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.city.core.CityCoreOpenRequestPacket;
+import common.cn.nsimu.simukraft.network.city.core.CityCoreOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.city.core.CityUpgradeRequestPacket;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
@@ -29,14 +29,18 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.List;
 import java.util.Locale;
 
-/** CityUpgradePanelFactory: 组合城市升级页并计算客户端展示进度。 */
+/**
+ * CityUpgradePanelFactory: 组合城市升级页并计算客户端展示进度。
+ */
 
 @OnlyIn(Dist.CLIENT)
 final class CityUpgradePanelFactory {
     private CityUpgradePanelFactory() {
     }
 
-    /** create: 根据服务端等级快照构建可滚动的 ORE 主题升级页。 */
+    /**
+     * create: 根据服务端等级快照构建可滚动的 ORE 主题升级页。
+     */
     static UIElement create(CityCoreOpenResponsePacket packet) {
         return scrollable(new UpgradeLevelList(packet));
     }
@@ -58,7 +62,9 @@ final class CityUpgradePanelFactory {
         return label;
     }
 
-    /** compactLine: 固定高度文本在悬停时滚动，避免长物品名撑破行。 */
+    /**
+     * compactLine: 固定高度文本在悬停时滚动，避免长物品名撑破行。
+     */
     private static Label compactLine(Component text) {
         Label label = new Label();
         label.setText(text);
@@ -127,7 +133,9 @@ final class CityUpgradePanelFactory {
         return label;
     }
 
-    /** unlockRow: 显示升级成功后生效的容量，不参与升级前置条件判断。 */
+    /**
+     * unlockRow: 显示升级成功后生效的容量，不参与升级前置条件判断。
+     */
     private static UIElement unlockRow(Component text) {
         Label label = line(text);
         label.textStyle(style -> style.textColor(SimuKraftUiTheme.TEXT_INFO_COLOR));
@@ -170,9 +178,11 @@ final class CityUpgradePanelFactory {
         return row;
     }
 
-    /** upgradeProgressBar: 创建只根据服务端时间快照更新的升级进度条。 */
+    /**
+     * upgradeProgressBar: 创建只根据服务端时间快照更新的升级进度条。
+     */
     private static ProgressBar upgradeProgressBar(CityCoreOpenResponsePacket packet,
-                                                   CityCoreOpenResponsePacket.UpgradeProgress upgradeProgress) {
+                                                  CityCoreOpenResponsePacket.UpgradeProgress upgradeProgress) {
         return new UpgradeProgressBar(packet, upgradeProgress);
     }
 
@@ -198,7 +208,9 @@ final class CityUpgradePanelFactory {
         return button;
     }
 
-    /** UpgradeLevelList: 维护等级伪下拉的展开状态，避免同时创建所有要求明细。 */
+    /**
+     * UpgradeLevelList: 维护等级伪下拉的展开状态，避免同时创建所有要求明细。
+     */
     private static final class UpgradeLevelList extends UIElement {
         private final CityCoreOpenResponsePacket packet;
         private int expandedLevel;
@@ -219,7 +231,9 @@ final class CityUpgradePanelFactory {
             rebuild();
         }
 
-        /** rebuild: 按当前展开等级重建伪下拉列表。 */
+        /**
+         * rebuild: 按当前展开等级重建伪下拉列表。
+         */
         private void rebuild() {
             clearAllChildren();
             addChild(line(Component.translatable("screen.simukraft.city_core.upgrade.current", packet.cityLevel())));
@@ -250,7 +264,9 @@ final class CityUpgradePanelFactory {
             }
         }
 
-        /** levelCard: 创建单个等级伪下拉卡头及其可选要求明细。 */
+        /**
+         * levelCard: 创建单个等级伪下拉卡头及其可选要求明细。
+         */
         private UIElement levelCard(CityCoreOpenResponsePacket.UpgradeTarget target,
                                     boolean expanded,
                                     boolean nextLevel) {
@@ -286,7 +302,9 @@ final class CityUpgradePanelFactory {
             return card;
         }
 
-        /** dropdownArrow: 创建与 LDLib2 原生 Selector 同尺寸的伪下拉箭头。 */
+        /**
+         * dropdownArrow: 创建与 LDLib2 原生 Selector 同尺寸的伪下拉箭头。
+         */
         private UIElement dropdownArrow() {
             return new UIElement()
                     .layout(layout -> {
@@ -302,7 +320,9 @@ final class CityUpgradePanelFactory {
         return countPlayerItems(requirement) >= requirement.count();
     }
 
-    /** countPlayerItems: 按升级快照中的物品或标签统计客户端背包。 */
+    /**
+     * countPlayerItems: 按升级快照中的物品或标签统计客户端背包。
+     */
     private static int countPlayerItems(CityCoreOpenResponsePacket.UpgradeItem requirement) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
@@ -318,7 +338,9 @@ final class CityUpgradePanelFactory {
         return (int) Math.min(Integer.MAX_VALUE, count);
     }
 
-    /** displayItem: 返回数据包指定的展示图标，未指定时回退到原物品图标。 */
+    /**
+     * displayItem: 返回数据包指定的展示图标，未指定时回退到原物品图标。
+     */
     private static Item displayItem(CityCoreOpenResponsePacket.UpgradeItem requirement) {
         if (requirement.displayIcon() != null) {
             return BuiltInRegistries.ITEM.getOptional(requirement.displayIcon()).orElse(Items.BARRIER);
@@ -329,7 +351,9 @@ final class CityUpgradePanelFactory {
         return originalItem(requirement);
     }
 
-    /** itemName: 返回数据包指定的名称，未指定时保留原物品的本地化名称。 */
+    /**
+     * itemName: 返回数据包指定的名称，未指定时保留原物品的本地化名称。
+     */
     private static Component itemName(CityCoreOpenResponsePacket.UpgradeItem requirement) {
         if (!requirement.displayName().isBlank()) {
             return Component.literal(requirement.displayName());
@@ -339,7 +363,9 @@ final class CityUpgradePanelFactory {
                 : new ItemStack(originalItem(requirement)).getHoverName();
     }
 
-    /** originalItem: 获取精确物品条件的原始图标，标签条件没有固定原始物品。 */
+    /**
+     * originalItem: 获取精确物品条件的原始图标，标签条件没有固定原始物品。
+     */
     private static Item originalItem(CityCoreOpenResponsePacket.UpgradeItem requirement) {
         return BuiltInRegistries.ITEM.getOptional(requirement.itemId()).orElse(Items.BARRIER);
     }
@@ -348,13 +374,17 @@ final class CityUpgradePanelFactory {
         return String.format(Locale.ROOT, "%.2f", Math.max(0.0D, value));
     }
 
-    /** formatDuration: 将游戏 tick 格式化为紧凑的分秒显示。 */
+    /**
+     * formatDuration: 将游戏 tick 格式化为紧凑的分秒显示。
+     */
     private static String formatDuration(long ticks) {
         long seconds = Math.max(0L, (ticks + 19L) / 20L);
         return String.format(Locale.ROOT, "%d:%02d", seconds / 60L, seconds % 60L);
     }
 
-    /** UpgradeProgressBar: 每帧使用同步的世界时间刷新显示，完成后仅请求一次新快照。 */
+    /**
+     * UpgradeProgressBar: 每帧使用同步的世界时间刷新显示，完成后仅请求一次新快照。
+     */
     private static final class UpgradeProgressBar extends ProgressBar {
         private final CityCoreOpenResponsePacket packet;
         private final CityCoreOpenResponsePacket.UpgradeProgress upgradeProgress;

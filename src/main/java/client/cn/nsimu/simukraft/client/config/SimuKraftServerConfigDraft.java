@@ -74,14 +74,18 @@ final class SimuKraftServerConfigDraft {
     private SimuKraftServerConfigDraft() {
     }
 
-    /** live: 从当前 NeoForge 服务端配置创建草稿。 */
+    /**
+     * live: 从当前 NeoForge 服务端配置创建草稿。
+     */
     static SimuKraftServerConfigDraft live() {
         SimuKraftServerConfigDraft draft = new SimuKraftServerConfigDraft();
         draft.reloadFromLive();
         return draft;
     }
 
-    /** reloadFromLive: 丢弃草稿并重新读取当前配置。 */
+    /**
+     * reloadFromLive: 丢弃草稿并重新读取当前配置。
+     */
     void reloadFromLive() {
         cityChunkPrice = ServerConfig.CITY_CHUNK_PRICE.get();
         blacklistProtection = ServerConfig.ENABLE_BLACKLIST_PROTECTION.get();
@@ -144,7 +148,9 @@ final class SimuKraftServerConfigDraft {
         setExpertModeSkipList(ServerConfig.expertModeSkipList());
     }
 
-    /** resetToDefaults: 恢复为 ServerConfig 中定义的默认值。 */
+    /**
+     * resetToDefaults: 恢复为 ServerConfig 中定义的默认值。
+     */
     void resetToDefaults() {
         cityChunkPrice = 10.0D;
         blacklistProtection = true;
@@ -207,7 +213,9 @@ final class SimuKraftServerConfigDraft {
         setExpertModeSkipList(MaterialConfigDefaults.EXPERT_MODE_SKIP_LIST);
     }
 
-    /** saveToLive: 发包至服务端保存配置。 */
+    /**
+     * saveToLive: 发包至服务端保存配置。
+     */
     void saveToLive() {
         PacketDistributor.sendToServer(new ServerConfigSavePacket(
                 cityChunkPrice, blacklistProtection, logBlacklistSkippedBlocks, claimProtection,
@@ -294,7 +302,9 @@ final class SimuKraftServerConfigDraft {
             return translationKey;
         }
 
-        /** from: 根据旧版两个布尔配置合成单选模式。 */
+        /**
+         * from: 根据旧版两个布尔配置合成单选模式。
+         */
         static WorkMode from(boolean creative, boolean expert) {
             if (creative) {
                 return CREATIVE;

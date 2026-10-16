@@ -1,14 +1,14 @@
 package common.cn.nsimu.simukraft.citizen;
 
+import common.cn.nsimu.simukraft.city.CityRuntimeService;
 import common.cn.nsimu.simukraft.city.poi.CityPoiData;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
 import common.cn.nsimu.simukraft.city.poi.CityPoiType;
-import common.cn.nsimu.simukraft.city.CityRuntimeService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.job.CityJobType;
+import common.cn.nsimu.simukraft.medical.MedicalService;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import common.cn.nsimu.simukraft.path.MovementIntent;
-import common.cn.nsimu.simukraft.medical.MedicalService;
 import common.cn.nsimu.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -21,13 +21,7 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Queue;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -144,7 +138,9 @@ public final class CitizenHomeRestService {
         }
     }
 
-    /** shouldKeepMedicalStatus：夜间回家不能覆盖住院/孕晚期/产后静养标签，否则清晨会被当成普通上班。 */
+    /**
+     * shouldKeepMedicalStatus：夜间回家不能覆盖住院/孕晚期/产后静养标签，否则清晨会被当成普通上班。
+     */
     private static boolean shouldKeepMedicalStatus(CitizenData citizen, long currentDay) {
         return MedicalService.MEDICAL_CARE_MARKER.equals(citizen.workNeedDetail())
                 || MedicalService.isAdmitted(citizen)
@@ -232,7 +228,9 @@ public final class CitizenHomeRestService {
         CitizenBedSleepService.clearServerCaches(server);
     }
 
-    /** invalidateMovedHomes：建筑搬迁后清理居民住宅落点、床位和回家导航缓存。 */
+    /**
+     * invalidateMovedHomes：建筑搬迁后清理居民住宅落点、床位和回家导航缓存。
+     */
     public static void invalidateMovedHomes(ServerLevel level, Set<UUID> homePoiIds) {
         if (level == null || homePoiIds == null || homePoiIds.isEmpty()) {
             return;

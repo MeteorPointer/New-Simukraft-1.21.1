@@ -64,12 +64,16 @@ final class PathSnapshotCache {
         entries.clear();
     }
 
-    /** cleanup: 在空闲时释放超出复用窗口的区段快照。 */
+    /**
+     * cleanup: 在空闲时释放超出复用窗口的区段快照。
+     */
     void cleanup(long now) {
         trim(now);
     }
 
-    /** trim: 限制短期区段缓存的内存上界并移除过期项。 */
+    /**
+     * trim: 限制短期区段缓存的内存上界并移除过期项。
+     */
     private void trim(long now) {
         entries.long2ObjectEntrySet().removeIf(entry -> now - entry.getValue().createdAt() > REUSE_TTL_TICKS);
         while (entries.size() > MAX_SECTION_ENTRIES) {

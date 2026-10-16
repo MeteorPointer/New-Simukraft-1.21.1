@@ -21,7 +21,9 @@ public record IndustrialDefinition(String id,
                                    List<RecipeDefinition> recipes,
                                    SpawnEntityDefinition spawnEntity,
                                    Path sourcePath) {
-    /** localizedName: 按当前玩家语言选择工厂名。 */
+    /**
+     * localizedName: 按当前玩家语言选择工厂名。
+     */
     public String localizedName() {
         if (BuildingLocale.preferEnglish() && nameEn != null && !nameEn.isBlank()) {
             return nameEn;
@@ -29,7 +31,9 @@ public record IndustrialDefinition(String id,
         return name == null ? "" : name;
     }
 
-    /** localizedJobName: 按当前玩家语言选择岗位名。 */
+    /**
+     * localizedJobName: 按当前玩家语言选择岗位名。
+     */
     public String localizedJobName() {
         if (BuildingLocale.preferEnglish() && jobNameEn != null && !jobNameEn.isBlank()) {
             return jobNameEn;
@@ -78,7 +82,9 @@ public record IndustrialDefinition(String id,
                                    List<InputRequirement> inputs,
                                    List<ProductOutput> outputs,
                                    List<StepDefinition> steps) {
-        /** localizedName: 按当前玩家语言选择配方名。 */
+        /**
+         * localizedName: 按当前玩家语言选择配方名。
+         */
         public String localizedName() {
             if (BuildingLocale.preferEnglish() && nameEn != null && !nameEn.isBlank()) {
                 return nameEn;
@@ -95,7 +101,8 @@ public record IndustrialDefinition(String id,
         List<ItemRequirement> itemLeaves();
     }
 
-    public record ItemRequirement(IndustrialItemStackSpec spec, int count, boolean consume) implements InputRequirement {
+    public record ItemRequirement(IndustrialItemStackSpec spec, int count,
+                                  boolean consume) implements InputRequirement {
         public ItemRequirement {
             spec = spec != null ? spec : IndustrialItemStackSpec.empty();
             count = Math.max(1, count);
@@ -138,7 +145,8 @@ public record IndustrialDefinition(String id,
         ANY
     }
 
-    public record ProductOutput(IndustrialItemStackSpec spec, int baseAmount, int randomRange, double probability, boolean ignoreMultiplier) {
+    public record ProductOutput(IndustrialItemStackSpec spec, int baseAmount, int randomRange, double probability,
+                                boolean ignoreMultiplier) {
         public ProductOutput {
             spec = spec != null ? spec : IndustrialItemStackSpec.empty();
             baseAmount = Math.max(1, baseAmount);

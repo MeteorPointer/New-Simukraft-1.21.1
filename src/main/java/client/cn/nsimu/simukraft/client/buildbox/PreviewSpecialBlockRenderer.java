@@ -13,12 +13,7 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.resources.model.Material;
 import net.minecraft.core.Direction;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.world.level.block.AbstractChestBlock;
-import net.minecraft.world.level.block.BedBlock;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.level.block.EnderChestBlock;
-import net.minecraft.world.level.block.EntityBlock;
+import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
@@ -50,7 +45,9 @@ public final class PreviewSpecialBlockRenderer {
     private PreviewSpecialBlockRenderer() {
     }
 
-    /** render: 渲染没有普通方块模型的预览方块。 */
+    /**
+     * render: 渲染没有普通方块模型的预览方块。
+     */
     public static void render(List<PreviewBlockData> blocks, PoseStack poseStack, MultiBufferSource.BufferSource bufferSource, Vec3 cameraPos) {
         if (blocks == null || blocks.isEmpty()) {
             return;
@@ -101,7 +98,9 @@ public final class PreviewSpecialBlockRenderer {
         }
     }
 
-    /** renderChest: 使用原版箱子模型渲染普通箱、陷阱箱和末影箱。 */
+    /**
+     * renderChest: 使用原版箱子模型渲染普通箱、陷阱箱和末影箱。
+     */
     private static void renderChest(PreviewBlockData block, PoseStack poseStack, MultiBufferSource bufferSource, Vec3 cameraPos) {
         ensureChestModels();
         BlockState state = block.state();
@@ -126,7 +125,9 @@ public final class PreviewSpecialBlockRenderer {
         poseStack.popPose();
     }
 
-    /** chestMaterial: 选择与原版一致的箱子贴图。 */
+    /**
+     * chestMaterial: 选择与原版一致的箱子贴图。
+     */
     private static Material chestMaterial(BlockState state, ChestType chestType) {
         if (state.getBlock() instanceof EnderChestBlock) {
             return Sheets.ENDER_CHEST_LOCATION;
@@ -152,7 +153,9 @@ public final class PreviewSpecialBlockRenderer {
         };
     }
 
-    /** ensureChestModels: 首次预览箱子时懒加载原版模型层。 */
+    /**
+     * ensureChestModels: 首次预览箱子时懒加载原版模型层。
+     */
     private static void ensureChestModels() {
         if (chestLid != null) {
             return;
@@ -174,7 +177,9 @@ public final class PreviewSpecialBlockRenderer {
         doubleRightChestLock = doubleRightChest.getChild("lock");
     }
 
-    /** renderChestParts: 以关闭状态绘制箱盖、锁扣和箱体。 */
+    /**
+     * renderChestParts: 以关闭状态绘制箱盖、锁扣和箱体。
+     */
     private static void renderChestParts(PoseStack poseStack, VertexConsumer vertexConsumer, ModelPart lid, ModelPart lock, ModelPart bottom, int packedLight) {
         lid.xRot = 0.0F;
         lock.xRot = 0.0F;
@@ -183,7 +188,9 @@ public final class PreviewSpecialBlockRenderer {
         bottom.render(poseStack, vertexConsumer, packedLight, net.minecraft.client.renderer.texture.OverlayTexture.NO_OVERLAY);
     }
 
-    /** renderBed: 使用原版床模型渲染床头和床尾。 */
+    /**
+     * renderBed: 使用原版床模型渲染床头和床尾。
+     */
     private static void renderBed(PreviewBlockData block, BedBlock bedBlock, PoseStack poseStack, MultiBufferSource bufferSource, Vec3 cameraPos) {
         ensureBedModels();
         BlockState state = block.state();
@@ -196,7 +203,9 @@ public final class PreviewSpecialBlockRenderer {
         poseStack.popPose();
     }
 
-    /** ensureBedModels: 首次预览床时懒加载原版模型层。 */
+    /**
+     * ensureBedModels: 首次预览床时懒加载原版模型层。
+     */
     private static void ensureBedModels() {
         if (bedHeadRoot != null && bedFootRoot != null) {
             return;
@@ -206,7 +215,9 @@ public final class PreviewSpecialBlockRenderer {
         bedFootRoot = minecraft.getEntityModels().bakeLayer(ModelLayers.BED_FOOT);
     }
 
-    /** renderBedPiece: 按床朝向渲染单个床部件。 */
+    /**
+     * renderBedPiece: 按床朝向渲染单个床部件。
+     */
     private static void renderBedPiece(PoseStack poseStack, MultiBufferSource bufferSource, ModelPart modelPart, Direction facing, Material material, int packedLight) {
         poseStack.pushPose();
         poseStack.translate(0.0F, 0.5625F, 0.0F);
@@ -219,7 +230,9 @@ public final class PreviewSpecialBlockRenderer {
         poseStack.popPose();
     }
 
-    /** isXmasChestTexturePeriod: 保留原版圣诞箱子贴图规则。 */
+    /**
+     * isXmasChestTexturePeriod: 保留原版圣诞箱子贴图规则。
+     */
     private static boolean isXmasChestTexturePeriod() {
         Calendar calendar = Calendar.getInstance();
         int month = calendar.get(Calendar.MONTH) + 1;

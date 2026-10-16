@@ -4,16 +4,8 @@ import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollDisplay;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollerMode;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.GraphView;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Selector;
+import com.lowdragmc.lowdraglib2.gui.ui.data.*;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.*;
 import com.lowdragmc.lowdraglib2.gui.ui.event.HoverTooltips;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
@@ -33,7 +25,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.List;
 
-/** ExchangeChartElement: Ore 面板内的 K 线或成交量画布，双击用 GraphView 全屏。 */
+/**
+ * ExchangeChartElement: Ore 面板内的 K 线或成交量画布，双击用 GraphView 全屏。
+ */
 @OnlyIn(Dist.CLIENT)
 public final class ExchangeChartElement extends UIElement {
     private static final int CHART_BG = 0xFF2D2D33;
@@ -111,7 +105,9 @@ public final class ExchangeChartElement extends UIElement {
         refreshCanvasWidth();
     }
 
-    /** setQuote: 刷新行情；换股才跳到最新，轮询刷新不得抢走滚动条。 */
+    /**
+     * setQuote: 刷新行情；换股才跳到最新，轮询刷新不得抢走滚动条。
+     */
     public void setQuote(@Nullable ExchangeQuote quote) {
         String previousId = this.quote == null ? null : this.quote.id();
         this.quote = quote;
@@ -124,7 +120,9 @@ public final class ExchangeChartElement extends UIElement {
         refreshCanvasWidth();
     }
 
-    /** setVisibleDays: 全屏下拉切换显示天数。 */
+    /**
+     * setVisibleDays: 全屏下拉切换显示天数。
+     */
     private void setVisibleDays(int days) {
         int clamped = clampRange(days);
         if (fullscreen) {
@@ -146,7 +144,9 @@ public final class ExchangeChartElement extends UIElement {
         jumpToLatest();
     }
 
-    /** refreshCanvasWidth: 柱宽保底 8px，超出视口的部分交给横向滚动。 */
+    /**
+     * refreshCanvasWidth: 柱宽保底 8px，超出视口的部分交给横向滚动。
+     */
     private void refreshCanvasWidth() {
         int count = quote == null ? 0 : quote.candlesInLastDays(visibleDays).size();
         int minWidth = PAD * 2 + ExchangeChartPlot.AXIS_RIGHT + Math.max(1, count) * ExchangeChartPlot.MIN_SLOT;
@@ -167,7 +167,9 @@ public final class ExchangeChartElement extends UIElement {
         }
     }
 
-    /** jumpToLatest: 仅在首次打开、换股、改天数，或用户本来就停在最右侧时滚到最新。 */
+    /**
+     * jumpToLatest: 仅在首次打开、换股、改天数，或用户本来就停在最右侧时滚到最新。
+     */
     private void jumpToLatest() {
         if (!pendingLatest) {
             return;
@@ -191,7 +193,9 @@ public final class ExchangeChartElement extends UIElement {
         }
     }
 
-    /** legendBar: MA / 昨收放在画布外，不随横向滚动跑掉。 */
+    /**
+     * legendBar: MA / 昨收放在画布外，不随横向滚动跑掉。
+     */
     private UIElement legendBar() {
         UIElement bar = new UIElement().layout(layout -> {
             layout.widthPercent(100);
@@ -228,7 +232,9 @@ public final class ExchangeChartElement extends UIElement {
         }
     }
 
-    /** openFullscreen: 按当前 GUI 缩放铺满整个屏幕，尺寸与截图一致。 */
+    /**
+     * openFullscreen: 按当前 GUI 缩放铺满整个屏幕，尺寸与截图一致。
+     */
     private void openFullscreen() {
         ModularUI modularUI = getModularUI();
         if (modularUI == null || modularUI.getElementById(FULLSCREEN_ID) != null) {
@@ -329,7 +335,9 @@ public final class ExchangeChartElement extends UIElement {
         modularUI.requestFocus(overlay);
     }
 
-    /** closeFullscreen: 关掉铺满屏幕的 K 线层。 */
+    /**
+     * closeFullscreen: 关掉铺满屏幕的 K 线层。
+     */
     private void closeFullscreen() {
         UIElement node = this;
         while (node != null) {
@@ -352,7 +360,9 @@ public final class ExchangeChartElement extends UIElement {
         return mode == Mode.CANDLE ? "gui.simukraft.exchange.kline" : "gui.simukraft.exchange.volume";
     }
 
-    /** rangeSelector: 全屏标题栏右侧的天数下拉。 */
+    /**
+     * rangeSelector: 全屏标题栏右侧的天数下拉。
+     */
     private static Selector<Integer> rangeSelector(ExchangeChartElement chart) {
         Selector<Integer> selector = new Selector<>();
         selector.setCandidates(RANGE_DAYS);
@@ -377,7 +387,9 @@ public final class ExchangeChartElement extends UIElement {
         return selector;
     }
 
-    /** rangeOptionLabel: 下拉每一行固定高度，避免 Ore 主题里行高塌成一条。 */
+    /**
+     * rangeOptionLabel: 下拉每一行固定高度，避免 Ore 主题里行高塌成一条。
+     */
     private static UIElement rangeOptionLabel(Integer days) {
         Label label = new Label();
         label.setText(days == null ? Component.empty() : Component.translatable("gui.simukraft.exchange.range_days", days));
@@ -394,7 +406,9 @@ public final class ExchangeChartElement extends UIElement {
         return RANGE_DAYS.contains(days) ? days : FULLSCREEN_DEFAULT_DAYS;
     }
 
-    /** PlotCanvas: 实际绘制 K 线/成交量，宽度按 8px 柱距撑开。 */
+    /**
+     * PlotCanvas: 实际绘制 K 线/成交量，宽度按 8px 柱距撑开。
+     */
     private final class PlotCanvas extends UIElement {
         private PlotCanvas() {
             addEventListener(UIEvents.DOUBLE_CLICK, event -> {
@@ -428,7 +442,9 @@ public final class ExchangeChartElement extends UIElement {
             ExchangeChartPlot.draw(guiContext, plot, quote, guiContext.mouseX, guiContext.mouseY, clipLeft, clipRight);
         }
 
-        /** onHoverTooltips: 鼠标所在 K 线给出开高低收、涨跌、振幅、均线。 */
+        /**
+         * onHoverTooltips: 鼠标所在 K 线给出开高低收、涨跌、振幅、均线。
+         */
         private void onHoverTooltips(UIEvent event) {
             int innerX = Math.round(getPositionX()) + PAD;
             int innerY = Math.round(getPositionY()) + PAD;

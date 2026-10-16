@@ -110,14 +110,18 @@ public final class CitizenProfileGenerator {
         return createChineseName(gender, random);
     }
 
-    /** createChineseName: 按原有中式姓氏加名的规则生成 NPC 名字。 */
+    /**
+     * createChineseName: 按原有中式姓氏加名的规则生成 NPC 名字。
+     */
     private static String createChineseName(String gender, RandomSource random) {
         String familyName = FAMILY_NAMES[random.nextInt(FAMILY_NAMES.length)];
         String[] givenNames = "female".equals(gender) ? FEMALE_GIVEN_NAMES : MALE_GIVEN_NAMES;
         return familyName + givenNames[random.nextInt(givenNames.length)];
     }
 
-    /** createEnglishName: 名在前、姓在后，名字来自 names/en_us.json。 */
+    /**
+     * createEnglishName: 名在前、姓在后，名字来自 names/en_us.json。
+     */
     private static String createEnglishName(String gender, RandomSource random) {
         String[] givenFallback = "female".equals(gender) ? ENGLISH_FEMALE_GIVEN_NAMES : ENGLISH_MALE_GIVEN_NAMES;
         String givenName = CitizenNameLibrary.givenName(gender, random, givenFallback);
@@ -134,9 +138,9 @@ public final class CitizenProfileGenerator {
     }
 
     private static final java.util.Set<String> COMPOUND_SURNAMES = java.util.Set.of(
-            "欧阳","诸葛","上官","司马","东方","皇甫","慕容","司徒","端木","公孙",
-            "轩辕","令狐","钟离","宇文","长孙","鲜于","澹台","淳于","太叔","申屠",
-            "仲孙","颛孙","巫马","公西"
+            "欧阳", "诸葛", "上官", "司马", "东方", "皇甫", "慕容", "司徒", "端木", "公孙",
+            "轩辕", "令狐", "钟离", "宇文", "长孙", "鲜于", "澹台", "淳于", "太叔", "申屠",
+            "仲孙", "颛孙", "巫马", "公西"
     );
 
     public static void fillChildProfile(CitizenData data, RandomSource random, long gameDay) {

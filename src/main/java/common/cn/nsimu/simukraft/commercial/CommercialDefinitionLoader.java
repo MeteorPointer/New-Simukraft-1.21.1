@@ -14,12 +14,7 @@ import javax.annotation.Nullable;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public final class CommercialDefinitionLoader {
@@ -31,7 +26,9 @@ public final class CommercialDefinitionLoader {
     private CommercialDefinitionLoader() {
     }
 
-    /** loadForBuilding: 根据已完成建筑加载商业定义。 */
+    /**
+     * loadForBuilding: 根据已完成建筑加载商业定义。
+     */
     public static LoadResult loadForBuilding(PlacedBuildingRecord building) {
         if (building == null) {
             return LoadResult.missing("missing_building");
@@ -50,7 +47,9 @@ public final class CommercialDefinitionLoader {
         return LoadResult.missing("missing_commercial_json");
     }
 
-    /** load: 从磁盘文件加载商业定义。 */
+    /**
+     * load: 从磁盘文件加载商业定义。
+     */
     public static LoadResult load(Path path) {
         if (path == null) {
             return LoadResult.missing("missing_path");
@@ -71,7 +70,9 @@ public final class CommercialDefinitionLoader {
         }
     }
 
-    /** load: 从建筑包内 JSON 文本加载商业定义。 */
+    /**
+     * load: 从建筑包内 JSON 文本加载商业定义。
+     */
     private static LoadResult load(BuildingCatalog.BuildingDefinition definition, String fileName) {
         if (definition == null || fileName == null || fileName.isBlank()) {
             return LoadResult.missing("missing_path");
@@ -96,7 +97,9 @@ public final class CommercialDefinitionLoader {
         }
     }
 
-    /** clearCache: 清理定义缓存。 */
+    /**
+     * clearCache: 清理定义缓存。
+     */
     public static void clearCache() {
         CACHE.clear();
         CommercialDefinitionSourceResolver.clearCache();
@@ -150,7 +153,9 @@ public final class CommercialDefinitionLoader {
         );
     }
 
-    /** parseContainers: 解析商业建筑显式物流容器声明。 */
+    /**
+     * parseContainers: 解析商业建筑显式物流容器声明。
+     */
     private static Map<String, CommercialDefinition.ContainerDefinition> parseContainers(@Nullable JsonObject object, List<String> errors) {
         Map<String, CommercialDefinition.ContainerDefinition> containers = new LinkedHashMap<>();
         if (object == null) {
@@ -267,7 +272,9 @@ public final class CommercialDefinitionLoader {
         return List.copyOf(materials);
     }
 
-    /** parsePositions: 读取结构内相对坐标数组，错误只进入定义错误列表。 */
+    /**
+     * parsePositions: 读取结构内相对坐标数组，错误只进入定义错误列表。
+     */
     private static List<BlockPos> parsePositions(JsonObject object, List<String> errors, String context) {
         List<BlockPos> positions = new ArrayList<>();
         if (object == null) {
@@ -396,7 +403,9 @@ public final class CommercialDefinitionLoader {
         }
     }
 
-    /** packageModified: 用建筑包 ZIP 的修改时间让替换后的 JSON 重新加载。 */
+    /**
+     * packageModified: 用建筑包 ZIP 的修改时间让替换后的 JSON 重新加载。
+     */
     private static long packageModified(BuildingCatalog.BuildingDefinition definition) {
         Path path = definition != null ? definition.packagePath() : null;
         if (path == null) {
@@ -420,12 +429,16 @@ public final class CommercialDefinitionLoader {
     }
 
     public record LoadResult(CommercialDefinition definition, List<String> errors, Path path) {
-        /** missing: 创建缺失定义结果。 */
+        /**
+         * missing: 创建缺失定义结果。
+         */
         public static LoadResult missing(String error) {
             return new LoadResult(null, List.of(error), null);
         }
 
-        /** valid: 判断定义是否无错误可用。 */
+        /**
+         * valid: 判断定义是否无错误可用。
+         */
         public boolean valid() {
             return definition != null && errors.isEmpty();
         }

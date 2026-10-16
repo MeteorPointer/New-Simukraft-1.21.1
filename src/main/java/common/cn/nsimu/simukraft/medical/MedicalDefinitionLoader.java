@@ -14,14 +14,18 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/** 医疗 JSON 读取与缓存，避免每次医疗调度重复解析建筑包。 */
+/**
+ * 医疗 JSON 读取与缓存，避免每次医疗调度重复解析建筑包。
+ */
 public final class MedicalDefinitionLoader {
     private static final ConcurrentMap<String, LoadResult> CACHE = new ConcurrentHashMap<>();
 
     private MedicalDefinitionLoader() {
     }
 
-    /** loadForBuilding：加载已建成医疗建筑的业务 JSON。 */
+    /**
+     * loadForBuilding：加载已建成医疗建筑的业务 JSON。
+     */
     public static LoadResult loadForBuilding(PlacedBuildingRecord building) {
         if (building == null) {
             return LoadResult.missing("missing_building");
@@ -41,7 +45,9 @@ public final class MedicalDefinitionLoader {
         return load(definition.get(), fileName);
     }
 
-    /** clearCache：建筑包刷新时释放医疗 JSON 缓存。 */
+    /**
+     * clearCache：建筑包刷新时释放医疗 JSON 缓存。
+     */
     public static void clearCache() {
         CACHE.clear();
     }
@@ -95,14 +101,16 @@ public final class MedicalDefinitionLoader {
         }
     }
 
-    
+
     private static String stripExtension(String fileName) {
         int dot = fileName != null ? fileName.lastIndexOf('.') : -1;
         return dot > 0 ? fileName.substring(0, dot) : "hospital";
     }
 
     public record LoadResult(MedicalDefinition definition, boolean valid, String error) {
-        /** missing：构造缺少建筑时的无定义结果。 */
+        /**
+         * missing：构造缺少建筑时的无定义结果。
+         */
         public static LoadResult missing(String error) {
             return new LoadResult(null, false, error);
         }

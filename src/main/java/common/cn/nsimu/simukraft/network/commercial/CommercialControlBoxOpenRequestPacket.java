@@ -26,24 +26,32 @@ public record CommercialControlBoxOpenRequestPacket(BlockPos pos) implements Cus
         return TYPE;
     }
 
-    /** encode: 写入打开商业控制箱请求。 */
+    /**
+     * encode: 写入打开商业控制箱请求。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, CommercialControlBoxOpenRequestPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode: 读取打开商业控制箱请求。 */
+    /**
+     * decode: 读取打开商业控制箱请求。
+     */
     public static CommercialControlBoxOpenRequestPacket decode(RegistryFriendlyByteBuf buffer) {
         return new CommercialControlBoxOpenRequestPacket(buffer.readBlockPos());
     }
 
-    /** handle: 处理客户端打开商业控制箱请求。 */
+    /**
+     * handle: 处理客户端打开商业控制箱请求。
+     */
     public static void handle(CommercialControlBoxOpenRequestPacket packet, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             openFor(level, player, packet.pos());
         }
     }
 
-    /** openFor: 校验距离和方块后向玩家发送商业控制箱视图。 */
+    /**
+     * openFor: 校验距离和方块后向玩家发送商业控制箱视图。
+     */
     public static void openFor(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (!player.blockPosition().closerThan(pos, 16.0D) && !RtsRemoteMenuAccess.hasAccess(player, pos)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.commercial_control_box.too_far"));

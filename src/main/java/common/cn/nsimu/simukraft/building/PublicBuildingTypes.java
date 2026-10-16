@@ -4,12 +4,16 @@ import common.cn.nsimu.simukraft.city.poi.CityPoiType;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
 import net.minecraft.world.level.block.Block;
 
-/** PublicBuildingTypes: 公共建筑类别以 JSON type 为准，和医院同一套规则。 */
+/**
+ * PublicBuildingTypes: 公共建筑类别以 JSON type 为准，和医院同一套规则。
+ */
 public final class PublicBuildingTypes {
     private PublicBuildingTypes() {
     }
 
-    /** of: 读取建筑包 JSON 声明的公共子类。 */
+    /**
+     * of: 读取建筑包 JSON 声明的公共子类。
+     */
     public static BuildingCatalog.BuildingType of(PlacedBuildingRecord building) {
         if (building == null) {
             return BuildingCatalog.BuildingType.STANDARD;
@@ -19,17 +23,23 @@ public final class PublicBuildingTypes {
                 .orElse(BuildingCatalog.BuildingType.STANDARD);
     }
 
-    /** isMedical: 医院类公共建筑。 */
+    /**
+     * isMedical: 医院类公共建筑。
+     */
     public static boolean isMedical(PlacedBuildingRecord building) {
         return matches(building, BuildingCatalog.BuildingType.MEDICAL, CityPoiType.MEDICAL, ModBlocks.MEDICAL_CONTROL_BOX.get());
     }
 
-    /** isBank: 银行类公共建筑。 */
+    /**
+     * isBank: 银行类公共建筑。
+     */
     public static boolean isBank(PlacedBuildingRecord building) {
         return matches(building, BuildingCatalog.BuildingType.BANK, CityPoiType.BANK, ModBlocks.BANK_CONTROL_BOX.get());
     }
 
-    /** isExchange: 交易所类公共建筑。 */
+    /**
+     * isExchange: 交易所类公共建筑。
+     */
     public static boolean isExchange(PlacedBuildingRecord building) {
         return matches(building, BuildingCatalog.BuildingType.EXCHANGE, CityPoiType.EXCHANGE, ModBlocks.EXCHANGE_CONTROL_BOX.get());
     }

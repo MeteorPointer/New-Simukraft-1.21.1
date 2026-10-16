@@ -23,9 +23,13 @@ import java.sql.Statement;
  * 一次增量写就要付一次建连开销。
  */
 public final class SqliteConnectionPool implements Closeable {
-    /** 池化连接的 busy_timeout：主线程宁可快速失败重试，也不能被写线程的事务卡住数秒。 */
+    /**
+     * 池化连接的 busy_timeout：主线程宁可快速失败重试，也不能被写线程的事务卡住数秒。
+     */
     public static final int POOL_BUSY_TIMEOUT_MILLIS = 1_000;
-    /** 写连接的 busy_timeout：写线程是后台线程，可以多等一会儿。 */
+    /**
+     * 写连接的 busy_timeout：写线程是后台线程，可以多等一会儿。
+     */
     public static final int WRITE_BUSY_TIMEOUT_MILLIS = 3_000;
 
     private static final String JDBC_PREFIX = "jdbc:sqlite:";
@@ -39,7 +43,9 @@ public final class SqliteConnectionPool implements Closeable {
      * 改成 IMMEDIATE 后开事务就取写锁，busy_timeout 才能真正生效。
      * 写连接刻意不用它，见 {@link #writeConnection()} 的注释。
      */
-    /** checkpoint 成功后把 WAL 高水位截到该上限，避免单次大体素写把 -wal 钉在百兆以上。 */
+    /**
+     * checkpoint 成功后把 WAL 高水位截到该上限，避免单次大体素写把 -wal 钉在百兆以上。
+     */
     public static final int JOURNAL_SIZE_LIMIT_BYTES = 64 * 1024 * 1024;
     private static final String POOL_URL_PARAMS =
             "?journal_mode=WAL&synchronous=NORMAL&busy_timeout=" + POOL_BUSY_TIMEOUT_MILLIS
@@ -74,7 +80,9 @@ public final class SqliteConnectionPool implements Closeable {
         return new SqliteConnectionPool(databasePath, baseUrl + WRITE_URL_PARAMS, new HikariDataSource(config));
     }
 
-    /** borrow: 借一条池化连接，调用方必须 close 归还（try-with-resources）。 */
+    /**
+     * borrow: 借一条池化连接，调用方必须 close 归还（try-with-resources）。
+     */
     public Connection borrow() throws SQLException {
         return dataSource.getConnection();
     }
@@ -99,12 +107,16 @@ public final class SqliteConnectionPool implements Closeable {
         return databasePath;
     }
 
-    /** checkpoint: 把 WAL 合并回主库并截断，避免 -wal 无限增长以及备份只拿到半份数据。 */
+    /**
+     * checkpoint: 把 WAL 合并回主库并截断，避免 -wal 无限增长以及备份只拿到半份数据。
+     */
     public void checkpoint() {
         executeCheckpoint("TRUNCATE");
     }
 
-    /** checkpointPassive: 不阻塞读者，写批次结束后尽量把 WAL 折回主库。 */
+    /**
+     * checkpointPassive: 不阻塞读者，写批次结束后尽量把 WAL 折回主库。
+     */
     public void checkpointPassive() {
         executeCheckpoint("PASSIVE");
     }

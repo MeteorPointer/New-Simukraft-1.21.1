@@ -6,7 +6,9 @@ import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-/** 锁定失败分类语义：约束冲突丢弃该操作继续，环境故障才触发降级。 */
+/**
+ * 锁定失败分类语义：约束冲突丢弃该操作继续，环境故障才触发降级。
+ */
 class StorageErrorPolicyTest {
 
     @Test

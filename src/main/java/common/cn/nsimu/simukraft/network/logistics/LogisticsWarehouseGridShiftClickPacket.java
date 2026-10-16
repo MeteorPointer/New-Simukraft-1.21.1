@@ -22,18 +22,24 @@ public record LogisticsWarehouseGridShiftClickPacket(BlockPos pos, ItemStack tar
         return TYPE;
     }
 
-    /** encode: 写入快速取出的目标物品原型。 */
+    /**
+     * encode: 写入快速取出的目标物品原型。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, LogisticsWarehouseGridShiftClickPacket packet) {
         buffer.writeBlockPos(packet.pos());
         ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, packet.target());
     }
 
-    /** decode: 读取快速取出的目标物品原型。 */
+    /**
+     * decode: 读取快速取出的目标物品原型。
+     */
     public static LogisticsWarehouseGridShiftClickPacket decode(RegistryFriendlyByteBuf buffer) {
         return new LogisticsWarehouseGridShiftClickPacket(buffer.readBlockPos(), ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer));
     }
 
-    /** handle: 服务端把仓库物品直接转移到玩家背包。 */
+    /**
+     * handle: 服务端把仓库物品直接转移到玩家背包。
+     */
     public static void handle(LogisticsWarehouseGridShiftClickPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;

@@ -1,12 +1,7 @@
 package common.cn.nsimu.simukraft.storage;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.building.BuildingBlockData;
-import common.cn.nsimu.simukraft.building.BuildingCatalog;
-import common.cn.nsimu.simukraft.building.BuildingPoiDefinition;
-import common.cn.nsimu.simukraft.building.BuildingPoiInstance;
-import common.cn.nsimu.simukraft.building.BuildingVoxelSnapshot;
-import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
+import common.cn.nsimu.simukraft.building.*;
 import common.cn.nsimu.simukraft.city.poi.CityPoiType;
 import net.minecraft.core.BlockPos;
 
@@ -14,11 +9,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 已建成建筑的结构仓库。
@@ -81,7 +72,7 @@ public final class BuildingStructureRepository {
      * loadByDimension: 读取一个维度的已建成建筑目录与 POI，不把体素 blob 拉进结果集。
      *
      * @return 成功时返回建筑列表（可能为空）；加载失败返回 null 并把建筑库标记为降级，
-     *         调用方不得缓存失败结果，留待下次访问重试
+     * 调用方不得缓存失败结果，留待下次访问重试
      */
     public List<PlacedBuildingRecord> loadByDimension(String dimensionId) {
         List<PlacedBuildingRecord> result = new ArrayList<>();
@@ -163,7 +154,9 @@ public final class BuildingStructureRepository {
         }
     }
 
-    /** loadVoxelPayload: 按栋读取并解码体素快照；单栋损坏返回空列表，不把整库打成降级。 */
+    /**
+     * loadVoxelPayload: 按栋读取并解码体素快照；单栋损坏返回空列表，不把整库打成降级。
+     */
     private List<BuildingBlockData> loadVoxelPayload(UUID buildingId) {
         if (buildingId == null || database.isClosed()) {
             return List.of();
@@ -184,7 +177,9 @@ public final class BuildingStructureRepository {
         }
     }
 
-    /** delete: 删除建筑结构及其 POI；结局语义同 {@link #upsert}。 */
+    /**
+     * delete: 删除建筑结构及其 POI；结局语义同 {@link #upsert}。
+     */
     public WriteOutcome delete(UUID buildingId) {
         if (buildingId == null) {
             return WriteOutcome.PERSISTED;

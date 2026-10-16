@@ -1,11 +1,7 @@
 package common.cn.nsimu.simukraft.storage;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.storage.core.SqlFunction;
-import common.cn.nsimu.simukraft.storage.core.SqlWrite;
-import common.cn.nsimu.simukraft.storage.core.SqliteConnectionPool;
-import common.cn.nsimu.simukraft.storage.core.StorageMetrics;
-import common.cn.nsimu.simukraft.storage.core.TransactionRunner;
+import common.cn.nsimu.simukraft.storage.core.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 
@@ -61,7 +57,9 @@ public final class BuildingStructureSqliteDatabase implements Closeable {
         this.writeQueue = new StorageWriteQueue("simukraft-buildings-db-write", transactions, metrics);
     }
 
-    /** open: 取该存档的建筑库实例；服务器已关服、为 null 或建库失败时返回 null，调用方按"存储不可用"处理。 */
+    /**
+     * open: 取该存档的建筑库实例；服务器已关服、为 null 或建库失败时返回 null，调用方按"存储不可用"处理。
+     */
     public static BuildingStructureSqliteDatabase open(MinecraftServer server) {
         if (server == null || SHUTDOWN.contains(server)) {
             return null;
@@ -78,7 +76,9 @@ public final class BuildingStructureSqliteDatabase implements Closeable {
         }
     }
 
-    /** closeFor: 关服时释放该存档的实例，避免跨存档复用；之后 {@link #open} 不再重建。 */
+    /**
+     * closeFor: 关服时释放该存档的实例，避免跨存档复用；之后 {@link #open} 不再重建。
+     */
     public static void closeFor(MinecraftServer server) {
         if (server == null) {
             return;
@@ -90,7 +90,9 @@ public final class BuildingStructureSqliteDatabase implements Closeable {
         }
     }
 
-    /** forgetServer: 服务器实例彻底退出后释放引用，避免 SHUTDOWN 集合长期持有强引用。 */
+    /**
+     * forgetServer: 服务器实例彻底退出后释放引用，避免 SHUTDOWN 集合长期持有强引用。
+     */
     public static void forgetServer(MinecraftServer server) {
         if (server != null) {
             INSTANCES.remove(server);
@@ -98,12 +100,16 @@ public final class BuildingStructureSqliteDatabase implements Closeable {
         }
     }
 
-    /** borrowConnection: 借一条池化连接用于查询，调用方必须 close（try-with-resources）归还。 */
+    /**
+     * borrowConnection: 借一条池化连接用于查询，调用方必须 close（try-with-resources）归还。
+     */
     public Connection borrowConnection() throws SQLException {
         return connections.borrow();
     }
 
-    /** callSync: 把写入提交到写线程执行并阻塞等待结果；失败、已关闭或已降级返回 null。 */
+    /**
+     * callSync: 把写入提交到写线程执行并阻塞等待结果；失败、已关闭或已降级返回 null。
+     */
     public <T> T callSync(SqlFunction<T> function) {
         if (isWriteBlocked()) {
             return null;
@@ -111,7 +117,9 @@ public final class BuildingStructureSqliteDatabase implements Closeable {
         return writeQueue.submitAndWait(SYNC_WRITE_TIMEOUT_MILLIS, function);
     }
 
-    /** submitAsync: 把写入提交到写队列立即返回，不阻塞调用线程。写入失败时写线程已记录日志。 */
+    /**
+     * submitAsync: 把写入提交到写队列立即返回，不阻塞调用线程。写入失败时写线程已记录日志。
+     */
     public void submitAsync(Object key, SqlWrite write) {
         if (isWriteBlocked()) {
             SimuKraft.LOGGER.warn("Simukraft: async write for key {} skipped, storage is write-blocked.", key);
@@ -129,7 +137,9 @@ public final class BuildingStructureSqliteDatabase implements Closeable {
         return closed || degraded;
     }
 
-    /** markDegraded: 记录一次环境故障，之后写入被拒绝直到重开存档。 */
+    /**
+     * markDegraded: 记录一次环境故障，之后写入被拒绝直到重开存档。
+     */
     public void markDegraded(String context, Throwable cause) {
         if (!degraded) {
             degraded = true;
@@ -145,12 +155,16 @@ public final class BuildingStructureSqliteDatabase implements Closeable {
         return closed;
     }
 
-    /** drainWrites: 等待队列中的写入全部落库，关服与测试用。 */
+    /**
+     * drainWrites: 等待队列中的写入全部落库，关服与测试用。
+     */
     public boolean drainWrites() {
         return writeQueue.drainAndReport();
     }
 
-    /** pendingWrites: 当前仍在队列中等待落库的写入条数（指标用）。 */
+    /**
+     * pendingWrites: 当前仍在队列中等待落库的写入条数（指标用）。
+     */
     public int pendingWrites() {
         return writeQueue.pendingCount();
     }
@@ -159,7 +173,9 @@ public final class BuildingStructureSqliteDatabase implements Closeable {
         return metrics;
     }
 
-    /** summarizeFor: 输出该存档建筑库的指标快照；实例不存在时返回未初始化说明。 */
+    /**
+     * summarizeFor: 输出该存档建筑库的指标快照；实例不存在时返回未初始化说明。
+     */
     public static String summarizeFor(MinecraftServer server) {
         BuildingStructureSqliteDatabase database = server != null ? INSTANCES.get(server) : null;
         return database != null

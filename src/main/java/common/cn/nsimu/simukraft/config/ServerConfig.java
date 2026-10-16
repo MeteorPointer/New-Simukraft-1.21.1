@@ -386,7 +386,9 @@ public final class ServerConfig {
         return CITY_CHUNK_PRICE.get();
     }
 
-    /** npcNameStyle: 返回新生成 NPC 名字使用的风格。 */
+    /**
+     * npcNameStyle: 返回新生成 NPC 名字使用的风格。
+     */
     public static CitizenNameStyle npcNameStyle() {
         return NPC_NAME_STYLE.get();
     }

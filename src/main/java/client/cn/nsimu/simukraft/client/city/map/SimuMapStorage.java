@@ -1,7 +1,5 @@
 package client.cn.nsimu.simukraft.client.city.map;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
@@ -9,13 +7,11 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.storage.LevelResource;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.slf4j.Logger;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,7 +34,9 @@ public class SimuMapStorage {
     private static final Logger LOGGER = LogUtils.getLogger();
 
     private static final int MAGIC = 0x534D5200;
-    /** VERSION: 文件头带存档/维度身份，旧版无身份缓存会丢弃。 */
+    /**
+     * VERSION: 文件头带存档/维度身份，旧版无身份缓存会丢弃。
+     */
     private static final short VERSION = 3;
     private static final String ROOT_DIR = "simukraft_mapdata";
     public static final String UNRESOLVED_WORLD_ID = "unresolved";
@@ -77,19 +75,25 @@ public class SimuMapStorage {
         return UNRESOLVED_WORLD_ID;
     }
 
-    /** isResolvedWorldId: 未解析的身份不能读写磁盘，避免不同世界写进同一个 unresolved 目录。 */
+    /**
+     * isResolvedWorldId: 未解析的身份不能读写磁盘，避免不同世界写进同一个 unresolved 目录。
+     */
     public static boolean isResolvedWorldId(String worldId) {
         return worldId != null && !worldId.isBlank() && !UNRESOLVED_WORLD_ID.equals(worldId);
     }
 
-    /** createSinglePlayerWorldId: 用文件夹名加绝对路径校验和，拷贝到别的目录也不会串档。 */
+    /**
+     * createSinglePlayerWorldId: 用文件夹名加绝对路径校验和，拷贝到别的目录也不会串档。
+     */
     public static String createSinglePlayerWorldId(Path worldFolder) {
         Path normalized = worldFolder.toAbsolutePath().normalize();
         String folderName = normalized.getFileName() == null ? "world" : normalized.getFileName().toString();
         return "sp_" + sanitizeForPath(folderName) + "_" + pathChecksum(normalized);
     }
 
-    /** createMultiplayerWorldId: 按服务器地址隔离多人缓存。 */
+    /**
+     * createMultiplayerWorldId: 按服务器地址隔离多人缓存。
+     */
     public static String createMultiplayerWorldId(String address) {
         return "mp_" + sanitizeForPath(address);
     }
@@ -98,7 +102,9 @@ public class SimuMapStorage {
         return sanitizeForPath(dimension.location().getNamespace() + "_" + dimension.location().getPath());
     }
 
-    /** matchesCacheIdentity: 磁盘文件头必须与当前存档、维度一致。 */
+    /**
+     * matchesCacheIdentity: 磁盘文件头必须与当前存档、维度一致。
+     */
     public static boolean matchesCacheIdentity(String storedWorldId, String storedDimension,
                                                String expectedWorldId, String expectedDimension) {
         return isResolvedWorldId(expectedWorldId)
@@ -149,7 +155,10 @@ public class SimuMapStorage {
         } catch (IOException e) {
             LOGGER.error("Simukraft: Failed to save map region ({}, {}) for world={} dim={}",
                     region.regionX, region.regionZ, worldId, dimensionId, e);
-            try { Files.deleteIfExists(tmp); } catch (IOException ignored) {}
+            try {
+                Files.deleteIfExists(tmp);
+            } catch (IOException ignored) {
+            }
         }
     }
 
@@ -325,7 +334,9 @@ public class SimuMapStorage {
         return ((long) regionX << 32) | (regionZ & 0xFFFFFFFFL);
     }
 
-    /** sanitizeForPath: 只去掉路径非法字符，保留中文等存档名。 */
+    /**
+     * sanitizeForPath: 只去掉路径非法字符，保留中文等存档名。
+     */
     public static String sanitizeForPath(String value) {
         if (value == null || value.isBlank()) {
             return "world";

@@ -17,7 +17,9 @@ public abstract class MixinLdlibTextField {
     @Unique
     private Object simukraft$imeProxy;
 
-    /** simukraft$installImeCompat: 为 LDLib2 文本框安装 IMBlocker 软兼容事件。 */
+    /**
+     * simukraft$installImeCompat: 为 LDLib2 文本框安装 IMBlocker 软兼容事件。
+     */
     @Inject(method = "<init>", at = @At("TAIL"))
     private void simukraft$installImeCompat(CallbackInfo callbackInfo) {
         TextField field = (TextField) (Object) this;
@@ -26,25 +28,33 @@ public abstract class MixinLdlibTextField {
         field.addEventListener(UIEvents.CHAR_TYPED, event -> LdlibTextFieldImeCompat.onFocusProbe(field, simukraft$imeProxy(field), event));
     }
 
-    /** simukraft$updateImeCursorAfterSetCursor: 光标移动后刷新输入法候选框位置。 */
+    /**
+     * simukraft$updateImeCursorAfterSetCursor: 光标移动后刷新输入法候选框位置。
+     */
     @Inject(method = "setCursor", at = @At("TAIL"))
     private void simukraft$updateImeCursorAfterSetCursor(int pos, CallbackInfo callbackInfo) {
         LdlibTextFieldImeCompat.onCursorChanged((TextField) (Object) this);
     }
 
-    /** simukraft$updateImeCursorAfterSetSelection: 选区变化后刷新输入法候选框位置。 */
+    /**
+     * simukraft$updateImeCursorAfterSetSelection: 选区变化后刷新输入法候选框位置。
+     */
     @Inject(method = "setSelection", at = @At("TAIL"))
     private void simukraft$updateImeCursorAfterSetSelection(int start, int end, CallbackInfo callbackInfo) {
         LdlibTextFieldImeCompat.onCursorChanged((TextField) (Object) this);
     }
 
-    /** simukraft$updateImeCursorAfterTextChanged: 文本变化后刷新输入法候选框位置。 */
+    /**
+     * simukraft$updateImeCursorAfterTextChanged: 文本变化后刷新输入法候选框位置。
+     */
     @Inject(method = "onRawTextUpdate", at = @At("TAIL"))
     private void simukraft$updateImeCursorAfterTextChanged(CallbackInfo callbackInfo) {
         LdlibTextFieldImeCompat.onCursorChanged((TextField) (Object) this);
     }
 
-    /** simukraft$imeProxy: 延迟创建当前文本框的 IMBlocker 动态代理。 */
+    /**
+     * simukraft$imeProxy: 延迟创建当前文本框的 IMBlocker 动态代理。
+     */
     @Unique
     private Object simukraft$imeProxy(TextField field) {
         if (simukraft$imeProxy == null) {

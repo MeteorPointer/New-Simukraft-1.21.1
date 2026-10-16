@@ -1,8 +1,5 @@
 package common.cn.nsimu.simukraft.path;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -17,6 +14,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 
 class PathSnapshotBuilderTrapdoorTest {
@@ -77,7 +77,9 @@ class PathSnapshotBuilderTrapdoorTest {
         assertTrue(cell != null && cell.floorSupported(), "scaffolding above a full block must retain its landing support");
     }
 
-    /** 活板门薄地板必须能进入相邻下一格梯子，并继续向下爬行。 */
+    /**
+     * 活板门薄地板必须能进入相邻下一格梯子，并继续向下爬行。
+     */
     @Test
     void bottomTrapdoorFloorCanEnterAdjacentLadder() {
         Long2ObjectOpenHashMap<BlockState> states = new Long2ObjectOpenHashMap<>();

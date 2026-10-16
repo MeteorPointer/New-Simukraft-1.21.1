@@ -1,12 +1,11 @@
 package common.cn.nsimu.simukraft.citizen;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import common.cn.nsimu.simukraft.medical.DiseaseType;
-import java.util.UUID;
 import org.junit.jupiter.api.Test;
+
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class CitizenVitalGateTest {
     @Test

@@ -1,8 +1,9 @@
 package client.cn.nsimu.simukraft.client.city.map;
 
+import com.mojang.blaze3d.platform.NativeImage;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import com.mojang.blaze3d.platform.NativeImage;
+
 import java.util.Arrays;
 
 /**
@@ -21,9 +22,17 @@ public class SimuMapRenderer {
     private SimuMapRenderer() {
     }
 
-    public static void setShadowStrength(float v) { shadowStrength = v; }
-    public static void setNoiseStrength(float v) { noiseStrength = v; }
-    public static void setDrawChunkGrid(boolean v) { drawChunkGrid = v; }
+    public static void setShadowStrength(float v) {
+        shadowStrength = v;
+    }
+
+    public static void setNoiseStrength(float v) {
+        noiseStrength = v;
+    }
+
+    public static void setDrawChunkGrid(boolean v) {
+        drawChunkGrid = v;
+    }
 
     /**
      * 渲染一个 region 到 NativeImage。
@@ -99,21 +108,21 @@ public class SimuMapRenderer {
     /**
      * 在 region 图像上绘制城市 chunk 边框叠加层。
      * 只绘制外框，不填充领地颜色。
-     * 
-     * @param region 目标 region
-     * @param chunkX chunk X 坐标
-     * @param chunkZ chunk Z 坐标
-     * @param borderColor ARGB 边框颜色
+     *
+     * @param region          目标 region
+     * @param chunkX          chunk X 坐标
+     * @param chunkZ          chunk Z 坐标
+     * @param borderColor     ARGB 边框颜色
      * @param borderThickness 边框厚度，单位为像素
-     * @param drawTop 是否绘制上边框
-     * @param drawBottom 是否绘制下边框
-     * @param drawLeft 是否绘制左边框
-     * @param drawRight 是否绘制右边框
+     * @param drawTop         是否绘制上边框
+     * @param drawBottom      是否绘制下边框
+     * @param drawLeft        是否绘制左边框
+     * @param drawRight       是否绘制右边框
      */
     public static void drawChunkBorder(SimuMapRegion region, int chunkX, int chunkZ,
-                                        int borderColor, int borderThickness,
-                                        boolean drawTop, boolean drawBottom,
-                                        boolean drawLeft, boolean drawRight) {
+                                       int borderColor, int borderThickness,
+                                       boolean drawTop, boolean drawBottom,
+                                       boolean drawLeft, boolean drawRight) {
         NativeImage image;
         synchronized (region) {
             image = region.getOrCreateImage();
@@ -154,7 +163,9 @@ public class SimuMapRenderer {
         }
     }
 
-    /** 混合两个 NativeImage ABGR 格式颜色。 */
+    /**
+     * 混合两个 NativeImage ABGR 格式颜色。
+     */
     private static int blendNativeColors(int base, int overlay) {
         int oa = (overlay >> 24) & 0xFF;
         if (oa == 0) return base;

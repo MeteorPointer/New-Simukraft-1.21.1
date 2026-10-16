@@ -15,17 +15,15 @@ import net.minecraft.util.profiling.ProfilerFiller;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
-/** CityLevelDefinitionLoader: 从数据包原子加载城市等级定义。 */
+/**
+ * CityLevelDefinitionLoader: 从数据包原子加载城市等级定义。
+ */
 
 public final class CityLevelDefinitionLoader implements PreparableReloadListener {
     public static final CityLevelDefinitionLoader INSTANCE = new CityLevelDefinitionLoader();
@@ -36,12 +34,16 @@ public final class CityLevelDefinitionLoader implements PreparableReloadListener
     private CityLevelDefinitionLoader() {
     }
 
-    /** definitions: 返回当前已发布的不可变等级快照。 */
+    /**
+     * definitions: 返回当前已发布的不可变等级快照。
+     */
     public List<CityLevelDefinition> definitions() {
         return definitions.get();
     }
 
-    /** definition: 按等级读取当前生效的城市等级定义。 */
+    /**
+     * definition: 按等级读取当前生效的城市等级定义。
+     */
     public CityLevelDefinition definition(int level) {
         for (CityLevelDefinition definition : definitions()) {
             if (definition.level() == level) {
@@ -51,7 +53,9 @@ public final class CityLevelDefinitionLoader implements PreparableReloadListener
         return null;
     }
 
-    /** nextLevel: 查找高于当前等级的下一个数据包等级。 */
+    /**
+     * nextLevel: 查找高于当前等级的下一个数据包等级。
+     */
     public CityLevelDefinition nextLevel(int currentLevel) {
         int normalizedCurrent = Math.max(CityLevelDefinition.MIN_LEVEL, currentLevel);
         if (normalizedCurrent >= CityLevelDefinition.MAX_LEVEL) {
@@ -61,7 +65,9 @@ public final class CityLevelDefinitionLoader implements PreparableReloadListener
         return definition(targetLevel);
     }
 
-    /** futureLevels: 返回客户端等级列表使用的有限只读快照。 */
+    /**
+     * futureLevels: 返回客户端等级列表使用的有限只读快照。
+     */
     public List<CityLevelDefinition> futureLevels(int currentLevel, int limit) {
         int normalizedCurrent = Math.max(CityLevelDefinition.MIN_LEVEL, currentLevel);
         int safeLimit = Math.max(0, Math.min(MAX_DEFINITIONS, limit));
@@ -113,7 +119,9 @@ public final class CityLevelDefinitionLoader implements PreparableReloadListener
         return List.copyOf(loaded);
     }
 
-    /** parseDefinitions: 解析单对象、根数组或 levels 包装格式的等级 JSON。 */
+    /**
+     * parseDefinitions: 解析单对象、根数组或 levels 包装格式的等级 JSON。
+     */
     static List<CityLevelDefinition> parseDefinitions(ResourceLocation resourceId, JsonElement root) {
         if (root == null || root.isJsonNull()) {
             throw new IllegalArgumentException("City level root must not be null");
@@ -157,7 +165,9 @@ public final class CityLevelDefinitionLoader implements PreparableReloadListener
         return List.copyOf(definitions);
     }
 
-    /** parse: 校验并解析单个城市等级 JSON。 */
+    /**
+     * parse: 校验并解析单个城市等级 JSON。
+     */
     static CityLevelDefinition parse(ResourceLocation resourceId, JsonObject root) {
         if (root == null) {
             throw new IllegalArgumentException("City level root must be an object");

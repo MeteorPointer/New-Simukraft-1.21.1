@@ -27,13 +27,17 @@ public final class CitizenBedSleepService {
     private CitizenBedSleepService() {
     }
 
-    /** tryStartSleeping：验证床空闲后调用 entity.startSleeping，记录占用和唤醒位置。 */
+    /**
+     * tryStartSleeping：验证床空闲后调用 entity.startSleeping，记录占用和唤醒位置。
+     */
     public static boolean tryStartSleeping(ServerLevel level, CitizenEntity entity, BlockPos bedHeadPos, Vec3 wakeupPos) {
-        if (level == null || entity == null || bedHeadPos == null || !level.isLoaded(bedHeadPos) || entity.isSleeping()) return false;
+        if (level == null || entity == null || bedHeadPos == null || !level.isLoaded(bedHeadPos) || entity.isSleeping())
+            return false;
         if (CitizenPanicService.isFleeing(entity)) return false;
         BlockState state = level.getBlockState(bedHeadPos);
         if (!isSupportedBed(state)) return false;
-        if (state.hasProperty(BlockStateProperties.OCCUPIED) && state.getValue(BlockStateProperties.OCCUPIED)) return false;
+        if (state.hasProperty(BlockStateProperties.OCCUPIED) && state.getValue(BlockStateProperties.OCCUPIED))
+            return false;
         String levelKey = SaveScopedCacheKey.levelKey(level);
         UUID uuid = entity.getUUID();
         ConcurrentMap<BlockPos, UUID> beds = OCCUPIED_BEDS.computeIfAbsent(levelKey, k -> new ConcurrentHashMap<>());
@@ -50,7 +54,9 @@ public final class CitizenBedSleepService {
         return true;
     }
 
-    /** restoreSleeping：为已处于睡眠状态的 NPC 重建床位缓存，不重复触发原版睡眠定位。 */
+    /**
+     * restoreSleeping：为已处于睡眠状态的 NPC 重建床位缓存，不重复触发原版睡眠定位。
+     */
     public static boolean restoreSleeping(ServerLevel level, CitizenEntity entity, @Nullable Vec3 wakeupPos) {
         if (level == null || entity == null || !entity.isSleeping()) {
             return false;
@@ -74,7 +80,9 @@ public final class CitizenBedSleepService {
         return true;
     }
 
-    /** wakeUp：停止睡眠并将实体定位到预计算的安全落点，避免卡头。 */
+    /**
+     * wakeUp：停止睡眠并将实体定位到预计算的安全落点，避免卡头。
+     */
     public static void wakeUp(ServerLevel level, CitizenEntity entity, @Nullable Vec3 fallbackPos) {
         String levelKey = SaveScopedCacheKey.levelKey(level);
         UUID uuid = entity.getUUID();
@@ -90,7 +98,9 @@ public final class CitizenBedSleepService {
         release(level, uuid);
     }
 
-    /** release：清理占用记录并还原床的 OCCUPIED block state（未加载实体时使用）。 */
+    /**
+     * release：清理占用记录并还原床的 OCCUPIED block state（未加载实体时使用）。
+     */
     public static void release(ServerLevel level, UUID uuid) {
         if (level == null || uuid == null) {
             return;

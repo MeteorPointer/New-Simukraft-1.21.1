@@ -10,7 +10,9 @@ public final class CommercialStockService {
     private CommercialStockService() {
     }
 
-    /** ensureStock: 确保商业定义中的库存条目已经初始化。 */
+    /**
+     * ensureStock: 确保商业定义中的库存条目已经初始化。
+     */
     public static void ensureStock(ServerLevel level, BlockPos boxPos, CommercialDefinition definition) {
         if (level == null || boxPos == null || definition == null) {
             return;
@@ -34,7 +36,9 @@ public final class CommercialStockService {
         }
     }
 
-    /** restock: 按服务器运行 tick 间隔补货。 */
+    /**
+     * restock: 按服务器运行 tick 间隔补货。
+     */
     public static void restock(ServerLevel level, BlockPos boxPos, CommercialDefinition definition) {
         if (level == null || boxPos == null || definition == null) {
             return;
@@ -69,12 +73,16 @@ public final class CommercialStockService {
         }
     }
 
-    /** snapshot: 获取当前商业箱库存快照。 */
+    /**
+     * snapshot: 获取当前商业箱库存快照。
+     */
     public static Map<String, CommercialStockData> snapshot(ServerLevel level, BlockPos boxPos) {
         return level == null || boxPos == null ? Map.of() : CommercialStockManager.get(level).allAt(boxPos);
     }
 
-    /** removeBox: 删除商业箱全部库存。 */
+    /**
+     * removeBox: 删除商业箱全部库存。
+     */
     public static void removeBox(ServerLevel level, BlockPos boxPos) {
         if (level != null && boxPos != null) {
             CommercialStockManager.get(level).removeBox(boxPos);

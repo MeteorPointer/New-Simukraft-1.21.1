@@ -12,7 +12,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Predicate;
 
-/** NPC 的真实物品栏；普通背包为 7x2，装备与双手使用独立槽位。 */
+/**
+ * NPC 的真实物品栏；普通背包为 7x2，装备与双手使用独立槽位。
+ */
 
 public final class CitizenInventory extends SimpleContainer {
     public static final int BACKPACK_COLUMNS = 7;
@@ -32,14 +34,18 @@ public final class CitizenInventory extends SimpleContainer {
         super(TOTAL_SIZE);
     }
 
-    /** saveToTag：使用原版 ItemStack NBT 编解码保存全部槽位。 */
+    /**
+     * saveToTag：使用原版 ItemStack NBT 编解码保存全部槽位。
+     */
     public synchronized CompoundTag saveToTag(HolderLookup.Provider registries) {
         CompoundTag tag = new CompoundTag();
         ContainerHelper.saveAllItems(tag, getItems(), registries);
         return tag;
     }
 
-    /** loadFromTag：从原版 NBT 恢复槽位，并在完成后只发送一次变更通知。 */
+    /**
+     * loadFromTag：从原版 NBT 恢复槽位，并在完成后只发送一次变更通知。
+     */
     public synchronized void loadFromTag(CompoundTag tag, HolderLookup.Provider registries) {
         loading = true;
         try {
@@ -53,7 +59,9 @@ public final class CitizenInventory extends SimpleContainer {
         setChanged();
     }
 
-    /** insertBackpackAll：仅在全部物品都能放入普通背包时原子提交。 */
+    /**
+     * insertBackpackAll：仅在全部物品都能放入普通背包时原子提交。
+     */
     public synchronized boolean insertBackpackAll(List<ItemStack> additions) {
         List<ItemStack> simulated = mutableBackpackSnapshot();
         if (!mergeAll(simulated, additions)) {
@@ -63,7 +71,9 @@ public final class CitizenInventory extends SimpleContainer {
         return true;
     }
 
-    /** replaceBackpack：批量替换普通背包，并合并为一次 NBT 灾备通知。 */
+    /**
+     * replaceBackpack：批量替换普通背包，并合并为一次 NBT 灾备通知。
+     */
     public synchronized void replaceBackpack(List<ItemStack> stacks) {
         loading = true;
         try {
@@ -79,12 +89,16 @@ public final class CitizenInventory extends SimpleContainer {
         setChanged();
     }
 
-    /** canInsertBackpackAll：无副作用预判一组物品是否能全部进入普通背包。 */
+    /**
+     * canInsertBackpackAll：无副作用预判一组物品是否能全部进入普通背包。
+     */
     public synchronized boolean canInsertBackpackAll(List<ItemStack> additions) {
         return mergeAll(mutableBackpackSnapshot(), additions);
     }
 
-    /** extractFirstBackpack：从普通背包提取首个匹配物品。 */
+    /**
+     * extractFirstBackpack：从普通背包提取首个匹配物品。
+     */
     public synchronized Optional<ItemStack> extractFirstBackpack(Predicate<ItemStack> matcher) {
         if (matcher == null) {
             return Optional.empty();
@@ -99,7 +113,9 @@ public final class CitizenInventory extends SimpleContainer {
         return Optional.empty();
     }
 
-    /** backpackSnapshot：返回普通背包的不可变副本。 */
+    /**
+     * backpackSnapshot：返回普通背包的不可变副本。
+     */
     public synchronized List<ItemStack> backpackSnapshot() {
         return List.copyOf(mutableBackpackSnapshot());
     }
@@ -112,7 +128,9 @@ public final class CitizenInventory extends SimpleContainer {
         return result;
     }
 
-    /** occupiedBackpackSlots：统计普通背包已占用的堆栈槽位。 */
+    /**
+     * occupiedBackpackSlots：统计普通背包已占用的堆栈槽位。
+     */
     public synchronized int occupiedBackpackSlots() {
         int occupied = 0;
         for (int slot = 0; slot < BACKPACK_SIZE; slot++) {
@@ -123,12 +141,16 @@ public final class CitizenInventory extends SimpleContainer {
         return occupied;
     }
 
-    /** hasBackpackItems：判断普通背包是否存在物品。 */
+    /**
+     * hasBackpackItems：判断普通背包是否存在物品。
+     */
     public synchronized boolean hasBackpackItems() {
         return occupiedBackpackSlots() > 0;
     }
 
-    /** equipmentIndex：把原版装备槽映射到 NPC 物品栏槽位。 */
+    /**
+     * equipmentIndex：把原版装备槽映射到 NPC 物品栏槽位。
+     */
     public static int equipmentIndex(EquipmentSlot slot) {
         return switch (slot) {
             case HEAD -> HEAD_SLOT;

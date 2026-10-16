@@ -8,11 +8,7 @@ import net.minecraft.world.level.block.state.BlockState;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,7 +22,9 @@ final class BuildingStructureMigrations {
     private BuildingStructureMigrations() {
     }
 
-    /** upgradeToV2: 给旧档补列、按栋折叠、删掉方块表。已经是 v2 则立即返回。 */
+    /**
+     * upgradeToV2: 给旧档补列、按栋折叠、删掉方块表。已经是 v2 则立即返回。
+     */
     static void upgradeToV2(SqliteConnectionPool connections) throws SQLException {
         connections.checkpoint();
         try (Connection connection = connections.borrow()) {
@@ -131,7 +129,9 @@ final class BuildingStructureMigrations {
         return blocks;
     }
 
-    /** markRemainingBuildingsConverted: 没有旧方块行的建筑也标成已折叠，避免下次再扫。 */
+    /**
+     * markRemainingBuildingsConverted: 没有旧方块行的建筑也标成已折叠，避免下次再扫。
+     */
     private static void markRemainingBuildingsConverted(Connection connection) throws SQLException {
         try (Statement statement = connection.createStatement()) {
             statement.executeUpdate("UPDATE placed_buildings SET blocks_format = " + BuildingVoxelCodec.FORMAT_V1

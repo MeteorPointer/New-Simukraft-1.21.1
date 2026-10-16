@@ -18,11 +18,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
-/** 锁定写队列的契约：合并、替换移队尾、跨 key 顺序、可排空。 */
+/**
+ * 锁定写队列的契约：合并、替换移队尾、跨 key 顺序、可排空。
+ */
 class StorageWriteQueueTest {
     @TempDir
     Path tempDir;
@@ -55,7 +55,9 @@ class StorageWriteQueueTest {
         }
     }
 
-    /** awaitPending: 等队列深度到达期望值，用来卡住"写线程正阻塞、后续提交都还堆在队列里"的时机。 */
+    /**
+     * awaitPending: 等队列深度到达期望值，用来卡住"写线程正阻塞、后续提交都还堆在队列里"的时机。
+     */
     private static void awaitPending(StorageWriteQueue queue, int expected) {
         long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(5);
         while (queue.pendingCount() != expected) {
@@ -222,7 +224,8 @@ class StorageWriteQueueTest {
             // 等写线程把上面那条取走并卡在 gate 上，之后的提交才保证还堆在队列里。
             awaitPending(queue, 0);
             // 先占住一个合并键的位置，稍后用同键重提交把真正的写入移到屏障之后。
-            queue.submit("row", connection -> { });
+            queue.submit("row", connection -> {
+            });
 
             AtomicInteger rowsVisibleWhenDrainReturned = new AtomicInteger(-1);
             AtomicBoolean drained = new AtomicBoolean();

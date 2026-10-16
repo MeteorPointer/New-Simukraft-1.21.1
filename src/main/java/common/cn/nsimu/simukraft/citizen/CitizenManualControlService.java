@@ -7,7 +7,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 
-/** 处理信息界面的跟随玩家与原地停留开关。 */
+/**
+ * 处理信息界面的跟随玩家与原地停留开关。
+ */
 
 public final class CitizenManualControlService {
     private static final double FOLLOW_START_DISTANCE_SQR = 16.0D;
@@ -17,7 +19,9 @@ public final class CitizenManualControlService {
     private CitizenManualControlService() {
     }
 
-    /** tick：原地停留优先级最高；否则按低频路径请求跟随指定玩家。 */
+    /**
+     * tick：原地停留优先级最高；否则按低频路径请求跟随指定玩家。
+     */
     public static void tick(ServerLevel level, CitizenEntity citizen) {
         if (level == null || citizen == null || citizen.isRemoved()) {
             return;

@@ -28,7 +28,9 @@ public abstract class MixinWorldMapSession {
     @Shadow
     private MapProcessor mapProcessor;
 
-    /** simukraft$registerCityChunkHighlighter: Xaero 地图会话初始化后注册城市区块高亮器。 */
+    /**
+     * simukraft$registerCityChunkHighlighter: Xaero 地图会话初始化后注册城市区块高亮器。
+     */
     @Inject(method = "init", at = @At("RETURN"), remap = false, require = 0)
     private void simukraft$registerCityChunkHighlighter(ClientPacketListener connection, long biomeZoomSeed, CallbackInfo callbackInfo) {
         try {

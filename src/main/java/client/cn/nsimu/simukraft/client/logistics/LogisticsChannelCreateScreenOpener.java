@@ -25,12 +25,16 @@ public final class LogisticsChannelCreateScreenOpener {
     private LogisticsChannelCreateScreenOpener() {
     }
 
-    /** open: 打开旧版物流线路创建界面。 */
+    /**
+     * open: 打开旧版物流线路创建界面。
+     */
     public static void open(LogisticsServerBoxOpenResponsePacket packet, UUID preselectedClientId) {
         open(packet, preselectedClientId, LogisticsDirection.WAREHOUSE_TO_CLIENT);
     }
 
-    /** open: 打开线路创建界面并预选客户端与方向。 */
+    /**
+     * open: 打开线路创建界面并预选客户端与方向。
+     */
     public static void open(LogisticsServerBoxOpenResponsePacket packet, UUID preselectedClientId, LogisticsDirection direction) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
@@ -59,19 +63,25 @@ public final class LogisticsChannelCreateScreenOpener {
             this.itemGrid = new LogisticsItemFilterGrid(filterItems());
         }
 
-        /** init: 创建名称输入框、客户端选择和方向按钮。 */
+        /**
+         * init: 创建名称输入框、客户端选择和方向按钮。
+         */
         @Override
         protected void init() {
             rebuildWidgets("");
         }
 
-        /** renderBackground: 绘制旧版半透明背景。 */
+        /**
+         * renderBackground: 绘制旧版半透明背景。
+         */
         @Override
         public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
         }
 
-        /** render: 绘制创建线路表单和物品过滤网格。 */
+        /**
+         * render: 绘制创建线路表单和物品过滤网格。
+         */
         @Override
         public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             renderBackground(graphics, mouseX, mouseY, partialTick);
@@ -88,7 +98,9 @@ public final class LogisticsChannelCreateScreenOpener {
             super.render(graphics, mouseX, mouseY, partialTick);
         }
 
-        /** mouseClicked: 优先处理过滤网格点击。 */
+        /**
+         * mouseClicked: 优先处理过滤网格点击。
+         */
         @Override
         public boolean mouseClicked(double mouseX, double mouseY, int button) {
             Layout layout = layout();
@@ -99,7 +111,9 @@ public final class LogisticsChannelCreateScreenOpener {
             return super.mouseClicked(mouseX, mouseY, button);
         }
 
-        /** mouseScrolled: 处理客户端列表和过滤网格滚动。 */
+        /**
+         * mouseScrolled: 处理客户端列表和过滤网格滚动。
+         */
         @Override
         public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
             Layout layout = layout();
@@ -121,7 +135,9 @@ public final class LogisticsChannelCreateScreenOpener {
             return false;
         }
 
-        /** rebuildWidgets: 重建按钮并保留名称输入内容。 */
+        /**
+         * rebuildWidgets: 重建按钮并保留名称输入内容。
+         */
         private void rebuildWidgets(String previousName) {
             clearWidgets();
             Layout layout = layout();
@@ -144,7 +160,9 @@ public final class LogisticsChannelCreateScreenOpener {
                     () -> LogisticsServerBoxScreenOpener.open(packet)));
         }
 
-        /** addClientButtons: 创建目标客户端选择按钮（支持滚动）。 */
+        /**
+         * addClientButtons: 创建目标客户端选择按钮（支持滚动）。
+         */
         private void addClientButtons(Layout layout) {
             List<LogisticsControlBoxService.ClientEntry> clients = packet.clients();
             int maxOffset = Math.max(0, clients.size() - CLIENT_LIST_VISIBLE);
@@ -165,7 +183,9 @@ public final class LogisticsChannelCreateScreenOpener {
             }
         }
 
-        /** addDirectionButtons: 创建发送/接收方向按钮。 */
+        /**
+         * addDirectionButtons: 创建发送/接收方向按钮。
+         */
         private void addDirectionButtons(Layout layout) {
             addRenderableWidget(LogisticsNativeStyle.button(direction == LogisticsDirection.WAREHOUSE_TO_CLIENT
                             ? Component.literal("> ").append(Component.translatable("gui.simukraft.logistics.channel.direction.send"))
@@ -177,14 +197,18 @@ public final class LogisticsChannelCreateScreenOpener {
                     layout.x() + 270, layout.y() + 92, 88, 20, () -> setDirection(LogisticsDirection.CLIENT_TO_WAREHOUSE)));
         }
 
-        /** setDirection: 切换线路传输方向。 */
+        /**
+         * setDirection: 切换线路传输方向。
+         */
         private void setDirection(LogisticsDirection direction) {
             this.direction = direction;
             refreshFilterItems();
             rebuildWidgets(nameField != null ? nameField.getValue() : "");
         }
 
-        /** renderSelectedClientHint: 绘制当前选择的客户端提示。 */
+        /**
+         * renderSelectedClientHint: 绘制当前选择的客户端提示。
+         */
         private void renderSelectedClientHint(GuiGraphics graphics, int x, int y) {
             LogisticsControlBoxService.ClientEntry client = selectedClient();
             Component text = client == null
@@ -193,7 +217,9 @@ public final class LogisticsChannelCreateScreenOpener {
             LogisticsNativeStyle.drawFitString(graphics, this.font, text, x, y, 150, client == null ? LogisticsNativeStyle.TEXT_BAD : LogisticsNativeStyle.TEXT_GOOD);
         }
 
-        /** renderClientScrollbar: 当客户端列表超出可见区时绘制滚动条。 */
+        /**
+         * renderClientScrollbar: 当客户端列表超出可见区时绘制滚动条。
+         */
         private void renderClientScrollbar(GuiGraphics graphics, Layout layout) {
             int total = packet.clients().size();
             if (total <= CLIENT_LIST_VISIBLE) return;
@@ -207,7 +233,9 @@ public final class LogisticsChannelCreateScreenOpener {
             graphics.fill(sbX, thumbY, sbX + 3, thumbY + thumbH, 0xFFAAAAAA);
         }
 
-        /** confirm: 校验客户端和过滤物品后发送创建频道请求。 */
+        /**
+         * confirm: 校验客户端和过滤物品后发送创建频道请求。
+         */
         private void confirm() {
             if (selectedClientId == null) {
                 ClientInfoToast.show(Component.translatable("toast.simukraft.title"), Component.translatable("gui.simukraft.logistics.channel.need_client"), "warning");
@@ -235,7 +263,9 @@ public final class LogisticsChannelCreateScreenOpener {
             Minecraft.getInstance().setScreen(null);
         }
 
-        /** selectedClient: 返回当前选中的客户端数据。 */
+        /**
+         * selectedClient: 返回当前选中的客户端数据。
+         */
         private LogisticsControlBoxService.ClientEntry selectedClient() {
             if (selectedClientId == null) {
                 return null;
@@ -246,12 +276,16 @@ public final class LogisticsChannelCreateScreenOpener {
             return null;
         }
 
-        /** refreshFilterItems: 按当前方向和客户端刷新过滤物品来源。 */
+        /**
+         * refreshFilterItems: 按当前方向和客户端刷新过滤物品来源。
+         */
         private void refreshFilterItems() {
             itemGrid.setItems(filterItems());
         }
 
-        /** filterItems: 发送时显示仓库库存，接收时显示选中客户端端口库存。 */
+        /**
+         * filterItems: 发送时显示仓库库存，接收时显示选中客户端端口库存。
+         */
         private List<LogisticsInventoryEntry> filterItems() {
             if (direction == LogisticsDirection.CLIENT_TO_WAREHOUSE) {
                 return selectedClientInventory();
@@ -259,7 +293,9 @@ public final class LogisticsChannelCreateScreenOpener {
             return packet.inventory();
         }
 
-        /** autoFillNameIfUntouched: 物品选择变化时自动填入客户端翻译名。 */
+        /**
+         * autoFillNameIfUntouched: 物品选择变化时自动填入客户端翻译名。
+         */
         private void autoFillNameIfUntouched() {
             if (nameField == null || !canAutoReplaceName(nameField.getValue())) {
                 return;
@@ -268,7 +304,9 @@ public final class LogisticsChannelCreateScreenOpener {
             nameField.setValue(lastAutoName);
         }
 
-        /** suggestedChannelName: 根据已选过滤物品生成默认线路名。 */
+        /**
+         * suggestedChannelName: 根据已选过滤物品生成默认线路名。
+         */
         private String suggestedChannelName() {
             List<String> filters = itemGrid.selectedItemIds();
             if (filters.isEmpty()) {
@@ -277,14 +315,18 @@ public final class LogisticsChannelCreateScreenOpener {
             return LogisticsItemDisplayName.filterText(filters);
         }
 
-        /** canAutoReplaceName: 判断当前名称是否仍属于自动生成内容。 */
+        /**
+         * canAutoReplaceName: 判断当前名称是否仍属于自动生成内容。
+         */
         private boolean canAutoReplaceName(String name) {
             String defaultName = Component.translatable("gui.simukraft.logistics.channel.default_name").getString();
             return name == null || name.isBlank() || name.equals(defaultName)
                     || name.equals("物流线路") || name.equals("Logistics Route") || name.equals(lastAutoName);
         }
 
-        /** selectedClientInventory: 查找当前选中客户端的端口库存快照。 */
+        /**
+         * selectedClientInventory: 查找当前选中客户端的端口库存快照。
+         */
         private List<LogisticsInventoryEntry> selectedClientInventory() {
             if (selectedClientId == null) {
                 return List.of();
@@ -295,7 +337,9 @@ public final class LogisticsChannelCreateScreenOpener {
             return List.of();
         }
 
-        /** layout: 计算表单位置和尺寸。 */
+        /**
+         * layout: 计算表单位置和尺寸。
+         */
         private Layout layout() {
             int width = Math.min(410, this.width - 20);
             int height = Math.min(270, this.height - 20);

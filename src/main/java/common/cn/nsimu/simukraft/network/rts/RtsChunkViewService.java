@@ -15,7 +15,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/** RTS 摄像机区块视窗：维护焦点票据，并让原版区块和实体追踪以焦点为中心。 */
+/**
+ * RTS 摄像机区块视窗：维护焦点票据，并让原版区块和实体追踪以焦点为中心。
+ */
 
 public final class RtsChunkViewService {
     private static final long FOCUS_UPDATE_INTERVAL_TICKS = 2L;
@@ -28,7 +30,9 @@ public final class RtsChunkViewService {
     private RtsChunkViewService() {
     }
 
-    /** activate: 登记摄像机焦点并为焦点周围申请与实际视距一致的非 tick 区块票据。 */
+    /**
+     * activate: 登记摄像机焦点并为焦点周围申请与实际视距一致的非 tick 区块票据。
+     */
     public static void activate(ServerPlayer player, ChunkPos focus) {
         if (!(player != null && player.level() instanceof ServerLevel level) || focus == null
                 || !level.getWorldBorder().isWithinBounds(focus)) {
@@ -57,7 +61,9 @@ public final class RtsChunkViewService {
         }
     }
 
-    /** deactivate: 移除摄像机票据并立即让客户端区块缓存中心回到玩家本体。 */
+    /**
+     * deactivate: 移除摄像机票据并立即让客户端区块缓存中心回到玩家本体。
+     */
     public static void deactivate(ServerPlayer player) {
         if (player == null) {
             return;
@@ -72,14 +78,18 @@ public final class RtsChunkViewService {
         }
     }
 
-    /** clear: 在断线时只释放票据；原版玩家移除流程会负责发送区块卸载包。 */
+    /**
+     * clear: 在断线时只释放票据；原版玩家移除流程会负责发送区块卸载包。
+     */
     public static void clear(ServerPlayer player) {
         if (player != null) {
             releaseTicket(player.getUUID(), VIEWS.remove(player.getUUID()));
         }
     }
 
-    /** clearServer: 服务器停止时清理静态视窗状态，避免下次集成服启动残留引用。 */
+    /**
+     * clearServer: 服务器停止时清理静态视窗状态，避免下次集成服启动残留引用。
+     */
     public static void clearServer(MinecraftServer server) {
         if (server == null) {
             return;
@@ -92,19 +102,25 @@ public final class RtsChunkViewService {
         TRACKING_PLAYER.remove();
     }
 
-    /** enterTrackingUpdate: 记录本次原版 ChunkMap 刷新所属玩家，供 Mixin 替换追踪中心。 */
+    /**
+     * enterTrackingUpdate: 记录本次原版 ChunkMap 刷新所属玩家，供 Mixin 替换追踪中心。
+     */
     public static void enterTrackingUpdate(ServerPlayer player) {
         if (player != null) {
             TRACKING_PLAYER.set(player);
         }
     }
 
-    /** leaveTrackingUpdate: 清除线程局部玩家，防止后续原版刷新误用 RTS 焦点。 */
+    /**
+     * leaveTrackingUpdate: 清除线程局部玩家，防止后续原版刷新误用 RTS 焦点。
+     */
     public static void leaveTrackingUpdate() {
         TRACKING_PLAYER.remove();
     }
 
-    /** trackingView: RTS 激活时返回焦点视窗，否则保持原版以玩家本体为中心的视窗。 */
+    /**
+     * trackingView: RTS 激活时返回焦点视窗，否则保持原版以玩家本体为中心的视窗。
+     */
     public static ChunkTrackingView trackingView(ChunkPos vanillaCenter, int viewDistance) {
         ServerPlayer player = TRACKING_PLAYER.get();
         if (player == null || !(player.level() instanceof ServerLevel level)) {
@@ -115,7 +131,9 @@ public final class RtsChunkViewService {
                 : ChunkTrackingView.of(view.focus(), viewDistance);
     }
 
-    /** isTargetReachable: RTS 激活时限制操作在当前已发送视窗内；普通状态沿用原本距离限制。 */
+    /**
+     * isTargetReachable: RTS 激活时限制操作在当前已发送视窗内；普通状态沿用原本距离限制。
+     */
     public static boolean isTargetReachable(ServerLevel level, ServerPlayer player, BlockPos target,
                                             double vanillaDistance) {
         if (level == null || player == null || target == null) {
@@ -129,7 +147,9 @@ public final class RtsChunkViewService {
                 target.getX() >> 4, target.getZ() >> 4, false);
     }
 
-    /** viewCenter: 返回当前 RTS 焦点用于边界快照；非 RTS 状态回退到玩家所在区块。 */
+    /**
+     * viewCenter: 返回当前 RTS 焦点用于边界快照；非 RTS 状态回退到玩家所在区块。
+     */
     public static ChunkPos viewCenter(ServerLevel level, ServerPlayer player) {
         RtsView view = currentView(level, player);
         return view == null ? player.chunkPosition() : view.focus();
@@ -161,7 +181,9 @@ public final class RtsChunkViewService {
         }
     }
 
-    /** refreshTracking: 焦点从本体区块出发时清除原版短路条件，再执行原版增量同步。 */
+    /**
+     * refreshTracking: 焦点从本体区块出发时清除原版短路条件，再执行原版增量同步。
+     */
     private static void refreshTracking(MixinChunkMapAccessor chunkMap, ServerPlayer player) {
         if (chunkMap == null || player == null) {
             return;

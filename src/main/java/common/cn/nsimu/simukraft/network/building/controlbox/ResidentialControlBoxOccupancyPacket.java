@@ -89,7 +89,8 @@ public record ResidentialControlBoxOccupancyPacket(BlockPos pos, Action action) 
         }
         int changed = switch (packet.action()) {
             case ASSIGN_EXISTING -> CitizenHousingService.fillVacantHomes(level, building.cityId());
-            case SPAWN_NEW -> CitizenHousingService.spawnCitizensForVacantHomes(level, building.cityId(), building.worldOrigin(), 1);
+            case SPAWN_NEW ->
+                    CitizenHousingService.spawnCitizensForVacantHomes(level, building.cityId(), building.worldOrigin(), 1);
             case REPAIR_BUILDING, EVICT, TOGGLE_OCCUPANCY -> 0;
         };
         InfoToastService.success(player, Component.translatable(packet.action().messageKey(), changed));
@@ -113,11 +114,16 @@ public record ResidentialControlBoxOccupancyPacket(BlockPos pos, Action action) 
     private static void sendRepairToast(ServerPlayer player, BuildingIntegrityService.RepairResult result) {
         switch (result.status()) {
             case SUCCESS -> InfoToastService.success(player, repairSuccessMessage(result));
-            case NO_REPAIR_NEEDED -> InfoToastService.success(player, Component.translatable("message.simukraft.building_integrity.no_repair_needed"));
-            case NOT_ENOUGH_FUNDS -> InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.not_enough_funds", money(result.cost())));
-            case MATERIALS_REQUIRED -> InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.materials_required", result.manualRepairBlocks()));
-            case UNAVAILABLE -> InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.unavailable"));
-            case NO_BUILDING -> InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.no_building"));
+            case NO_REPAIR_NEEDED ->
+                    InfoToastService.success(player, Component.translatable("message.simukraft.building_integrity.no_repair_needed"));
+            case NOT_ENOUGH_FUNDS ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.not_enough_funds", money(result.cost())));
+            case MATERIALS_REQUIRED ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.materials_required", result.manualRepairBlocks()));
+            case UNAVAILABLE ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.unavailable"));
+            case NO_BUILDING ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.no_building"));
         }
     }
 

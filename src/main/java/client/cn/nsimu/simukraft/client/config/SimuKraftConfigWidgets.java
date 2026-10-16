@@ -8,18 +8,8 @@ import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollDisplay;
-import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollerMode;
-import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.ScrollerView;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Selector;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.SplitView;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.Switch;
-import com.lowdragmc.lowdraglib2.gui.ui.elements.TextField;
+import com.lowdragmc.lowdraglib2.gui.ui.data.*;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.*;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import com.lowdragmc.lowdraglib2.gui.ui.utils.UIElementProvider;
 import dev.vfyjxf.taffy.style.AlignContent;
@@ -53,14 +43,18 @@ final class SimuKraftConfigWidgets {
     private SimuKraftConfigWidgets() {
     }
 
-    /** screenUi: 创建使用 Ore 主题的根 UI。 */
+    /**
+     * screenUi: 创建使用 Ore 主题的根 UI。
+     */
     static ModularUI screenUi(UIElement root) {
         return new ModularUI(SimuKraftUiTheme.createUi(root))
                 .shouldCloseOnEsc(true)
                 .shouldCloseOnKeyInventory(false);
     }
 
-    /** screenRoot: 把窗口面板放入居中根节点。 */
+    /**
+     * screenRoot: 把窗口面板放入居中根节点。
+     */
     static UIElement screenRoot(UIElement window) {
         UIElement root = new UIElement().layout(layout -> {
             layout.widthPercent(100);
@@ -75,12 +69,16 @@ final class SimuKraftConfigWidgets {
         return root;
     }
 
-    /** window: 根据当前 GUI 缩放后的可用尺寸创建窗口，避免高缩放时超出屏幕。 */
+    /**
+     * window: 根据当前 GUI 缩放后的可用尺寸创建窗口，避免高缩放时超出屏幕。
+     */
     static UIElement window(int preferredWidth, int preferredHeight, int minWidth, int minHeight) {
         return window(windowWidth(preferredWidth, minWidth), windowHeight(preferredHeight, minHeight));
     }
 
-    /** window: 创建可填充内容的旧版窗口面板。 */
+    /**
+     * window: 创建可填充内容的旧版窗口面板。
+     */
     static UIElement window(int width, int height) {
         return panel(width, height, WINDOW_BG, BORDER).setOverflowVisible(false).layout(layout -> {
             layout.width(width);
@@ -103,7 +101,9 @@ final class SimuKraftConfigWidgets {
         return Minecraft.getInstance().getWindow().getGuiScaledWidth() < NARROW_SCREEN_WIDTH;
     }
 
-    /** panel: 创建旧版深色边框面板。 */
+    /**
+     * panel: 创建旧版深色边框面板。
+     */
     static UIElement panel(int width, int height, int color, int border) {
         return new UIElement()
                 .style(style -> style.backgroundTexture(new GuiTextureGroup(new ColorRectTexture(color), new ColorBorderTexture(2, border))))
@@ -113,7 +113,9 @@ final class SimuKraftConfigWidgets {
                 });
     }
 
-    /** header: 创建标题栏。 */
+    /**
+     * header: 创建标题栏。
+     */
     static UIElement header(Component title, int height) {
         UIElement header = panel(1, height, HEADER_BG, HEADER_BG);
         header.layout(layout -> {
@@ -128,7 +130,9 @@ final class SimuKraftConfigWidgets {
         return header;
     }
 
-    /** label: 创建统一文本标签。 */
+    /**
+     * label: 创建统一文本标签。
+     */
     static Label label(Component text, Horizontal align, int color, int height, TextWrap wrap) {
         Label label = new Label();
         label.setText(text);
@@ -146,7 +150,9 @@ final class SimuKraftConfigWidgets {
         return label;
     }
 
-    /** button: 创建旧版颜色按钮。 */
+    /**
+     * button: 创建旧版颜色按钮。
+     */
     static Button button(Component text, Runnable action, boolean active) {
         Button button = new Button();
         button.setText(text);
@@ -166,7 +172,9 @@ final class SimuKraftConfigWidgets {
         return button;
     }
 
-    /** row: 创建横向设置行。 */
+    /**
+     * row: 创建横向设置行。
+     */
     static UIElement row(Component label, UIElement control) {
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
@@ -184,7 +192,9 @@ final class SimuKraftConfigWidgets {
         return row;
     }
 
-    /** footerRow: 创建可换行页脚，高缩放窄屏时按钮会自动折到下一行。 */
+    /**
+     * footerRow: 创建可换行页脚，高缩放窄屏时按钮会自动折到下一行。
+     */
     static UIElement footerRow(int height, int gap) {
         return new UIElement().layout(layout -> {
             layout.widthPercent(100);
@@ -198,7 +208,9 @@ final class SimuKraftConfigWidgets {
         });
     }
 
-    /** section: 创建分组标题。 */
+    /**
+     * section: 创建分组标题。
+     */
     static UIElement section(Component title) {
         UIElement group = new UIElement().layout(layout -> {
             layout.widthPercent(100);
@@ -214,7 +226,9 @@ final class SimuKraftConfigWidgets {
         return group;
     }
 
-    /** compactSection: 创建紧凑分组标题，用于顶部空间较紧的材料编辑页。 */
+    /**
+     * compactSection: 创建紧凑分组标题，用于顶部空间较紧的材料编辑页。
+     */
     static UIElement compactSection(Component title) {
         UIElement group = new UIElement().layout(layout -> {
             layout.widthPercent(100);
@@ -230,7 +244,9 @@ final class SimuKraftConfigWidgets {
         return group;
     }
 
-    /** column: 创建通用竖向列。 */
+    /**
+     * column: 创建通用竖向列。
+     */
     static UIElement column(int padding, int gap) {
         return new UIElement().layout(layout -> {
             layout.widthPercent(100);
@@ -242,7 +258,9 @@ final class SimuKraftConfigWidgets {
         });
     }
 
-    /** scrollColumn: 创建按内容高度展开的滚动列。 */
+    /**
+     * scrollColumn: 创建按内容高度展开的滚动列。
+     */
     static UIElement scrollColumn(int padding, int gap) {
         return new UIElement().layout(layout -> {
             layout.widthPercent(100);
@@ -253,7 +271,9 @@ final class SimuKraftConfigWidgets {
         });
     }
 
-    /** scroller: 创建垂直滚动区域。 */
+    /**
+     * scroller: 创建垂直滚动区域。
+     */
     static UIElement scroller(UIElement child) {
         UIElement viewport = new UIElement().setOverflowVisible(false).layout(layout -> {
             layout.widthPercent(100);
@@ -278,7 +298,9 @@ final class SimuKraftConfigWidgets {
         return viewport;
     }
 
-    /** textField: 创建文本输入框。 */
+    /**
+     * textField: 创建文本输入框。
+     */
     static TextField textField(String value, Consumer<String> responder) {
         TextField field = new TextField();
         field.setAnyString();
@@ -299,7 +321,9 @@ final class SimuKraftConfigWidgets {
         return field;
     }
 
-    /** intField: 创建整数输入框。 */
+    /**
+     * intField: 创建整数输入框。
+     */
     static TextField intField(int value, int min, int max, Consumer<Integer> responder) {
         TextField field = textField(String.valueOf(value), text -> {
             try {
@@ -311,7 +335,9 @@ final class SimuKraftConfigWidgets {
         return field;
     }
 
-    /** doubleField: 创建小数输入框。 */
+    /**
+     * doubleField: 创建小数输入框。
+     */
     static TextField doubleField(double value, double min, double max, Consumer<Double> responder) {
         TextField field = textField(String.format(java.util.Locale.ROOT, "%.3f", value), text -> {
             try {
@@ -323,7 +349,9 @@ final class SimuKraftConfigWidgets {
         return field;
     }
 
-    /** switchControl: 创建 LDLib2 Switch 开关。 */
+    /**
+     * switchControl: 创建 LDLib2 Switch 开关。
+     */
     static Switch switchControl(boolean value, Consumer<Boolean> responder) {
         Switch control = new Switch();
         control.setOn(value, false);
@@ -336,7 +364,9 @@ final class SimuKraftConfigWidgets {
         return control;
     }
 
-    /** selector: 创建 LDLib2 Selector 下拉选择器。 */
+    /**
+     * selector: 创建 LDLib2 Selector 下拉选择器。
+     */
     static <T> Selector<T> selector(List<T> values, T selected, Function<T, Component> labeler, Consumer<T> responder) {
         Selector<T> selector = new Selector<>();
         T safeSelected = selected != null || values.isEmpty() ? selected : values.get(0);
@@ -379,7 +409,9 @@ final class SimuKraftConfigWidgets {
         return Math.max(min, Math.min(max, value));
     }
 
-    /** split: 创建带持久化比例的水平分栏。 */
+    /**
+     * split: 创建带持久化比例的水平分栏。
+     */
     static UIElement split(String key, float fallback, float min, float max, UIElement left, UIElement right) {
         PersistentHorizontalSplitView split = new PersistentHorizontalSplitView(key, min, max);
         split.setBorderSize(5F);
@@ -403,7 +435,9 @@ final class SimuKraftConfigWidgets {
         private float currentPercentage;
         private float lastSavedPercentage;
 
-        /** PersistentHorizontalSplitView: 记录分栏比例并在拖动后保存。 */
+        /**
+         * PersistentHorizontalSplitView: 记录分栏比例并在拖动后保存。
+         */
         private PersistentHorizontalSplitView(String preferenceKey, float min, float max) {
             this.preferenceKey = preferenceKey;
             this.min = min;
@@ -413,7 +447,9 @@ final class SimuKraftConfigWidgets {
             addEventListener(UIEvents.REMOVED, event -> savePreference());
         }
 
-        /** applySavedPercentage: 应用已保存分栏比例。 */
+        /**
+         * applySavedPercentage: 应用已保存分栏比例。
+         */
         private void applySavedPercentage(float fallback) {
             float percentage = SimuKraftClientUiPreferences.getFloat(preferenceKey, fallback, min, max);
             super.setPercentage(percentage);
@@ -429,7 +465,9 @@ final class SimuKraftConfigWidgets {
             return this;
         }
 
-        /** savePreference: 保存当前分栏比例。 */
+        /**
+         * savePreference: 保存当前分栏比例。
+         */
         private void savePreference() {
             float current = currentPercentage;
             if (Math.abs(current - lastSavedPercentage) < 0.1F) {

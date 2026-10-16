@@ -16,7 +16,9 @@ final class CommercialLegacyDefinitionParser {
     private CommercialLegacyDefinitionParser() {
     }
 
-    /** parse: 将旧版商业 JSON 的 trades/buyTrades 转换为新版报价。 */
+    /**
+     * parse: 将旧版商业 JSON 的 trades/buyTrades 转换为新版报价。
+     */
     static List<CommercialOffer> parse(JsonObject root, List<String> errors, int maxOffers, int maxResources) {
         if (root == null) {
             return List.of();

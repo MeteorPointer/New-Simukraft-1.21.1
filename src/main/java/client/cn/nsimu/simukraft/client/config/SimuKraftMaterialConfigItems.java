@@ -19,7 +19,9 @@ final class SimuKraftMaterialConfigItems {
     private SimuKraftMaterialConfigItems() {
     }
 
-    /** allItems: 获取旧版基础材料页使用的方块和物品 ID。 */
+    /**
+     * allItems: 获取旧版基础材料页使用的方块和物品 ID。
+     */
     static List<String> allItems() {
         List<String> items = new ArrayList<>();
         BuiltInRegistries.BLOCK.forEach(block -> {
@@ -39,7 +41,9 @@ final class SimuKraftMaterialConfigItems {
         return items;
     }
 
-    /** allBlocks: 获取旧版专家跳过页使用的方块 ID。 */
+    /**
+     * allBlocks: 获取旧版专家跳过页使用的方块 ID。
+     */
     static List<String> allBlocks() {
         List<String> blocks = new ArrayList<>();
         BuiltInRegistries.BLOCK.forEach(block -> {
@@ -54,7 +58,9 @@ final class SimuKraftMaterialConfigItems {
         return blocks;
     }
 
-    /** cleanId: 清理输入 ID，按需补 minecraft 命名空间。 */
+    /**
+     * cleanId: 清理输入 ID，按需补 minecraft 命名空间。
+     */
     static String cleanId(String rawId, boolean addMinecraftNamespace) {
         if (rawId == null || rawId.isBlank()) {
             return "";
@@ -63,7 +69,9 @@ final class SimuKraftMaterialConfigItems {
         return addMinecraftNamespace && !itemId.contains(":") ? "minecraft:" + itemId : itemId;
     }
 
-    /** isValid: 检查 ID 是否指向已注册物品或方块。 */
+    /**
+     * isValid: 检查 ID 是否指向已注册物品或方块。
+     */
     static boolean isValid(String itemId) {
         ResourceLocation id = ResourceLocation.tryParse(itemId);
         if (id == null) {
@@ -73,7 +81,9 @@ final class SimuKraftMaterialConfigItems {
                 || BuiltInRegistries.BLOCK.containsKey(id) && BuiltInRegistries.BLOCK.get(id) != Blocks.AIR;
     }
 
-    /** stack: 获取列表图标使用的物品堆。 */
+    /**
+     * stack: 获取列表图标使用的物品堆。
+     */
     static ItemStack stack(String itemId) {
         ResourceLocation id = ResourceLocation.tryParse(itemId);
         if (id == null) {
@@ -88,7 +98,9 @@ final class SimuKraftMaterialConfigItems {
         return blockItem == Items.AIR ? new ItemStack(Items.BARRIER) : new ItemStack(blockItem);
     }
 
-    /** displayName: 获取配置 ID 的本地化显示名。 */
+    /**
+     * displayName: 获取配置 ID 的本地化显示名。
+     */
     static Component displayName(String itemId) {
         ResourceLocation id = ResourceLocation.tryParse(itemId);
         if (id == null) {

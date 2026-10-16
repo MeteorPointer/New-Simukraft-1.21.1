@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PopulationGrowthServiceTest {
-    /** growthCheckRunsOnceAfterNoon：验证每日到达或越过中午后仅检查一次。 */
+    /**
+     * growthCheckRunsOnceAfterNoon：验证每日到达或越过中午后仅检查一次。
+     */
     @Test
     void growthCheckRunsOnceAfterNoon() {
         assertFalse(PopulationGrowthService.shouldRunGrowth(5_999L, -1L));

@@ -17,7 +17,9 @@ public final class CommercialTaxService {
     private CommercialTaxService() {
     }
 
-    /** recordShopIncome: 记录商店当天营业收入，不立即进入玩家城市资金。 */
+    /**
+     * recordShopIncome: 记录商店当天营业收入，不立即进入玩家城市资金。
+     */
     public static void recordShopIncome(ServerLevel level, UUID cityId, double amount) {
         double income = EconomyService.normalizeAmount(amount);
         if (level == null || cityId == null || income <= 0.0D) {
@@ -29,12 +31,16 @@ public final class CommercialTaxService {
         }
     }
 
-    /** collectDueTaxes: 结算指定 MC 日之前未上交的企业税。 */
+    /**
+     * collectDueTaxes: 结算指定 MC 日之前未上交的企业税。
+     */
     public static Map<UUID, Double> collectDueTaxes(ServerLevel level, long currentDay) {
         return collectDueTaxes(level, currentDay, null);
     }
 
-    /** collectDueTaxes: 仅结算 allowedCities 内城市的企业税；传 null 表示不限制城市。 */
+    /**
+     * collectDueTaxes: 仅结算 allowedCities 内城市的企业税；传 null 表示不限制城市。
+     */
     public static Map<UUID, Double> collectDueTaxes(ServerLevel level, long currentDay, Set<UUID> allowedCities) {
         if (level == null || currentDay <= 1L) {
             return Map.of();
@@ -70,7 +76,9 @@ public final class CommercialTaxService {
         return Map.copyOf(taxByCity);
     }
 
-    /** incomeDay: 使用原版 dayTime 计算商业收入所属 MC 日。 */
+    /**
+     * incomeDay: 使用原版 dayTime 计算商业收入所属 MC 日。
+     */
     private static long incomeDay(ServerLevel level) {
         return Math.max(1L, level.getDayTime() / TICKS_PER_DAY + 1L);
     }

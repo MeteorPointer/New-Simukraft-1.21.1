@@ -1,7 +1,5 @@
 package client.cn.nsimu.simukraft.client.manifest;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import common.cn.nsimu.simukraft.item.ManifestItem;
 import common.cn.nsimu.simukraft.network.manifest.ManifestTogglePacket;
 import net.minecraft.client.Minecraft;
@@ -17,6 +15,8 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
@@ -217,7 +217,9 @@ public final class ManifestScreen extends Screen {
         }
     }
 
-    /** renderMaterialFrame: 绘制材料列表区域的小标题和边框。 */
+    /**
+     * renderMaterialFrame: 绘制材料列表区域的小标题和边框。
+     */
     private void renderMaterialFrame(GuiGraphics guiGraphics, PageLayout layout, Component title) {
         int left = layout.contentX() - 5;
         int right = layout.contentRight() + 5;
@@ -235,7 +237,9 @@ public final class ManifestScreen extends Screen {
         guiGraphics.drawString(font, title, titleX, titleY, MUTED_TEXT_COLOR, false);
     }
 
-    /** renderProductGroup: 上下动态分栏渲染”需要物品 / 产出商品”。 */
+    /**
+     * renderProductGroup: 上下动态分栏渲染”需要物品 / 产出商品”。
+     */
     private void renderProductGroup(GuiGraphics guiGraphics, PageLayout layout, ManifestItem.ProductGroup group) {
         int left = layout.contentX() + 4;
         int right = layout.contentRight() - 4;

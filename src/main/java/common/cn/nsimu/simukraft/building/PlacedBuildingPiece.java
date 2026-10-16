@@ -1,6 +1,7 @@
 package common.cn.nsimu.simukraft.building;
 
 import common.cn.nsimu.simukraft.registry.ModStructures;
+import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
@@ -10,7 +11,6 @@ import net.minecraft.world.level.chunk.ChunkGenerator;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.StructurePiece;
 import net.minecraft.world.level.levelgen.structure.pieces.StructurePieceSerializationContext;
-import net.minecraft.core.BlockPos;
 
 /**
  * 运行时拼出来的结构片段，包围盒等于已建成建筑的占地。

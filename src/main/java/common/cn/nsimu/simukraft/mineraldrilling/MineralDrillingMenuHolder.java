@@ -13,7 +13,9 @@ import net.minecraft.world.entity.player.Player;
 import java.util.List;
 import java.util.UUID;
 
-/** MineralDrillingMenuHolder: 持有容器权威状态并处理 LDLib2 服务端交互。 */
+/**
+ * MineralDrillingMenuHolder: 持有容器权威状态并处理 LDLib2 服务端交互。
+ */
 
 public final class MineralDrillingMenuHolder implements IContainerUIHolder {
     private final MineralDrillingInventory inventory;
@@ -22,7 +24,9 @@ public final class MineralDrillingMenuHolder implements IContainerUIHolder {
     private volatile MineralDrillingMenuSnapshot snapshot;
     private volatile long snapshotGameTime = Long.MIN_VALUE;
 
-    /** 创建菜单持有器，并区分服务端权威库存和客户端镜像库存。 */
+    /**
+     * 创建菜单持有器，并区分服务端权威库存和客户端镜像库存。
+     */
     public MineralDrillingMenuHolder(MineralDrillingMenuSnapshot snapshot,
                                      MineralDrillingInventory inventory,
                                      MineralDrillingBoxData data,
@@ -33,22 +37,30 @@ public final class MineralDrillingMenuHolder implements IContainerUIHolder {
         this.serverLevel = serverLevel;
     }
 
-    /** boxPos: 返回当前菜单绑定的控制箱坐标。 */
+    /**
+     * boxPos: 返回当前菜单绑定的控制箱坐标。
+     */
     public BlockPos boxPos() {
         return currentSnapshot().boxPos();
     }
 
-    /** inventory: 返回菜单使用的两格钻井工具库存。 */
+    /**
+     * inventory: 返回菜单使用的两格钻井工具库存。
+     */
     public MineralDrillingInventory inventory() {
         return inventory;
     }
 
-    /** snapshot: 返回当前不可变界面快照。 */
+    /**
+     * snapshot: 返回当前不可变界面快照。
+     */
     public MineralDrillingMenuSnapshot snapshot() {
         return currentSnapshot();
     }
 
-    /** createUI: 两端创建同序元素树，客户端按逻辑分辨率调整布局尺寸。 */
+    /**
+     * createUI: 两端创建同序元素树，客户端按逻辑分辨率调整布局尺寸。
+     */
     @Override
     public ModularUI createUI(Player player) {
         if (player != null && player.level().isClientSide()) {
@@ -61,7 +73,9 @@ public final class MineralDrillingMenuHolder implements IContainerUIHolder {
                 this, player, MineralDrillingUiMetrics.maximum(), MineralDrillingUiLayout.ClientActions.NONE);
     }
 
-    /** isStillValid: 持续校验维度、八格距离和目标方块，防止远程操作失效控制箱。 */
+    /**
+     * isStillValid: 持续校验维度、八格距离和目标方块，防止远程操作失效控制箱。
+     */
     @Override
     public boolean isStillValid(Player player) {
         if (player == null || player.level().isClientSide()) {
@@ -113,7 +127,9 @@ public final class MineralDrillingMenuHolder implements IContainerUIHolder {
                 name.isBlank() ? Component.translatable("gui.simukraft.mineral_drilling.none") : Component.literal(name));
     }
 
-    /** productId: 返回服务端同步给客户端的原始产物资源 ID，不在此处解析本地化名称。 */
+    /**
+     * productId: 返回服务端同步给客户端的原始产物资源 ID，不在此处解析本地化名称。
+     */
     String productId() {
         return currentSnapshot().selectedProductId();
     }
@@ -160,13 +176,17 @@ public final class MineralDrillingMenuHolder implements IContainerUIHolder {
         return marker.minY() + (marker.maxY() - marker.minY()) * 0.5F;
     }
 
-    /** markerMinDepthValue: 返回矿脉范围较深一端的 Y，供右侧长条底部定位。 */
+    /**
+     * markerMinDepthValue: 返回矿脉范围较深一端的 Y，供右侧长条底部定位。
+     */
     float markerMinDepthValue(int index) {
         MineralDrillingMenuSnapshot.Marker marker = marker(index);
         return marker == null ? minDepth() : marker.minY();
     }
 
-    /** markerMaxDepthValue: 返回矿脉范围较浅一端的 Y，供右侧长条顶部定位。 */
+    /**
+     * markerMaxDepthValue: 返回矿脉范围较浅一端的 Y，供右侧长条顶部定位。
+     */
     float markerMaxDepthValue(int index) {
         MineralDrillingMenuSnapshot.Marker marker = marker(index);
         return marker == null ? minDepth() : marker.maxY();
@@ -186,7 +206,9 @@ public final class MineralDrillingMenuHolder implements IContainerUIHolder {
         return marker(index) != null;
     }
 
-    /** setDrillDepth: 接收菜单提交的最终深度并保留控制箱服务端校验。 */
+    /**
+     * setDrillDepth: 接收菜单提交的最终深度并保留控制箱服务端校验。
+     */
     void setDrillDepth(Player player, int requestedDepth) {
         runServerAction(player, "set depth", level -> MineralDrillingControlBoxService.setDrillDepth(
                 level, boxPos(), Math.clamp(requestedDepth, minDepth(), maxDepth())), false);
@@ -240,7 +262,9 @@ public final class MineralDrillingMenuHolder implements IContainerUIHolder {
         }
     }
 
-    /** completeServerAction: 成功拆除时关闭容器，其他结果才刷新快照，避免重建已删除状态。 */
+    /**
+     * completeServerAction: 成功拆除时关闭容器，其他结果才刷新快照，避免重建已删除状态。
+     */
     static void completeServerAction(boolean succeeded,
                                      boolean closeOnSuccess,
                                      Runnable refreshAction,
@@ -254,7 +278,9 @@ public final class MineralDrillingMenuHolder implements IContainerUIHolder {
 
     @FunctionalInterface
     private interface ServerAction {
-        /** run: 在服务端线程执行一次经过菜单校验的业务操作。 */
+        /**
+         * run: 在服务端线程执行一次经过菜单校验的业务操作。
+         */
         boolean run(ServerLevel level);
     }
 
@@ -267,7 +293,9 @@ public final class MineralDrillingMenuHolder implements IContainerUIHolder {
         }
     }
 
-    /** currentSnapshot: 按世界 tick 刷新一次服务端视图，让多个绑定共享同一快照。 */
+    /**
+     * currentSnapshot: 按世界 tick 刷新一次服务端视图，让多个绑定共享同一快照。
+     */
     private MineralDrillingMenuSnapshot currentSnapshot() {
         if (serverLevel == null) {
             return snapshot;

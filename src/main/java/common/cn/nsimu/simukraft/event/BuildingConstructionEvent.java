@@ -33,14 +33,18 @@ public abstract class BuildingConstructionEvent extends Event {
         return citizen;
     }
 
-    /** 建造开始时触发，在 {@code BuilderConstructionService.startTask} 之后。 */
+    /**
+     * 建造开始时触发，在 {@code BuilderConstructionService.startTask} 之后。
+     */
     public static final class Start extends BuildingConstructionEvent {
         public Start(ServerLevel level, BuildingTaskData task, CitizenData citizen) {
             super(level, task, citizen);
         }
     }
 
-    /** 建造完成时触发，在建筑已注册到 {@code PlacedBuildingService} 之后。 */
+    /**
+     * 建造完成时触发，在建筑已注册到 {@code PlacedBuildingService} 之后。
+     */
     public static final class Complete extends BuildingConstructionEvent {
         private final PlacedBuildingRecord placedBuilding;
 

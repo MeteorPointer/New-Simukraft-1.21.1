@@ -12,7 +12,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.Objects;
 
-/** AnimatedIconButton：带旋转角标动画的图标按钮，用于打开配置选择界面。 */
+/**
+ * AnimatedIconButton：带旋转角标动画的图标按钮，用于打开配置选择界面。
+ */
 @OnlyIn(Dist.CLIENT)
 
 public final class AnimatedIconButton extends Button {
@@ -52,7 +54,9 @@ public final class AnimatedIconButton extends Button {
         renderCornerIcon(guiGraphics);
     }
 
-    /** renderBackground：拉伸 widgets.png 作为按钮背景，悬停时加白色边框。 */
+    /**
+     * renderBackground：拉伸 widgets.png 作为按钮背景，悬停时加白色边框。
+     */
     private void renderBackground(GuiGraphics guiGraphics) {
         guiGraphics.blit(WIDGETS_TEXTURE, this.getX(), this.getY(), 0, 0,
                 this.width, this.height, this.width, this.height);
@@ -65,7 +69,9 @@ public final class AnimatedIconButton extends Button {
         }
     }
 
-    /** renderMainIcon：居中渲染 logo 主图标（80% 按钮尺寸）。 */
+    /**
+     * renderMainIcon：居中渲染 logo 主图标（80% 按钮尺寸）。
+     */
     private void renderMainIcon(GuiGraphics guiGraphics) {
         int size = Math.min((int) (Math.min(this.width, this.height) * 0.8f), 20);
         int x = this.getX() + (this.width - size) / 2;
@@ -76,7 +82,9 @@ public final class AnimatedIconButton extends Button {
         guiGraphics.blit(MAIN_ICON, x, y, 0, 0, size, size, size, size);
     }
 
-    /** renderCornerIcon：右下角渲染旋转齿轮角标（50% 按钮尺寸，悬停时旋转）。 */
+    /**
+     * renderCornerIcon：右下角渲染旋转齿轮角标（50% 按钮尺寸，悬停时旋转）。
+     */
     private void renderCornerIcon(GuiGraphics guiGraphics) {
         int size = Math.min((int) (Math.min(this.width, this.height) * 0.5f), 14);
         int cx = this.getX() + this.width - size / 2 - Math.max(2, this.width / 12);

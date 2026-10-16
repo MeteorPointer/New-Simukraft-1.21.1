@@ -1,7 +1,7 @@
 package common.cn.nsimu.simukraft.network.farmland;
 
-import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -10,7 +10,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 
-public record FarmlandBoxBoundsResponsePacket(BlockPos pos, boolean hasPlot, BlockPos min, BlockPos max) implements CustomPacketPayload {
+public record FarmlandBoxBoundsResponsePacket(BlockPos pos, boolean hasPlot, BlockPos min,
+                                              BlockPos max) implements CustomPacketPayload {
     public static final Type<FarmlandBoxBoundsResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "farmland_box_bounds_response"));
     public static final StreamCodec<RegistryFriendlyByteBuf, FarmlandBoxBoundsResponsePacket> STREAM_CODEC = StreamCodec.of(FarmlandBoxBoundsResponsePacket::encode, FarmlandBoxBoundsResponsePacket::decode);
 

@@ -4,12 +4,16 @@ import common.cn.nsimu.simukraft.building.BuildingCatalog;
 
 import java.util.Locale;
 
-/** 医疗 JSON 文件定位，规则与商业/工业建筑的同名定义一致。 */
+/**
+ * 医疗 JSON 文件定位，规则与商业/工业建筑的同名定义一致。
+ */
 public final class MedicalDefinitionSourceResolver {
     private MedicalDefinitionSourceResolver() {
     }
 
-    /** explicitMedicalFileName：读取 .sk 中的 medical:<file>.json 声明。 */
+    /**
+     * explicitMedicalFileName：读取 .sk 中的 medical:<file>.json 声明。
+     */
     public static String explicitMedicalFileName(BuildingCatalog.BuildingDefinition definition) {
         if (definition == null) {
             return null;
@@ -19,7 +23,9 @@ public final class MedicalDefinitionSourceResolver {
                 .orElse(null);
     }
 
-    /** siblingMedicalFileName：解析与 .sk 同名的 JSON 文件。 */
+    /**
+     * siblingMedicalFileName：解析与 .sk 同名的 JSON 文件。
+     */
     public static String siblingMedicalFileName(BuildingCatalog.BuildingDefinition definition) {
         if (definition == null || definition.metaFileName() == null) {
             return null;

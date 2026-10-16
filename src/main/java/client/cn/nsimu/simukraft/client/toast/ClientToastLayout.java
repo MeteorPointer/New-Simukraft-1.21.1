@@ -1,7 +1,6 @@
 package client.cn.nsimu.simukraft.client.toast;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import java.util.List;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
@@ -9,7 +8,11 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.ItemStack;
 
-/** ClientToastLayout: 计算并渲染单个通知的缩放布局。 */
+import java.util.List;
+
+/**
+ * ClientToastLayout: 计算并渲染单个通知的缩放布局。
+ */
 final class ClientToastLayout {
     private static final ResourceLocation LOGO_TEXTURE = ResourceLocation.fromNamespaceAndPath(
             SimuKraft.MOD_ID, "textures/gui/logo.png");
@@ -49,7 +52,7 @@ final class ClientToastLayout {
     private final float scale;
 
     private ClientToastLayout(Component title, ItemStack iconStack, LayoutMetrics metrics, int logicalWidth,
-            int logicalHeight, int verticalOffset, float scale) {
+                              int logicalHeight, int verticalOffset, float scale) {
         this.title = title;
         this.iconStack = iconStack;
         this.itemPrefix = metrics.itemPrefix();
@@ -70,9 +73,11 @@ final class ClientToastLayout {
         this.scale = scale;
     }
 
-    /** create: 根据目标尺寸迭代计算字体缩放和自动换行。 */
+    /**
+     * create: 根据目标尺寸迭代计算字体缩放和自动换行。
+     */
     static ClientToastLayout create(Font font, Component title, Component message, ItemStack iconStack,
-            int targetWidth, int targetHeight) {
+                                    int targetWidth, int targetHeight) {
         int safeWidth = Math.max(1, targetWidth);
         int safeHeight = Math.max(1, targetHeight);
         float maximumScale = safeHeight / (float) DEFAULT_HEIGHT;
@@ -94,9 +99,11 @@ final class ClientToastLayout {
                 scale);
     }
 
-    /** findMaximumFittingScale: 用二分搜索确定不溢出目标高度的最大字体比例。 */
+    /**
+     * findMaximumFittingScale: 用二分搜索确定不溢出目标高度的最大字体比例。
+     */
     private static float findMaximumFittingScale(Font font, Component message, ItemStack iconStack,
-            int targetWidth, int targetHeight, float minimumScale, float maximumScale) {
+                                                 int targetWidth, int targetHeight, float minimumScale, float maximumScale) {
         float lowerBound = minimumScale;
         float upperBound = Math.max(minimumScale, maximumScale);
         for (int iteration = 0; iteration < 8; iteration++) {
@@ -112,7 +119,9 @@ final class ClientToastLayout {
         return lowerBound;
     }
 
-    /** render: 将布局缩放至配置的目标矩形。 */
+    /**
+     * render: 将布局缩放至配置的目标矩形。
+     */
     void render(GuiGraphics graphics, Font font, int x, int y, int count, String style) {
         graphics.pose().pushPose();
         // 通知必须位于其他 HUD 与屏幕元素之上，避免文本被后续图层覆盖。
@@ -161,7 +170,9 @@ final class ClientToastLayout {
         graphics.pose().popPose();
     }
 
-    /** renderMessage: 绘制文本和可选物品信息。 */
+    /**
+     * renderMessage: 绘制文本和可选物品信息。
+     */
     private void renderMessage(GuiGraphics graphics, Font font) {
         for (int index = 0; index < messageLines.size(); index++) {
             graphics.drawString(
@@ -192,7 +203,9 @@ final class ClientToastLayout {
         }
     }
 
-    /** accentColor: 返回通知样式对应的强调色。 */
+    /**
+     * accentColor: 返回通知样式对应的强调色。
+     */
     private static int accentColor(String style) {
         return switch ((style != null ? style : "info").toLowerCase(java.util.Locale.ROOT)) {
             case "success" -> 0xFF42D17A;
@@ -203,7 +216,9 @@ final class ClientToastLayout {
         };
     }
 
-    /** LayoutMetrics: 保存宽度变化后的换行和控件定位结果。 */
+    /**
+     * LayoutMetrics: 保存宽度变化后的换行和控件定位结果。
+     */
     private record LayoutMetrics(
             List<FormattedCharSequence> messageLines,
             List<FormattedCharSequence> itemNameLines,
@@ -217,9 +232,11 @@ final class ClientToastLayout {
             int sidePadding,
             float horizontalScale) {
 
-        /** create: 根据逻辑宽度分割消息与物品名称。 */
+        /**
+         * create: 根据逻辑宽度分割消息与物品名称。
+         */
         private static LayoutMetrics create(Font font, Component message, ItemStack iconStack,
-                int logicalWidth) {
+                                            int logicalWidth) {
             float horizontalScale = logicalWidth / (float) DEFAULT_WIDTH;
             int textX = Math.max(24, Math.round(BASE_TEXT_X * horizontalScale));
             int sidePadding = Math.max(6, Math.round(8 * horizontalScale));

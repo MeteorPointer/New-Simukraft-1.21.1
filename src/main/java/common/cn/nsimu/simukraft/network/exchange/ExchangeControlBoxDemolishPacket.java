@@ -17,7 +17,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** ExchangeControlBoxDemolishPacket: 拆除交易所建筑。 */
+/**
+ * ExchangeControlBoxDemolishPacket: 拆除交易所建筑。
+ */
 public record ExchangeControlBoxDemolishPacket(BlockPos pos) implements CustomPacketPayload {
     public static final Type<ExchangeControlBoxDemolishPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "exchange_control_box_demolish"));
@@ -29,17 +31,23 @@ public record ExchangeControlBoxDemolishPacket(BlockPos pos) implements CustomPa
         return TYPE;
     }
 
-    /** encode: 写入坐标。 */
+    /**
+     * encode: 写入坐标。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, ExchangeControlBoxDemolishPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode: 读取坐标。 */
+    /**
+     * decode: 读取坐标。
+     */
     public static ExchangeControlBoxDemolishPacket decode(RegistryFriendlyByteBuf buffer) {
         return new ExchangeControlBoxDemolishPacket(buffer.readBlockPos());
     }
 
-    /** handle: 拆除交易所。 */
+    /**
+     * handle: 拆除交易所。
+     */
     public static void handle(ExchangeControlBoxDemolishPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;

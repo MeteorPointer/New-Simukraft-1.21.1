@@ -18,9 +18,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
 
 
 public record CityChunkBatchPurchasePacket(BlockPos pos, List<ChunkEntry> chunks) implements CustomPacketPayload {

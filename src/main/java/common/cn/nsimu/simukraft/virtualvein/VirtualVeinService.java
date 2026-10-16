@@ -26,7 +26,9 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/** VirtualVeinService: 解析矿区、生成档案并提供未来钻机查询。 */
+/**
+ * VirtualVeinService: 解析矿区、生成档案并提供未来钻机查询。
+ */
 
 public final class VirtualVeinService {
     private static final int RESERVE_MIN = 4_000;
@@ -37,7 +39,9 @@ public final class VirtualVeinService {
     private VirtualVeinService() {
     }
 
-    /** getOrCreateField: 查询或首次建立位置所属的矿区档案。 */
+    /**
+     * getOrCreateField: 查询或首次建立位置所属的矿区档案。
+     */
     public static VirtualVeinLookupResult getOrCreateField(ServerLevel level, BlockPos position) {
         if (!level.dimension().equals(Level.OVERWORLD)) {
             return new VirtualVeinLookupResult(VirtualVeinLookupStatus.NOT_OVERWORLD, null);
@@ -87,7 +91,9 @@ public final class VirtualVeinService {
         return new VirtualVeinLookupResult(VirtualVeinLookupStatus.READY, stored.get());
     }
 
-    /** findVeinsAtY: 返回目标高度可供钻机选择的矿脉槽位。 */
+    /**
+     * findVeinsAtY: 返回目标高度可供钻机选择的矿脉槽位。
+     */
     public static List<VirtualVeinLocatedSlot> findVeinsAtY(ServerLevel level, BlockPos position) {
         VirtualVeinLookupResult lookup = getOrCreateField(level, position);
         if (!lookup.isReady()) {
@@ -104,7 +110,9 @@ public final class VirtualVeinService {
         return List.copyOf(matches);
     }
 
-    /** consume: 原子扣减未来钻机指定矿脉的共享储量。 */
+    /**
+     * consume: 原子扣减未来钻机指定矿脉的共享储量。
+     */
     public static Optional<VirtualVeinConsumption> consume(ServerLevel level, BlockPos position, String veinId, int amount) {
         VirtualVeinLookupResult lookup = getOrCreateField(level, position);
         if (!lookup.isReady() || amount <= 0) {
@@ -122,12 +130,16 @@ public final class VirtualVeinService {
         return Optional.empty();
     }
 
-    /** clearCachedFields: 数据包重载后清理有限矿区缓存。 */
+    /**
+     * clearCachedFields: 数据包重载后清理有限矿区缓存。
+     */
     public static void clearCachedFields() {
         FIELD_CACHE.clear();
     }
 
-    /** clearServerCache: 服务端关闭时释放该存档的矿区缓存。 */
+    /**
+     * clearServerCache: 服务端关闭时释放该存档的矿区缓存。
+     */
     public static void clearServerCache(MinecraftServer server) {
         if (server == null) {
             return;
@@ -137,9 +149,9 @@ public final class VirtualVeinService {
     }
 
     private static VirtualVeinFieldProfile generateProfile(ServerLevel level,
-                                                            VirtualVeinFieldKey key,
-                                                            FieldClimate fieldClimate,
-                                                            List<VirtualVeinDefinition> definitions) {
+                                                           VirtualVeinFieldKey key,
+                                                           FieldClimate fieldClimate,
+                                                           List<VirtualVeinDefinition> definitions) {
         List<VirtualVeinDefinition> candidates = fieldClimate.parameterPoint() == null
                 ? List.of()
                 : selectCandidates(definitions, fieldClimate.parameterPoint());
@@ -180,7 +192,9 @@ public final class VirtualVeinService {
         );
     }
 
-    /** targetCount: 按三成空、四成一条、三成两条的概率决定矿区矿脉数量。 */
+    /**
+     * targetCount: 按三成空、四成一条、三成两条的概率决定矿区矿脉数量。
+     */
     static int targetCount(long worldSeed, VirtualVeinFieldKey key) {
         double value = VirtualVeinFieldResolver.unit(VirtualVeinFieldResolver.seededValue(worldSeed, key, "count"));
         if (value < 0.30D) {
@@ -189,7 +203,9 @@ public final class VirtualVeinService {
         return value < 0.70D ? 1 : 2;
     }
 
-    /** selectCandidates: 使用六项气候参数点、优先级和稳定 ID 筛选至多两种候选矿脉。 */
+    /**
+     * selectCandidates: 使用六项气候参数点、优先级和稳定 ID 筛选至多两种候选矿脉。
+     */
     static List<VirtualVeinDefinition> selectCandidates(List<VirtualVeinDefinition> definitions, Climate.ParameterPoint parameterPoint) {
         return definitions.stream()
                 .filter(definition -> definition.matches(parameterPoint))
@@ -198,7 +214,9 @@ public final class VirtualVeinService {
                 .toList();
     }
 
-    /** sampleClimate: 用当前世界多重噪声表匹配群系自己的气候点，创建矿区快照。 */
+    /**
+     * sampleClimate: 用当前世界多重噪声表匹配群系自己的气候点，创建矿区快照。
+     */
     private static FieldClimate sampleClimate(ServerLevel level, BlockPos position, VirtualVeinFieldKey key) {
         int sampleY = level.getSeaLevel();
         RandomState randomState = level.getChunkSource().randomState();
@@ -219,7 +237,9 @@ public final class VirtualVeinService {
         return new FieldClimate(parameterPoint);
     }
 
-    /** resolveFieldKey: 按当前位置噪声群系将空间矿区切分为独立档案。 */
+    /**
+     * resolveFieldKey: 按当前位置噪声群系将空间矿区切分为独立档案。
+     */
     private static VirtualVeinFieldKey resolveFieldKey(ServerLevel level, BlockPos position) {
         var biomeSource = level.getChunkSource().getGenerator().getBiomeSource();
         Climate.Sampler sampler = level.getChunkSource().randomState().sampler();
@@ -230,7 +250,9 @@ public final class VirtualVeinService {
         return VirtualVeinFieldResolver.resolve(level.getSeed(), position.getX(), position.getZ(), biomeId);
     }
 
-    /** climateParameterEntries: 优先读取世界 MultiNoiseBiomeSource 的运行时表，否则回退原版预设。 */
+    /**
+     * climateParameterEntries: 优先读取世界 MultiNoiseBiomeSource 的运行时表，否则回退原版预设。
+     */
     private static List<Pair<Climate.ParameterPoint, String>> climateParameterEntries(ServerLevel level) {
         List<Pair<Climate.ParameterPoint, Holder<Biome>>> parameters = worldClimateParameters(level);
         List<Pair<Climate.ParameterPoint, String>> named = new ArrayList<>(parameters.size());
@@ -240,7 +262,9 @@ public final class VirtualVeinService {
         return named;
     }
 
-    /** worldClimateParameters: 从当前维度群系源取出含模组群系的参数点列表。 */
+    /**
+     * worldClimateParameters: 从当前维度群系源取出含模组群系的参数点列表。
+     */
     private static List<Pair<Climate.ParameterPoint, Holder<Biome>>> worldClimateParameters(ServerLevel level) {
         var biomeSource = level.getChunkSource().getGenerator().getBiomeSource();
         if (biomeSource instanceof MixinMultiNoiseBiomeSourceAccessor accessor) {
@@ -253,7 +277,9 @@ public final class VirtualVeinService {
                 .values();
     }
 
-    /** findNearestUsableParameterPoint: 在指定群系或全部可用参数点中按原版距离公式取最近点。 */
+    /**
+     * findNearestUsableParameterPoint: 在指定群系或全部可用参数点中按原版距离公式取最近点。
+     */
     @Nullable
     static Climate.ParameterPoint findNearestUsableParameterPoint(Climate.TargetPoint target,
                                                                   @Nullable String requiredBiomeId,
@@ -277,7 +303,9 @@ public final class VirtualVeinService {
         return nearest;
     }
 
-    /** isUsableVeinParameter: 原版洞穴/深暗不可用；原版地表仍要求 Depth 0/1；模组群系接受其自身 Depth 区间。 */
+    /**
+     * isUsableVeinParameter: 原版洞穴/深暗不可用；原版地表仍要求 Depth 0/1；模组群系接受其自身 Depth 区间。
+     */
     static boolean isUsableVeinParameter(Climate.ParameterPoint parameterPoint, String biomeId) {
         if (isVanillaUndergroundBiomeId(biomeId)) {
             return false;
@@ -288,14 +316,18 @@ public final class VirtualVeinService {
         return biomeId != null && !biomeId.startsWith("minecraft:");
     }
 
-    /** isVanillaUndergroundBiomeId: 原版洞穴与深暗之域不单独建矿区。 */
+    /**
+     * isVanillaUndergroundBiomeId: 原版洞穴与深暗之域不单独建矿区。
+     */
     static boolean isVanillaUndergroundBiomeId(String biomeId) {
         return "minecraft:lush_caves".equals(biomeId)
                 || "minecraft:dripstone_caves".equals(biomeId)
                 || "minecraft:deep_dark".equals(biomeId);
     }
 
-    /** isSurfaceParameterPoint: 识别原版地表 Depth 单点（0 或 1）。 */
+    /**
+     * isSurfaceParameterPoint: 识别原版地表 Depth 单点（0 或 1）。
+     */
     static boolean isSurfaceParameterPoint(Climate.ParameterPoint parameterPoint) {
         long depth = parameterPoint.depth().min();
         return depth == parameterPoint.depth().max()
@@ -311,7 +343,9 @@ public final class VirtualVeinService {
                         .orElse("minecraft:unknown"));
     }
 
-    /** parameterPointFitness: 使用原版 Climate.ParameterPoint 的距离公式比较候选参数点。 */
+    /**
+     * parameterPointFitness: 使用原版 Climate.ParameterPoint 的距离公式比较候选参数点。
+     */
     private static long parameterPointFitness(Climate.ParameterPoint parameterPoint, Climate.TargetPoint target) {
         return square(parameterPoint.temperature().distance(target.temperature()))
                 + square(parameterPoint.humidity().distance(target.humidity()))

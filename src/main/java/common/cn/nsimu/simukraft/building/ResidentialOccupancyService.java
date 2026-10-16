@@ -9,7 +9,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** ResidentialOccupancyService: 住宅是否允许被分配系统入住；默认允许。 */
+/**
+ * ResidentialOccupancyService: 住宅是否允许被分配系统入住；默认允许。
+ */
 
 public final class ResidentialOccupancyService {
     private static final Set<String> CLOSED = ConcurrentHashMap.newKeySet();
@@ -18,7 +20,9 @@ public final class ResidentialOccupancyService {
     private ResidentialOccupancyService() {
     }
 
-    /** isOccupancyAllowed: 未记录时默认允许入住。 */
+    /**
+     * isOccupancyAllowed: 未记录时默认允许入住。
+     */
     public static boolean isOccupancyAllowed(ServerLevel level, UUID buildingId) {
         if (level == null || buildingId == null) {
             return true;
@@ -27,7 +31,9 @@ public final class ResidentialOccupancyService {
         return !CLOSED.contains(key(level, buildingId));
     }
 
-    /** setOccupancyAllowed: 更新内存并写入 SQLite。 */
+    /**
+     * setOccupancyAllowed: 更新内存并写入 SQLite。
+     */
     public static void setOccupancyAllowed(ServerLevel level, UUID buildingId, boolean allowed) {
         if (level == null || buildingId == null) {
             return;
@@ -42,7 +48,9 @@ public final class ResidentialOccupancyService {
         SimuSqliteStorage.saveResidentialOccupancy(level, buildingId, allowed);
     }
 
-    /** forget: 建筑拆除后清掉入住开关。 */
+    /**
+     * forget: 建筑拆除后清掉入住开关。
+     */
     public static void forget(ServerLevel level, UUID buildingId) {
         if (level == null || buildingId == null) {
             return;
@@ -51,7 +59,9 @@ public final class ResidentialOccupancyService {
         SimuSqliteStorage.deleteResidentialOccupancy(level, buildingId);
     }
 
-    /** clearCache: 关服时释放该存档的入住开关缓存。 */
+    /**
+     * clearCache: 关服时释放该存档的入住开关缓存。
+     */
     public static void clearCache(MinecraftServer server) {
         if (server == null) {
             return;

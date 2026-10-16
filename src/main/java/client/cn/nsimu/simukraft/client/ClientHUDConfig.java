@@ -21,7 +21,9 @@ public final class ClientHUDConfig {
     private ClientHUDConfig() {
     }
 
-    /** getAnchor: 从客户端配置读取 HUD 锚点。 */
+    /**
+     * getAnchor: 从客户端配置读取 HUD 锚点。
+     */
     public static Anchor getAnchor() {
         try {
             return Anchor.valueOf(ClientConfig.hudAnchorName().toUpperCase(Locale.ROOT));
@@ -30,32 +32,44 @@ public final class ClientHUDConfig {
         }
     }
 
-    /** setAnchor: 写入 HUD 锚点配置。 */
+    /**
+     * setAnchor: 写入 HUD 锚点配置。
+     */
     public static void setAnchor(Anchor newAnchor) {
         ClientConfig.HUD_ANCHOR.set((newAnchor != null ? newAnchor : Anchor.TOP_RIGHT).name());
     }
 
-    /** getPosX: 从客户端配置读取 HUD X 偏移。 */
+    /**
+     * getPosX: 从客户端配置读取 HUD X 偏移。
+     */
     public static int getPosX() {
         return ClientConfig.hudPosX();
     }
 
-    /** setPosX: 写入 HUD X 偏移配置。 */
+    /**
+     * setPosX: 写入 HUD X 偏移配置。
+     */
     public static void setPosX(int newPosX) {
         ClientConfig.HUD_POS_X.set(newPosX);
     }
 
-    /** getPosY: 从客户端配置读取 HUD Y 偏移。 */
+    /**
+     * getPosY: 从客户端配置读取 HUD Y 偏移。
+     */
     public static int getPosY() {
         return ClientConfig.hudPosY();
     }
 
-    /** setPosY: 写入 HUD Y 偏移配置。 */
+    /**
+     * setPosY: 写入 HUD Y 偏移配置。
+     */
     public static void setPosY(int newPosY) {
         ClientConfig.HUD_POS_Y.set(newPosY);
     }
 
-    /** calculatePosition: 按锚点和偏移计算 HUD 绘制坐标。 */
+    /**
+     * calculatePosition: 按锚点和偏移计算 HUD 绘制坐标。
+     */
     public static int[] calculatePosition(int screenWidth, int screenHeight, int textWidth) {
         Anchor currentAnchor = getAnchor();
         int currentPosX = getPosX();
@@ -96,7 +110,9 @@ public final class ClientHUDConfig {
         return new int[]{x, y};
     }
 
-    /** reset: 重置 HUD 配置为默认值。 */
+    /**
+     * reset: 重置 HUD 配置为默认值。
+     */
     public static void reset() {
         ClientConfig.resetHudDefaults();
     }

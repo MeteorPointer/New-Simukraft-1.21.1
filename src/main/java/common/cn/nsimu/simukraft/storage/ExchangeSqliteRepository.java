@@ -11,7 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** ExchangeSqliteRepository: 股市行情、K 线与持仓。 */
+/**
+ * ExchangeSqliteRepository: 股市行情、K 线与持仓。
+ */
 public final class ExchangeSqliteRepository {
     private final SimuSqliteDatabase database;
 
@@ -19,7 +21,9 @@ public final class ExchangeSqliteRepository {
         this.database = database;
     }
 
-    /** loadMarket: 读取当日市况。 */
+    /**
+     * loadMarket: 读取当日市况。
+     */
     public MarketRow loadMarket(String dimensionId) {
         try (Connection connection = database.borrowConnection()) {
             return loadMarket(connection, dimensionId);
@@ -29,7 +33,9 @@ public final class ExchangeSqliteRepository {
         }
     }
 
-    /** loadQuotes: 读取全部行情。 */
+    /**
+     * loadQuotes: 读取全部行情。
+     */
     public List<QuoteRow> loadQuotes(String dimensionId) {
         try (Connection connection = database.borrowConnection()) {
             return loadQuotes(connection, dimensionId);
@@ -39,7 +45,9 @@ public final class ExchangeSqliteRepository {
         }
     }
 
-    /** loadCandles: 读取一只股票的小时线。 */
+    /**
+     * loadCandles: 读取一只股票的小时线。
+     */
     public List<ExchangeCandle> loadCandles(String dimensionId, String companyId) {
         try (Connection connection = database.borrowConnection()) {
             return loadCandles(connection, dimensionId, companyId);
@@ -49,7 +57,9 @@ public final class ExchangeSqliteRepository {
         }
     }
 
-    /** loadHoldings: 读取一座城市的持仓。 */
+    /**
+     * loadHoldings: 读取一座城市的持仓。
+     */
     public List<HoldingRow> loadHoldings(UUID cityId) {
         try (Connection connection = database.borrowConnection()) {
             return loadHoldings(connection, cityId);
@@ -68,7 +78,9 @@ public final class ExchangeSqliteRepository {
     public record MarketRow(long day, String regime, int lastHour) {
     }
 
-    /** loadMarket: 读取当日市况。 */
+    /**
+     * loadMarket: 读取当日市况。
+     */
     public MarketRow loadMarket(Connection connection, String dimensionId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "SELECT market_day, regime, last_hour FROM exchange_market WHERE dimension_id=?")) {
@@ -82,7 +94,9 @@ public final class ExchangeSqliteRepository {
         return null;
     }
 
-    /** saveMarket: 写入当日市况。 */
+    /**
+     * saveMarket: 写入当日市况。
+     */
     public void saveMarket(Connection connection, String dimensionId, long day, String regime, int lastHour) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "INSERT INTO exchange_market(dimension_id, market_day, regime, last_hour) VALUES(?,?,?,?) "
@@ -95,7 +109,9 @@ public final class ExchangeSqliteRepository {
         }
     }
 
-    /** loadQuotes: 读取全部行情。 */
+    /**
+     * loadQuotes: 读取全部行情。
+     */
     public List<QuoteRow> loadQuotes(Connection connection, String dimensionId) throws SQLException {
         List<QuoteRow> rows = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
@@ -110,7 +126,9 @@ public final class ExchangeSqliteRepository {
         return rows;
     }
 
-    /** saveQuote: 写入单只行情。 */
+    /**
+     * saveQuote: 写入单只行情。
+     */
     public void saveQuote(Connection connection, String dimensionId, String companyId, double price, double previousClose, int volume)
             throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
@@ -125,7 +143,9 @@ public final class ExchangeSqliteRepository {
         }
     }
 
-    /** loadCandles: 读取一只股票的小时线。 */
+    /**
+     * loadCandles: 读取一只股票的小时线。
+     */
     public List<ExchangeCandle> loadCandles(Connection connection, String dimensionId, String companyId) throws SQLException {
         List<ExchangeCandle> candles = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
@@ -143,7 +163,9 @@ public final class ExchangeSqliteRepository {
         return candles;
     }
 
-    /** deleteCandlesAfter: 删除指定交易日之后（含当日超过 maxHour）的小时柱。 */
+    /**
+     * deleteCandlesAfter: 删除指定交易日之后（含当日超过 maxHour）的小时柱。
+     */
     public void deleteCandlesAfter(Connection connection, String dimensionId, long day, int maxHour) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "DELETE FROM exchange_candles WHERE dimension_id=? AND (market_day>? OR (market_day=? AND hour_index>?))")) {
@@ -155,7 +177,9 @@ public final class ExchangeSqliteRepository {
         }
     }
 
-    /** saveCandle: 写入一根 K 线。 */
+    /**
+     * saveCandle: 写入一根 K 线。
+     */
     public void saveCandle(Connection connection, String dimensionId, String companyId, long day, ExchangeCandle candle)
             throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
@@ -176,7 +200,9 @@ public final class ExchangeSqliteRepository {
         }
     }
 
-    /** loadHoldings: 读取一座城市的持仓。 */
+    /**
+     * loadHoldings: 读取一座城市的持仓。
+     */
     public List<HoldingRow> loadHoldings(Connection connection, UUID cityId) throws SQLException {
         List<HoldingRow> rows = new ArrayList<>();
         try (PreparedStatement statement = connection.prepareStatement(
@@ -192,7 +218,9 @@ public final class ExchangeSqliteRepository {
         return rows;
     }
 
-    /** saveHolding: 写入或删除持仓。 */
+    /**
+     * saveHolding: 写入或删除持仓。
+     */
     public void saveHolding(Connection connection, UUID cityId, String companyId, int shares, double costBasis) throws SQLException {
         if (shares <= 0) {
             try (PreparedStatement statement = connection.prepareStatement(

@@ -1,11 +1,7 @@
 package common.cn.nsimu.simukraft.registry;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.item.CoinItems;
-import common.cn.nsimu.simukraft.item.GuideBookItem;
-import common.cn.nsimu.simukraft.item.ManifestItem;
-import common.cn.nsimu.simukraft.item.GeologicalHammerItem;
-import common.cn.nsimu.simukraft.item.PortableCityCoreItem;
+import common.cn.nsimu.simukraft.item.*;
 import common.cn.nsimu.simukraft.item.food.BuffFoodItem;
 import common.cn.nsimu.simukraft.item.food.ModFoods;
 import net.minecraft.world.item.Item;

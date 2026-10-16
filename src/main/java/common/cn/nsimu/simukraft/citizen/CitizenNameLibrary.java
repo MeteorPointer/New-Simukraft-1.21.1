@@ -14,7 +14,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-/** CitizenNameLibrary: 英文名库来自 names/en_us.json。英文客户端或英式配置用这套名字。 */
+/**
+ * CitizenNameLibrary: 英文名库来自 names/en_us.json。英文客户端或英式配置用这套名字。
+ */
 public final class CitizenNameLibrary {
     private static final String RESOURCE = "assets/simukraft/names/en_us.json";
     private static volatile Library english = Library.EMPTY;
@@ -22,7 +24,9 @@ public final class CitizenNameLibrary {
     private CitizenNameLibrary() {
     }
 
-    /** useEnglish: 配置为英式，或当前客户端语言不是中文时，生成英文名。 */
+    /**
+     * useEnglish: 配置为英式，或当前客户端语言不是中文时，生成英文名。
+     */
     public static boolean useEnglish() {
         if (ServerConfig.npcNameStyle() == CitizenNameStyle.ENGLISH) {
             return true;
@@ -39,7 +43,9 @@ public final class CitizenNameLibrary {
         return pick(library().family, fallback, random);
     }
 
-    /** containsCjk: 姓氏仍是中文时，英文名不能接在这个姓后面。 */
+    /**
+     * containsCjk: 姓氏仍是中文时，英文名不能接在这个姓后面。
+     */
     public static boolean containsCjk(String value) {
         if (value == null || value.isBlank()) {
             return false;

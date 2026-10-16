@@ -12,15 +12,12 @@ import net.minecraft.core.BlockPos;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public final class IndustrialDefinitionLoader {
-    /** 未写 timeoutTicks 时的默认值。短于该值视为配方显式要求超时跳过。 */
+    /**
+     * 未写 timeoutTicks 时的默认值。短于该值视为配方显式要求超时跳过。
+     */
     static final int DEFAULT_STEP_TIMEOUT_TICKS = 12_000;
     private static final int MAX_POSITIONS = 64;
     private static final int MAX_RECIPES = 64;
@@ -123,7 +120,9 @@ public final class IndustrialDefinitionLoader {
         return definition.hasFile(sibling) ? definition.actualFileName(sibling) : null;
     }
 
-    /** hasDedicatedDrillingDeclaration: 检查建筑元数据是否声明专用钻井定义。 */
+    /**
+     * hasDedicatedDrillingDeclaration: 检查建筑元数据是否声明专用钻井定义。
+     */
     private static boolean hasDedicatedDrillingDeclaration(BuildingCatalog.BuildingDefinition definition) {
         if (definition == null || !"industry".equalsIgnoreCase(definition.category())) {
             return false;

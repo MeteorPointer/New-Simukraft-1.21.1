@@ -24,8 +24,11 @@ public final class SimuMap3DMesh {
 
     public interface Source {
         int height(int worldX, int worldZ);
+
         int terrainColor(int worldX, int worldZ);
+
         int overlay(int worldX, int worldZ);
+
         boolean core(int worldX, int worldZ);
     }
 

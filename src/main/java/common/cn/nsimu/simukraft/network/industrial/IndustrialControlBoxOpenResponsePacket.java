@@ -1,8 +1,8 @@
 package common.cn.nsimu.simukraft.network.industrial;
 
-import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.industrial.IndustrialControlBoxView;
+import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;

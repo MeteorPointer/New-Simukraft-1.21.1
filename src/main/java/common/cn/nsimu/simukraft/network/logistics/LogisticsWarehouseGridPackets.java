@@ -23,7 +23,9 @@ final class LogisticsWarehouseGridPackets {
     private LogisticsWarehouseGridPackets() {
     }
 
-    /** prepareOpen: 校验服务端盒并确保该城市拥有仓库记录。 */
+    /**
+     * prepareOpen: 校验服务端盒并确保该城市拥有仓库记录。
+     */
     static boolean prepareOpen(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (!validateBox(level, player, pos)) {
             return false;
@@ -41,7 +43,9 @@ final class LogisticsWarehouseGridPackets {
         return true;
     }
 
-    /** currentMenu: 校验玩家当前打开的是指定仓库 Menu。 */
+    /**
+     * currentMenu: 校验玩家当前打开的是指定仓库 Menu。
+     */
     static LogisticsWarehouseGridMenu currentMenu(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (!validateBox(level, player, pos)) {
             return null;
@@ -56,7 +60,9 @@ final class LogisticsWarehouseGridPackets {
         return null;
     }
 
-    /** sendSnapshot: 向客户端同步仓库物品、容器位置和真实数量。 */
+    /**
+     * sendSnapshot: 向客户端同步仓库物品、容器位置和真实数量。
+     */
     static void sendSnapshot(ServerLevel level, ServerPlayer player, BlockPos pos) {
         List<LogisticsWarehouseInventoryService.WarehouseItem> aggregate = LogisticsWarehouseInventoryService.aggregate(level, pos);
         List<ItemStack> items = new ArrayList<>(aggregate.size());

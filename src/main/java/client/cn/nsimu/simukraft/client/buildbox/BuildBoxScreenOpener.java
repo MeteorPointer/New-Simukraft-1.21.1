@@ -1,16 +1,14 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftFlexLayout;
-import common.cn.nsimu.simukraft.network.npc.hire.NpcHireFirePacket;
-import common.cn.nsimu.simukraft.network.npc.state.EmploymentStateRequestPacket;
-import common.cn.nsimu.simukraft.network.npc.state.EmploymentStateResponsePacket;
+import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
 import com.lowdragmc.lowdraglib2.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
+import common.cn.nsimu.simukraft.network.npc.hire.NpcHireFirePacket;
+import common.cn.nsimu.simukraft.network.npc.state.EmploymentStateRequestPacket;
+import common.cn.nsimu.simukraft.network.npc.state.EmploymentStateResponsePacket;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
@@ -18,6 +16,8 @@ import dev.vfyjxf.taffy.style.FlexWrap;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 
@@ -56,7 +56,9 @@ public class BuildBoxScreenOpener {
         });
     }
 
-    /** currentCityLevel: 返回建筑列表展示锁定状态所需的服务端城市等级快照。 */
+    /**
+     * currentCityLevel: 返回建筑列表展示锁定状态所需的服务端城市等级快照。
+     */
     public static int currentCityLevel() {
         return currentCityLevel;
     }

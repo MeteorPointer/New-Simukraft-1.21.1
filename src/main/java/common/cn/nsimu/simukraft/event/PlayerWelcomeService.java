@@ -4,10 +4,10 @@ import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.building.BuildingPackVersionChecker;
 import common.cn.nsimu.simukraft.registry.ModItems;
 import common.cn.nsimu.simukraft.registry.ModSoundEvents;
+import net.minecraft.ChatFormatting;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.HoverEvent;
@@ -111,7 +111,7 @@ public final class PlayerWelcomeService {
         String cmd = "/simukraft reload buildings";
         // 第一行：版本信息提示
         player.sendSystemMessage(Component.translatable(
-                "message.simukraft.building_pack.outdated", local.get(), builtin.get())
+                        "message.simukraft.building_pack.outdated", local.get(), builtin.get())
                 .withStyle(style -> style.withColor(ChatFormatting.YELLOW)));
         // 第二行：可点击的指令提示
         player.sendSystemMessage(Component.translatable("message.simukraft.building_pack.update_hint")

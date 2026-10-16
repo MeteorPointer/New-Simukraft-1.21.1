@@ -6,7 +6,9 @@ public final class SimuKraftConfigScreen {
     private SimuKraftConfigScreen() {
     }
 
-    /** createRoot: 创建旧版风格配置选择页。 */
+    /**
+     * createRoot: 创建旧版风格配置选择页。
+     */
     public static Screen createRoot(Screen parent) {
         return SimuKraftConfigSelectionScreen.create(parent);
     }

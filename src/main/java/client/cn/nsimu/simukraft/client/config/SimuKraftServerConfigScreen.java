@@ -30,17 +30,23 @@ public final class SimuKraftServerConfigScreen {
     private SimuKraftServerConfigScreen() {
     }
 
-    /** create: 创建服务端配置页。 */
+    /**
+     * create: 创建服务端配置页。
+     */
     public static Screen create(Screen parent) {
         return create(parent, SimuKraftServerConfigDraft.live(), "gui.simukraft.config.tab.general");
     }
 
-    /** create: 使用现有草稿重建服务端配置页。 */
+    /**
+     * create: 使用现有草稿重建服务端配置页。
+     */
     static Screen create(Screen parent, SimuKraftServerConfigDraft draft) {
         return create(parent, draft, "gui.simukraft.config.tab.general");
     }
 
-    /** createMaterialsTab: 返回服务器配置并定位到材料页。 */
+    /**
+     * createMaterialsTab: 返回服务器配置并定位到材料页。
+     */
     static Screen createMaterialsTab(Screen parent, SimuKraftServerConfigDraft draft) {
         return create(parent, draft, "gui.simukraft.config.tab.materials");
     }
@@ -49,7 +55,9 @@ public final class SimuKraftServerConfigScreen {
         return new ModularUIScreen(SimuKraftConfigWidgets.screenUi(createUi(parent, draft, selectedTabKey)), Component.translatable("gui.simukraft.config.server"));
     }
 
-    /** createUi: 组装旧版五 Tab 服务端配置页。 */
+    /**
+     * createUi: 组装旧版五 Tab 服务端配置页。
+     */
     private static UIElement createUi(Screen parent, SimuKraftServerConfigDraft draft, String selectedTabKey) {
         int windowWidth = SimuKraftConfigWidgets.windowWidth(WINDOW_WIDTH, MIN_WINDOW_WIDTH);
         int windowHeight = SimuKraftConfigWidgets.windowHeight(WINDOW_HEIGHT, MIN_WINDOW_HEIGHT);
@@ -61,7 +69,9 @@ public final class SimuKraftServerConfigScreen {
         return SimuKraftConfigWidgets.screenRoot(window);
     }
 
-    /** tabs: 创建旧版五页签。 */
+    /**
+     * tabs: 创建旧版五页签。
+     */
     private static TabView tabs(Screen parent, SimuKraftServerConfigDraft draft, int windowWidth, int windowHeight, int footerHeight, String selectedTabKey) {
         int tabViewHeight = tabViewHeight(windowHeight, footerHeight);
         int tabContentHeight = tabContentHeight(tabViewHeight);

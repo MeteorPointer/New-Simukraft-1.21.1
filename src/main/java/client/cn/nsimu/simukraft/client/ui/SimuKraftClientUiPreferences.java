@@ -1,8 +1,8 @@
 package client.cn.nsimu.simukraft.client.ui;
 
+import common.cn.nsimu.simukraft.SimuKraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import common.cn.nsimu.simukraft.SimuKraft;
 import net.neoforged.fml.loading.FMLPaths;
 
 import java.io.IOException;

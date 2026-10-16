@@ -1,13 +1,13 @@
 package client.cn.nsimu.simukraft.mixin;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraManager;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraScreen;
 import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
 import net.minecraft.client.KeyboardHandler;
 import net.minecraft.client.Minecraft;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;

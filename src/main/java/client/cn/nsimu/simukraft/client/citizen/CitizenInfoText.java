@@ -11,13 +11,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** NPC 信息界面的文本格式化器。 */
+/**
+ * NPC 信息界面的文本格式化器。
+ */
 
 public final class CitizenInfoText {
     private CitizenInfoText() {
     }
 
-    /** cardLines：返回侧边证件卡的完整字段列表。 */
+    /**
+     * cardLines：返回侧边证件卡的完整字段列表。
+     */
     public static List<Component> cardLines(String cardId, CitizenInfoResponsePacket packet) {
         List<Component> lines = new ArrayList<>();
         switch (cardId) {

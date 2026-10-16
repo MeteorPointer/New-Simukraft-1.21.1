@@ -6,11 +6,7 @@ import net.minecraft.nbt.ListTag;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -107,7 +103,9 @@ public final class CityData {
         return dimensionId;
     }
 
-    /** setDimensionId：绑定城市所在维度，旧存档缺失时回退主世界。 */
+    /**
+     * setDimensionId：绑定城市所在维度，旧存档缺失时回退主世界。
+     */
     public void setDimensionId(String dimensionId) {
         this.dimensionId = normalizeDimensionId(dimensionId);
     }
@@ -152,17 +150,23 @@ public final class CityData {
         return cityLevel;
     }
 
-    /** setCityLevel: 写入已通过服务端升级校验的城市等级。 */
+    /**
+     * setCityLevel: 写入已通过服务端升级校验的城市等级。
+     */
     synchronized void setCityLevel(int cityLevel) {
         this.cityLevel = clampCityLevel(cityLevel);
     }
 
-    /** upgradeState: 返回城市升级任务的不可变快照，供网络视图和服务端 tick 使用。 */
+    /**
+     * upgradeState: 返回城市升级任务的不可变快照，供网络视图和服务端 tick 使用。
+     */
     public synchronized CityUpgradeState upgradeState() {
         return upgradeState;
     }
 
-    /** beginUpgrade: 扣除资源后记录升级起始时间，等级在任务完成时才变化。 */
+    /**
+     * beginUpgrade: 扣除资源后记录升级起始时间，等级在任务完成时才变化。
+     */
     synchronized void beginUpgrade(int targetLevel, long startedAt, int durationTicks) {
         if (upgradeState.active()) {
             throw new IllegalStateException("City upgrade is already in progress");
@@ -170,7 +174,9 @@ public final class CityData {
         upgradeState = new CityUpgradeState(targetLevel, startedAt, durationTicks);
     }
 
-    /** completeUpgrade: 在任务到期且目标为连续下一级时提交等级变化。 */
+    /**
+     * completeUpgrade: 在任务到期且目标为连续下一级时提交等级变化。
+     */
     synchronized CityUpgradeState completeUpgrade(long gameTime) {
         CityUpgradeState pending = upgradeState;
         if (!pending.isComplete(gameTime) || pending.targetLevel() != cityLevel + 1) {
@@ -181,7 +187,9 @@ public final class CityData {
         return pending;
     }
 
-    /** restoreUpgradeState: 持久化失败时恢复完成前的升级任务快照。 */
+    /**
+     * restoreUpgradeState: 持久化失败时恢复完成前的升级任务快照。
+     */
     synchronized void restoreUpgradeState(CityUpgradeState state) {
         upgradeState = state == null ? CityUpgradeState.NONE : state;
     }
@@ -198,9 +206,11 @@ public final class CityData {
         addFinanceTransactionTracked(transaction, maxRecords);
     }
 
-    /** addFinanceTransactionTracked: 追加流水并返回因容量上限淘汰的旧记录，供失败回滚。 */
+    /**
+     * addFinanceTransactionTracked: 追加流水并返回因容量上限淘汰的旧记录，供失败回滚。
+     */
     synchronized List<FinanceTransactionData> addFinanceTransactionTracked(FinanceTransactionData transaction,
-                                                                            int maxRecords) {
+                                                                           int maxRecords) {
         if (transaction == null) {
             return List.of();
         }
@@ -212,9 +222,11 @@ public final class CityData {
         return List.copyOf(evictedTransactions);
     }
 
-    /** rollbackFinanceTransaction: 移除失败流水，并按原顺序恢复被容量上限淘汰的旧记录。 */
+    /**
+     * rollbackFinanceTransaction: 移除失败流水，并按原顺序恢复被容量上限淘汰的旧记录。
+     */
     synchronized void rollbackFinanceTransaction(FinanceTransactionData transaction,
-                                                  List<FinanceTransactionData> evictedTransactions) {
+                                                 List<FinanceTransactionData> evictedTransactions) {
         if (transaction != null) {
             financeTransactions.remove(transaction);
         }
@@ -304,7 +316,9 @@ public final class CityData {
         return BigDecimal.valueOf(Math.max(0.0D, value)).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
-    /** clampCityLevel: 将存档或内部写入的等级限制在协议支持范围内。 */
+    /**
+     * clampCityLevel: 将存档或内部写入的等级限制在协议支持范围内。
+     */
     private static int clampCityLevel(int cityLevel) {
         return Math.min(CityLevelDefinition.MAX_LEVEL, Math.max(CityLevelDefinition.MIN_LEVEL, cityLevel));
     }

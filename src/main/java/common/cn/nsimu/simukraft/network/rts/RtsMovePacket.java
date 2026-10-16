@@ -14,7 +14,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** RTS 移动请求：客户端提交源、目标位置、高度微调和预览旋转，服务端重新校验最终落点。 */
+/**
+ * RTS 移动请求：客户端提交源、目标位置、高度微调和预览旋转，服务端重新校验最终落点。
+ */
 
 public record RtsMovePacket(BlockPos source, BlockPos destination, int manualVerticalOffset,
                             int rotationDegrees, int focusChunkX, int focusChunkZ) implements CustomPacketPayload {
@@ -28,7 +30,9 @@ public record RtsMovePacket(BlockPos source, BlockPos destination, int manualVer
         return TYPE;
     }
 
-    /** encode: 编码移动源、目标位置、高度微调和旋转角度。 */
+    /**
+     * encode: 编码移动源、目标位置、高度微调和旋转角度。
+     */
     private static void encode(RegistryFriendlyByteBuf buffer, RtsMovePacket packet) {
         buffer.writeBlockPos(packet.source());
         buffer.writeBlockPos(packet.destination());
@@ -38,13 +42,17 @@ public record RtsMovePacket(BlockPos source, BlockPos destination, int manualVer
         buffer.writeInt(packet.focusChunkZ());
     }
 
-    /** decode: 解码移动源、目标位置、高度微调和旋转角度。 */
+    /**
+     * decode: 解码移动源、目标位置、高度微调和旋转角度。
+     */
     private static RtsMovePacket decode(RegistryFriendlyByteBuf buffer) {
         return new RtsMovePacket(buffer.readBlockPos(), buffer.readBlockPos(), buffer.readVarInt(), buffer.readVarInt(),
                 buffer.readInt(), buffer.readInt());
     }
 
-    /** handle: 在服务端主线程执行移动并反馈结果。 */
+    /**
+     * handle: 在服务端主线程执行移动并反馈结果。
+     */
     public static void handle(RtsMovePacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;
@@ -55,15 +63,20 @@ public record RtsMovePacket(BlockPos source, BlockPos destination, int manualVer
             PlacedBuildingMoveService.MoveStatus status = PlacedBuildingMoveService.move(
                     level, player, packet.source(), packet.destination(), packet.manualVerticalOffset(), packet.rotationDegrees());
             switch (status) {
-                case SUCCESS_BLOCK -> InfoToastService.success(player, Component.translatable("message.simukraft.rts.block_moved"));
+                case SUCCESS_BLOCK ->
+                        InfoToastService.success(player, Component.translatable("message.simukraft.rts.block_moved"));
                 case SUCCESS_BUILDING -> {
                     InfoToastService.success(player, Component.translatable("message.simukraft.rts.building_moved"));
                     RtsBuildingBoundsRequestPacket.sendNearbyBounds(player, level);
                 }
-                case TOO_FAR -> InfoToastService.warning(player, Component.translatable("message.simukraft.rts.too_far"));
-                case NO_PERMISSION -> InfoToastService.warning(player, Component.translatable("message.simukraft.no_permission"));
-                case OUTSIDE_CITY -> InfoToastService.warning(player, Component.translatable("message.simukraft.construction.outside_city"));
-                case INVALID -> InfoToastService.warning(player, Component.translatable("message.simukraft.rts.move_invalid"));
+                case TOO_FAR ->
+                        InfoToastService.warning(player, Component.translatable("message.simukraft.rts.too_far"));
+                case NO_PERMISSION ->
+                        InfoToastService.warning(player, Component.translatable("message.simukraft.no_permission"));
+                case OUTSIDE_CITY ->
+                        InfoToastService.warning(player, Component.translatable("message.simukraft.construction.outside_city"));
+                case INVALID ->
+                        InfoToastService.warning(player, Component.translatable("message.simukraft.rts.move_invalid"));
             }
         });
     }

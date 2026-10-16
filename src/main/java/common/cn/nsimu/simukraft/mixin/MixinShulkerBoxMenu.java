@@ -9,10 +9,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** RTS 远程潜影盒兼容：仅维持当前已授权会话的菜单有效性。 */
+/**
+ * RTS 远程潜影盒兼容：仅维持当前已授权会话的菜单有效性。
+ */
 @Mixin(ShulkerBoxMenu.class)
 public abstract class MixinShulkerBoxMenu {
-    /** simukraft$keepRtsRemoteShulkerBoxOpen: 已绑定 RTS 会话时跳过原版距离校验。 */
+    /**
+     * simukraft$keepRtsRemoteShulkerBoxOpen: 已绑定 RTS 会话时跳过原版距离校验。
+     */
     @Inject(method = "stillValid", at = @At("HEAD"), cancellable = true)
     private void simukraft$keepRtsRemoteShulkerBoxOpen(
             Player player, CallbackInfoReturnable<Boolean> callback) {

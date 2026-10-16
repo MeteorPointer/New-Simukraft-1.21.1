@@ -1,17 +1,13 @@
 package common.cn.nsimu.simukraft.mineraldrilling;
 
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
 import common.cn.nsimu.simukraft.citizen.CitizenService;
 import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
-import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.registry.ModItems;
 import common.cn.nsimu.simukraft.util.SaveScopedCacheKey;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinConsumption;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinLookupResult;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinLocatedSlot;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinService;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinSlot;
+import common.cn.nsimu.simukraft.virtualvein.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.server.MinecraftServer;
@@ -27,7 +23,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/** MineralDrillingWorkService: 按矿脉周期推进已启动钻井并生成原版产物。 */
+/**
+ * MineralDrillingWorkService: 按矿脉周期推进已启动钻井并生成原版产物。
+ */
 
 public final class MineralDrillingWorkService {
     private static final int MAX_BOXES_PER_TICK = 32;
@@ -36,7 +34,9 @@ public final class MineralDrillingWorkService {
     private MineralDrillingWorkService() {
     }
 
-    /** tick: 分片推进当前维度的钻井，避免控制箱数量增长时每 tick 全量处理。 */
+    /**
+     * tick: 分片推进当前维度的钻井，避免控制箱数量增长时每 tick 全量处理。
+     */
     public static void tick(ServerLevel level) {
         if (level == null) {
             return;
@@ -53,7 +53,9 @@ public final class MineralDrillingWorkService {
         }
     }
 
-    /** clearBox: 移除单个控制箱的运行时计时，避免拆除后残留缓存。 */
+    /**
+     * clearBox: 移除单个控制箱的运行时计时，避免拆除后残留缓存。
+     */
     public static void clearBox(ServerLevel level, BlockPos boxPos) {
         if (level == null || boxPos == null) {
             return;
@@ -64,7 +66,9 @@ public final class MineralDrillingWorkService {
         }
     }
 
-    /** clearServerCaches: 关服时释放跨维度运行时状态，防止切档复用旧计时。 */
+    /**
+     * clearServerCaches: 关服时释放跨维度运行时状态，防止切档复用旧计时。
+     */
     public static void clearServerCaches(MinecraftServer server) {
         if (server == null) {
             return;
@@ -73,7 +77,9 @@ public final class MineralDrillingWorkService {
         RUNTIMES.keySet().removeIf(key -> key.startsWith(serverKey + "|"));
     }
 
-    /** process: 对一个已启动且已到周期的控制箱执行一次原子采掘。 */
+    /**
+     * process: 对一个已启动且已到周期的控制箱执行一次原子采掘。
+     */
     private static void process(ServerLevel level,
                                 MineralDrillingBoxData data,
                                 LevelRuntime runtime,
@@ -208,12 +214,16 @@ public final class MineralDrillingWorkService {
         runtime.nextProductionTicks.put(boxPos, gameTime + productionPeriod(plans));
     }
 
-    /** drillTargetPos: 保持控制箱所在矿区 X/Z，并使用钻井深度参与矿脉范围校验。 */
+    /**
+     * drillTargetPos: 保持控制箱所在矿区 X/Z，并使用钻井深度参与矿脉范围校验。
+     */
     static BlockPos drillTargetPos(BlockPos boxPos, int drillDepth) {
         return new BlockPos(boxPos.getX(), drillDepth, boxPos.getZ());
     }
 
-    /** productionPlans: 为同一 Y 层的全部活动矿脉生成平分产量的生产计划。 */
+    /**
+     * productionPlans: 为同一 Y 层的全部活动矿脉生成平分产量的生产计划。
+     */
     private static List<ProductionPlan> productionPlans(List<VirtualVeinLocatedSlot> locatedSlots) {
         int veinCount = locatedSlots.size();
         List<ProductionPlan> plans = new ArrayList<>(veinCount);
@@ -232,7 +242,9 @@ public final class MineralDrillingWorkService {
         return List.copyOf(plans);
     }
 
-    /** productionAmountPerVein: 按命中矿脉数量平分单次产量，确保有效矿脉至少产出一件。 */
+    /**
+     * productionAmountPerVein: 按命中矿脉数量平分单次产量，确保有效矿脉至少产出一件。
+     */
     static int productionAmountPerVein(int amount, int veinCount) {
         if (amount <= 0 || veinCount <= 0) {
             return 0;
@@ -240,19 +252,25 @@ public final class MineralDrillingWorkService {
         return Math.max(1, amount / veinCount);
     }
 
-    /** productionPeriod: 使用本轮矿脉中最短周期，避免重叠矿脉因周期不同被长期跳过。 */
+    /**
+     * productionPeriod: 使用本轮矿脉中最短周期，避免重叠矿脉因周期不同被长期跳过。
+     */
     private static int productionPeriod(List<ProductionPlan> plans) {
         return Math.max(1, plans.stream().mapToInt(plan -> plan.slot().periodTicks()).min().orElse(1));
     }
 
-    /** supportsDepth: 校验钻头类型与当前目标深度是否匹配。 */
+    /**
+     * supportsDepth: 校验钻头类型与当前目标深度是否匹配。
+     */
     private static boolean supportsDepth(ItemStack bit, int depth) {
         return depth >= MineralDrillingControlBoxService.SHALLOW_DRILL_MIN_Y
                 ? bit.is(ModItems.SHALLOW_DRILL_BIT.get())
                 : bit.is(ModItems.DEEP_DRILL_BIT.get());
     }
 
-    /** consumeDrillBitDurability: 每成功写入一个产物扣除钻头一点耐久，并在损坏后清空槽位。 */
+    /**
+     * consumeDrillBitDurability: 每成功写入一个产物扣除钻头一点耐久，并在损坏后清空槽位。
+     */
     private static boolean consumeDrillBitDurability(ServerLevel level,
                                                      MineralDrillingInventory inventory,
                                                      int produced) {
@@ -275,7 +293,9 @@ public final class MineralDrillingWorkService {
         }
     }
 
-    /** pause: 暂停控制箱并写入一次可翻译的阻塞状态。 */
+    /**
+     * pause: 暂停控制箱并写入一次可翻译的阻塞状态。
+     */
     private static void pause(MineralDrillingBoxManager manager, MineralDrillingBoxData data, String statusKey) {
         if (!data.running() && statusKey.equals(data.statusKey())) {
             return;
@@ -286,19 +306,25 @@ public final class MineralDrillingWorkService {
         manager.persist(data);
     }
 
-    /** markWorkerWorking: 刷新钻井工的工作状态，使 NPC 状态面板与控制箱保持一致。 */
+    /**
+     * markWorkerWorking: 刷新钻井工的工作状态，使 NPC 状态面板与控制箱保持一致。
+     */
     private static void markWorkerWorking(ServerLevel level, CitizenData worker) {
         worker.setWorkStatus(CitizenWorkStatus.WORKING);
         worker.setStatusLabel("gui.simukraft.mineral_drilling.status.running");
         CitizenService.save(level, worker.uuid());
     }
 
-    /** runtime: 获取当前存档维度隔离的运行时计时器。 */
+    /**
+     * runtime: 获取当前存档维度隔离的运行时计时器。
+     */
     private static LevelRuntime runtime(ServerLevel level) {
         return RUNTIMES.computeIfAbsent(runtimeKey(level), ignored -> new LevelRuntime());
     }
 
-    /** runtimeKey: 生成存档和维度隔离的计时器键。 */
+    /**
+     * runtimeKey: 生成存档和维度隔离的计时器键。
+     */
     private static String runtimeKey(ServerLevel level) {
         return SaveScopedCacheKey.levelKey(level).toLowerCase(Locale.ROOT);
     }

@@ -19,7 +19,9 @@ public final class CommercialTradeMenuProvider implements MenuProvider {
         this.packet = packet;
     }
 
-    /** open: 服务端打开 NPC 商业交易容器并写入客户端快照。 */
+    /**
+     * open: 服务端打开 NPC 商业交易容器并写入客户端快照。
+     */
     public static boolean open(ServerPlayer player, CommercialTradeView view) {
         if (player == null || view == null) {
             return false;
@@ -28,25 +30,33 @@ public final class CommercialTradeMenuProvider implements MenuProvider {
         return player.openMenu(new CommercialTradeMenuProvider(packet), buffer -> CommercialTradeOpenResponsePacket.encode(buffer, packet)).isPresent();
     }
 
-    /** createClientMenu: 客户端从服务端快照创建 LDLib 容器菜单。 */
+    /**
+     * createClientMenu: 客户端从服务端快照创建 LDLib 容器菜单。
+     */
     public static ModularUIContainerMenu createClientMenu(int containerId, Inventory inventory, RegistryFriendlyByteBuf buffer) {
         CommercialTradeOpenResponsePacket packet = buffer != null ? CommercialTradeOpenResponsePacket.decode(buffer) : emptyPacket();
         return new ModularUIContainerMenu(ModMenuTypes.COMMERCIAL_TRADE.get(), containerId, inventory, new CommercialTradeMenuHolder(packet));
     }
 
-    /** createMenu: 服务端创建 LDLib 容器菜单。 */
+    /**
+     * createMenu: 服务端创建 LDLib 容器菜单。
+     */
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory inventory, Player player) {
         return new ModularUIContainerMenu(ModMenuTypes.COMMERCIAL_TRADE.get(), containerId, inventory, new CommercialTradeMenuHolder(packet));
     }
 
-    /** getDisplayName: 返回容器标题。 */
+    /**
+     * getDisplayName: 返回容器标题。
+     */
     @Override
     public Component getDisplayName() {
         return title(packet);
     }
 
-    /** title: 根据商业快照生成标题。 */
+    /**
+     * title: 根据商业快照生成标题。
+     */
     public static Component title(CommercialTradeOpenResponsePacket packet) {
         return packet.shopName().isBlank()
                 ? Component.translatable("gui.simukraft.commercial.trade_title")

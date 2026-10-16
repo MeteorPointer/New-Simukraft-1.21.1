@@ -18,7 +18,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** ExchangeControlBoxActionPacket: 买入或卖出。 */
+/**
+ * ExchangeControlBoxActionPacket: 买入或卖出。
+ */
 public record ExchangeControlBoxActionPacket(BlockPos pos, boolean buy, String companyId, int shares)
         implements CustomPacketPayload {
     public static final Type<ExchangeControlBoxActionPacket> TYPE =
@@ -31,7 +33,9 @@ public record ExchangeControlBoxActionPacket(BlockPos pos, boolean buy, String c
         return TYPE;
     }
 
-    /** encode: 写入买卖请求。 */
+    /**
+     * encode: 写入买卖请求。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, ExchangeControlBoxActionPacket packet) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeBoolean(packet.buy());
@@ -39,12 +43,16 @@ public record ExchangeControlBoxActionPacket(BlockPos pos, boolean buy, String c
         buffer.writeVarInt(packet.shares());
     }
 
-    /** decode: 读取买卖请求。 */
+    /**
+     * decode: 读取买卖请求。
+     */
     public static ExchangeControlBoxActionPacket decode(RegistryFriendlyByteBuf buffer) {
         return new ExchangeControlBoxActionPacket(buffer.readBlockPos(), buffer.readBoolean(), buffer.readUtf(64), buffer.readVarInt());
     }
 
-    /** handle: 执行买卖并刷新界面。 */
+    /**
+     * handle: 执行买卖并刷新界面。
+     */
     public static void handle(ExchangeControlBoxActionPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;

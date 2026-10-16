@@ -20,12 +20,16 @@ public final class LogisticsClientBoxScreenOpener {
     private LogisticsClientBoxScreenOpener() {
     }
 
-    /** request: 请求打开旧版物流客户端盒主界面。 */
+    /**
+     * request: 请求打开旧版物流客户端盒主界面。
+     */
     public static void request(BlockPos pos) {
         PacketDistributor.sendToServer(new LogisticsClientBoxOpenRequestPacket(pos));
     }
 
-    /** open: 接收服务端快照并打开旧版四入口主界面。 */
+    /**
+     * open: 接收服务端快照并打开旧版四入口主界面。
+     */
     public static void open(LogisticsClientBoxOpenResponsePacket packet) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
@@ -45,7 +49,9 @@ public final class LogisticsClientBoxScreenOpener {
             this.packet = packet;
         }
 
-        /** init: 创建旧版两个居中入口按钮。 */
+        /**
+         * init: 创建旧版两个居中入口按钮。
+         */
         @Override
         protected void init() {
             int centerX = this.width / 2;
@@ -62,13 +68,17 @@ public final class LogisticsClientBoxScreenOpener {
             manage.active = hasPorts();
         }
 
-        /** renderBackground: 绘制旧版半透明深色背景。 */
+        /**
+         * renderBackground: 绘制旧版半透明深色背景。
+         */
         @Override
         public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
         }
 
-        /** render: 绘制旧版居中标题。 */
+        /**
+         * render: 绘制旧版居中标题。
+         */
         @Override
         public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             renderBackground(graphics, mouseX, mouseY, partialTick);
@@ -85,7 +95,9 @@ public final class LogisticsClientBoxScreenOpener {
             return !packet.ports().isEmpty();
         }
 
-        /** openScreen: 安全切换到旧版客户端子页面。 */
+        /**
+         * openScreen: 安全切换到旧版客户端子页面。
+         */
         private void openScreen(Screen screen) {
             Minecraft minecraft = this.minecraft;
             if (minecraft != null) {

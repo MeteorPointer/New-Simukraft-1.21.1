@@ -9,7 +9,9 @@ public final class IndustrialWorkAreaService {
     private IndustrialWorkAreaService() {
     }
 
-    /** workAreaBounds: 按建筑外圈向外扩展，得到辐射型工业的作业矩形。 */
+    /**
+     * workAreaBounds: 按建筑外圈向外扩展，得到辐射型工业的作业矩形。
+     */
     public static AABB workAreaBounds(PlacedBuildingRecord building, IndustrialDefinition.WorkAreaDefinition workArea) {
         if (building == null || workArea == null || workArea.radius() <= 0) {
             return buildingBounds(building);

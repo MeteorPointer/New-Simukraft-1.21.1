@@ -4,7 +4,9 @@ import net.minecraft.core.BlockPos;
 
 import java.util.UUID;
 
-/** BankControlBoxView: 银行控制箱界面快照。 */
+/**
+ * BankControlBoxView: 银行控制箱界面快照。
+ */
 public record BankControlBoxView(BlockPos boxPos,
                                  boolean hasBuilding,
                                  String buildingName,

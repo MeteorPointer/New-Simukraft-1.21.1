@@ -14,13 +14,16 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 
-/** Stateless helpers backing the in-world NPC path debug overlay and the /simukraft path status command. */
+/**
+ * Stateless helpers backing the in-world NPC path debug overlay and the /simukraft path status command.
+ */
 
 final class CitizenPathDebugService {
     private CitizenPathDebugService() {
     }
 
-    record PathRuntimeIssue(UUID citizenId, String status, double distanceToTargetSqr, int waypointIndex, int waypointCount) {
+    record PathRuntimeIssue(UUID citizenId, String status, double distanceToTargetSqr, int waypointIndex,
+                            int waypointCount) {
     }
 
     record DebugPathEntry(UUID citizenId, ActiveNavigation navigation, double distanceSqr) {

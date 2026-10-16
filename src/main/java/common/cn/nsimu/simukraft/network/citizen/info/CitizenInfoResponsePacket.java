@@ -1,23 +1,17 @@
 package common.cn.nsimu.simukraft.network.citizen.info;
 
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenProfileGenerator;
-import common.cn.nsimu.simukraft.citizen.CitizenManager;
-import common.cn.nsimu.simukraft.citizen.PregnancyStage;
+import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.citizen.family.FamilyManager;
-import common.cn.nsimu.simukraft.citizen.CitizenLevelService;
-import common.cn.nsimu.simukraft.citizen.CitizenSelfFeedingService;
-import common.cn.nsimu.simukraft.citizen.CitizenSkillSnapshot;
 import common.cn.nsimu.simukraft.city.CityData;
 import common.cn.nsimu.simukraft.city.CityManager;
 import common.cn.nsimu.simukraft.city.poi.CityPoiData;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
+import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.industrial.IndustrialControlBoxService;
 import common.cn.nsimu.simukraft.industrial.IndustrialDefinition;
 import common.cn.nsimu.simukraft.industrial.IndustrialDefinitionLoader;
 import common.cn.nsimu.simukraft.job.CityJobType;
-import common.cn.nsimu.simukraft.config.ServerConfig;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.server.level.ServerLevel;
 
@@ -26,7 +20,8 @@ import java.util.UUID;
 
 public record CitizenInfoResponsePacket(UUID citizenId, String name, String gender, int age, int lifespan,
                                         double health, double hunger, int armor, boolean sick, boolean child,
-                                        String workStatus, String statusLabel, String jobType, String jobId, String jobName, String cityName, String homeName,
+                                        String workStatus, String statusLabel, String jobType, String jobId,
+                                        String jobName, String cityName, String homeName,
                                         String workplaceName, int skillLevel, int skillXp, int skillMaxLevel,
                                         String familyDisplay, String clanDisplay, int entityId, String skinPath,
                                         String workNeedDetail, String diseaseKey, String pregnancyStage,

@@ -1,7 +1,7 @@
 package common.cn.nsimu.simukraft.medical;
 
-import common.cn.nsimu.simukraft.building.BuildingCatalog;
 import common.cn.nsimu.simukraft.building.BuildingBlockData;
+import common.cn.nsimu.simukraft.building.BuildingCatalog;
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
@@ -12,7 +12,9 @@ import net.minecraft.server.level.ServerLevel;
 
 import java.util.UUID;
 
-/** 医疗控制箱的建筑绑定、医生岗位和只读视图服务。 */
+/**
+ * 医疗控制箱的建筑绑定、医生岗位和只读视图服务。
+ */
 
 public final class MedicalControlBoxService {
     public static final String HIRE_SOURCE_TYPE = "medical_control_box";
@@ -21,7 +23,9 @@ public final class MedicalControlBoxService {
     private MedicalControlBoxService() {
     }
 
-    /** buildView：构建医疗控制箱 LDLib 界面所需的状态快照。 */
+    /**
+     * buildView：构建医疗控制箱 LDLib 界面所需的状态快照。
+     */
     public static MedicalControlBoxView buildView(ServerLevel level, BlockPos boxPos) {
         PlacedBuildingRecord building = resolveBuilding(level, boxPos);
         MedicalDefinitionLoader.LoadResult definitionResult = MedicalDefinitionLoader.loadForBuilding(building);
@@ -52,7 +56,9 @@ public final class MedicalControlBoxService {
                 snapshot.patients());
     }
 
-    /** resolveBuilding：仅解析包含控制箱的已完成医疗建筑。 */
+    /**
+     * resolveBuilding：仅解析包含控制箱的已完成医疗建筑。
+     */
     public static PlacedBuildingRecord resolveBuilding(ServerLevel level, BlockPos boxPos) {
         if (!isMedicalControlBox(level, boxPos)) {
             return null;
@@ -60,12 +66,16 @@ public final class MedicalControlBoxService {
         return PlacedBuildingService.findByContainedPos(level, boxPos);
     }
 
-    /** findAssignedDoctor：查询当前控制箱绑定的医生。 */
+    /**
+     * findAssignedDoctor：查询当前控制箱绑定的医生。
+     */
     public static CitizenData findAssignedDoctor(ServerLevel level, BlockPos boxPos) {
         return CitizenEmploymentService.findAssigned(level, HIRE_SOURCE_TYPE, HIRE_ROLE, boxPos).orElse(null);
     }
 
-    /** isOperational：判断医院是否具备有效建筑、控制箱和可工作的医生。 */
+    /**
+     * isOperational：判断医院是否具备有效建筑、控制箱和可工作的医生。
+     */
     public static boolean isOperational(ServerLevel level, PlacedBuildingRecord building, BlockPos boxPos) {
         if (level == null || building == null || boxPos == null || !isMedicalControlBox(level, boxPos)) {
             return false;
@@ -77,7 +87,9 @@ public final class MedicalControlBoxService {
                 && !MedicalService.needsCare(level, doctor, currentDay);
     }
 
-    /** onRemoved：控制箱拆除时释放患者、解除医生并删除建筑登记。 */
+    /**
+     * onRemoved：控制箱拆除时释放患者、解除医生并删除建筑登记。
+     */
     public static void onRemoved(ServerLevel level, BlockPos boxPos) {
         if (level == null || boxPos == null) {
             return;
@@ -92,13 +104,17 @@ public final class MedicalControlBoxService {
         }
     }
 
-    /** isMedicalControlBox：判断指定坐标是否是已加载医疗控制箱。 */
+    /**
+     * isMedicalControlBox：判断指定坐标是否是已加载医疗控制箱。
+     */
     public static boolean isMedicalControlBox(ServerLevel level, BlockPos pos) {
         return level != null && pos != null && level.isLoaded(pos)
                 && level.getBlockState(pos).is(ModBlocks.MEDICAL_CONTROL_BOX.get());
     }
 
-    /** resolveControlBoxPos：从医疗建筑记录中定位控制箱。 */
+    /**
+     * resolveControlBoxPos：从医疗建筑记录中定位控制箱。
+     */
     public static BlockPos resolveControlBoxPos(ServerLevel level, PlacedBuildingRecord building) {
         if (level == null || building == null) {
             return null;
@@ -119,7 +135,9 @@ public final class MedicalControlBoxService {
         return null;
     }
 
-    /** resolveDoctorBox：解析医生当前绑定的医疗控制箱。 */
+    /**
+     * resolveDoctorBox：解析医生当前绑定的医疗控制箱。
+     */
     public static BlockPos resolveDoctorBox(ServerLevel level, CitizenData doctor) {
         if (level == null || doctor == null || doctor.workplacePos() == null || doctor.workplaceId() == null) {
             return null;

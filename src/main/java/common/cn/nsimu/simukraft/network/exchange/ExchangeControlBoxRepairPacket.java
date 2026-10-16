@@ -3,7 +3,6 @@ package common.cn.nsimu.simukraft.network.exchange;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.building.BuildingIntegrityService;
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
-import common.cn.nsimu.simukraft.economy.EconomyService;
 import common.cn.nsimu.simukraft.exchange.ExchangeControlBoxService;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
@@ -21,7 +20,9 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.Locale;
 
-/** ExchangeControlBoxRepairPacket: 按建筑完整性补全交易所。 */
+/**
+ * ExchangeControlBoxRepairPacket: 按建筑完整性补全交易所。
+ */
 public record ExchangeControlBoxRepairPacket(BlockPos pos) implements CustomPacketPayload {
     public static final Type<ExchangeControlBoxRepairPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "exchange_control_box_repair"));
@@ -33,17 +34,23 @@ public record ExchangeControlBoxRepairPacket(BlockPos pos) implements CustomPack
         return TYPE;
     }
 
-    /** encode: 写入控制箱坐标。 */
+    /**
+     * encode: 写入控制箱坐标。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, ExchangeControlBoxRepairPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode: 读取控制箱坐标。 */
+    /**
+     * decode: 读取控制箱坐标。
+     */
     public static ExchangeControlBoxRepairPacket decode(RegistryFriendlyByteBuf buffer) {
         return new ExchangeControlBoxRepairPacket(buffer.readBlockPos());
     }
 
-    /** handle: 补全交易所建筑并刷新界面。 */
+    /**
+     * handle: 补全交易所建筑并刷新界面。
+     */
     public static void handle(ExchangeControlBoxRepairPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;
@@ -60,11 +67,16 @@ public record ExchangeControlBoxRepairPacket(BlockPos pos) implements CustomPack
         BuildingIntegrityService.RepairResult result = BuildingIntegrityService.repair(level, player, building);
         switch (result.status()) {
             case SUCCESS -> InfoToastService.success(player, repairMessage(result));
-            case NO_REPAIR_NEEDED -> InfoToastService.success(player, Component.translatable("message.simukraft.building_integrity.no_repair_needed"));
-            case NOT_ENOUGH_FUNDS -> InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.not_enough_funds", money(result.cost())));
-            case MATERIALS_REQUIRED -> InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.materials_required", result.manualRepairBlocks()));
-            case UNAVAILABLE -> InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.unavailable"));
-            case NO_BUILDING -> InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.no_building"));
+            case NO_REPAIR_NEEDED ->
+                    InfoToastService.success(player, Component.translatable("message.simukraft.building_integrity.no_repair_needed"));
+            case NOT_ENOUGH_FUNDS ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.not_enough_funds", money(result.cost())));
+            case MATERIALS_REQUIRED ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.materials_required", result.manualRepairBlocks()));
+            case UNAVAILABLE ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.unavailable"));
+            case NO_BUILDING ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.building_integrity.no_building"));
         }
         PacketDistributor.sendToPlayer(player, ExchangeControlBoxOpenRequestPacket.snapshot(level, player, packet.pos(), ""));
     }

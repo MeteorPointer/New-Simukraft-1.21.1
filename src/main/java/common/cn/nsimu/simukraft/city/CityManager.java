@@ -12,13 +12,13 @@ import net.minecraft.nbt.ListTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
 
+import javax.annotation.Nonnull;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
-import javax.annotation.Nonnull;
 
 
 public final class CityManager extends SavedData {
@@ -376,7 +376,9 @@ public final class CityManager extends SavedData {
         return true;
     }
 
-    /** persistUpgrade: 单次持久化升级后的等级、资金和财政流水。 */
+    /**
+     * persistUpgrade: 单次持久化升级后的等级、资金和财政流水。
+     */
     synchronized boolean persistUpgrade(CityData city) {
         ServerLevel targetLevel = level;
         if (city == null || cities.get(city.cityId()) != city || targetLevel == null

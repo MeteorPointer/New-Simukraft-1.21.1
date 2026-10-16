@@ -1,25 +1,20 @@
 package common.cn.nsimu.simukraft.industrial;
 
-import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.building.BuildingCatalog;
 import common.cn.nsimu.simukraft.building.BuildingIntegrityService;
+import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
 import common.cn.nsimu.simukraft.citizen.CitizenService;
 import common.cn.nsimu.simukraft.citizen.CitizenVoiceService;
-import common.cn.nsimu.simukraft.registry.ModSoundEvents;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
+import common.cn.nsimu.simukraft.registry.ModSoundEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 
 public final class IndustrialControlBoxService {
@@ -224,13 +219,17 @@ public final class IndustrialControlBoxService {
         return null;
     }
 
-    /** isIndustrialCategory: 兼容当前与旧存档中的工业分类名称。 */
+    /**
+     * isIndustrialCategory: 兼容当前与旧存档中的工业分类名称。
+     */
     private static boolean isIndustrialCategory(String category) {
         String normalized = category == null ? "" : category.toLowerCase(Locale.ROOT);
         return "industry".equals(normalized) || "industrial".equals(normalized);
     }
 
-    /** inside: 判断工业控制箱是否位于建筑记录包围盒内。 */
+    /**
+     * inside: 判断工业控制箱是否位于建筑记录包围盒内。
+     */
     private static boolean inside(PlacedBuildingRecord record, BlockPos pos) {
         BlockPos min = record.minPos();
         BlockPos max = record.maxPos();
@@ -247,7 +246,9 @@ public final class IndustrialControlBoxService {
                 .orElse(null);
     }
 
-    /** isRunningAssignedWorker: 判断指定 NPC 是否正由运行中的工业控制箱接管移动与工作。 */
+    /**
+     * isRunningAssignedWorker: 判断指定 NPC 是否正由运行中的工业控制箱接管移动与工作。
+     */
     public static boolean isRunningAssignedWorker(ServerLevel level, CitizenData worker) {
         if (level == null || worker == null || worker.workplacePos() == null || worker.workplaceId() == null) {
             return false;
@@ -424,7 +425,7 @@ public final class IndustrialControlBoxService {
 
     private static void appendInputEntry(List<IndustrialControlBoxView.ItemEntry> entries,
                                          IndustrialDefinition.InputRequirement requirement,
-        String connector) {
+                                         String connector) {
         if (requirement instanceof IndustrialDefinition.ItemRequirement item) {
             entries.add(new IndustrialControlBoxView.ItemEntry(item.spec(), item.count(), connector));
             return;

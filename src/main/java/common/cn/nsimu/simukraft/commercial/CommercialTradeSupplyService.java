@@ -20,7 +20,9 @@ public final class CommercialTradeSupplyService {
     private CommercialTradeSupplyService() {
     }
 
-    /** validate: 校验商业交易的库存或材料供给是否足够。 */
+    /**
+     * validate: 校验商业交易的库存或材料供给是否足够。
+     */
     public static CommercialTradeService.TradeResult validate(ServerLevel level, BlockPos boxPos, CommercialOffer offer, int times) {
         if (level == null || boxPos == null || offer == null) {
             return CommercialTradeService.TradeResult.fail("message.simukraft.commercial.invalid_trade");
@@ -32,7 +34,9 @@ public final class CommercialTradeSupplyService {
         return validateSqliteStock(level, boxPos, offer, times);
     }
 
-    /** apply: 扣减材料并应用 SQLite 库存变化。 */
+    /**
+     * apply: 扣减材料并应用 SQLite 库存变化。
+     */
     public static synchronized boolean apply(ServerLevel level, BlockPos boxPos, CommercialOffer offer, int times) {
         if (level == null || boxPos == null || offer == null) {
             return false;
@@ -44,7 +48,9 @@ public final class CommercialTradeSupplyService {
         return true;
     }
 
-    /** availableForOffer: 获取该报价当前可供应次数，供 GUI 或 NPC 选购参考。 */
+    /**
+     * availableForOffer: 获取该报价当前可供应次数，供 GUI 或 NPC 选购参考。
+     */
     public static int availableForOffer(ServerLevel level, BlockPos boxPos, CommercialOffer offer) {
         if (level == null || boxPos == null || offer == null) {
             return 0;
@@ -61,7 +67,9 @@ public final class CommercialTradeSupplyService {
         return 0;
     }
 
-    /** canSupply: 判断指定次数的交易是否具备供给。 */
+    /**
+     * canSupply: 判断指定次数的交易是否具备供给。
+     */
     public static boolean canSupply(ServerLevel level, BlockPos boxPos, CommercialOffer offer, int times) {
         return validate(level, boxPos, offer, times).success();
     }
@@ -170,7 +178,9 @@ public final class CommercialTradeSupplyService {
         return false;
     }
 
-    /** tradeContainers: 优先使用商业 JSON 声明的容器，没有声明时再扫控制箱附近。 */
+    /**
+     * tradeContainers: 优先使用商业 JSON 声明的容器，没有声明时再扫控制箱附近。
+     */
     private static Set<BlockPos> tradeContainers(ServerLevel level, BlockPos boxPos) {
         Set<BlockPos> declared = declaredContainers(level, boxPos);
         return declared.isEmpty() ? nearbyContainers(level, boxPos) : declared;

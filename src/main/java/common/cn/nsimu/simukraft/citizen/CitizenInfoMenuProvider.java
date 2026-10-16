@@ -13,7 +13,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
-/** 通过原版容器打开流程同步 NPC 真实物品栏。 */
+/**
+ * 通过原版容器打开流程同步 NPC 真实物品栏。
+ */
 
 public final class CitizenInfoMenuProvider implements MenuProvider {
     private final CitizenInfoResponsePacket packet;
@@ -24,7 +26,9 @@ public final class CitizenInfoMenuProvider implements MenuProvider {
         this.entity = entity;
     }
 
-    /** open：在服务端构建信息快照并打开带真实槽位的 LDLib 容器。 */
+    /**
+     * open：在服务端构建信息快照并打开带真实槽位的 LDLib 容器。
+     */
     public static boolean open(ServerLevel level, ServerPlayer player, CitizenEntity entity, CitizenData data) {
         if (level == null || player == null || entity == null || data == null) {
             return false;
@@ -35,7 +39,9 @@ public final class CitizenInfoMenuProvider implements MenuProvider {
                 buffer -> CitizenInfoResponsePacket.encode(buffer, packet)).isPresent();
     }
 
-    /** createClientMenu：客户端建立同尺寸的镜像背包，内容由菜单槽位协议同步。 */
+    /**
+     * createClientMenu：客户端建立同尺寸的镜像背包，内容由菜单槽位协议同步。
+     */
     public static ModularUIContainerMenu createClientMenu(int containerId, Inventory playerInventory, RegistryFriendlyByteBuf buffer) {
         CitizenInfoResponsePacket packet = buffer != null ? CitizenInfoResponsePacket.decode(buffer) : emptyPacket();
         CitizenInventory inventory = new CitizenInventory();
@@ -44,7 +50,9 @@ public final class CitizenInfoMenuProvider implements MenuProvider {
                 new CitizenInfoMenuHolder(packet, inventory, null));
     }
 
-    /** createMenu：服务端把菜单槽位直接绑定到目标 NPC 的实体物品栏。 */
+    /**
+     * createMenu：服务端把菜单槽位直接绑定到目标 NPC 的实体物品栏。
+     */
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new ModularUIContainerMenu(

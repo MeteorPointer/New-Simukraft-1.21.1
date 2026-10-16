@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 class MineralDrillingOutputServiceTest {
-    /** storesAcrossBarrels: 验证产物先补齐同类槽位，再写入下一个木桶。 */
+    /**
+     * storesAcrossBarrels: 验证产物先补齐同类槽位，再写入下一个木桶。
+     */
     @Test
     void storesAcrossBarrels() {
         SimpleContainer firstBarrel = new SimpleContainer(2);
@@ -28,7 +28,9 @@ class MineralDrillingOutputServiceTest {
         assertEquals(8, secondBarrel.getItem(0).getCount());
     }
 
-    /** rejectsFullBarrels: 验证容量不足时不写入任何木桶，供矿脉扣减前置校验使用。 */
+    /**
+     * rejectsFullBarrels: 验证容量不足时不写入任何木桶，供矿脉扣减前置校验使用。
+     */
     @Test
     void rejectsFullBarrelsWithoutChangingInventory() {
         SimpleContainer barrel = new SimpleContainer(1);
@@ -39,7 +41,9 @@ class MineralDrillingOutputServiceTest {
         assertEquals(64, barrel.getItem(0).getCount());
     }
 
-    /** mergesOverlappingVeinOutputs: 批量预检累计相同产物，并将两条矿脉的产物合并写入木桶。 */
+    /**
+     * mergesOverlappingVeinOutputs: 批量预检累计相同产物，并将两条矿脉的产物合并写入木桶。
+     */
     @Test
     void mergesOverlappingVeinOutputs() {
         SimpleContainer barrel = new SimpleContainer(1);
@@ -56,7 +60,9 @@ class MineralDrillingOutputServiceTest {
         assertEquals(62, insufficient.getItem(0).getCount());
     }
 
-    /** requiresBarrel: 验证不允许在没有结构木桶时产出并消耗矿脉。 */
+    /**
+     * requiresBarrel: 验证不允许在没有结构木桶时产出并消耗矿脉。
+     */
     @Test
     void requiresAtLeastOneBarrel() {
         assertFalse(MineralDrillingOutputService.canStoreInContainers(List.of(), new ItemStack(Items.IRON_INGOT)));

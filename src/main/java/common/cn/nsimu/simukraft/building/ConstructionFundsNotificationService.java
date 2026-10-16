@@ -59,7 +59,9 @@ public final class ConstructionFundsNotificationService {
         NEXT_NOTICE_TICK.remove(new FundsNoticeKey(level.dimension().location(), cityId, taskId));
     }
 
-    /** 扣完这一笔后余额为 0，且建筑还没盖完，才提示资金不足。 */
+    /**
+     * 扣完这一笔后余额为 0，且建筑还没盖完，才提示资金不足。
+     */
     public static boolean shouldWarnAfterSuccessfulCharge(boolean constructionStillRunning, double remainingFunds) {
         return constructionStillRunning && remainingFunds <= 0.0D;
     }

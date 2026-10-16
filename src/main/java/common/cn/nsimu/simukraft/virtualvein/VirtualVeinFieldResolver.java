@@ -1,6 +1,8 @@
 package common.cn.nsimu.simukraft.virtualvein;
 
-/** VirtualVeinFieldResolver: 根据细胞噪声解析不规则矿区。 */
+/**
+ * VirtualVeinFieldResolver: 根据细胞噪声解析不规则矿区。
+ */
 
 public final class VirtualVeinFieldResolver {
     public static final int FIELD_SIZE = 256;

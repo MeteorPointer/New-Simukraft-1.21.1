@@ -10,7 +10,9 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import org.joml.Vector3f;
 
-/** CautionTapePreview: 起点已定后，瞄向合法终点时拉出警戒线粒子。 */
+/**
+ * CautionTapePreview: 起点已定后，瞄向合法终点时拉出警戒线粒子。
+ */
 public final class CautionTapePreview {
     private static final DustParticleOptions DUST = new DustParticleOptions(new Vector3f(0.95F, 0.75F, 0.05F), 1.0F);
 

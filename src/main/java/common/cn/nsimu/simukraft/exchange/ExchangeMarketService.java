@@ -18,7 +18,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/** ExchangeMarketService: 开闭市、每日市况、小时报价、买卖。 */
+/**
+ * ExchangeMarketService: 开闭市、每日市况、小时报价、买卖。
+ */
 public final class ExchangeMarketService {
     public static final int HISTORY_DAYS = 30;
     public static final int HISTORY_CANDLES = ExchangeMarketClock.HOURS_PER_SESSION * HISTORY_DAYS;
@@ -32,7 +34,9 @@ public final class ExchangeMarketService {
     private ExchangeMarketService() {
     }
 
-    /** tick: 主世界推进股市时钟。 */
+    /**
+     * tick: 主世界推进股市时钟。
+     */
     public static void tick(ServerLevel level) {
         if (level == null || level.dimension() != Level.OVERWORLD) {
             return;
@@ -54,7 +58,9 @@ public final class ExchangeMarketService {
         }
     }
 
-    /** saveToSqlite: 把内存行情整表写入，关服/存档时调用，避免只靠小时增量异步写丢失。 */
+    /**
+     * saveToSqlite: 把内存行情整表写入，关服/存档时调用，避免只靠小时增量异步写丢失。
+     */
     public static void saveToSqlite(ServerLevel level) {
         if (level == null || level.dimension() != Level.OVERWORLD) {
             return;
@@ -67,7 +73,9 @@ public final class ExchangeMarketService {
         persistAll(level, state);
     }
 
-    /** snapshot: 某城市看到的全部行情。 */
+    /**
+     * snapshot: 某城市看到的全部行情。
+     */
     public static List<ExchangeQuote> snapshot(ServerLevel level, UUID cityId) {
         MarketState state = state(level);
         Map<String, Holding> holdings = cityId != null ? holdingsOf(level, state, cityId) : Map.of();
@@ -89,7 +97,9 @@ public final class ExchangeMarketService {
         return state(level).day;
     }
 
-    /** buy: 用城市虚拟资金买入。 */
+    /**
+     * buy: 用城市虚拟资金买入。
+     */
     public static TradeResult buy(ServerLevel level, ServerPlayer player, UUID cityId, String companyId, int shares) {
         if (!ExchangeMarketClock.isOpen(level.getDayTime())) {
             return new TradeResult(false, "message.simukraft.exchange.closed");
@@ -122,7 +132,9 @@ public final class ExchangeMarketService {
         return new TradeResult(true, "message.simukraft.exchange.buy_ok");
     }
 
-    /** sell: 卖出持仓回到城市资金。 */
+    /**
+     * sell: 卖出持仓回到城市资金。
+     */
     public static TradeResult sell(ServerLevel level, ServerPlayer player, UUID cityId, String companyId, int shares) {
         if (!ExchangeMarketClock.isOpen(level.getDayTime())) {
             return new TradeResult(false, "message.simukraft.exchange.closed");
@@ -155,7 +167,9 @@ public final class ExchangeMarketService {
         return new TradeResult(true, "message.simukraft.exchange.sell_ok");
     }
 
-    /** clearServerCaches: 关服清缓存。 */
+    /**
+     * clearServerCaches: 关服清缓存。
+     */
     public static void clearServerCaches(net.minecraft.server.MinecraftServer server) {
         if (server == null) {
             return;
@@ -193,7 +207,9 @@ public final class ExchangeMarketService {
         return state.day == targetDay && targetHour >= 0 && state.lastHour < targetHour;
     }
 
-    /** advanceOnePeriod: 每次只推进一个交易小时，避免一次性吐出全天 K 线。 */
+    /**
+     * advanceOnePeriod: 每次只推进一个交易小时，避免一次性吐出全天 K 线。
+     */
     private static boolean advanceOnePeriod(ServerLevel level, MarketState state, long targetDay, int targetHour) {
         if (state.day < targetDay) {
             int next = state.lastHour < 0 ? 0 : state.lastHour + 1;
@@ -342,7 +358,9 @@ public final class ExchangeMarketService {
         return latest;
     }
 
-    /** pruneFutureCandles: 丢掉尚未走到的小时柱，并让 lastHour / 现价回到当前时钟。 */
+    /**
+     * pruneFutureCandles: 丢掉尚未走到的小时柱，并让 lastHour / 现价回到当前时钟。
+     */
     private static void pruneFutureCandles(ServerLevel level, MarketState state, long dayTime) {
         long day = ExchangeMarketClock.dayIndex(dayTime);
         int maxHour = ExchangeMarketClock.maxValidHour(dayTime);
@@ -371,7 +389,9 @@ public final class ExchangeMarketService {
         SimuKraft.LOGGER.info("Pruned future exchange candles after day {} hour {}", day, maxHour);
     }
 
-    /** restoreQuoteFromCandles: 现价取最后一根保留柱的收盘，成交量只计当天剩下的柱。 */
+    /**
+     * restoreQuoteFromCandles: 现价取最后一根保留柱的收盘，成交量只计当天剩下的柱。
+     */
     private static void restoreQuoteFromCandles(Quote quote, long day) {
         ExchangeCandle last = null;
         int volume = 0;
@@ -389,7 +409,9 @@ public final class ExchangeMarketService {
         quote.volume = volume;
     }
 
-    /** noteTrade: 这一小时的买卖先记账，收盘时一起打进价格和成交量。 */
+    /**
+     * noteTrade: 这一小时的买卖先记账，收盘时一起打进价格和成交量。
+     */
     private static void noteTrade(Quote quote, int signedShares) {
         if (quote == null || signedShares == 0) {
             return;
@@ -398,7 +420,9 @@ public final class ExchangeMarketService {
         quote.pendingTradeShares += Math.abs(signedShares);
     }
 
-    /** applyEconomy: 用当前城市经营重算当天市况。价格仍按小时慢慢靠过去。 */
+    /**
+     * applyEconomy: 用当前城市经营重算当天市况。价格仍按小时慢慢靠过去。
+     */
     private static void applyEconomy(ServerLevel level, MarketState state) {
         state.snapshot = ExchangeEconomyProbe.capture(level);
         state.regime = ExchangeFundamentals.regime(state.snapshot);
@@ -434,7 +458,9 @@ public final class ExchangeMarketService {
         }
     }
 
-    /** trimHistory: 内存只留最近若干交易日的小时线，库里更早的记录仍在。 */
+    /**
+     * trimHistory: 内存只留最近若干交易日的小时线，库里更早的记录仍在。
+     */
     private static void trimHistory(Quote quote) {
         while (quote.candles.size() > HISTORY_CANDLES) {
             quote.candles.remove(0);

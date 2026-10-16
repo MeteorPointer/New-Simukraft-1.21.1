@@ -1,9 +1,9 @@
 package common.cn.nsimu.simukraft.citizen;
 
 import common.cn.nsimu.simukraft.building.BuilderConstructionService;
-import common.cn.nsimu.simukraft.planner.PlannerWorkService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.job.CityJobType;
+import common.cn.nsimu.simukraft.planner.PlannerWorkService;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
@@ -82,7 +82,9 @@ public final class CitizenJobVisualService {
         }
     }
 
-    /** applySlot：把真实背包装备或职业临时外观写入原版装备槽；真实装备保留同一物品栈引用。 */
+    /**
+     * applySlot：把真实背包装备或职业临时外观写入原版装备槽；真实装备保留同一物品栈引用。
+     */
     private static void applySlot(CitizenEntity entity, EquipmentSlot slot, ItemStack desired, boolean copyForVisualOverride) {
         ItemStack normalized = desired != null ? desired : ItemStack.EMPTY;
         ItemStack current = entity.getItemBySlot(slot);

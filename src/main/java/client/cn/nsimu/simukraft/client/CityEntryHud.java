@@ -33,7 +33,8 @@ public final class CityEntryHud {
     private static UUID lastCityId = null;
     private static long lastChunkLong = Long.MIN_VALUE;
 
-    private CityEntryHud() {}
+    private CityEntryHud() {
+    }
 
     public static void onClientTick() {
         Minecraft mc = Minecraft.getInstance();
@@ -75,7 +76,10 @@ public final class CityEntryHud {
     public static void render(GuiGraphics guiGraphics, float partialTick) {
         if (cityName == null) return;
         long elapsed = System.currentTimeMillis() - startTime;
-        if (elapsed > DURATION_MS) { cityName = null; return; }
+        if (elapsed > DURATION_MS) {
+            cityName = null;
+            return;
+        }
         Minecraft mc = Minecraft.getInstance();
         if (mc == null || mc.player == null || mc.font == null) return;
 
@@ -151,7 +155,17 @@ public final class CityEntryHud {
         }
     }
 
-    private static float clamp01(float v) { return v < 0f ? 0f : Math.min(v, 1f); }
-    private static float easeOutCubic(float t) { float m = 1.0f - clamp01(t); return 1.0f - m * m * m; }
-    private static float easeInCubic(float t) { float x = clamp01(t); return x * x * x; }
+    private static float clamp01(float v) {
+        return v < 0f ? 0f : Math.min(v, 1f);
+    }
+
+    private static float easeOutCubic(float t) {
+        float m = 1.0f - clamp01(t);
+        return 1.0f - m * m * m;
+    }
+
+    private static float easeInCubic(float t) {
+        float x = clamp01(t);
+        return x * x * x;
+    }
 }

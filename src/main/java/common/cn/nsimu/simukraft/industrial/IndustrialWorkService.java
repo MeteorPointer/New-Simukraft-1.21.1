@@ -1,15 +1,7 @@
 package common.cn.nsimu.simukraft.industrial;
 
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenHomeRestService;
-import common.cn.nsimu.simukraft.citizen.CitizenJobVisualService;
-import common.cn.nsimu.simukraft.citizen.CitizenLevelService;
-import common.cn.nsimu.simukraft.citizen.CitizenService;
-import common.cn.nsimu.simukraft.citizen.CitizenSelfFeedingService;
-import common.cn.nsimu.simukraft.citizen.CitizenSkillSnapshot;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
-import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
+import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.job.CityJobType;
 import common.cn.nsimu.simukraft.medical.MedicalService;
@@ -307,17 +299,22 @@ public final class IndustrialWorkService {
                 yield StepResult.PROGRESSED;
             }
             case "move_to" -> moveTo(level, data, boxRuntime, building, definition, worker, entity, step);
-            case "move_to_container", "move_to_chest" -> moveToContainer(level, data, boxRuntime, building, definition, worker, entity, step);
+            case "move_to_container", "move_to_chest" ->
+                    moveToContainer(level, data, boxRuntime, building, definition, worker, entity, step);
             case "move_to_entity" -> moveToEntity(level, data, boxRuntime, building, definition, worker, entity, step);
             case "look_at" -> lookAt(building, definition, entity, step);
-            case "look_at_container", "look_at_chest" -> lookAtContainer(level, data, building, definition, entity, step);
+            case "look_at_container", "look_at_chest" ->
+                    lookAtContainer(level, data, building, definition, entity, step);
             case "require_inputs" -> requireInputs(level, manager, data, building, definition, recipe, step);
             case "require_output_space" -> requireOutputSpace(level, manager, data, building, definition, recipe, step);
             case "use_item" -> useItem(entity, boxRuntime, step, gameTime);
             case "craft_recipe" -> craftRecipe(level, manager, data, building, definition, recipe, worker, step, false);
-            case "craft_available_recipe", "craft_all_recipe" -> craftRecipe(level, manager, data, building, definition, recipe, worker, step, true);
-            case "real_machine_recipe" -> realMachineRecipe(level, manager, data, building, definition, recipe, worker, entity, step, gameTime);
-            case "inspect_container", "open_container" -> inspectContainer(level, manager, data, boxRuntime, building, definition, step, gameTime);
+            case "craft_available_recipe", "craft_all_recipe" ->
+                    craftRecipe(level, manager, data, building, definition, recipe, worker, step, true);
+            case "real_machine_recipe" ->
+                    realMachineRecipe(level, manager, data, building, definition, recipe, worker, entity, step, gameTime);
+            case "inspect_container", "open_container" ->
+                    inspectContainer(level, manager, data, boxRuntime, building, definition, step, gameTime);
             case "breed_entities", "breed_animals" -> entityAction(manager, data,
                     IndustrialEntityActionService.breed(level, building, definition, step),
                     "gui.simukraft.industrial.status.breeding");
@@ -327,12 +324,13 @@ public final class IndustrialWorkService {
             case "require_drops", "require_drop_items", "has_drops" -> entityAction(manager, data,
                     IndustrialEntityActionService.requireDrops(level, building, definition, step, entity),
                     "gui.simukraft.industrial.status.collecting_drops");
-            case "collect_drops" -> collectDrops(level, manager, data, boxRuntime, building, definition, worker, entity, step);
+            case "collect_drops" ->
+                    collectDrops(level, manager, data, boxRuntime, building, definition, worker, entity, step);
             case "shear_entities", "shear_sheep" -> step.ticks() > 0
                     ? shearWithAnimation(level, manager, data, boxRuntime, building, definition, entity, step, gameTime)
                     : entityAction(manager, data,
-                            IndustrialEntityActionService.shear(level, building, definition, step, entity),
-                            "gui.simukraft.industrial.status.shearing");
+                    IndustrialEntityActionService.shear(level, building, definition, step, entity),
+                    "gui.simukraft.industrial.status.shearing");
             case "place_block", "set_block" -> blockAction(manager, data,
                     IndustrialBlockActionService.placeBlock(level, building, definition, step, entity),
                     "gui.simukraft.industrial.status.placing_block", step);
@@ -344,9 +342,12 @@ public final class IndustrialWorkService {
                     "gui.simukraft.industrial.status.destroying_block", step);
             case "require_block", "wait_for_block", "find_block", "check_block" -> requireBlock(manager, data,
                     IndustrialBlockActionService.requireBlock(level, building, definition, step), step);
-            case "harvest_block_clusters", "harvest_blocks" -> harvestBlockClusters(level, manager, data, building, definition, worker, entity, step);
-            case "deposit_carried_items", "store_carried_items", "put_carried_items" -> depositCarriedItems(level, manager, data, boxRuntime, building, definition, step, gameTime);
-            case "insert_item", "store_item", "put_item" -> insertItem(level, manager, data, boxRuntime, building, definition, step, gameTime);
+            case "harvest_block_clusters", "harvest_blocks" ->
+                    harvestBlockClusters(level, manager, data, building, definition, worker, entity, step);
+            case "deposit_carried_items", "store_carried_items", "put_carried_items" ->
+                    depositCarriedItems(level, manager, data, boxRuntime, building, definition, step, gameTime);
+            case "insert_item", "store_item", "put_item" ->
+                    insertItem(level, manager, data, boxRuntime, building, definition, step, gameTime);
             case "fill_item", "fill_slot", "refill_item", "refill_slot" -> fillItem(manager, data, entity, step,
                     IndustrialItemFillService.fill(level, building, definition, step, entity.position()));
             case "set_status" -> {
@@ -660,13 +661,13 @@ public final class IndustrialWorkService {
     }
 
     private static StepResult moveToEntity(ServerLevel level,
-                                            IndustrialBoxData data,
-                                            BoxRuntime boxRuntime,
-                                            PlacedBuildingRecord building,
-                                            IndustrialDefinition definition,
-                                            CitizenData worker,
-                                            CitizenEntity entity,
-                                            IndustrialDefinition.StepDefinition step) {
+                                           IndustrialBoxData data,
+                                           BoxRuntime boxRuntime,
+                                           PlacedBuildingRecord building,
+                                           IndustrialDefinition definition,
+                                           CitizenData worker,
+                                           CitizenEntity entity,
+                                           IndustrialDefinition.StepDefinition step) {
         var target = IndustrialEntityActionService.nearestShearable(level, building, definition, step, entity);
         if (target.isEmpty()) {
             setStatus(IndustrialBoxManager.get(level), data, "gui.simukraft.industrial.status.waiting_regrowth", "");
@@ -683,14 +684,14 @@ public final class IndustrialWorkService {
     }
 
     private static StepResult shearWithAnimation(ServerLevel level,
-                                                  IndustrialBoxManager manager,
-                                                  IndustrialBoxData data,
-                                                  BoxRuntime boxRuntime,
-                                                  PlacedBuildingRecord building,
-                                                  IndustrialDefinition definition,
-                                                  CitizenEntity entity,
-                                                  IndustrialDefinition.StepDefinition step,
-                                                  long gameTime) {
+                                                 IndustrialBoxManager manager,
+                                                 IndustrialBoxData data,
+                                                 BoxRuntime boxRuntime,
+                                                 PlacedBuildingRecord building,
+                                                 IndustrialDefinition definition,
+                                                 CitizenEntity entity,
+                                                 IndustrialDefinition.StepDefinition step,
+                                                 long gameTime) {
         var target = IndustrialEntityActionService.nearestShearable(level, building, definition, step, entity);
         if (target.isEmpty()) {
             setStatus(manager, data, "gui.simukraft.industrial.status.missing_entities", "");
@@ -1111,7 +1112,9 @@ public final class IndustrialWorkService {
         return new ContainerMoveTarget(Vec3.atBottomCenterOf(bestContainer), false);
     }
 
-    /** standNearDrop：在搜索半径内选离工人最近的可站立格，避免停在围栏内的第一圈。 */
+    /**
+     * standNearDrop：在搜索半径内选离工人最近的可站立格，避免停在围栏内的第一圈。
+     */
     private static BlockPos standNearDrop(ServerLevel level, BlockPos dropPos, Vec3 origin, int maxRadius) {
         int radiusLimit = Math.max(2, Math.min(maxRadius, 8));
         BlockPos best = null;

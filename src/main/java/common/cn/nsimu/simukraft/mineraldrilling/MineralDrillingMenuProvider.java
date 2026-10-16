@@ -14,7 +14,9 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 
-/** MineralDrillingMenuProvider: 通过原版菜单协议打开带真实工具槽的钻井控制箱。 */
+/**
+ * MineralDrillingMenuProvider: 通过原版菜单协议打开带真实工具槽的钻井控制箱。
+ */
 
 public final class MineralDrillingMenuProvider implements MenuProvider {
     private final MineralDrillingMenuSnapshot snapshot;
@@ -29,7 +31,9 @@ public final class MineralDrillingMenuProvider implements MenuProvider {
         this.level = level;
     }
 
-    /** open: 校验方块和距离后，在服务端打开矿物钻井容器。 */
+    /**
+     * open: 校验方块和距离后，在服务端打开矿物钻井容器。
+     */
     public static boolean open(ServerLevel level, ServerPlayer player, BlockPos boxPos) {
         if (level == null || player == null || boxPos == null
                 || player.level() != level
@@ -48,7 +52,9 @@ public final class MineralDrillingMenuProvider implements MenuProvider {
         }
     }
 
-    /** createClientMenu: 从有限快照创建客户端镜像库存与 LDLib2 菜单。 */
+    /**
+     * createClientMenu: 从有限快照创建客户端镜像库存与 LDLib2 菜单。
+     */
     public static ModularUIContainerMenu createClientMenu(int containerId,
                                                           Inventory playerInventory,
                                                           RegistryFriendlyByteBuf buffer) {
@@ -64,7 +70,9 @@ public final class MineralDrillingMenuProvider implements MenuProvider {
                 new MineralDrillingMenuHolder(snapshot, new MineralDrillingInventory(), null, null));
     }
 
-    /** createMenu: 将服务端菜单直接绑定到 SQLite 管理器持有的两格库存。 */
+    /**
+     * createMenu: 将服务端菜单直接绑定到 SQLite 管理器持有的两格库存。
+     */
     @Override
     public AbstractContainerMenu createMenu(int containerId, Inventory playerInventory, Player player) {
         return new ModularUIContainerMenu(
@@ -72,7 +80,9 @@ public final class MineralDrillingMenuProvider implements MenuProvider {
                 new MineralDrillingMenuHolder(snapshot, data.inventory(), data, level));
     }
 
-    /** getDisplayName: 返回原版菜单标题，供辅助功能和调试信息使用。 */
+    /**
+     * getDisplayName: 返回原版菜单标题，供辅助功能和调试信息使用。
+     */
     @Override
     public Component getDisplayName() {
         return Component.translatable("gui.simukraft.mineral_drilling.title");

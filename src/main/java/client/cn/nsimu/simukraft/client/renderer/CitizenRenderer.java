@@ -1,7 +1,5 @@
 package client.cn.nsimu.simukraft.client.renderer;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.vertex.PoseStack;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
@@ -17,6 +15,8 @@ import net.minecraft.client.renderer.entity.layers.HumanoidArmorLayer;
 import net.minecraft.client.renderer.entity.layers.ItemInHandLayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.joml.Matrix4f;
 
 
@@ -88,7 +88,9 @@ public class CitizenRenderer extends MobRenderer<CitizenEntity, CitizenModel> {
         return distance < 45.0D || entity.hasCustomName() && entity == camera.getEntity();
     }
 
-    /** withoutOverheadText：在布偶预览渲染期间屏蔽名称和工作状态文字。 */
+    /**
+     * withoutOverheadText：在布偶预览渲染期间屏蔽名称和工作状态文字。
+     */
     public static void withoutOverheadText(Runnable renderAction) {
         boolean previous = HIDE_OVERHEAD_TEXT.get();
         HIDE_OVERHEAD_TEXT.set(true);

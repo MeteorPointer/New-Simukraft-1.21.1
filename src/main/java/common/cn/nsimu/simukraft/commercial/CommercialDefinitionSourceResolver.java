@@ -13,7 +13,9 @@ final class CommercialDefinitionSourceResolver {
     static void clearCache() {
     }
 
-    /** explicitCommercialFileName: 解析 .sk 中 commercial 字段声明的包内 JSON 文件名。 */
+    /**
+     * explicitCommercialFileName: 解析 .sk 中 commercial 字段声明的包内 JSON 文件名。
+     */
     @Nullable
     static String explicitCommercialFileName(BuildingCatalog.BuildingDefinition definition) {
         if (definition == null) {
@@ -35,7 +37,9 @@ final class CommercialDefinitionSourceResolver {
         }
     }
 
-    /** siblingCommercialFileName: 按建筑 .sk 同名规则解析相邻商业 JSON。 */
+    /**
+     * siblingCommercialFileName: 按建筑 .sk 同名规则解析相邻商业 JSON。
+     */
     @Nullable
     static String siblingCommercialFileName(BuildingCatalog.BuildingDefinition definition) {
         if (definition == null) {

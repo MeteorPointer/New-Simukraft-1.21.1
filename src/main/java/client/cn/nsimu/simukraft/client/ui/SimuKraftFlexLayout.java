@@ -1,17 +1,13 @@
 package client.cn.nsimu.simukraft.client.ui;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import com.lowdragmc.lowdraglib2.gui.texture.TextTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
-import dev.vfyjxf.taffy.style.AlignContent;
-import dev.vfyjxf.taffy.style.AlignItems;
-import dev.vfyjxf.taffy.style.FlexDirection;
-import dev.vfyjxf.taffy.style.FlexWrap;
-import dev.vfyjxf.taffy.style.TaffyPosition;
+import dev.vfyjxf.taffy.style.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -120,7 +116,9 @@ public final class SimuKraftFlexLayout {
         return region;
     }
 
-    /** 添加统一顶部操作区：左侧返回/完成按钮，右侧显示模组水印。 */
+    /**
+     * 添加统一顶部操作区：左侧返回/完成按钮，右侧显示模组水印。
+     */
     public static void addTopChrome(UIElement root, ScreenSize screenSize, Component buttonText, Runnable action) {
         Button topButton = new Button();
         topButton.setText(buttonText);

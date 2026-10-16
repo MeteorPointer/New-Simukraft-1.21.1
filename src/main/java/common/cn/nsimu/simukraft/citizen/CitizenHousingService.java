@@ -1,26 +1,22 @@
 package common.cn.nsimu.simukraft.citizen;
 
-import common.cn.nsimu.simukraft.city.poi.CityPoiData;
-import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
-import common.cn.nsimu.simukraft.city.poi.CityPoiType;
-import common.cn.nsimu.simukraft.city.CityRuntimeService;
-import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
 import common.cn.nsimu.simukraft.building.BuildingUnitResolver;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
+import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.building.ResidentialOccupancyService;
 import common.cn.nsimu.simukraft.citizen.family.FamilyData;
 import common.cn.nsimu.simukraft.citizen.family.FamilyManager;
+import common.cn.nsimu.simukraft.city.CityRuntimeService;
+import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
+import common.cn.nsimu.simukraft.city.poi.CityPoiData;
+import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
+import common.cn.nsimu.simukraft.city.poi.CityPoiType;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -32,7 +28,9 @@ public final class CitizenHousingService {
         return fillVacantHomes(level, cityId, Integer.MAX_VALUE);
     }
 
-    /** remapHomes：建筑搬迁后按 POI UUID 映射修复居民住宅引用，并立即持久化。 */
+    /**
+     * remapHomes：建筑搬迁后按 POI UUID 映射修复居民住宅引用，并立即持久化。
+     */
     public static int remapHomes(ServerLevel level, UUID cityId, Map<UUID, UUID> homeIdRemap) {
         if (level == null || cityId == null || homeIdRemap == null || homeIdRemap.isEmpty()) {
             return 0;
@@ -132,7 +130,7 @@ public final class CitizenHousingService {
     }
 
     private static int fillFamilyUnits(ServerLevel level, UUID cityId,
-            CityPoiManager poiManager, Set<UUID> assignedCitizens) {
+                                       CityPoiManager poiManager, Set<UUID> assignedCitizens) {
         FamilyManager familyManager = FamilyManager.get(level);
         CitizenManager citizenManager = CitizenManager.get(level);
         Set<UUID> occupiedPoiIds = occupiedPoiIds(citizenManager, cityId, poiManager);
@@ -142,7 +140,7 @@ public final class CitizenHousingService {
             // 收集家庭中无家可归的成员
             List<UUID> homeless = new java.util.ArrayList<>();
             addIfHomeless(family.husbandId(), citizenManager, poiManager, cityId, assignedCitizens, homeless);
-            addIfHomeless(family.wifeId(),   citizenManager, poiManager, cityId, assignedCitizens, homeless);
+            addIfHomeless(family.wifeId(), citizenManager, poiManager, cityId, assignedCitizens, homeless);
             for (UUID childId : family.childIds()) {
                 addIfHomeless(childId, citizenManager, poiManager, cityId, assignedCitizens, homeless);
             }
@@ -175,7 +173,7 @@ public final class CitizenHousingService {
     }
 
     private static void addIfHomeless(UUID citizenId, CitizenManager manager,
-            CityPoiManager poiManager, UUID cityId, Set<UUID> alreadyAssigned, List<UUID> result) {
+                                      CityPoiManager poiManager, UUID cityId, Set<UUID> alreadyAssigned, List<UUID> result) {
         if (citizenId == null || alreadyAssigned.contains(citizenId)) return;
         CitizenData c = manager.getCitizen(citizenId).orElse(null);
         if (c == null || c.dead()) return;
@@ -183,9 +181,11 @@ public final class CitizenHousingService {
         if (!hasValidHome(poiManager, cityId, c.homeId())) result.add(citizenId);
     }
 
-    /** findVacantBedsInFamilyHome: 查找家庭现有住所内的空床，供无家成员（如新生儿）加入。 */
+    /**
+     * findVacantBedsInFamilyHome: 查找家庭现有住所内的空床，供无家成员（如新生儿）加入。
+     */
     private static List<UUID> findVacantBedsInFamilyHome(ServerLevel level, common.cn.nsimu.simukraft.citizen.family.FamilyData family,
-            CitizenManager citizenManager, CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
+                                                         CitizenManager citizenManager, CityPoiManager poiManager, Set<UUID> occupiedPoiIds) {
         // 找任意已有家的家庭成员
         UUID housedHomeId = null;
         for (UUID memberId : membersOf(family)) {
@@ -215,9 +215,10 @@ public final class CitizenHousingService {
 
     // 返回目标户的 POI 列表；整户必须完全空置才允许新家庭入住。
     private static List<UUID> findPoiIdsForFamily(ServerLevel level, UUID cityId,
-            CityPoiManager poiManager, Set<UUID> occupiedPoiIds, int needed) {
+                                                  CityPoiManager poiManager, Set<UUID> occupiedPoiIds, int needed) {
         // 收集所有合法候选，按床位数降序，优先把大房子分给家庭
-        record Candidate(List<UUID> poiIds) {}
+        record Candidate(List<UUID> poiIds) {
+        }
         List<Candidate> candidates = new java.util.ArrayList<>();
 
         for (var building : PlacedBuildingService.getBuildings(level)) {
@@ -234,9 +235,11 @@ public final class CitizenHousingService {
         return candidates.get(0).poiIds();
     }
 
-    /** householdResidentialPoiGroups：取得建筑内有效住宅 POI 的户级分组。 */
+    /**
+     * householdResidentialPoiGroups：取得建筑内有效住宅 POI 的户级分组。
+     */
     public static List<List<UUID>> householdResidentialPoiGroups(PlacedBuildingRecord building,
-                                                                    CityPoiManager poiManager) {
+                                                                 CityPoiManager poiManager) {
         if (building == null || poiManager == null) {
             return List.of();
         }
@@ -248,7 +251,9 @@ public final class CitizenHousingService {
                 .toList();
     }
 
-    /** householdOf：返回指定住宅 POI 所在户的全部有效床位。 */
+    /**
+     * householdOf：返回指定住宅 POI 所在户的全部有效床位。
+     */
     public static List<UUID> householdOf(PlacedBuildingRecord building, CityPoiManager poiManager, UUID poiId) {
         if (poiId == null) {
             return List.of();
@@ -259,7 +264,9 @@ public final class CitizenHousingService {
         return List.of();
     }
 
-    /** hasFullyVacantHousehold：判断城市是否存在没有任何住户的完整住宅户。 */
+    /**
+     * hasFullyVacantHousehold：判断城市是否存在没有任何住户的完整住宅户。
+     */
     public static boolean hasFullyVacantHousehold(ServerLevel level, UUID cityId) {
         if (level == null || cityId == null) {
             return false;
@@ -305,7 +312,9 @@ public final class CitizenHousingService {
                 .collect(Collectors.toSet());
     }
 
-    /** notifyNewResident: 新市民成功入住后通知城市在线成员。 */
+    /**
+     * notifyNewResident: 新市民成功入住后通知城市在线成员。
+     */
     private static void notifyNewResident(ServerLevel level, UUID cityId, CitizenData data) {
         if (data == null) {
             return;
@@ -342,12 +351,16 @@ public final class CitizenHousingService {
                 .toList();
     }
 
-    /** isAssignableBuilding: 禁止入住的住宅不参与分配、生成和空房统计。 */
+    /**
+     * isAssignableBuilding: 禁止入住的住宅不参与分配、生成和空房统计。
+     */
     public static boolean isAssignableBuilding(ServerLevel level, PlacedBuildingRecord building) {
         return building != null && ResidentialOccupancyService.isOccupancyAllowed(level, building.buildingId());
     }
 
-    /** isAssignablePoi: 床位所属建筑允许入住时才可被分配。 */
+    /**
+     * isAssignablePoi: 床位所属建筑允许入住时才可被分配。
+     */
     public static boolean isAssignablePoi(ServerLevel level, UUID poiId) {
         PlacedBuildingRecord building = PlacedBuildingService.findByPoi(level, poiId);
         return building == null || isAssignableBuilding(level, building);
@@ -366,7 +379,7 @@ public final class CitizenHousingService {
      * 仅当夫妻均在 homeless 列表中时才重排；否则原样返回。
      */
     private static List<UUID> sortCoupleBedsFirst(List<UUID> poiIds, FamilyData family,
-            List<UUID> homeless, CityPoiManager poiManager) {
+                                                  List<UUID> homeless, CityPoiManager poiManager) {
         if (poiIds.size() < 2) return poiIds;
         if (family.husbandId() == null || family.wifeId() == null) return poiIds;
         if (!homeless.contains(family.husbandId()) || !homeless.contains(family.wifeId())) return poiIds;
@@ -380,15 +393,23 @@ public final class CitizenHousingService {
                 BlockPos posJ = poiPosOrNull(poiIds.get(j), poiManager);
                 if (posJ == null) continue;
                 double dist = posI.distSqr(posJ);
-                if (dist < bestDist) { bestDist = dist; bestI = i; bestJ = j; }
+                if (dist < bestDist) {
+                    bestDist = dist;
+                    bestI = i;
+                    bestJ = j;
+                }
             }
         }
         List<UUID> sorted = new java.util.ArrayList<>(poiIds);
         // 把 bestI 换到 0
-        UUID tmp = sorted.get(0); sorted.set(0, sorted.get(bestI)); sorted.set(bestI, tmp);
+        UUID tmp = sorted.get(0);
+        sorted.set(0, sorted.get(bestI));
+        sorted.set(bestI, tmp);
         // bestJ 可能因上一步已移动（当 bestJ == 0 时实际变成了 bestI）
         int actualJ = (bestJ == 0) ? bestI : bestJ;
-        tmp = sorted.get(1); sorted.set(1, sorted.get(actualJ)); sorted.set(actualJ, tmp);
+        tmp = sorted.get(1);
+        sorted.set(1, sorted.get(actualJ));
+        sorted.set(actualJ, tmp);
         return sorted;
     }
 

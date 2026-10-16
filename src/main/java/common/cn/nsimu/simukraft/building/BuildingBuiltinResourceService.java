@@ -7,8 +7,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
-import java.nio.file.FileSystemNotFoundException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystemNotFoundException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
@@ -28,7 +28,9 @@ public final class BuildingBuiltinResourceService {
     private BuildingBuiltinResourceService() {
     }
 
-    /** ensureCopied: 将官方建筑目录复制到建筑包目录，已存在时不覆盖。 */
+    /**
+     * ensureCopied: 将官方建筑目录复制到建筑包目录，已存在时不覆盖。
+     */
     public static void ensureCopied(Path rootDirectory) {
         if (rootDirectory == null) {
             return;
@@ -52,7 +54,9 @@ public final class BuildingBuiltinResourceService {
         }
     }
 
-    /** forceOverwrite: 用内置官方建筑目录覆写游戏目录中的同名文件夹。 */
+    /**
+     * forceOverwrite: 用内置官方建筑目录覆写游戏目录中的同名文件夹。
+     */
     public static void forceOverwrite(Path rootDirectory) {
         if (rootDirectory == null) {
             return;
@@ -81,7 +85,9 @@ public final class BuildingBuiltinResourceService {
         }
     }
 
-    /** clearCache: 清理已复制目录标记，测试和重载时允许重新检查官方包。 */
+    /**
+     * clearCache: 清理已复制目录标记，测试和重载时允许重新检查官方包。
+     */
     public static void clearCache() {
         COPIED_ROOTS.clear();
     }

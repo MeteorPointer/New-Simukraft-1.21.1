@@ -23,29 +23,75 @@ public final class FamilyData {
         this.generation = 0;
     }
 
-    public UUID familyId() { return familyId; }
-    public UUID cityId() { return cityId; }
-    public void setCityId(UUID cityId) { this.cityId = cityId; }
+    public UUID familyId() {
+        return familyId;
+    }
 
-    public UUID husbandId() { return husbandId; }
-    public void setHusbandId(UUID husbandId) { this.husbandId = husbandId; }
+    public UUID cityId() {
+        return cityId;
+    }
 
-    public UUID wifeId() { return wifeId; }
-    public void setWifeId(UUID wifeId) { this.wifeId = wifeId; }
+    public void setCityId(UUID cityId) {
+        this.cityId = cityId;
+    }
 
-    public List<UUID> childIds() { return Collections.unmodifiableList(childIds); }
-    public void addChild(UUID childId) { if (childId != null) childIds.add(childId); }
-    public void removeChild(UUID childId) { childIds.remove(childId); }
+    public UUID husbandId() {
+        return husbandId;
+    }
 
-    public UUID paternalFamilyId() { return paternalFamilyId; }
-    public void setPaternalFamilyId(UUID paternalFamilyId) { this.paternalFamilyId = paternalFamilyId; }
+    public void setHusbandId(UUID husbandId) {
+        this.husbandId = husbandId;
+    }
 
-    public UUID maternalFamilyId() { return maternalFamilyId; }
-    public void setMaternalFamilyId(UUID maternalFamilyId) { this.maternalFamilyId = maternalFamilyId; }
+    public UUID wifeId() {
+        return wifeId;
+    }
 
-    public int generation() { return generation; }
-    public void setGeneration(int generation) { this.generation = Math.max(0, generation); }
+    public void setWifeId(UUID wifeId) {
+        this.wifeId = wifeId;
+    }
 
-    public FamilyStatus status() { return status; }
-    public void setStatus(FamilyStatus status) { this.status = status != null ? status : FamilyStatus.FORMING; }
+    public List<UUID> childIds() {
+        return Collections.unmodifiableList(childIds);
+    }
+
+    public void addChild(UUID childId) {
+        if (childId != null) childIds.add(childId);
+    }
+
+    public void removeChild(UUID childId) {
+        childIds.remove(childId);
+    }
+
+    public UUID paternalFamilyId() {
+        return paternalFamilyId;
+    }
+
+    public void setPaternalFamilyId(UUID paternalFamilyId) {
+        this.paternalFamilyId = paternalFamilyId;
+    }
+
+    public UUID maternalFamilyId() {
+        return maternalFamilyId;
+    }
+
+    public void setMaternalFamilyId(UUID maternalFamilyId) {
+        this.maternalFamilyId = maternalFamilyId;
+    }
+
+    public int generation() {
+        return generation;
+    }
+
+    public void setGeneration(int generation) {
+        this.generation = Math.max(0, generation);
+    }
+
+    public FamilyStatus status() {
+        return status;
+    }
+
+    public void setStatus(FamilyStatus status) {
+        this.status = status != null ? status : FamilyStatus.FORMING;
+    }
 }

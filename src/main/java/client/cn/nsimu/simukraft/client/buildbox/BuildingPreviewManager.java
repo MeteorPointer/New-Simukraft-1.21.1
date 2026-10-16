@@ -1,7 +1,5 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraManager;
 import client.cn.nsimu.simukraft.client.rts.RtsSurfaceHeightResolver;
 import common.cn.nsimu.simukraft.building.BuildingBlockData;
@@ -10,6 +8,8 @@ import common.cn.nsimu.simukraft.building.BuildingStructureService;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -67,7 +67,9 @@ public final class BuildingPreviewManager {
         return true;
     }
 
-    /** beginRtsPreview: 固定光标初始落点，使预览建筑按 RTS 抓取语义跟随光标。 */
+    /**
+     * beginRtsPreview: 固定光标初始落点，使预览建筑按 RTS 抓取语义跟随光标。
+     */
     public static void beginRtsPreview(BlockPos placement) {
         rtsReferencePlacement = placement == null ? null : placement.immutable();
         rtsCurrentPlacement = rtsReferencePlacement;
@@ -79,7 +81,9 @@ public final class BuildingPreviewManager {
         }
     }
 
-    /** updateRtsPreview: 将预览建筑平移到当前 RTS 光标落点对应的位置。 */
+    /**
+     * updateRtsPreview: 将预览建筑平移到当前 RTS 光标落点对应的位置。
+     */
     public static void updateRtsPreview(BlockPos placement) {
         if (!active || placement == null) {
             return;
@@ -92,7 +96,9 @@ public final class BuildingPreviewManager {
         moveRtsPreviewTo();
     }
 
-    /** moveRtsPreviewRelativeToCamera: 以相机方向调整 RTS 抓取预览的额外偏移。 */
+    /**
+     * moveRtsPreviewRelativeToCamera: 以相机方向调整 RTS 抓取预览的额外偏移。
+     */
     public static void moveRtsPreviewRelativeToCamera(int right, int forward) {
         if (!active) {
             return;
@@ -103,7 +109,9 @@ public final class BuildingPreviewManager {
         moveRtsPreviewRelative(dx, 0, dz);
     }
 
-    /** moveRtsPreviewVertical: 调整 RTS 抓取预览的额外高度偏移。 */
+    /**
+     * moveRtsPreviewVertical: 调整 RTS 抓取预览的额外高度偏移。
+     */
     public static void moveRtsPreviewVertical(int dy) {
         moveRtsPreviewRelative(0, dy, 0);
     }
@@ -148,7 +156,9 @@ public final class BuildingPreviewManager {
         buildingName = "";
         cachedMesh.close();
         cachedMesh = PreviewMesh.EMPTY;
-        accumDx = 0; accumDy = 0; accumDz = 0;
+        accumDx = 0;
+        accumDy = 0;
+        accumDz = 0;
         rtsReferencePlacement = null;
         rtsCurrentPlacement = null;
         rtsBaseOrigin = BlockPos.ZERO;
@@ -201,7 +211,9 @@ public final class BuildingPreviewManager {
         return previewRevision;
     }
 
-    /** moveRtsPreviewRelative: 记录键盘偏移，并维持预览对光标落点的跟随关系。 */
+    /**
+     * moveRtsPreviewRelative: 记录键盘偏移，并维持预览对光标落点的跟随关系。
+     */
     private static void moveRtsPreviewRelative(int dx, int dy, int dz) {
         if (!active || rtsReferencePlacement == null || rtsCurrentPlacement == null) {
             return;
@@ -210,7 +222,9 @@ public final class BuildingPreviewManager {
         moveRtsPreviewTo();
     }
 
-    /** moveRtsPreviewTo: 以建筑投影范围的最高地表、抓取参考点和手动偏移计算目标位置。 */
+    /**
+     * moveRtsPreviewTo: 以建筑投影范围的最高地表、抓取参考点和手动偏移计算目标位置。
+     */
     private static void moveRtsPreviewTo() {
         int offsetX = rtsCurrentPlacement.getX() - rtsReferencePlacement.getX() + rtsManualOffset.getX();
         int offsetZ = rtsCurrentPlacement.getZ() - rtsReferencePlacement.getZ() + rtsManualOffset.getZ();
@@ -228,7 +242,9 @@ public final class BuildingPreviewManager {
         movePreviewRelative(offset.getX(), offset.getY(), offset.getZ());
     }
 
-    /** captureRtsFootprint: 记录建筑相对于预览原点的底部投影范围。 */
+    /**
+     * captureRtsFootprint: 记录建筑相对于预览原点的底部投影范围。
+     */
     private static void captureRtsFootprint() {
         if (PREVIEW_BLOCKS.isEmpty()) {
             rtsMinX = rtsMaxX = rtsMinY = rtsMinZ = rtsMaxZ = 0;
@@ -256,13 +272,17 @@ public final class BuildingPreviewManager {
         rtsMaxZ = maxZ - previewOrigin.getZ();
     }
 
-    /** isRtsSurfaceReady：返回 RTS 建筑预览是否已获得完整投影范围的地表高度。 */
+    /**
+     * isRtsSurfaceReady：返回 RTS 建筑预览是否已获得完整投影范围的地表高度。
+     */
     public static boolean isRtsSurfaceReady() {
         return rtsSurfaceReady;
     }
 
     private static void rebuildBlocks(BuildingStructure structure) {
-        accumDx = 0; accumDy = 0; accumDz = 0;
+        accumDx = 0;
+        accumDy = 0;
+        accumDz = 0;
         PREVIEW_BLOCKS.clear();
         List<BuildingBlockData> blocks = BuildingStructureService.resolvePlacedBlocks(structure, previewOrigin, rotationDegrees);
         for (BuildingBlockData block : blocks) {
@@ -274,7 +294,9 @@ public final class BuildingPreviewManager {
     }
 
     private static void offsetBlocks(int dx, int dy, int dz) {
-        accumDx += dx; accumDy += dy; accumDz += dz;
+        accumDx += dx;
+        accumDy += dy;
+        accumDz += dz;
         cachedMesh.offsetOrigin(dx, dy, dz);
         previewRevision++;
     }

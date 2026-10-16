@@ -1,8 +1,5 @@
 package common.cn.nsimu.simukraft.path;
 
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
@@ -13,10 +10,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 class PathSnapshotBuilderSparseCaptureTest {
     private static final ResourceLocation DIMENSION = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
 
-    /** missingEntriesRetainAirSemantics: verify sparse captures still treat omitted entries as air. */
+    /**
+     * missingEntriesRetainAirSemantics: verify sparse captures still treat omitted entries as air.
+     */
     @Test
     void missingEntriesRetainAirSemantics() {
         Long2ObjectOpenHashMap<BlockState> states = new Long2ObjectOpenHashMap<>();
@@ -36,7 +38,9 @@ class PathSnapshotBuilderSparseCaptureTest {
         assertTrue(snapshot.bodyPassage(0, 64, 0));
     }
 
-    /** sectionBackedCaptureRetainsPathSemantics: 验证异步区段视图与直接快照判定一致。 */
+    /**
+     * sectionBackedCaptureRetainsPathSemantics: 验证异步区段视图与直接快照判定一致。
+     */
     @Test
     void sectionBackedCaptureRetainsPathSemantics() {
         Long2ObjectOpenHashMap<BlockState> states = new Long2ObjectOpenHashMap<>();

@@ -40,7 +40,9 @@ public record LogisticsServerBoxOpenRequestPacket(BlockPos pos) implements Custo
         }
     }
 
-    /** openFor: 校验物流服务器盒并发送界面快照。 */
+    /**
+     * openFor: 校验物流服务器盒并发送界面快照。
+     */
     public static void openFor(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (!player.blockPosition().closerThan(pos, 16.0D) && !RtsRemoteMenuAccess.hasAccess(player, pos)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.too_far"));

@@ -17,7 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** ExchangeControlBoxOpenResponsePacket: 股市界面快照。 */
+/**
+ * ExchangeControlBoxOpenResponsePacket: 股市界面快照。
+ */
 public record ExchangeControlBoxOpenResponsePacket(BlockPos boxPos,
                                                    boolean hasBuilding,
                                                    String buildingName,
@@ -61,7 +63,9 @@ public record ExchangeControlBoxOpenResponsePacket(BlockPos boxPos,
         return TYPE;
     }
 
-    /** encode: 写入股市快照。 */
+    /**
+     * encode: 写入股市快照。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, ExchangeControlBoxOpenResponsePacket packet) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasBuilding());
@@ -110,7 +114,9 @@ public record ExchangeControlBoxOpenResponsePacket(BlockPos boxPos,
         buffer.writeDouble(packet.integrityRepairCost());
     }
 
-    /** decode: 读取股市快照。 */
+    /**
+     * decode: 读取股市快照。
+     */
     public static ExchangeControlBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         boolean hasBuilding = buffer.readBoolean();
@@ -154,7 +160,9 @@ public record ExchangeControlBoxOpenResponsePacket(BlockPos boxPos,
                 integrityAvailable, integrityPercent, integrityRepairableBlocks, integrityManualRepairBlocks, integrityRepairCost);
     }
 
-    /** handle: 打开客户端股市界面。 */
+    /**
+     * handle: 打开客户端股市界面。
+     */
     public static void handle(ExchangeControlBoxOpenResponsePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> ClientboundNetworkBridge.handleExchangeControlBoxOpenResponse(packet));
     }

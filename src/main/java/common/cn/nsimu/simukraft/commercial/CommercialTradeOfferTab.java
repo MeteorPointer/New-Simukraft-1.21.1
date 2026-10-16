@@ -13,12 +13,16 @@ public enum CommercialTradeOfferTab {
         this.translationKey = translationKey;
     }
 
-    /** translationKey: 获取 Tab 显示语言键。 */
+    /**
+     * translationKey: 获取 Tab 显示语言键。
+     */
     public String translationKey() {
         return translationKey;
     }
 
-    /** matches: 判断报价是否属于当前 Tab。 */
+    /**
+     * matches: 判断报价是否属于当前 Tab。
+     */
     public boolean matches(CommercialTradeOpenResponsePacket.OfferEntry offer) {
         boolean costHasMoney = offer.cost().stream().anyMatch(CommercialTradeUiSupport::isMoney);
         boolean resultHasMoney = offer.result().stream().anyMatch(CommercialTradeUiSupport::isMoney);

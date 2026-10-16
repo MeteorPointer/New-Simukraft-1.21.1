@@ -21,11 +21,13 @@ import javax.annotation.Nonnull;
  */
 public class IndustrialHousingTrapdoorBlock extends Block {
 
-    /** HALF: 贴地（BOTTOM）或贴顶（TOP） */
+    /**
+     * HALF: 贴地（BOTTOM）或贴顶（TOP）
+     */
     public static final EnumProperty<Half> HALF = BlockStateProperties.HALF;
 
     private static final VoxelShape SHAPE_BOTTOM = Block.box(0, 0, 0, 16, 3, 16);
-    private static final VoxelShape SHAPE_TOP    = Block.box(0, 13, 0, 16, 16, 16);
+    private static final VoxelShape SHAPE_TOP = Block.box(0, 13, 0, 16, 16, 16);
 
     public IndustrialHousingTrapdoorBlock(BlockBehaviour.Properties properties) {
         super(properties);

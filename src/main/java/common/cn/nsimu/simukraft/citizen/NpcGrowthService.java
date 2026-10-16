@@ -67,7 +67,9 @@ public final class NpcGrowthService {
         }
     }
 
-    /** completedYears：计算两个游戏日之间已经完成的年龄周期数。 */
+    /**
+     * completedYears：计算两个游戏日之间已经完成的年龄周期数。
+     */
     static long completedYears(long lastGrowthDay, long currentDay, long daysPerYear) {
         if (lastGrowthDay < 0L || currentDay <= lastGrowthDay) {
             return 0L;
@@ -76,7 +78,7 @@ public final class NpcGrowthService {
     }
 
     private static void graduate(ServerLevel level, CitizenManager manager,
-            FamilyManager familyManager, CitizenData data, RandomSource random, long currentDay) {
+                                 FamilyManager familyManager, CitizenData data, RandomSource random, long currentDay) {
         data.setChild(false);
         CitizenProfileGenerator.promoteToAdult(data, random);
 

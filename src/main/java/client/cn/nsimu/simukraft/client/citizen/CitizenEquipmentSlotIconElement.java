@@ -9,7 +9,9 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-/** 在 LDLib 槽位上补绘原版玩家装备空槽图标。 */
+/**
+ * 在 LDLib 槽位上补绘原版玩家装备空槽图标。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class CitizenEquipmentSlotIconElement extends UIElement {
@@ -33,13 +35,17 @@ public final class CitizenEquipmentSlotIconElement extends UIElement {
         setAllowHitTest(false);
     }
 
-    /** mainHand：创建仅在主手为空时显示的指定剑形空槽贴图。 */
+    /**
+     * mainHand：创建仅在主手为空时显示的指定剑形空槽贴图。
+     */
     public static CitizenEquipmentSlotIconElement mainHand(CitizenInventory inventory, int inventorySlot) {
         return new CitizenEquipmentSlotIconElement(inventory, inventorySlot, null,
                 ResourceLocation.fromNamespaceAndPath("simukraft", "textures/gui/citizen_main_hand_slot.png"));
     }
 
-    /** drawBackgroundAdditional：仅在对应装备槽为空时绘制原版图集精灵。 */
+    /**
+     * drawBackgroundAdditional：仅在对应装备槽为空时绘制原版图集精灵。
+     */
     @Override
     public void drawBackgroundAdditional(GUIContext context) {
         if (inventory == null || !inventory.getItem(inventorySlot).isEmpty()) {

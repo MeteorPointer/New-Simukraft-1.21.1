@@ -1,16 +1,16 @@
 package common.cn.nsimu.simukraft.citizen;
 
+import common.cn.nsimu.simukraft.building.MedicalBedPoiService;
+import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
+import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.citizen.family.FamilyData;
 import common.cn.nsimu.simukraft.citizen.family.FamilyManager;
 import common.cn.nsimu.simukraft.citizen.family.FamilyStatus;
+import common.cn.nsimu.simukraft.city.CityRuntimeService;
 import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
-import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.city.poi.CityPoiData;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
-import common.cn.nsimu.simukraft.city.CityRuntimeService;
 import common.cn.nsimu.simukraft.config.ServerConfig;
-import common.cn.nsimu.simukraft.building.MedicalBedPoiService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
@@ -45,8 +45,8 @@ public final class NpcChildbirthService {
     }
 
     private static void giveBirth(ServerLevel level, CitizenManager manager,
-            FamilyManager familyManager, FamilyData family,
-            CitizenData wife, RandomSource random, long currentDay) {
+                                  FamilyManager familyManager, FamilyData family,
+                                  CitizenData wife, RandomSource random, long currentDay) {
         BlockPos spawnPos = resolveDeliveryPos(level, wife);
         if (spawnPos == null) {
             CitizenEntity wifeEntity = CitizenTeleportService.findCitizenEntity(level, wife.uuid());
@@ -133,7 +133,9 @@ public final class NpcChildbirthService {
         return poi != null && level.isLoaded(poi.pos()) ? poi.pos() : null;
     }
 
-    /** resolveBabyBed：预约床仍有效则沿用，否则在同户搜索空床。 */
+    /**
+     * resolveBabyBed：预约床仍有效则沿用，否则在同户搜索空床。
+     */
     private static UUID resolveBabyBed(ServerLevel level, CitizenData wife) {
         UUID reservedBedId = wife.reservedBabyBedPoiId();
         if (reservedBedId != null) {
@@ -145,7 +147,9 @@ public final class NpcChildbirthService {
         return findVacantBedInSameHousehold(level, wife);
     }
 
-    /** findVacantBedInSameHousehold：在产妇所在户内兜底查找空床。 */
+    /**
+     * findVacantBedInSameHousehold：在产妇所在户内兜底查找空床。
+     */
     private static UUID findVacantBedInSameHousehold(ServerLevel level, CitizenData wife) {
         UUID homeId = wife.homeId();
         if (homeId == null) return null;

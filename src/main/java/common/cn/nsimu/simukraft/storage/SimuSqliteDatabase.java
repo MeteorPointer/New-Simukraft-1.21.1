@@ -1,13 +1,7 @@
 package common.cn.nsimu.simukraft.storage;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.storage.core.SchemaMigrator;
-import common.cn.nsimu.simukraft.storage.core.SimuMigrations;
-import common.cn.nsimu.simukraft.storage.core.SqlFunction;
-import common.cn.nsimu.simukraft.storage.core.SqlWrite;
-import common.cn.nsimu.simukraft.storage.core.SqliteConnectionPool;
-import common.cn.nsimu.simukraft.storage.core.StorageMetrics;
-import common.cn.nsimu.simukraft.storage.core.TransactionRunner;
+import common.cn.nsimu.simukraft.storage.core.*;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.world.level.storage.LevelResource;
 
@@ -67,12 +61,16 @@ public final class SimuSqliteDatabase implements Closeable {
         return worldPath.resolve(STORAGE_DIR).resolve(DATABASE_FILE);
     }
 
-    /** borrowConnection: 借一条池化连接用于查询，调用方必须 close（try-with-resources）归还。 */
+    /**
+     * borrowConnection: 借一条池化连接用于查询，调用方必须 close（try-with-resources）归还。
+     */
     public Connection borrowConnection() throws SQLException {
         return connections.borrow();
     }
 
-    /** submitWrite: 提交一次带合并键的写入，同一 key 的后续提交覆盖尚未执行的旧提交。 */
+    /**
+     * submitWrite: 提交一次带合并键的写入，同一 key 的后续提交覆盖尚未执行的旧提交。
+     */
     public void submitWrite(Object key, SqlWrite write) {
         if (degraded || closed) {
             return;
@@ -80,7 +78,9 @@ public final class SimuSqliteDatabase implements Closeable {
         writeQueue.submit(key, write);
     }
 
-    /** submitWrite: 提交一次不参与合并的写入，严格按提交顺序执行。 */
+    /**
+     * submitWrite: 提交一次不参与合并的写入，严格按提交顺序执行。
+     */
     public void submitWrite(SqlWrite write) {
         if (degraded || closed) {
             return;
@@ -88,7 +88,9 @@ public final class SimuSqliteDatabase implements Closeable {
         writeQueue.submitOnce(write);
     }
 
-    /** callSync: 把必须同步得到结果的"读-改-写"提交到写线程执行并阻塞等待结果；失败返回 null。 */
+    /**
+     * callSync: 把必须同步得到结果的"读-改-写"提交到写线程执行并阻塞等待结果；失败返回 null。
+     */
     public <T> T callSync(SqlFunction<T> function) {
         if (degraded || closed) {
             return null;
@@ -96,7 +98,9 @@ public final class SimuSqliteDatabase implements Closeable {
         return writeQueue.submitAndWait(SYNC_WRITE_TIMEOUT_MILLIS, function);
     }
 
-    /** markDegraded: 记录一次真实的存储故障，之后所有写入被拒绝直到重开存档。 */
+    /**
+     * markDegraded: 记录一次真实的存储故障，之后所有写入被拒绝直到重开存档。
+     */
     public void markDegraded(String context, Throwable cause) {
         if (!degraded) {
             degraded = true;
@@ -112,12 +116,16 @@ public final class SimuSqliteDatabase implements Closeable {
         return closed;
     }
 
-    /** drainWrites: 等待队列中的写入全部落库，返回是否在超时前完成。 */
+    /**
+     * drainWrites: 等待队列中的写入全部落库，返回是否在超时前完成。
+     */
     public boolean drainWrites() {
         return writeQueue.drainAndReport();
     }
 
-    /** pendingWrites: 当前仍在队列中等待落库的写入条数（指标用）。 */
+    /**
+     * pendingWrites: 当前仍在队列中等待落库的写入条数（指标用）。
+     */
     public int pendingWrites() {
         return writeQueue.pendingCount();
     }

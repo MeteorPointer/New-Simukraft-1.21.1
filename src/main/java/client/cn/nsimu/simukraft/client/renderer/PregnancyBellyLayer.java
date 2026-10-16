@@ -17,7 +17,9 @@ import net.minecraft.client.renderer.entity.layers.RenderLayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-/** PregnancyBellyLayer：按同步的孕期阶段绘制成年 NPC 的腹部几何体。 */
+/**
+ * PregnancyBellyLayer：按同步的孕期阶段绘制成年 NPC 的腹部几何体。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class PregnancyBellyLayer extends RenderLayer<CitizenEntity, CitizenModel> {
@@ -34,11 +36,13 @@ public final class PregnancyBellyLayer extends RenderLayer<CitizenEntity, Citize
         this.belly = createBellyModel(SKIN_DEFORMATION, 64);
     }
 
-    /** render：使用 NPC 皮肤贴图绘制随孕期变化的腹部。 */
+    /**
+     * render：使用 NPC 皮肤贴图绘制随孕期变化的腹部。
+     */
     @Override
     public void render(PoseStack poseStack, MultiBufferSource buffer, int packedLight,
-            CitizenEntity entity, float limbSwing, float limbSwingAmount, float partialTick,
-            float ageInTicks, float netHeadYaw, float headPitch) {
+                       CitizenEntity entity, float limbSwing, float limbSwingAmount, float partialTick,
+                       float ageInTicks, float netHeadYaw, float headPitch) {
         if (entity.isInvisible() || entity.isChildNpc()) {
             return;
         }
@@ -52,7 +56,9 @@ public final class PregnancyBellyLayer extends RenderLayer<CitizenEntity, Citize
         belly.render(poseStack, vertexConsumer, packedLight, LivingEntityRenderer.getOverlayCoords(entity, 0.0F));
     }
 
-    /** createBellyModel：创建供皮肤和盔甲层复用的腹部网格。 */
+    /**
+     * createBellyModel：创建供皮肤和盔甲层复用的腹部网格。
+     */
     static ModelPart createBellyModel(float deformation, int textureHeight) {
         MeshDefinition mesh = new MeshDefinition();
         mesh.getRoot().addOrReplaceChild("belly",
@@ -64,7 +70,9 @@ public final class PregnancyBellyLayer extends RenderLayer<CitizenEntity, Citize
         return LayerDefinition.create(mesh, 64, textureHeight).bakeRoot().getChild("belly");
     }
 
-    /** configureBellyModel：对齐躯干并在缩放时固定腹部下缘。 */
+    /**
+     * configureBellyModel：对齐躯干并在缩放时固定腹部下缘。
+     */
     static void configureBellyModel(ModelPart belly, ModelPart body, float scale) {
         belly.copyFrom(body);
         belly.y += (1.0F - scale) * BELLY_BOTTOM_Y;
@@ -73,7 +81,9 @@ public final class PregnancyBellyLayer extends RenderLayer<CitizenEntity, Citize
         belly.zScale = scale;
     }
 
-    /** scaleForStage：将孕期阶段映射为早、中、晚期腹部尺寸。 */
+    /**
+     * scaleForStage：将孕期阶段映射为早、中、晚期腹部尺寸。
+     */
     static float scaleForStage(String stage) {
         if (stage == null) {
             return 0.0F;

@@ -46,7 +46,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         this.inventoryLabelY = this.imageHeight - 94;
     }
 
-    /** receiveIfOpen: 将服务端仓库聚合快照推给当前仓库界面。 */
+    /**
+     * receiveIfOpen: 将服务端仓库聚合快照推给当前仓库界面。
+     */
     static boolean receiveIfOpen(BlockPos pos, List<ItemStack> items, List<Integer> counts) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null
@@ -58,7 +60,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return false;
     }
 
-    /** init: 初始化搜索框并请求仓库聚合快照。 */
+    /**
+     * init: 初始化搜索框并请求仓库聚合快照。
+     */
     @Override
     protected void init() {
         super.init();
@@ -75,7 +79,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         requestItems();
     }
 
-    /** containerTick: 定时刷新仓库快照，保持超级堆叠总数同步。 */
+    /**
+     * containerTick: 定时刷新仓库快照，保持超级堆叠总数同步。
+     */
     @Override
     protected void containerTick() {
         super.containerTick();
@@ -86,7 +92,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         }
     }
 
-    /** render: 渲染原版箱子、超级堆叠数量、滚动条和 tooltip。 */
+    /**
+     * render: 渲染原版箱子、超级堆叠数量、滚动条和 tooltip。
+     */
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
@@ -97,27 +105,35 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         }
     }
 
-    /** renderBackground: 绘制旧版半透明暗底和原版箱子背景。 */
+    /**
+     * renderBackground: 绘制旧版半透明暗底和原版箱子背景。
+     */
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
         renderBg(graphics, partialTick, mouseX, mouseY);
     }
 
-    /** renderBg: 绘制 Minecraft 原版 54 格箱子背景。 */
+    /**
+     * renderBg: 绘制 Minecraft 原版 54 格箱子背景。
+     */
     @Override
     protected void renderBg(GuiGraphics graphics, float partialTick, int mouseX, int mouseY) {
         graphics.blit(GUI_TEXTURE, this.leftPos, this.topPos, 0, 0, this.imageWidth, this.imageHeight, 256, 256);
     }
 
-    /** renderLabels: 绘制标题和玩家背包标题。 */
+    /**
+     * renderLabels: 绘制标题和玩家背包标题。
+     */
     @Override
     protected void renderLabels(GuiGraphics graphics, int mouseX, int mouseY) {
         graphics.drawString(this.font, this.title, this.titleLabelX, this.titleLabelY, 4210752, false);
         graphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
     }
 
-    /** mouseClicked: 支持搜索框聚焦和滚动条拖动。 */
+    /**
+     * mouseClicked: 支持搜索框聚焦和滚动条拖动。
+     */
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (isMouseOverScrollbar(mouseX, mouseY)) {
@@ -128,7 +144,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
-    /** mouseDragged: 拖动超级堆叠滚动条。 */
+    /**
+     * mouseDragged: 拖动超级堆叠滚动条。
+     */
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (scrolling) {
@@ -138,14 +156,18 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
     }
 
-    /** mouseReleased: 结束滚动条拖动。 */
+    /**
+     * mouseReleased: 结束滚动条拖动。
+     */
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         scrolling = false;
         return super.mouseReleased(mouseX, mouseY, button);
     }
 
-    /** mouseScrolled: 鼠标滚轮按聚合行滚动。 */
+    /**
+     * mouseScrolled: 鼠标滚轮按聚合行滚动。
+     */
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (isMouseOverWarehouse(mouseX, mouseY) || isMouseOverScrollbar(mouseX, mouseY)) {
@@ -155,7 +177,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
-    /** keyPressed: 搜索框聚焦时优先处理文本按键。 */
+    /**
+     * keyPressed: 搜索框聚焦时优先处理文本按键。
+     */
     @Override
     public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
         if (searchBox != null && searchBox.isFocused()) {
@@ -168,7 +192,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
-    /** charTyped: 搜索框聚焦时接收可打印字符。 */
+    /**
+     * charTyped: 搜索框聚焦时接收可打印字符。
+     */
     @Override
     public boolean charTyped(char codePoint, int modifiers) {
         if (searchBox != null && searchBox.isFocused() && codePoint >= 32) {
@@ -177,12 +203,16 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return super.charTyped(codePoint, modifiers);
     }
 
-    /** requestItems: 请求服务端仓库聚合快照。 */
+    /**
+     * requestItems: 请求服务端仓库聚合快照。
+     */
     private void requestItems() {
         PacketDistributor.sendToServer(new LogisticsWarehouseGridRequestPacket(menu.getWarehousePos()));
     }
 
-    /** renderWarehouseCounts: 覆盖绘制超级堆叠真实数量。 */
+    /**
+     * renderWarehouseCounts: 覆盖绘制超级堆叠真实数量。
+     */
     private void renderWarehouseCounts(GuiGraphics graphics) {
         for (int slot = 0; slot < LogisticsWarehouseGridMenu.WAREHOUSE_SLOTS; slot++) {
             int count = menu.actualCountAtVisibleSlot(slot);
@@ -195,7 +225,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         }
     }
 
-    /** renderScrollbar: 绘制右侧超级堆叠滚动条。 */
+    /**
+     * renderScrollbar: 绘制右侧超级堆叠滚动条。
+     */
     private void renderScrollbar(GuiGraphics graphics) {
         int x = this.leftPos + SCROLLBAR_X;
         int y = this.topPos + SCROLLBAR_Y;
@@ -210,7 +242,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         graphics.fill(x, sliderY, x + SCROLLBAR_WIDTH, sliderY + sliderHeight, scrolling ? 0xFF808080 : 0xFF505050);
     }
 
-    /** renderWarehouseTooltip: 为超级堆叠槽补充真实总数 tooltip。 */
+    /**
+     * renderWarehouseTooltip: 为超级堆叠槽补充真实总数 tooltip。
+     */
     private boolean renderWarehouseTooltip(GuiGraphics graphics, int mouseX, int mouseY) {
         int slot = warehouseSlotAt(mouseX, mouseY);
         if (slot < 0) {
@@ -225,7 +259,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return true;
     }
 
-    /** warehouseTooltip: 使用原版物品提示并追加仓库真实总数。 */
+    /**
+     * warehouseTooltip: 使用原版物品提示并追加仓库真实总数。
+     */
     private List<Component> warehouseTooltip(ItemStack stack, int count) {
         Minecraft minecraft = this.minecraft;
         Item.TooltipContext context = minecraft != null && minecraft.level != null
@@ -239,7 +275,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return lines;
     }
 
-    /** renderQuantity: 在物品右下角绘制紧凑数量文本。 */
+    /**
+     * renderQuantity: 在物品右下角绘制紧凑数量文本。
+     */
     private void renderQuantity(GuiGraphics graphics, int x, int y, String text) {
         int textX = x + 17 - this.font.width(text);
         graphics.pose().pushPose();
@@ -248,7 +286,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         graphics.pose().popPose();
     }
 
-    /** formatCount: 将大数量压缩为 k/M 显示。 */
+    /**
+     * formatCount: 将大数量压缩为 k/M 显示。
+     */
     private static String formatCount(int count) {
         if (count < 1000) {
             return String.valueOf(count);
@@ -259,7 +299,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return count < 10_000_000 ? String.format(Locale.ROOT, "%.1fM", count / 1_000_000.0D) : (count / 1_000_000) + "M";
     }
 
-    /** warehouseSlotAt: 计算鼠标下的仓库可见槽位。 */
+    /**
+     * warehouseSlotAt: 计算鼠标下的仓库可见槽位。
+     */
     private int warehouseSlotAt(double mouseX, double mouseY) {
         if (!isMouseOverWarehouse(mouseX, mouseY)) {
             return -1;
@@ -269,7 +311,9 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
         return row * LogisticsWarehouseGridMenu.GRID_COLS + col;
     }
 
-    /** isMouseOverWarehouse: 判断鼠标是否在仓库 54 格区域。 */
+    /**
+     * isMouseOverWarehouse: 判断鼠标是否在仓库 54 格区域。
+     */
     private boolean isMouseOverWarehouse(double mouseX, double mouseY) {
         int x = this.leftPos + WAREHOUSE_X;
         int y = this.topPos + WAREHOUSE_Y;
@@ -279,14 +323,18 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
                 && mouseY < y + LogisticsWarehouseGridMenu.GRID_ROWS * SLOT_SIZE;
     }
 
-    /** isMouseOverScrollbar: 判断鼠标是否在滚动条区域。 */
+    /**
+     * isMouseOverScrollbar: 判断鼠标是否在滚动条区域。
+     */
     private boolean isMouseOverScrollbar(double mouseX, double mouseY) {
         int x = this.leftPos + SCROLLBAR_X;
         int y = this.topPos + SCROLLBAR_Y;
         return mouseX >= x && mouseX < x + SCROLLBAR_WIDTH && mouseY >= y && mouseY < y + SCROLLBAR_HEIGHT;
     }
 
-    /** updateScrollFromMouse: 根据鼠标位置更新聚合列表滚动行。 */
+    /**
+     * updateScrollFromMouse: 根据鼠标位置更新聚合列表滚动行。
+     */
     private void updateScrollFromMouse(double mouseY) {
         int maxScroll = menu.maxScroll();
         if (maxScroll <= 0) {

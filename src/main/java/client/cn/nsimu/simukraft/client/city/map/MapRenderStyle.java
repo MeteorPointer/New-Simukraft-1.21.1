@@ -2,6 +2,7 @@ package client.cn.nsimu.simukraft.client.city.map;
 
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+
 /**
  * 地图渲染样式枚举。
  * 决定城市地图使用哪种底层地图纹理数据源。
@@ -27,7 +28,9 @@ public enum MapRenderStyle {
      */
     FTB;
 
-    /** 根据名称解析样式，无效值返回 {@link #SIMUKRAFT}。 */
+    /**
+     * 根据名称解析样式，无效值返回 {@link #SIMUKRAFT}。
+     */
     public static MapRenderStyle fromString(String name) {
         try {
             return valueOf(name.toUpperCase());

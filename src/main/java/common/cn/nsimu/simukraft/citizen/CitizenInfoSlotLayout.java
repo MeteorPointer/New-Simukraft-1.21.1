@@ -12,7 +12,9 @@ import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-/** NPC 信息容器的真实槽位布局，服务端和客户端必须使用相同添加顺序。 */
+/**
+ * NPC 信息容器的真实槽位布局，服务端和客户端必须使用相同添加顺序。
+ */
 
 public final class CitizenInfoSlotLayout {
     public static final int WORKSPACE_WIDTH = 430;
@@ -34,7 +36,9 @@ public final class CitizenInfoSlotLayout {
     private CitizenInfoSlotLayout() {
     }
 
-    /** create：创建 4 个盔甲、2 个手持、14 个背包和玩家原版背包槽位。 */
+    /**
+     * create：创建 4 个盔甲、2 个手持、14 个背包和玩家原版背包槽位。
+     */
     public static UIElement create(CitizenInventory inventory, LivingEntity owner) {
         UIElement layer = new UIElement().layout(layout -> {
             layout.positionType(TaffyPosition.ABSOLUTE);
@@ -103,7 +107,9 @@ public final class CitizenInfoSlotLayout {
         parent.addChild(itemSlot(slot, x, y));
     }
 
-    /** addEmptyIconSlot：添加不限制物品类型、但带原版空槽图标的副手槽。 */
+    /**
+     * addEmptyIconSlot：添加不限制物品类型、但带原版空槽图标的副手槽。
+     */
     private static void addEmptyIconSlot(UIElement parent,
                                          CitizenInventory inventory,
                                          int inventorySlot,

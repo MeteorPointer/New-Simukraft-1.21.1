@@ -10,16 +10,13 @@ import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.industrial.IndustrialCoordinateResolver;
 import net.minecraft.core.BlockPos;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/** MineralDrillingDefinitionLoader: 读取并缓存钻井平台专用 JSON。 */
+/**
+ * MineralDrillingDefinitionLoader: 读取并缓存钻井平台专用 JSON。
+ */
 public final class MineralDrillingDefinitionLoader {
     private static final int MAX_OUTPUT_POSITIONS = 64;
     private static final int MAX_STRUCTURE_COORDINATE = 2048;
@@ -28,12 +25,16 @@ public final class MineralDrillingDefinitionLoader {
     private MineralDrillingDefinitionLoader() {
     }
 
-    /** clearCache: 建筑包重载后清理钻井定义缓存。 */
+    /**
+     * clearCache: 建筑包重载后清理钻井定义缓存。
+     */
     public static void clearCache() {
         CACHE.clear();
     }
 
-    /** resolveOutputContainers: 解析已放置钻井平台的 JSON 输出容器世界坐标。 */
+    /**
+     * resolveOutputContainers: 解析已放置钻井平台的 JSON 输出容器世界坐标。
+     */
     public static OutputContainerResolution resolveOutputContainers(PlacedBuildingRecord building) {
         if (building == null) {
             return OutputContainerResolution.legacy();
@@ -62,7 +63,9 @@ public final class MineralDrillingDefinitionLoader {
         return OutputContainerResolution.declared(List.copyOf(positions));
     }
 
-    /** parse: 解析专用钻井 JSON，供单元测试和包内加载复用。 */
+    /**
+     * parse: 解析专用钻井 JSON，供单元测试和包内加载复用。
+     */
     static Optional<MineralDrillingDefinition> parse(String text, String fallbackId) {
         try {
             JsonObject root = JsonParser.parseString(text).getAsJsonObject();
@@ -180,7 +183,9 @@ public final class MineralDrillingDefinitionLoader {
         return index > 0 ? fileName.substring(0, index) : fileName;
     }
 
-    /** OutputContainerResolution: 区分新 JSON 的显式声明和旧建筑包的兼容回退。 */
+    /**
+     * OutputContainerResolution: 区分新 JSON 的显式声明和旧建筑包的兼容回退。
+     */
     public record OutputContainerResolution(boolean declared, List<BlockPos> positions) {
         public OutputContainerResolution {
             positions = positions != null ? List.copyOf(positions) : List.of();

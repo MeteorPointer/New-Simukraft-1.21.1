@@ -1,30 +1,23 @@
 package common.cn.nsimu.simukraft.network.city;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.city.CityData;
-import common.cn.nsimu.simukraft.city.CityMemberData;
-import common.cn.nsimu.simukraft.city.CityService;
-import common.cn.nsimu.simukraft.city.DistrictData;
-import common.cn.nsimu.simukraft.city.DistrictManager;
-import common.cn.nsimu.simukraft.city.DistrictOwnershipSync;
-import common.cn.nsimu.simukraft.city.DistrictRole;
-import common.cn.nsimu.simukraft.city.CityChunkManager;
+import common.cn.nsimu.simukraft.building.PlacedBuildingService;
+import common.cn.nsimu.simukraft.city.*;
 import common.cn.nsimu.simukraft.network.city.core.CityCoreAccessValidator;
-import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.network.city.core.CityCoreOpenRequestPacket;
 import common.cn.nsimu.simukraft.network.city.map.CityCoreMapRequestPacket;
+import common.cn.nsimu.simukraft.network.toast.InfoToastService;
+import common.cn.nsimu.simukraft.registry.ModItems;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.item.ItemStack;
-import common.cn.nsimu.simukraft.registry.ModItems;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
+import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.ArrayList;
@@ -33,7 +26,8 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-public record DistrictActionPacket(Action action, BlockPos corePos, UUID districtId, UUID targetPlayerId, String name, List<Long> chunks) implements CustomPacketPayload {
+public record DistrictActionPacket(Action action, BlockPos corePos, UUID districtId, UUID targetPlayerId, String name,
+                                   List<Long> chunks) implements CustomPacketPayload {
     private static final int MAX_CHUNKS = 256;
     public static final Type<DistrictActionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "district_action"));
     public static final StreamCodec<RegistryFriendlyByteBuf, DistrictActionPacket> STREAM_CODEC = StreamCodec.of(DistrictActionPacket::encode, DistrictActionPacket::decode);
@@ -47,24 +41,35 @@ public record DistrictActionPacket(Action action, BlockPos corePos, UUID distric
         this(action, corePos, districtId, null, name, chunks);
     }
 
-    public enum Action { CREATE, ASSIGN, MOVE_TO_CITY, BIND_CORE, UNBIND_CORE, RENAME, DELETE, INVITE, REMOVE_MEMBER, SET_MAYOR, SET_OFFICIAL, REMOVE_OFFICIAL }
+    public enum Action {CREATE, ASSIGN, MOVE_TO_CITY, BIND_CORE, UNBIND_CORE, RENAME, DELETE, INVITE, REMOVE_MEMBER, SET_MAYOR, SET_OFFICIAL, REMOVE_OFFICIAL}
 
-    @Override public Type<? extends CustomPacketPayload> type() { return TYPE; }
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
 
     private static void encode(RegistryFriendlyByteBuf buffer, DistrictActionPacket packet) {
         buffer.writeVarInt(packet.action().ordinal());
         buffer.writeBlockPos(packet.corePos() == null ? BlockPos.ZERO : packet.corePos());
-        buffer.writeBoolean(packet.districtId() != null); if (packet.districtId() != null) buffer.writeUUID(packet.districtId());
-        buffer.writeBoolean(packet.targetPlayerId() != null); if (packet.targetPlayerId() != null) buffer.writeUUID(packet.targetPlayerId());
-        buffer.writeUtf(packet.name(), 32); buffer.writeVarInt(packet.chunks().size()); packet.chunks().forEach(buffer::writeLong);
+        buffer.writeBoolean(packet.districtId() != null);
+        if (packet.districtId() != null) buffer.writeUUID(packet.districtId());
+        buffer.writeBoolean(packet.targetPlayerId() != null);
+        if (packet.targetPlayerId() != null) buffer.writeUUID(packet.targetPlayerId());
+        buffer.writeUtf(packet.name(), 32);
+        buffer.writeVarInt(packet.chunks().size());
+        packet.chunks().forEach(buffer::writeLong);
     }
 
     private static DistrictActionPacket decode(RegistryFriendlyByteBuf buffer) {
         Action action = Action.values()[Math.max(0, Math.min(Action.values().length - 1, buffer.readVarInt()))];
-        BlockPos corePos = buffer.readBlockPos(); UUID districtId = buffer.readBoolean() ? buffer.readUUID() : null;
+        BlockPos corePos = buffer.readBlockPos();
+        UUID districtId = buffer.readBoolean() ? buffer.readUUID() : null;
         UUID targetPlayerId = buffer.readBoolean() ? buffer.readUUID() : null;
-        String name = buffer.readUtf(32); int size = buffer.readVarInt(); if (size < 0 || size > MAX_CHUNKS) throw new IllegalArgumentException("Invalid district chunk count");
-        List<Long> chunks = new ArrayList<>(size); for (int i = 0; i < size; i++) chunks.add(buffer.readLong());
+        String name = buffer.readUtf(32);
+        int size = buffer.readVarInt();
+        if (size < 0 || size > MAX_CHUNKS) throw new IllegalArgumentException("Invalid district chunk count");
+        List<Long> chunks = new ArrayList<>(size);
+        for (int i = 0; i < size; i++) chunks.add(buffer.readLong());
         return new DistrictActionPacket(action, corePos, districtId, targetPlayerId, name, chunks);
     }
 
@@ -205,11 +210,16 @@ public record DistrictActionPacket(Action action, BlockPos corePos, UUID distric
                 } else {
                     boolean districtMayor = district.hasPermission(player.getUUID(), DistrictRole.MAYOR);
                     String targetName = cityMember.playerName();
-                    if (packet.action() == Action.SET_MAYOR) ok = cityMayor && manager.setMayor(district.districtId(), target, targetName);
-                    else if (packet.action() == Action.INVITE) ok = (cityMayor || districtMayor) && manager.addMember(district.districtId(), target, targetName, DistrictRole.RESIDENT);
-                    else if (packet.action() == Action.REMOVE_MEMBER) ok = (cityMayor || districtMayor) && !target.equals(player.getUUID()) && manager.removeMember(district.districtId(), target);
-                    else if (packet.action() == Action.SET_OFFICIAL) ok = (cityMayor || districtMayor) && manager.grantRole(district.districtId(), target, targetName, DistrictRole.OFFICIAL);
-                    else if (packet.action() == Action.REMOVE_OFFICIAL) ok = (cityMayor || districtMayor) && manager.setMemberRole(district.districtId(), target, DistrictRole.RESIDENT);
+                    if (packet.action() == Action.SET_MAYOR)
+                        ok = cityMayor && manager.setMayor(district.districtId(), target, targetName);
+                    else if (packet.action() == Action.INVITE)
+                        ok = (cityMayor || districtMayor) && manager.addMember(district.districtId(), target, targetName, DistrictRole.RESIDENT);
+                    else if (packet.action() == Action.REMOVE_MEMBER)
+                        ok = (cityMayor || districtMayor) && !target.equals(player.getUUID()) && manager.removeMember(district.districtId(), target);
+                    else if (packet.action() == Action.SET_OFFICIAL)
+                        ok = (cityMayor || districtMayor) && manager.grantRole(district.districtId(), target, targetName, DistrictRole.OFFICIAL);
+                    else if (packet.action() == Action.REMOVE_OFFICIAL)
+                        ok = (cityMayor || districtMayor) && manager.setMemberRole(district.districtId(), target, DistrictRole.RESIDENT);
                 }
             }
         }

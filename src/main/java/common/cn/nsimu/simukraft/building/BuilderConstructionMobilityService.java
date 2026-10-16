@@ -1,10 +1,6 @@
 package common.cn.nsimu.simukraft.building;
 
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenManager;
-import common.cn.nsimu.simukraft.citizen.CitizenPanicService;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
-import common.cn.nsimu.simukraft.citizen.CitizenVoiceService;
+import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import net.minecraft.core.BlockPos;

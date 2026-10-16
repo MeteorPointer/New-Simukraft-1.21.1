@@ -4,9 +4,7 @@ import common.cn.nsimu.simukraft.guidebook.markdown.GuideBookMarkdownDocument.Bl
 import common.cn.nsimu.simukraft.guidebook.markdown.GuideBookMarkdownDocument.Spread;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class GuideBookMarkdownParserTest {
     @Test
@@ -17,17 +15,17 @@ class GuideBookMarkdownParserTest {
                 tab_icon: tab_city
                 tab_index: 2
                 ---
-
+                
                 # 左标题 | 右标题
-
+                
                 左栏正文{spacing=8}
-
+                
                 :item[simukraft:city_core]
-
+                
                 :::right
-
+                
                 > 这是提示{spacing=0}
-
+                
                 [序章](prologue)
                 """);
 
@@ -59,9 +57,9 @@ class GuideBookMarkdownParserTest {
     void parse_readsItemWithSpacedSpacingAttribute() {
         GuideBookMarkdownDocument document = GuideBookMarkdownParser.parse("""
                 # 物品
-
+                
                 :item[simukraft:mineral_drilling_control_box] {spacing=1}
-
+                
                 :item[simukraft:drill_rod_segment] {spacing=1}
                 """);
 
@@ -76,11 +74,11 @@ class GuideBookMarkdownParserTest {
     void parse_startsNewSpreadOnHeading() {
         GuideBookMarkdownDocument document = GuideBookMarkdownParser.parse("""
                 # 一 | A
-
+                
                 第一页
-
+                
                 # 二 | B
-
+                
                 第二页
                 """);
 
@@ -93,11 +91,11 @@ class GuideBookMarkdownParserTest {
     void parse_readsImageTitleAndPlayerName() {
         GuideBookMarkdownDocument document = GuideBookMarkdownParser.parse("""
                 # 图
-
+                
                 ## 小标题
-
+                
                 $player_name，你好
-
+                
                 ![肉摊](routan.png){width=128 height=74 spacing=4}
                 """);
 
@@ -116,9 +114,9 @@ class GuideBookMarkdownParserTest {
     void parse_flattensInlineAndEntities() {
         GuideBookMarkdownDocument document = GuideBookMarkdownParser.parse("""
                 # T
-
+                
                 **粗体**和*斜体*还有[链接](ignored)
-
+                
                 &nbsp;
                 """);
 
@@ -130,7 +128,7 @@ class GuideBookMarkdownParserTest {
     void parse_keepsEscapedHeadingAsText() {
         GuideBookMarkdownDocument document = GuideBookMarkdownParser.parse("""
                 # T
-
+                
                 \\# 不是标题
                 """);
 
@@ -153,13 +151,13 @@ class GuideBookMarkdownParserTest {
     void parse_directoryWithoutParent() {
         GuideBookMarkdownDocument document = GuideBookMarkdownParser.parse("""
                 # 目录 | 目录
-
+                
                 欢迎
-
+                
                 :::right
-
+                
                 [开始](start){spacing=4}
-
+                
                 从零开始
                 """);
 

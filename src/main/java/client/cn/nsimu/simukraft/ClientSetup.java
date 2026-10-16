@@ -1,11 +1,10 @@
 package client.cn.nsimu.simukraft;
 
-import client.cn.nsimu.simukraft.client.ClientHUDOverlay;
-import client.cn.nsimu.simukraft.client.geology.GeologicalSurveyHintOverlay;
 import client.cn.nsimu.simukraft.client.CityEntryHud;
+import client.cn.nsimu.simukraft.client.ClientHUDOverlay;
 import client.cn.nsimu.simukraft.client.ClientSimukraftData;
-import client.cn.nsimu.simukraft.client.buildbox.BuildingCacheService;
 import client.cn.nsimu.simukraft.client.buildbox.BuildingBoundsRenderer;
+import client.cn.nsimu.simukraft.client.buildbox.BuildingCacheService;
 import client.cn.nsimu.simukraft.client.buildbox.BuildingPreviewManager;
 import client.cn.nsimu.simukraft.client.city.ClientCityChunkCache;
 import client.cn.nsimu.simukraft.client.city.ClientCityMapTerrainCache;
@@ -13,9 +12,10 @@ import client.cn.nsimu.simukraft.client.city.map.SimuMapManager;
 import client.cn.nsimu.simukraft.client.exchange.ExchangeControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.farmland.FarmlandHoverPreview;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraManager;
+import client.cn.nsimu.simukraft.client.geology.GeologicalSurveyHintOverlay;
+import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsMiniMapRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
-import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
 import client.cn.nsimu.simukraft.client.selection.TwoPointSelectionManager;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import common.cn.nsimu.simukraft.SimuKraft;
@@ -52,7 +52,9 @@ public final class ClientSetup {
         }
     }
 
-    /** onScreenRenderPost: 在屏幕控件绘制完成后渲染通知，防止控件遮挡。 */
+    /**
+     * onScreenRenderPost: 在屏幕控件绘制完成后渲染通知，防止控件遮挡。
+     */
     @SubscribeEvent(priority = EventPriority.LOWEST)
     public static void onScreenRenderPost(ScreenEvent.Render.Post event) {
         ClientInfoToast.render(event.getGuiGraphics());
@@ -105,7 +107,9 @@ public final class ClientSetup {
         SimuMapManager.getInstance().onClientChunkLoaded((net.minecraft.world.level.Level) event.getLevel(), event.getChunk());
     }
 
-    /** onClientChunkUnload: 释放该区块的已扫描标记，下次加载会重新采样。 */
+    /**
+     * onClientChunkUnload: 释放该区块的已扫描标记，下次加载会重新采样。
+     */
     @SubscribeEvent
     public static void onClientChunkUnload(ChunkEvent.Unload event) {
         if (!SimuMapManager.isAvailable() || !event.getLevel().isClientSide()) {

@@ -12,7 +12,9 @@ public final class NpcWorkMaterialService {
     private NpcWorkMaterialService() {
     }
 
-    /** tryConsume: 按工作材料请求消耗一份可接受物品。 */
+    /**
+     * tryConsume: 按工作材料请求消耗一份可接受物品。
+     */
     public static WorkMaterialResult tryConsume(ServerLevel level, WorkMaterialCache materialCache, WorkMaterialRequest request) {
         if (level == null || materialCache == null || request == null || request.isEmpty()) {
             return WorkMaterialResult.available(ItemStack.EMPTY);
@@ -23,7 +25,9 @@ public final class NpcWorkMaterialService {
         return WorkMaterialResult.missing(request.displayStack(), request.acceptedItems());
     }
 
-    /** markMissing: 标记 NPC 当前缺少的材料，状态里只保存稳定物品 ID。 */
+    /**
+     * markMissing: 标记 NPC 当前缺少的材料，状态里只保存稳定物品 ID。
+     */
     public static void markMissing(ServerLevel level, CitizenData citizen, String workContext, WorkMaterialResult result) {
         if (level == null || citizen == null || result == null || result.available()) {
             return;
@@ -42,12 +46,16 @@ public final class NpcWorkMaterialService {
         CitizenService.save(level, citizen.uuid());
     }
 
-    /** describe: 返回材料物品 ID，避免在服务端固化客户端语言。 */
+    /**
+     * describe: 返回材料物品 ID，避免在服务端固化客户端语言。
+     */
     public static String describe(ItemStack stack) {
         return new WorkMaterialResult(false, stack).materialId();
     }
 
-    /** missingMaterialStatus: 生成客户端可解析的缺材料状态标签。 */
+    /**
+     * missingMaterialStatus: 生成客户端可解析的缺材料状态标签。
+     */
     public static String missingMaterialStatus(String itemId) {
         return MISSING_MATERIAL_STATUS_PREFIX + (itemId == null || itemId.isBlank() ? "unknown" : itemId);
     }

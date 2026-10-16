@@ -31,7 +31,9 @@ public final class BuildingCacheService {
         }
     }
 
-    /** reload: 重新扫描 simukraftbuilding 下的 zip 建筑包。 */
+    /**
+     * reload: 重新扫描 simukraftbuilding 下的 zip 建筑包。
+     */
     public static void reload() {
         synchronized (BuildingCacheService.class) {
             BuildingCatalog.reload();

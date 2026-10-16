@@ -1,8 +1,8 @@
 package common.cn.nsimu.simukraft.network.city.map;
 
-import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.city.CityPermissionLevel;
+import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,7 +15,10 @@ import java.util.List;
 import java.util.UUID;
 
 
-public record CityCoreMapResponsePacket(BlockPos pos, UUID cityId, String cityName, double funds, int cityLevel, int memberCount, CityPermissionLevel permissionLevel, boolean canManageCity, int centerChunkX, int centerChunkZ, List<ChunkEntry> chunks, List<DistrictEntry> districts) implements CustomPacketPayload {
+public record CityCoreMapResponsePacket(BlockPos pos, UUID cityId, String cityName, double funds, int cityLevel,
+                                        int memberCount, CityPermissionLevel permissionLevel, boolean canManageCity,
+                                        int centerChunkX, int centerChunkZ, List<ChunkEntry> chunks,
+                                        List<DistrictEntry> districts) implements CustomPacketPayload {
     public static final Type<CityCoreMapResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_map_response"));
     public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreMapResponsePacket> STREAM_CODEC = StreamCodec.of(CityCoreMapResponsePacket::encode, CityCoreMapResponsePacket::decode);
 
@@ -46,7 +49,10 @@ public record CityCoreMapResponsePacket(BlockPos pos, UUID cityId, String cityNa
             buffer.writeUtf(district.name(), 64);
             buffer.writeInt(district.color());
             buffer.writeVarInt(district.chunks().size());
-            district.chunks().forEach(chunk -> { buffer.writeInt(chunk.chunkX()); buffer.writeInt(chunk.chunkZ()); });
+            district.chunks().forEach(chunk -> {
+                buffer.writeInt(chunk.chunkX());
+                buffer.writeInt(chunk.chunkZ());
+            });
         });
     }
 
@@ -69,8 +75,11 @@ public record CityCoreMapResponsePacket(BlockPos pos, UUID cityId, String cityNa
         int districtCount = buffer.readVarInt();
         List<DistrictEntry> districts = new ArrayList<>(districtCount);
         for (int i = 0; i < districtCount; i++) {
-            UUID districtId = buffer.readUUID(); String name = buffer.readUtf(64); int color = buffer.readInt();
-            int chunkCount = buffer.readVarInt(); List<ChunkEntry> districtChunks = new ArrayList<>(chunkCount);
+            UUID districtId = buffer.readUUID();
+            String name = buffer.readUtf(64);
+            int color = buffer.readInt();
+            int chunkCount = buffer.readVarInt();
+            List<ChunkEntry> districtChunks = new ArrayList<>(chunkCount);
             for (int j = 0; j < chunkCount; j++) districtChunks.add(new ChunkEntry(buffer.readInt(), buffer.readInt()));
             districts.add(new DistrictEntry(districtId, name, color, List.copyOf(districtChunks)));
         }

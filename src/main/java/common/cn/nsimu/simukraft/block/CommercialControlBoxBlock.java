@@ -22,7 +22,9 @@ public final class CommercialControlBoxBlock extends Block {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(1.0F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK));
     }
 
-    /** useWithoutItem: 玩家空手右键打开商业控制箱界面。 */
+    /**
+     * useWithoutItem: 玩家空手右键打开商业控制箱界面。
+     */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
@@ -31,7 +33,9 @@ public final class CommercialControlBoxBlock extends Block {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    /** onRemove: 控制箱被移除时清理商业运行状态。 */
+    /**
+     * onRemove: 控制箱被移除时清理商业运行状态。
+     */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide() && !state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {

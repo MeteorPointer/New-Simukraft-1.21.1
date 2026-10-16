@@ -3,22 +3,11 @@ package common.cn.nsimu.simukraft.medical;
 import common.cn.nsimu.simukraft.building.MedicalBedPoiService;
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
-import common.cn.nsimu.simukraft.citizen.CitizenBedSleepService;
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenFoodConsumptionService;
-import common.cn.nsimu.simukraft.citizen.CitizenHomeRestService;
-import common.cn.nsimu.simukraft.citizen.CitizenManager;
-import common.cn.nsimu.simukraft.citizen.CitizenPanicService;
-import common.cn.nsimu.simukraft.citizen.CitizenService;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
-import common.cn.nsimu.simukraft.citizen.CitizenVitalGate;
-import common.cn.nsimu.simukraft.citizen.CitizenVoiceService;
-import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
-import common.cn.nsimu.simukraft.citizen.PregnancyStage;
+import common.cn.nsimu.simukraft.citizen.*;
+import common.cn.nsimu.simukraft.city.CityRuntimeService;
 import common.cn.nsimu.simukraft.city.poi.CityPoiData;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
 import common.cn.nsimu.simukraft.city.poi.CityPoiType;
-import common.cn.nsimu.simukraft.city.CityRuntimeService;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
@@ -29,15 +18,12 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** 医疗收治、床位占用、治疗和疾病调度服务。 */
+/**
+ * 医疗收治、床位占用、治疗和疾病调度服务。
+ */
 
 public final class MedicalService {
     public static final String MEDICAL_CARE_MARKER = "medical_care";
@@ -46,7 +32,9 @@ public final class MedicalService {
     private MedicalService() {
     }
 
-    /** tick：每秒推进一次住院移动和治疗，避免每 tick 扫描全部居民。 */
+    /**
+     * tick：每秒推进一次住院移动和治疗，避免每 tick 扫描全部居民。
+     */
     public static void tick(ServerLevel level) {
         if (level == null || level.isClientSide() || level.getGameTime() % TICK_INTERVAL != 0L) {
             return;
@@ -58,7 +46,9 @@ public final class MedicalService {
         }
     }
 
-    /** tickDaily：按游戏日给可服务居民生成随机疾病。 */
+    /**
+     * tickDaily：按游戏日给可服务居民生成随机疾病。
+     */
     public static void tickDaily(ServerLevel level, RandomSource random, long currentDay) {
         if (level == null || random == null || ServerConfig.medicalDiseaseChancePerDay() <= 0.0D) {
             return;
@@ -84,31 +74,41 @@ public final class MedicalService {
         }
     }
 
-    /** isAdmitted：判断居民是否已经占用医疗床位。 */
+    /**
+     * isAdmitted：判断居民是否已经占用医疗床位。
+     */
     public static boolean isAdmitted(CitizenData citizen) {
         return citizen != null && citizen.medical().medicalBedPoiId() != null;
     }
 
-    /** isHospitalized：供实体 tick 判断白天是否保持睡眠。 */
+    /**
+     * isHospitalized：供实体 tick 判断白天是否保持睡眠。
+     */
     public static boolean isHospitalized(ServerLevel level, UUID citizenId) {
         return level != null && citizenId != null
                 && CitizenManager.get(level).getCitizen(citizenId).map(MedicalService::isAdmitted).orElse(false);
     }
 
-    /** isOnMedicalLeave：低血量、患病、全孕期、产后和住院居民暂停正常工作。 */
+    /**
+     * isOnMedicalLeave：低血量、患病、全孕期、产后和住院居民暂停正常工作。
+     */
     public static boolean isOnMedicalLeave(CitizenData citizen, long currentDay) {
         return isOnMedicalLeave(citizen, currentDay, ServerConfig.medicalLowHealthThreshold(),
                 ServerConfig.familyPregnancyDurationDays());
     }
 
-    /** isOnMedicalLeave：按给定低血量阈值判断居民是否应暂停工作。 */
+    /**
+     * isOnMedicalLeave：按给定低血量阈值判断居民是否应暂停工作。
+     */
     static boolean isOnMedicalLeave(CitizenData citizen, long currentDay, double lowHealthThreshold) {
         return isOnMedicalLeave(citizen, currentDay, lowHealthThreshold, 3);
     }
 
-    /** isOnMedicalLeave：测试与运行时共用的医疗静养判定，怀孕全程停工去医院。 */
+    /**
+     * isOnMedicalLeave：测试与运行时共用的医疗静养判定，怀孕全程停工去医院。
+     */
     static boolean isOnMedicalLeave(CitizenData citizen, long currentDay, double lowHealthThreshold,
-            int pregnancyDurationDays) {
+                                    int pregnancyDurationDays) {
         if (citizen == null || citizen.dead()) {
             return false;
         }
@@ -119,7 +119,9 @@ public final class MedicalService {
                 || citizen.pregnant();
     }
 
-    /** hasMedicalCoverageForCitizen：居民住宅所在城市是否有覆盖其家庭区块的运营医院。 */
+    /**
+     * hasMedicalCoverageForCitizen：居民住宅所在城市是否有覆盖其家庭区块的运营医院。
+     */
     public static boolean hasMedicalCoverageForCitizen(ServerLevel level, CitizenData citizen) {
         if (level == null || citizen == null || citizen.cityId() == null || citizen.homeId() == null) {
             return false;
@@ -142,14 +144,18 @@ public final class MedicalService {
         return false;
     }
 
-    /** coveredChunkCount：计算九宫格扩展圈覆盖的区块总数。 */
+    /**
+     * coveredChunkCount：计算九宫格扩展圈覆盖的区块总数。
+     */
     public static int coveredChunkCount(int rings) {
         int safe = Math.clamp(rings, 1, MedicalDefinition.MAX_SERVICE_RANGE_RINGS);
         int side = safe * 2 - 1;
         return side * side;
     }
 
-    /** releasePatientsForControlBox：控制箱失效时安全释放该医院患者。 */
+    /**
+     * releasePatientsForControlBox：控制箱失效时安全释放该医院患者。
+     */
     public static void releasePatientsForControlBox(ServerLevel level, BlockPos boxPos) {
         if (level == null || boxPos == null) {
             return;
@@ -166,7 +172,9 @@ public final class MedicalService {
         }
     }
 
-    /** snapshotForBuilding：为医疗控制箱界面生成床位和患者统计。 */
+    /**
+     * snapshotForBuilding：为医疗控制箱界面生成床位和患者统计。
+     */
     public static BuildingSnapshot snapshotForBuilding(ServerLevel level, PlacedBuildingRecord building, BlockPos boxPos) {
         if (level == null || building == null) {
             return new BuildingSnapshot(0, 0, List.of());
@@ -180,7 +188,9 @@ public final class MedicalService {
         return new BuildingSnapshot(bedIds.size(), patients.size(), patients);
     }
 
-    /** pauseUnloadedTreatment：只处理还留着治疗锚点的市民，每秒一次，不给未加载市民回血或加治疗 tick。 */
+    /**
+     * pauseUnloadedTreatment：只处理还留着治疗锚点的市民，每秒一次，不给未加载市民回血或加治疗 tick。
+     */
     private static void pauseUnloadedTreatment(ServerLevel level) {
         String dimensionId = level.dimension().location().toString();
         for (CitizenData citizen : CitizenManager.get(level).allCitizens()) {
@@ -196,7 +206,9 @@ public final class MedicalService {
         }
     }
 
-    /** skipFrozenCitizen：实体没在 tick 时停掉治疗锚点，不收治、不传染、不出院。 */
+    /**
+     * skipFrozenCitizen：实体没在 tick 时停掉治疗锚点，不收治、不传染、不出院。
+     */
     private static boolean skipFrozenCitizen(ServerLevel level, CitizenData citizen) {
         if (CitizenVitalGate.entityIsTicking(level, citizen)) {
             return false;
@@ -446,7 +458,9 @@ public final class MedicalService {
         CitizenService.save(level, citizen.uuid());
     }
 
-    /** hospitalWorldTimeElapsed: 住院进度按世界时间计算，睡觉跳过的区间会一次性计入。 */
+    /**
+     * hospitalWorldTimeElapsed: 住院进度按世界时间计算，睡觉跳过的区间会一次性计入。
+     */
     static long hospitalWorldTimeElapsed(long previousDayTime, long currentDayTime) {
         if (previousDayTime <= 0L || currentDayTime <= previousDayTime) {
             return 0L;
@@ -454,7 +468,9 @@ public final class MedicalService {
         return currentDayTime - previousDayTime;
     }
 
-    /** hospitalHealPulses: 世界时间跨越了多少个治疗间隔，睡觉跳过会一次性结算回血。 */
+    /**
+     * hospitalHealPulses: 世界时间跨越了多少个治疗间隔，睡觉跳过会一次性结算回血。
+     */
     static long hospitalHealPulses(long previousDayTime, long currentDayTime, int interval) {
         if (previousDayTime <= 0L || currentDayTime <= previousDayTime || interval <= 0) {
             return 0L;
@@ -476,7 +492,9 @@ public final class MedicalService {
         }
     }
 
-    /** clearRecoveredMedicalLeave：恢复后释放未住院居民的医疗静养状态。 */
+    /**
+     * clearRecoveredMedicalLeave：恢复后释放未住院居民的医疗静养状态。
+     */
     private static void clearRecoveredMedicalLeave(ServerLevel level, CitizenData citizen, long currentDay) {
         if (!shouldClearMedicalLeave(citizen, currentDay, ServerConfig.medicalLowHealthThreshold(),
                 ServerConfig.familyPregnancyDurationDays())) {
@@ -496,7 +514,8 @@ public final class MedicalService {
     private static void navigateHomeForMedicalLeave(ServerLevel level, CitizenData citizen) {
         if (citizen.homeId() == null) return;
         CityPoiData home = CityPoiManager.get(level).getPoi(citizen.homeId());
-        if (home == null || !home.active() || home.type() != CityPoiType.RESIDENTIAL || !level.isLoaded(home.pos())) return;
+        if (home == null || !home.active() || home.type() != CityPoiType.RESIDENTIAL || !level.isLoaded(home.pos()))
+            return;
         Vec3 homeTarget = CitizenHomeRestService.resolveHomeTarget(level, home.pos());
         if (!CitizenVitalGate.entityIsTicking(level, citizen)) {
             return;
@@ -541,15 +560,19 @@ public final class MedicalService {
         }
     }
 
-    /** needsCare：全孕期、产后、低生命或患病均需住院。 */
+    /**
+     * needsCare：全孕期、产后、低生命或患病均需住院。
+     */
     static boolean needsCare(ServerLevel level, CitizenData citizen, long currentDay) {
         return needsCare(level, citizen, currentDay, ServerConfig.medicalLowHealthThreshold(),
                 ServerConfig.familyPregnancyDurationDays());
     }
 
-    /** needsCare：可注入阈值，避免单元测试依赖游戏配置。 */
+    /**
+     * needsCare：可注入阈值，避免单元测试依赖游戏配置。
+     */
     static boolean needsCare(ServerLevel level, CitizenData citizen, long currentDay,
-            double lowHealthThreshold, int pregnancyDurationDays) {
+                             double lowHealthThreshold, int pregnancyDurationDays) {
         CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
         if (entity != null) {
             citizen.setHealth(entity.getHealth());
@@ -560,22 +583,28 @@ public final class MedicalService {
                 || citizen.pregnant();
     }
 
-    /** shouldClearMedicalLeave：判断无床位静养状态是否已不再需要。 */
+    /**
+     * shouldClearMedicalLeave：判断无床位静养状态是否已不再需要。
+     */
     static boolean shouldClearMedicalLeave(CitizenData citizen, long currentDay,
-            double lowHealthThreshold) {
+                                           double lowHealthThreshold) {
         return shouldClearMedicalLeave(citizen, currentDay, lowHealthThreshold, 3);
     }
 
-    /** shouldClearMedicalLeave：按孕期天数判断是否应解除未住院静养。 */
+    /**
+     * shouldClearMedicalLeave：按孕期天数判断是否应解除未住院静养。
+     */
     static boolean shouldClearMedicalLeave(CitizenData citizen, long currentDay,
-            double lowHealthThreshold, int pregnancyDurationDays) {
+                                           double lowHealthThreshold, int pregnancyDurationDays) {
         return citizen != null
                 && !isAdmitted(citizen)
                 && MEDICAL_CARE_MARKER.equals(citizen.workNeedDetail())
                 && !isOnMedicalLeave(citizen, currentDay, lowHealthThreshold, pregnancyDurationDays);
     }
 
-    /** isReadyForDischarge：血量接近满值、疾病治愈、产后结束且已结束妊娠才可出院。 */
+    /**
+     * isReadyForDischarge：血量接近满值、疾病治愈、产后结束且已结束妊娠才可出院。
+     */
     private static boolean isReadyForDischarge(CitizenData citizen, CitizenEntity entity, long currentDay) {
         if (!hasRecoveredHealth(citizen, entity)) {
             return false;
@@ -585,7 +614,9 @@ public final class MedicalService {
                 && !citizen.pregnant();
     }
 
-    /** hasRecoveredHealth：用少量容差避免浮点生命值卡在最大值以下无法出院。 */
+    /**
+     * hasRecoveredHealth：用少量容差避免浮点生命值卡在最大值以下无法出院。
+     */
     private static boolean hasRecoveredHealth(CitizenData citizen, CitizenEntity entity) {
         float maxHealth = entity.getMaxHealth();
         return entity.getHealth() >= maxHealth - 0.05F && citizen.health() >= maxHealth - 0.05D;
@@ -598,12 +629,16 @@ public final class MedicalService {
         return 3;
     }
 
-    /** isLatePregnancy：判断当前是否处于需要住院的孕晚期。 */
+    /**
+     * isLatePregnancy：判断当前是否处于需要住院的孕晚期。
+     */
     static boolean isLatePregnancy(CitizenData citizen, long currentDay) {
         return isLatePregnancy(citizen, currentDay, ServerConfig.familyPregnancyDurationDays());
     }
 
-    /** isLatePregnancy：按给定孕期天数计算是否已进入晚期。 */
+    /**
+     * isLatePregnancy：按给定孕期天数计算是否已进入晚期。
+     */
     static boolean isLatePregnancy(CitizenData citizen, long currentDay, int pregnancyDurationDays) {
         return pregnancyStage(citizen, currentDay, pregnancyDurationDays) == PregnancyStage.LATE;
     }
@@ -630,7 +665,9 @@ public final class MedicalService {
         return "medical.recovering";
     }
 
-    /** applyAdmittedStatus：把头顶状态改成当前病因。返回值表示标签是否变化。 */
+    /**
+     * applyAdmittedStatus：把头顶状态改成当前病因。返回值表示标签是否变化。
+     */
     private static boolean applyAdmittedStatus(CitizenData citizen, long currentDay) {
         String statusKey = conditionKey(citizen, currentDay);
         if (statusKey.equals(citizen.statusLabel())) {
@@ -655,12 +692,16 @@ public final class MedicalService {
         return Set.copyOf(ids);
     }
 
-    /** containsMedicalBed：忽略未住院居民的空床位 ID，避免查询不可变集合时抛出空指针。 */
+    /**
+     * containsMedicalBed：忽略未住院居民的空床位 ID，避免查询不可变集合时抛出空指针。
+     */
     static boolean containsMedicalBed(Set<UUID> bedIds, UUID bedId) {
         return bedId != null && bedIds.contains(bedId);
     }
 
-    /** canBypassResidentialCoverage：紧急医疗患者无需住宅覆盖即可���接前往同城医院。 */
+    /**
+     * canBypassResidentialCoverage：紧急医疗患者无需住宅覆盖即可���接前往同城医院。
+     */
     static boolean canBypassResidentialCoverage(CitizenData citizen) {
         if (citizen == null) {
             return false;
@@ -671,12 +712,16 @@ public final class MedicalService {
         return canBypassResidentialCoverage(citizen, ServerConfig.medicalLowHealthThreshold());
     }
 
-    /** canBypassResidentialCoverage：按给定低血量阈值判断是否跳过住宅覆盖限制。 */
+    /**
+     * canBypassResidentialCoverage：按给定低血量阈值判断是否跳过住宅覆盖限制。
+     */
     static boolean canBypassResidentialCoverage(CitizenData citizen, double lowHealthThreshold) {
         return citizen != null && (citizen.disease().isActive() || citizen.health() <= lowHealthThreshold);
     }
 
-    /** mealContexts：将当前营业医院、医生和实际住院患者整理为供餐服务输入。 */
+    /**
+     * mealContexts：将当前营业医院、医生和实际住院患者整理为供餐服务输入。
+     */
     private static List<MedicalMealService.HospitalContext> mealContexts(ServerLevel level,
                                                                          List<Hospital> hospitals,
                                                                          List<CitizenData> citizens) {
@@ -697,10 +742,12 @@ public final class MedicalService {
         return List.copyOf(contexts);
     }
 
-    public record BuildingSnapshot(int bedCount, int occupiedBedCount, List<MedicalControlBoxView.PatientEntry> patients) {
+    public record BuildingSnapshot(int bedCount, int occupiedBedCount,
+                                   List<MedicalControlBoxView.PatientEntry> patients) {
     }
 
-    private record Hospital(PlacedBuildingRecord building, BlockPos controlBoxPos, int serviceRangeRings, List<CityPoiData> beds) {
+    private record Hospital(PlacedBuildingRecord building, BlockPos controlBoxPos, int serviceRangeRings,
+                            List<CityPoiData> beds) {
         private CityPoiData bed(UUID bedId) {
             for (CityPoiData bed : beds) {
                 if (bed.poiId().equals(bedId)) return bed;

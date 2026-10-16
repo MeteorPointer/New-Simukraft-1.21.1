@@ -1,8 +1,8 @@
 package common.cn.nsimu.simukraft.path;
 
 import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenService;
 import common.cn.nsimu.simukraft.citizen.CitizenSelfFeedingService;
+import common.cn.nsimu.simukraft.citizen.CitizenService;
 import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
 import common.cn.nsimu.simukraft.city.poi.CityPoiType;
@@ -163,7 +163,9 @@ public final class CitizenWanderService {
                 && !level.getBlockState(feet.below()).getCollisionShape(level, feet.below()).isEmpty();
     }
 
-    /** 检查目标位置是否过于靠近公共功能建筑（商业/工业/农田/医疗）的控制块，避免闲逛NPC逗留其中 */
+    /**
+     * 检查目标位置是否过于靠近公共功能建筑（商业/工业/农田/医疗）的控制块，避免闲逛NPC逗留其中
+     */
     private static boolean isNearPublicBuilding(ServerLevel level, int x, int z) {
         for (var poi : CityPoiManager.get(level).allPois()) {
             if (!PUBLIC_WORK_TYPES.contains(poi.type())) {

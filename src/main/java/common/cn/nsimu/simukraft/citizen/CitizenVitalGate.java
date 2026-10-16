@@ -11,7 +11,9 @@ public final class CitizenVitalGate {
     private CitizenVitalGate() {
     }
 
-    /** entityIsTicking：实体在场，并且所在位置正在做实体 tick。没加载的区块返回 false。 */
+    /**
+     * entityIsTicking：实体在场，并且所在位置正在做实体 tick。没加载的区块返回 false。
+     */
     public static boolean entityIsTicking(ServerLevel level, CitizenData citizen) {
         if (level == null || citizen == null || citizen.dead()) {
             return false;
@@ -26,7 +28,9 @@ public final class CitizenVitalGate {
                 && level.isPositionEntityTicking(entity.blockPosition());
     }
 
-    /** mayContractDisease：只有正在 tick 的健康市民才会进入当日患病抽取。 */
+    /**
+     * mayContractDisease：只有正在 tick 的健康市民才会进入当日患病抽取。
+     */
     public static boolean mayContractDisease(boolean entityTicking, boolean dead, boolean alreadySick) {
         return entityTicking && !dead && !alreadySick;
     }
@@ -61,7 +65,9 @@ public final class CitizenVitalGate {
         return changed;
     }
 
-    /** pauseTreatmentClock：清掉住院治疗的世界时间锚点，卸载期间不加治疗 tick、不回血。 */
+    /**
+     * pauseTreatmentClock：清掉住院治疗的世界时间锚点，卸载期间不加治疗 tick、不回血。
+     */
     public static boolean pauseTreatmentClock(CitizenData citizen) {
         if (citizen == null || citizen.medical().lastHospitalProgressDayTime() == 0L) {
             return false;

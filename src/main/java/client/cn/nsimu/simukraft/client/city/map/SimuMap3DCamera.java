@@ -11,7 +11,9 @@ import org.joml.Matrix4f;
  */
 @OnlyIn(Dist.CLIENT)
 public final class SimuMap3DCamera {
-    /** 约 37 度俯角：墙面还在，顶面也能看见。 */
+    /**
+     * 约 37 度俯角：墙面还在，顶面也能看见。
+     */
     public static final float PITCH = 0.65F;
 
     private SimuMap3DCamera() {

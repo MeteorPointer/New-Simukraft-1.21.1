@@ -11,7 +11,9 @@ public final class BuildingCatalog {
     private BuildingCatalog() {
     }
 
-    /** localizedDisplayName: 界面显示用当前语言的建筑名，旧存档里的中文名只作后备。 */
+    /**
+     * localizedDisplayName: 界面显示用当前语言的建筑名，旧存档里的中文名只作后备。
+     */
     public static String localizedDisplayName(PlacedBuildingRecord building) {
         if (building == null) {
             return "";
@@ -22,7 +24,9 @@ public final class BuildingCatalog {
                 .orElse(building.displayName() == null ? "" : building.displayName());
     }
 
-    /** findBuilding: 按分类和 .sk 文件名查找建筑，兼容不带扩展名的旧保存值。 */
+    /**
+     * findBuilding: 按分类和 .sk 文件名查找建筑，兼容不带扩展名的旧保存值。
+     */
     public static Optional<BuildingDefinition> findBuilding(String category, String buildingFileName) {
         if (buildingFileName == null || buildingFileName.isBlank()) {
             return Optional.empty();
@@ -36,7 +40,9 @@ public final class BuildingCatalog {
         return findBuildingByStructureFile(category, buildingFileName);
     }
 
-    /** findBuildingByStructureFile: 通过结构文件名恢复旧任务和已放置建筑。 */
+    /**
+     * findBuildingByStructureFile: 通过结构文件名恢复旧任务和已放置建筑。
+     */
     public static Optional<BuildingDefinition> findBuildingByStructureFile(String category, String structureFileName) {
         if (structureFileName == null || structureFileName.isBlank()) {
             return Optional.empty();
@@ -92,27 +98,37 @@ public final class BuildingCatalog {
                                      String structureFileName,
                                      BuildingType buildingType,
                                      BuildingPackageCatalog.PackageSource source) {
-        /** isDrillingPlatform: 判断建筑包是否将当前工业建筑声明为矿物钻井平台。 */
+        /**
+         * isDrillingPlatform: 判断建筑包是否将当前工业建筑声明为矿物钻井平台。
+         */
         public boolean isDrillingPlatform() {
             return buildingType == BuildingType.DRILLING_PLATFORM;
         }
 
-        /** isMedical: 公共 JSON type 为医院/医疗。 */
+        /**
+         * isMedical: 公共 JSON type 为医院/医疗。
+         */
         public boolean isMedical() {
             return buildingType == BuildingType.MEDICAL;
         }
 
-        /** isBank: 公共 JSON type 为银行。 */
+        /**
+         * isBank: 公共 JSON type 为银行。
+         */
         public boolean isBank() {
             return buildingType == BuildingType.BANK;
         }
 
-        /** isExchange: 公共 JSON type 为交易所。 */
+        /**
+         * isExchange: 公共 JSON type 为交易所。
+         */
         public boolean isExchange() {
             return buildingType == BuildingType.EXCHANGE;
         }
 
-        /** localizedDisplayName: 按当前玩家语言选择建筑名。 */
+        /**
+         * localizedDisplayName: 按当前玩家语言选择建筑名。
+         */
         public String localizedDisplayName() {
             if (BuildingLocale.preferEnglish() && displayNameEn != null && !displayNameEn.isBlank()) {
                 return displayNameEn;
@@ -120,7 +136,9 @@ public final class BuildingCatalog {
             return displayName == null ? "" : displayName;
         }
 
-        /** localizedDescription: 按当前玩家语言选择建筑说明。 */
+        /**
+         * localizedDescription: 按当前玩家语言选择建筑说明。
+         */
         public String localizedDescription() {
             if (BuildingLocale.preferEnglish() && descriptionEn != null && !descriptionEn.isBlank()) {
                 return descriptionEn;
@@ -128,7 +146,9 @@ public final class BuildingCatalog {
             return description == null ? "" : description;
         }
 
-        /** localizedAmount: 英文界面去掉造价里的“元”。 */
+        /**
+         * localizedAmount: 英文界面去掉造价里的“元”。
+         */
         public String localizedAmount() {
             if (amount == null) {
                 return "";
@@ -177,7 +197,9 @@ public final class BuildingCatalog {
         }
     }
 
-    /** BuildingType: 由建筑包 JSON 声明的公共/工业子类。公共目录用 type 区分医院、银行、交易所。 */
+    /**
+     * BuildingType: 由建筑包 JSON 声明的公共/工业子类。公共目录用 type 区分医院、银行、交易所。
+     */
     public enum BuildingType {
         STANDARD,
         DRILLING_PLATFORM,

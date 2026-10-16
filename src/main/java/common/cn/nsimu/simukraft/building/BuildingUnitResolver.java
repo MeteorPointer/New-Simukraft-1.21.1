@@ -10,12 +10,16 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
-/** BuildingUnitResolver：按建筑元数据和世界坐标确定住宅户的床位归属。 */
+/**
+ * BuildingUnitResolver：按建筑元数据和世界坐标确定住宅户的床位归属。
+ */
 public final class BuildingUnitResolver {
     private BuildingUnitResolver() {
     }
 
-    /** resolveResidentialPoiGroups：返回建筑内每户的住宅 POI ID；无单元定义时整栋为一户。 */
+    /**
+     * resolveResidentialPoiGroups：返回建筑内每户的住宅 POI ID；无单元定义时整栋为一户。
+     */
     public static List<List<UUID>> resolveResidentialPoiGroups(PlacedBuildingRecord building) {
         if (building == null) {
             return List.of();
@@ -48,9 +52,11 @@ public final class BuildingUnitResolver {
         return List.copyOf(groupsFromInstances(building, residentialPois));
     }
 
-    /** resolveUnitInstances：按元数据重建单元实例，并尽量保留已持久化的单元 ID。 */
+    /**
+     * resolveUnitInstances：按元数据重建单元实例，并尽量保留已持久化的单元 ID。
+     */
     public static List<BuildingUnitInstance> resolveUnitInstances(PlacedBuildingRecord building,
-                                                                    CityPoiManager poiManager) {
+                                                                  CityPoiManager poiManager) {
         List<BuildingUnitDefinition> definitions = resolveUnitDefinitions(building);
         if (definitions.isEmpty()) {
             return List.of();
@@ -73,7 +79,9 @@ public final class BuildingUnitResolver {
         return List.copyOf(units);
     }
 
-    /** resolveUnitDefinitions：优先使用记录中的定义，旧存档则从当前建筑包补读。 */
+    /**
+     * resolveUnitDefinitions：优先使用记录中的定义，旧存档则从当前建筑包补读。
+     */
     public static List<BuildingUnitDefinition> resolveUnitDefinitions(PlacedBuildingRecord building) {
         if (building == null) {
             return List.of();
@@ -88,7 +96,7 @@ public final class BuildingUnitResolver {
     }
 
     private static List<List<UUID>> unitPoiIdsByDefinition(PlacedBuildingRecord building,
-                                                             List<BuildingUnitDefinition> definitions) {
+                                                           List<BuildingUnitDefinition> definitions) {
         List<List<UUID>> poiIdsByUnit = new ArrayList<>();
         for (int index = 0; index < definitions.size(); index++) {
             poiIdsByUnit.add(new ArrayList<>());
@@ -110,7 +118,7 @@ public final class BuildingUnitResolver {
     }
 
     private static List<List<UUID>> groupsFromInstances(PlacedBuildingRecord building,
-                                                          List<BuildingPoiInstance> residentialPois) {
+                                                        List<BuildingPoiInstance> residentialPois) {
         LinkedHashSet<UUID> knownPoiIds = residentialPois.stream()
                 .map(poi -> stablePoiId(building, poi))
                 .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));

@@ -5,7 +5,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 
-/** 把指南书索引加入资源重载。 */
+/**
+ * 把指南书索引加入资源重载。
+ */
 @EventBusSubscriber(modid = SimuKraft.MOD_ID)
 public final class GuideBookReloadEvents {
     private GuideBookReloadEvents() {

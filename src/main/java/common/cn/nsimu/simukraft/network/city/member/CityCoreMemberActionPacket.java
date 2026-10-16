@@ -1,11 +1,7 @@
 package common.cn.nsimu.simukraft.network.city.member;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.city.CityData;
-import common.cn.nsimu.simukraft.city.CityMemberData;
-import common.cn.nsimu.simukraft.city.CityPermissionInviteService;
-import common.cn.nsimu.simukraft.city.CityPermissionLevel;
-import common.cn.nsimu.simukraft.city.CityService;
+import common.cn.nsimu.simukraft.city.*;
 import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
 import common.cn.nsimu.simukraft.city.group.CityUserGroup;
 import common.cn.nsimu.simukraft.city.group.CityUserGroupService;
@@ -24,14 +20,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 
-public record CityCoreMemberActionPacket(BlockPos pos, Action action, UUID targetId, String targetName, CityPermissionLevel permissionLevel) implements CustomPacketPayload {
+public record CityCoreMemberActionPacket(BlockPos pos, Action action, UUID targetId, String targetName,
+                                         CityPermissionLevel permissionLevel) implements CustomPacketPayload {
     public static final Type<CityCoreMemberActionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_member_action"));
     public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreMemberActionPacket> STREAM_CODEC = StreamCodec.of(CityCoreMemberActionPacket::encode, CityCoreMemberActionPacket::decode);
     public static final UUID EMPTY_PLAYER_ID = new UUID(0L, 0L);
@@ -71,9 +64,11 @@ public record CityCoreMemberActionPacket(BlockPos pos, Action action, UUID targe
         CityData cityData = city.get();
         List<ServerPlayer> beforeGroup = CityUserGroupService.onlinePlayers(level, CityUserGroup.members(cityData.cityId()));
         MemberActionResult result = switch (packet.action()) {
-            case ADD -> addOnlinePlayer(level, player, cityData, packet.targetId(), packet.targetName(), packet.permissionLevel());
+            case ADD ->
+                    addOnlinePlayer(level, player, cityData, packet.targetId(), packet.targetName(), packet.permissionLevel());
             case REMOVE -> removePlayer(level, player, cityData, packet.targetId(), packet.targetName(), beforeGroup);
-            case SET_PERMISSION -> setPermission(level, player, cityData, packet.targetId(), packet.targetName(), packet.permissionLevel());
+            case SET_PERMISSION ->
+                    setPermission(level, player, cityData, packet.targetId(), packet.targetName(), packet.permissionLevel());
         };
         if (result.success()) {
             CityGroupMessageService.sendResolved(result.recipients(), Component.translatable("toast.simukraft.title"), result.message(), "success", net.minecraft.world.item.ItemStack.EMPTY);

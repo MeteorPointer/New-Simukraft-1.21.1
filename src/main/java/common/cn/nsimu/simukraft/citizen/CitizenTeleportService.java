@@ -112,7 +112,9 @@ public final class CitizenTeleportService {
         return findLoadedCitizenEntity(level, citizenId);
     }
 
-    /** refreshClientTracking：跨已卸载区块恢复并传送后，重建服务器实体追踪器以同步客户端生成包。 */
+    /**
+     * refreshClientTracking：跨已卸载区块恢复并传送后，重建服务器实体追踪器以同步客户端生成包。
+     */
     public static void refreshClientTracking(ServerLevel level, CitizenEntity citizenEntity) {
         if (level == null || citizenEntity == null || citizenEntity.isRemoved()) {
             return;
@@ -129,7 +131,7 @@ public final class CitizenTeleportService {
      * {@link #reconcileLoadedCitizenEntities} (used by spawn and teleport callers) and to the
      * per-tick self-reconcile each entity performs, so this fast path performs no discards.
      *
-     * @param level the server level to query
+     * @param level     the server level to query
      * @param citizenId the citizen UUID
      * @return the loaded, non-removed citizen entity, or {@code null} if none is loaded
      */
@@ -273,7 +275,9 @@ public final class CitizenTeleportService {
         return safe ? Vec3.atBottomCenterOf(pos) : null;
     }
 
-    /** reachedLanding：验证服务端实体位置已实际写入传送安全落点。 */
+    /**
+     * reachedLanding：验证服务端实体位置已实际写入传送安全落点。
+     */
     private static boolean reachedLanding(CitizenEntity citizenEntity, Vec3 landing) {
         return citizenEntity != null && landing != null && citizenEntity.position().distanceToSqr(landing) <= 0.0625D;
     }

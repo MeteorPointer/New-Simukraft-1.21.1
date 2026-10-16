@@ -143,7 +143,9 @@ public final class GuideBookScreen extends Screen {
         }
     }
 
-    /** 书页自己画底，不使用 1.21 菜单打开时的模糊层。 */
+    /**
+     * 书页自己画底，不使用 1.21 菜单打开时的模糊层。
+     */
     @Override
     public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
     }

@@ -4,7 +4,9 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-/** Bounded LRU cache of successful path results, keyed by request signature. */
+/**
+ * Bounded LRU cache of successful path results, keyed by request signature.
+ */
 final class PathResultCache {
     private static final int MAX_ENTRIES = 512;
     private final LinkedHashMap<PathCacheKey, CacheEntry> entries =
@@ -44,7 +46,7 @@ final class PathResultCache {
     private void trim(long gameTime) {
         cleanup(gameTime);
         for (Iterator<Map.Entry<PathCacheKey, CacheEntry>> iterator = entries.entrySet().iterator();
-                iterator.hasNext() && entries.size() >= MAX_ENTRIES;) {
+             iterator.hasNext() && entries.size() >= MAX_ENTRIES; ) {
             iterator.next();
             iterator.remove();
         }

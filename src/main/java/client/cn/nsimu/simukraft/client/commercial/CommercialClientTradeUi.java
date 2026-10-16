@@ -18,12 +18,16 @@ final class CommercialClientTradeUi {
     private CommercialClientTradeUi() {
     }
 
-    /** costStatus: 生成客户端成本满足状态。 */
+    /**
+     * costStatus: 生成客户端成本满足状态。
+     */
     static Component costStatus(CommercialTradeOpenResponsePacket packet, CommercialTradeOpenResponsePacket.OfferEntry offer, int times) {
         return Component.translatable(costEnough(packet, offer, times) ? "gui.simukraft.commercial.cost_ok" : "gui.simukraft.commercial.cost_missing");
     }
 
-    /** costEnough: 预判断城市资金和玩家背包是否满足成本。 */
+    /**
+     * costEnough: 预判断城市资金和玩家背包是否满足成本。
+     */
     static boolean costEnough(CommercialTradeOpenResponsePacket packet, CommercialTradeOpenResponsePacket.OfferEntry offer, int times) {
         for (CommercialTradeOpenResponsePacket.ResourceEntry resource : offer.cost()) {
             if (isMoney(resource)) {
@@ -37,7 +41,9 @@ final class CommercialClientTradeUi {
         return true;
     }
 
-    /** stockEnough: 预判断库存是否足够或是否还有容量。 */
+    /**
+     * stockEnough: 预判断库存是否足够或是否还有容量。
+     */
     static boolean stockEnough(CommercialTradeOpenResponsePacket.OfferEntry offer, int times) {
         if (offer == null || offer.stockItem().isBlank() || offer.maxStock() <= 0) {
             return true;
@@ -52,17 +58,23 @@ final class CommercialClientTradeUi {
         return offer.currentStock() + amount <= offer.maxStock();
     }
 
-    /** stockText: 格式化库存文本。 */
+    /**
+     * stockText: 格式化库存文本。
+     */
     static String stockText(CommercialTradeOpenResponsePacket.OfferEntry offer) {
         return offer.maxStock() > 0 ? offer.currentStock() + "/" + offer.maxStock() : "-";
     }
 
-    /** stockColor: 按当前数量返回库存提示颜色。 */
+    /**
+     * stockColor: 按当前数量返回库存提示颜色。
+     */
     static int stockColor(CommercialTradeOpenResponsePacket.OfferEntry offer, int times) {
         return stockEnough(offer, times) ? 0xFF2A602A : 0xFF8A2020;
     }
 
-    /** resourceLabel: 生成资源数量标签。 */
+    /**
+     * resourceLabel: 生成资源数量标签。
+     */
     static Component resourceLabel(CommercialTradeOpenResponsePacket.ResourceEntry resource) {
         if (isMoney(resource)) {
             return Component.literal(money(resource.money()));
@@ -70,7 +82,9 @@ final class CommercialClientTradeUi {
         return Component.literal("x" + Math.max(1, resource.count()));
     }
 
-    /** resourceStack: 生成资源图标物品。 */
+    /**
+     * resourceStack: 生成资源图标物品。
+     */
     static ItemStack resourceStack(CommercialTradeOpenResponsePacket.ResourceEntry resource) {
         if (isMoney(resource)) {
             return new ItemStack(ModItems.GOLD_COIN.get());
@@ -78,7 +92,9 @@ final class CommercialClientTradeUi {
         return new ItemStack(itemById(resource.itemId()), Math.max(1, resource.count()));
     }
 
-    /** money: 格式化城市资金金额。 */
+    /**
+     * money: 格式化城市资金金额。
+     */
     static String money(double value) {
         return String.format(Locale.ROOT, "%.2f", value);
     }

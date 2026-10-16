@@ -1,5 +1,6 @@
 package common.cn.nsimu.simukraft.job;
 
+import common.cn.nsimu.simukraft.bank.BankControlBoxService;
 import common.cn.nsimu.simukraft.building.BuilderConstructionService;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
 import common.cn.nsimu.simukraft.citizen.CitizenHomeRestService;
@@ -8,15 +9,10 @@ import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
 import common.cn.nsimu.simukraft.commercial.CommercialConstants;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
 import common.cn.nsimu.simukraft.commercial.CommercialWorkService;
-import common.cn.nsimu.simukraft.farmland.FarmlandBoxService;
-import common.cn.nsimu.simukraft.industrial.IndustrialConstants;
-import common.cn.nsimu.simukraft.industrial.IndustrialControlBoxService;
-import common.cn.nsimu.simukraft.industrial.IndustrialDefinition;
-import common.cn.nsimu.simukraft.industrial.IndustrialDefinitionLoader;
-import common.cn.nsimu.simukraft.industrial.IndustrialWorkService;
-import common.cn.nsimu.simukraft.logistics.LogisticsConstants;
-import common.cn.nsimu.simukraft.bank.BankControlBoxService;
 import common.cn.nsimu.simukraft.exchange.ExchangeControlBoxService;
+import common.cn.nsimu.simukraft.farmland.FarmlandBoxService;
+import common.cn.nsimu.simukraft.industrial.*;
+import common.cn.nsimu.simukraft.logistics.LogisticsConstants;
 import common.cn.nsimu.simukraft.medical.MedicalControlBoxService;
 import common.cn.nsimu.simukraft.medical.MedicalService;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingConstants;
@@ -258,9 +254,11 @@ public final class CitizenEmploymentService {
         }
     }
 
-    /** isMineralDrillingEmployment: 优先识别复用工业职业枚举的钻井岗位，避免清理工业控制箱任务。 */
+    /**
+     * isMineralDrillingEmployment: 优先识别复用工业职业枚举的钻井岗位，避免清理工业控制箱任务。
+     */
     private static boolean isMineralDrillingEmployment(CitizenData citizen, String normalizedSource, String normalizedRole,
-                                                        @Nullable BlockPos sourcePos) {
+                                                       @Nullable BlockPos sourcePos) {
         if (MineralDrillingConstants.HIRE_SOURCE_TYPE.equals(normalizedSource)
                 && MineralDrillingConstants.HIRE_ROLE.equals(normalizedRole)) {
             return true;

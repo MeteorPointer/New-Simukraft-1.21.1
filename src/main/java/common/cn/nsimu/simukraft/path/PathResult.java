@@ -5,7 +5,8 @@ import net.minecraft.world.phys.Vec3;
 import java.util.List;
 import java.util.UUID;
 
-public record PathResult(UUID citizenId, Vec3 target, MovementIntent intent, boolean success, List<PathWaypoint> waypoints, String reason) {
+public record PathResult(UUID citizenId, Vec3 target, MovementIntent intent, boolean success,
+                         List<PathWaypoint> waypoints, String reason) {
     public static PathResult success(PathRequest request, List<PathWaypoint> waypoints) {
         return new PathResult(request.citizenId(), request.target(), request.intent(), true, List.copyOf(waypoints), "");
     }
@@ -14,7 +15,9 @@ public record PathResult(UUID citizenId, Vec3 target, MovementIntent intent, boo
         return new PathResult(request.citizenId(), request.target(), request.intent(), false, List.of(), reason != null ? reason : "unknown");
     }
 
-    /** Rebinds a cached route to the request that is consuming it. */
+    /**
+     * Rebinds a cached route to the request that is consuming it.
+     */
     public PathResult forRequest(PathRequest request) {
         if (request == null) {
             return this;

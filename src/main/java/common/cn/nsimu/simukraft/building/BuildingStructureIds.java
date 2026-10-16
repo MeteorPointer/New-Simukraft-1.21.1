@@ -49,7 +49,9 @@ public final class BuildingStructureIds {
         return requested.equals(path(category, buildingFileName)) || requested.equals(path(category, structureFileName));
     }
 
-    /** fileStem: 去掉最后一个扩展名。.sk / .nbt / .json 都按这个规则。 */
+    /**
+     * fileStem: 去掉最后一个扩展名。.sk / .nbt / .json 都按这个规则。
+     */
     public static String fileStem(String fileName) {
         if (fileName == null) {
             return "";
@@ -59,7 +61,9 @@ public final class BuildingStructureIds {
         return index > 0 ? trimmed.substring(0, index) : trimmed;
     }
 
-    /** sanitize: 小写，并把空格和其他非法字符收成下划线。 */
+    /**
+     * sanitize: 小写，并把空格和其他非法字符收成下划线。
+     */
     public static String sanitize(String stem) {
         if (stem == null || stem.isBlank()) {
             return "";

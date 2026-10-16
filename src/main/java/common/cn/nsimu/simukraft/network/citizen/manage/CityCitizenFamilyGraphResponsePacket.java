@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** 五代直系关系图快照（服务端 -> 客户端）。 */
+/**
+ * 五代直系关系图快照（服务端 -> 客户端）。
+ */
 public record CityCitizenFamilyGraphResponsePacket(BlockPos pos, CitizenFamilyGraphSnapshot snapshot)
         implements CustomPacketPayload {
     public static final Type<CityCitizenFamilyGraphResponsePacket> TYPE =

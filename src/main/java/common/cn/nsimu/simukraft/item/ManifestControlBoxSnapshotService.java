@@ -1,11 +1,7 @@
 package common.cn.nsimu.simukraft.item;
 
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
-import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
-import common.cn.nsimu.simukraft.commercial.CommercialDefinition;
-import common.cn.nsimu.simukraft.commercial.CommercialDefinitionLoader;
-import common.cn.nsimu.simukraft.commercial.CommercialOffer;
-import common.cn.nsimu.simukraft.commercial.CommercialResource;
+import common.cn.nsimu.simukraft.commercial.*;
 import common.cn.nsimu.simukraft.industrial.IndustrialControlBoxService;
 import common.cn.nsimu.simukraft.industrial.IndustrialDefinition;
 import common.cn.nsimu.simukraft.industrial.IndustrialDefinitionLoader;
@@ -19,13 +15,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 
 final class ManifestControlBoxSnapshotService {
@@ -35,7 +25,9 @@ final class ManifestControlBoxSnapshotService {
     private ManifestControlBoxSnapshotService() {
     }
 
-    /** commercial: 从商业控制箱构建清单快照。 */
+    /**
+     * commercial: 从商业控制箱构建清单快照。
+     */
     static FillResult commercial(ServerLevel level, BlockPos controlBoxPos) {
         PlacedBuildingRecord building = CommercialControlBoxService.resolveBuilding(level, controlBoxPos);
         CommercialDefinitionLoader.LoadResult loadResult = CommercialDefinitionLoader.loadForBuilding(building);
@@ -58,7 +50,9 @@ final class ManifestControlBoxSnapshotService {
         ));
     }
 
-    /** industrial: 从工业控制箱构建当前配方的清单快照。 */
+    /**
+     * industrial: 从工业控制箱构建当前配方的清单快照。
+     */
     static FillResult industrial(ServerLevel level, BlockPos controlBoxPos) {
         PlacedBuildingRecord building = IndustrialControlBoxService.resolveBuilding(level, controlBoxPos);
         IndustrialDefinitionLoader.LoadResult loadResult = IndustrialDefinitionLoader.loadForBuilding(building);
@@ -86,7 +80,9 @@ final class ManifestControlBoxSnapshotService {
         ));
     }
 
-    /** commercialMaterials: 汇总材料供货型商业报价的需求。 */
+    /**
+     * commercialMaterials: 汇总材料供货型商业报价的需求。
+     */
     private static Map<String, Integer> commercialMaterials(CommercialDefinition definition) {
         Map<String, Integer> materials = new LinkedHashMap<>();
         for (CommercialOffer offer : definition.offers()) {
@@ -101,14 +97,18 @@ final class ManifestControlBoxSnapshotService {
         return materials;
     }
 
-    /** hasMaterialSupplyRecipe: 判断工业配方是否需要供应材料且存在产物。 */
+    /**
+     * hasMaterialSupplyRecipe: 判断工业配方是否需要供应材料且存在产物。
+     */
     private static boolean hasMaterialSupplyRecipe(IndustrialDefinition.RecipeDefinition recipe) {
         return recipe != null
                 && !industrialInputMaterials(recipe.inputs()).isEmpty()
                 && !industrialProducts(recipe.outputs()).isEmpty();
     }
 
-    /** industrialMaterials: 汇总工业清单页涉及的全部配方输入需求。 */
+    /**
+     * industrialMaterials: 汇总工业清单页涉及的全部配方输入需求。
+     */
     private static Map<String, Integer> industrialMaterials(List<IndustrialDefinition.RecipeDefinition> recipes) {
         Map<String, Integer> materials = new LinkedHashMap<>();
         if (recipes == null) {
@@ -120,7 +120,9 @@ final class ManifestControlBoxSnapshotService {
         return materials;
     }
 
-    /** industrialInputMaterials: 汇总单个工业配方的输入需求。 */
+    /**
+     * industrialInputMaterials: 汇总单个工业配方的输入需求。
+     */
     private static Map<String, Integer> industrialInputMaterials(List<IndustrialDefinition.InputRequirement> requirements) {
         Map<String, Integer> materials = new LinkedHashMap<>();
         if (requirements == null) {
@@ -132,7 +134,9 @@ final class ManifestControlBoxSnapshotService {
         return materials;
     }
 
-    /** appendIndustrialRequirement: 按工业输入表达式写入材料需求。 */
+    /**
+     * appendIndustrialRequirement: 按工业输入表达式写入材料需求。
+     */
     private static void appendIndustrialRequirement(Map<String, Integer> materials, IndustrialDefinition.InputRequirement requirement) {
         if (requirement instanceof IndustrialDefinition.ItemRequirement itemRequirement) {
             addMaterial(materials, materialItemId(itemRequirement.spec()), itemRequirement.count());
@@ -153,7 +157,9 @@ final class ManifestControlBoxSnapshotService {
         }
     }
 
-    /** commercialProductGroups: 按售出商品组织商业清单分组。 */
+    /**
+     * commercialProductGroups: 按售出商品组织商业清单分组。
+     */
     private static List<ProductGroup> commercialProductGroups(CommercialDefinition definition) {
         List<ProductGroup> groups = new ArrayList<>();
         for (CommercialOffer offer : definition.offers()) {
@@ -173,7 +179,9 @@ final class ManifestControlBoxSnapshotService {
         return List.copyOf(groups);
     }
 
-    /** commercialProducts: 解析玩家实际获得的商业商品。 */
+    /**
+     * commercialProducts: 解析玩家实际获得的商业商品。
+     */
     private static Map<String, Integer> commercialProducts(CommercialOffer offer) {
         Map<String, Integer> products = new LinkedHashMap<>();
         for (CommercialResource resource : offer.result()) {
@@ -184,7 +192,9 @@ final class ManifestControlBoxSnapshotService {
         return products;
     }
 
-    /** industrialProductGroups: 按配方组织工业清单分组，每页显示一个配方。 */
+    /**
+     * industrialProductGroups: 按配方组织工业清单分组，每页显示一个配方。
+     */
     private static List<ProductGroup> industrialProductGroups(List<IndustrialDefinition.RecipeDefinition> recipes) {
         List<ProductGroup> groups = new ArrayList<>();
         if (recipes == null) {
@@ -199,14 +209,18 @@ final class ManifestControlBoxSnapshotService {
         return List.copyOf(groups);
     }
 
-    /** industrialProductGroup: 转换单个工业配方的材料和产物。 */
+    /**
+     * industrialProductGroup: 转换单个工业配方的材料和产物。
+     */
     private static ProductGroup industrialProductGroup(IndustrialDefinition.RecipeDefinition recipe) {
         Map<String, Integer> materials = industrialInputMaterials(recipe.inputs());
         Map<String, Integer> products = industrialProducts(recipe.outputs());
         return materials.isEmpty() || products.isEmpty() ? null : new ProductGroup(products, materials);
     }
 
-    /** industrialProducts: 汇总单个工业配方的产物。 */
+    /**
+     * industrialProducts: 汇总单个工业配方的产物。
+     */
     private static Map<String, Integer> industrialProducts(List<IndustrialDefinition.ProductOutput> outputs) {
         Map<String, Integer> products = new LinkedHashMap<>();
         if (outputs == null) {
@@ -218,7 +232,9 @@ final class ManifestControlBoxSnapshotService {
         return products;
     }
 
-    /** industrialAvailableMaterials: 统计工业输入箱内满足全部清单配方约束的可用材料。 */
+    /**
+     * industrialAvailableMaterials: 统计工业输入箱内满足全部清单配方约束的可用材料。
+     */
     private static Map<String, Integer> industrialAvailableMaterials(ServerLevel level,
                                                                      List<BlockPos> inputContainers,
                                                                      List<IndustrialDefinition.RecipeDefinition> recipes) {
@@ -234,7 +250,9 @@ final class ManifestControlBoxSnapshotService {
         return availableMaterials;
     }
 
-    /** collectIndustrialInputSpecs: 收集需要精确匹配组件的工业输入物品。 */
+    /**
+     * collectIndustrialInputSpecs: 收集需要精确匹配组件的工业输入物品。
+     */
     private static void collectIndustrialInputSpecs(Set<IndustrialItemStackSpec> specs,
                                                     List<IndustrialDefinition.InputRequirement> requirements) {
         if (requirements == null) {
@@ -245,7 +263,9 @@ final class ManifestControlBoxSnapshotService {
         }
     }
 
-    /** collectIndustrialInputSpec: 按工业输入表达式收集物品匹配规则。 */
+    /**
+     * collectIndustrialInputSpec: 按工业输入表达式收集物品匹配规则。
+     */
     private static void collectIndustrialInputSpec(Set<IndustrialItemStackSpec> specs,
                                                    IndustrialDefinition.InputRequirement requirement) {
         if (requirement instanceof IndustrialDefinition.ItemRequirement itemRequirement) {
@@ -267,7 +287,9 @@ final class ManifestControlBoxSnapshotService {
         }
     }
 
-    /** industrialInputContainers: 按定义解析工业输入箱坐标。 */
+    /**
+     * industrialInputContainers: 按定义解析工业输入箱坐标。
+     */
     private static List<BlockPos> industrialInputContainers(PlacedBuildingRecord building, IndustrialDefinition definition) {
         Set<BlockPos> containers = new LinkedHashSet<>(IndustrialControlBoxService.resolveContainerPositions(building, definition, "input"));
         if (!containers.isEmpty()) {
@@ -284,12 +306,16 @@ final class ManifestControlBoxSnapshotService {
         return List.copyOf(containers);
     }
 
-    /** countNearbyContainerItems: 统计商业控制箱附近供货材料。 */
+    /**
+     * countNearbyContainerItems: 统计商业控制箱附近供货材料。
+     */
     private static Map<String, Integer> countNearbyContainerItems(ServerLevel level, BlockPos centerPos) {
         return countContainerItems(level, nearbyContainers(level, centerPos));
     }
 
-    /** countContainerItems: 按物品 ID 统计一组容器内物品数量。 */
+    /**
+     * countContainerItems: 按物品 ID 统计一组容器内物品数量。
+     */
     private static Map<String, Integer> countContainerItems(ServerLevel level, Iterable<BlockPos> containerPositions) {
         Map<String, Integer> items = new LinkedHashMap<>();
         if (containerPositions == null) {
@@ -307,7 +333,9 @@ final class ManifestControlBoxSnapshotService {
         return items;
     }
 
-    /** nearbyContainers: 查找商业材料供给半径内的容器。 */
+    /**
+     * nearbyContainers: 查找商业材料供给半径内的容器。
+     */
     private static Set<BlockPos> nearbyContainers(ServerLevel level, BlockPos centerPos) {
         Set<BlockPos> containers = new LinkedHashSet<>();
         if (level == null || centerPos == null) {
@@ -326,7 +354,9 @@ final class ManifestControlBoxSnapshotService {
         return containers;
     }
 
-    /** countIndustrialInput: 统计满足工业物品组件约束的输入数量。 */
+    /**
+     * countIndustrialInput: 统计满足工业物品组件约束的输入数量。
+     */
     private static int countIndustrialInput(ServerLevel level, List<BlockPos> containers, IndustrialItemStackSpec spec) {
         int total = 0;
         Set<BlockPos> visited = new LinkedHashSet<>();
@@ -347,12 +377,16 @@ final class ManifestControlBoxSnapshotService {
         return total;
     }
 
-    /** materialItemId: 获取清单可展示的物品 ID。 */
+    /**
+     * materialItemId: 获取清单可展示的物品 ID。
+     */
     private static String materialItemId(IndustrialItemStackSpec spec) {
         return spec != null ? spec.displayItemId() : "";
     }
 
-    /** addMaterial: 合并材料数量并防止整数溢出。 */
+    /**
+     * addMaterial: 合并材料数量并防止整数溢出。
+     */
     private static void addMaterial(Map<String, Integer> materials, String itemId, int count) {
         if (itemId == null || itemId.isBlank() || count <= 0) {
             return;
@@ -360,7 +394,9 @@ final class ManifestControlBoxSnapshotService {
         materials.merge(itemId, count, ManifestControlBoxSnapshotService::safeAdd);
     }
 
-    /** displayName: 选择清单标题使用的建筑名。 */
+    /**
+     * displayName: 选择清单标题使用的建筑名。
+     */
     private static String displayName(String primary, String secondary, String fallback) {
         if (primary != null && !primary.isBlank()) {
             return primary;
@@ -371,7 +407,9 @@ final class ManifestControlBoxSnapshotService {
         return fallback != null ? fallback : "";
     }
 
-    /** safeAdd: 做饱和加法避免计数溢出。 */
+    /**
+     * safeAdd: 做饱和加法避免计数溢出。
+     */
     private static int safeAdd(int first, int second) {
         long result = (long) Math.max(0, first) + Math.max(0, second);
         return result > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) result;

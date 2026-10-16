@@ -1,23 +1,18 @@
 package client.cn.nsimu.simukraft.client.path;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
+import com.mojang.blaze3d.vertex.*;
+import common.cn.nsimu.simukraft.config.ClientConfig;
 import common.cn.nsimu.simukraft.network.path.NpcPathDebugRequestPacket;
 import common.cn.nsimu.simukraft.network.path.NpcPathDebugSyncPacket;
-import common.cn.nsimu.simukraft.config.ClientConfig;
 import common.cn.nsimu.simukraft.path.MovementMode;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import net.neoforged.neoforge.network.PacketDistributor;

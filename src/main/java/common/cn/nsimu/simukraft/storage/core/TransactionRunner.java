@@ -58,7 +58,9 @@ public final class TransactionRunner {
         return failed;
     }
 
-    /** runSingle: 在常驻写连接上执行一次独立事务。 */
+    /**
+     * runSingle: 在常驻写连接上执行一次独立事务。
+     */
     public boolean runSingle(SqlWrite operation) {
         boolean succeeded = tryInTransaction(List.of(operation), true);
         if (!succeeded) {
@@ -115,14 +117,18 @@ public final class TransactionRunner {
         return false;
     }
 
-    /** reportIfEnvironmentFault: 环境故障（IO/磁盘满/损坏/忙超时耗尽）上报降级处理器。 */
+    /**
+     * reportIfEnvironmentFault: 环境故障（IO/磁盘满/损坏/忙超时耗尽）上报降级处理器。
+     */
     private void reportIfEnvironmentFault(SQLException exception) {
         if (StorageErrorPolicy.classify(exception) == StorageErrorPolicy.StorageFault.ENV_FAULT) {
             faultHandler.onEnvironmentFault("storage transaction", exception);
         }
     }
 
-    /** notifyAfterCommit: 回调关心事务最终结果的写入；回调异常不影响其它写入。 */
+    /**
+     * notifyAfterCommit: 回调关心事务最终结果的写入；回调异常不影响其它写入。
+     */
     private static void notifyAfterCommit(List<SqlWrite> operations, boolean committed) {
         for (SqlWrite operation : operations) {
             if (operation instanceof CommitAwareWrite aware) {
@@ -149,7 +155,9 @@ public final class TransactionRunner {
         return false;
     }
 
-    /** releaseWriteTransaction: 批结束后回到 autoCommit，避免 sqlite-jdbc 在 commit 后再 BEGIN 钉住 WAL。 */
+    /**
+     * releaseWriteTransaction: 批结束后回到 autoCommit，避免 sqlite-jdbc 在 commit 后再 BEGIN 钉住 WAL。
+     */
     private static void releaseWriteTransaction(Connection connection) {
         if (connection == null) {
             return;

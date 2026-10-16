@@ -151,7 +151,9 @@ public final class IndustrialEntityActionService {
         return collectReachableDrops(level, manager, data, building, definition, step, worker, Math.max(1.5D, step.range()));
     }
 
-    /** collectReachableDrops：reach 为本次拾取距离，围栏内的掉落可以用搜索半径。 */
+    /**
+     * collectReachableDrops：reach 为本次拾取距离，围栏内的掉落可以用搜索半径。
+     */
     public static ActionResult collectReachableDrops(ServerLevel level,
                                                      IndustrialBoxManager manager,
                                                      IndustrialBoxData data,

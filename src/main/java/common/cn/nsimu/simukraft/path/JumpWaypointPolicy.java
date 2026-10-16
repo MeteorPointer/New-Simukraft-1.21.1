@@ -2,7 +2,9 @@ package common.cn.nsimu.simukraft.path;
 
 import net.minecraft.world.phys.Vec3;
 
-/** 为一格高跳跃节点计算稳定的起跳预备点。 */
+/**
+ * 为一格高跳跃节点计算稳定的起跳预备点。
+ */
 public final class JumpWaypointPolicy {
     private static final double BLOCK_EDGE_DISTANCE = 0.5D;
     private static final double LIP_CLEARANCE = 0.05D;
@@ -16,7 +18,9 @@ public final class JumpWaypointPolicy {
     private JumpWaypointPolicy() {
     }
 
-    /** launchTarget: 返回台阶边缘前的水平起跳预备点，避免连续台阶在前一格中心提前起跳。 */
+    /**
+     * launchTarget: 返回台阶边缘前的水平起跳预备点，避免连续台阶在前一格中心提前起跳。
+     */
     static Vec3 launchTarget(PathWaypoint start, PathWaypoint landing, double bodyWidth) {
         Vec3 startPosition = start.position();
         Vec3 landingPosition = landing.position();
@@ -34,12 +38,16 @@ public final class JumpWaypointPolicy {
                 startPosition.z + dz * factor);
     }
 
-    /** isAtLaunchPoint: 判断 NPC 是否已沿当前跳跃方向走到可安全起跳的位置。 */
+    /**
+     * isAtLaunchPoint: 判断 NPC 是否已沿当前跳跃方向走到可安全起跳的位置。
+     */
     static boolean isAtLaunchPoint(Vec3 position, PathWaypoint start, PathWaypoint landing, double bodyWidth) {
         return isAtLaunchPoint(position, start, landing, bodyWidth, MAX_LATERAL_OFFSET);
     }
 
-    /** isAtFluidLaunchPoint: 水流横向偏移较大时放宽对齐范围，仍要求先推进到台阶边缘。 */
+    /**
+     * isAtFluidLaunchPoint: 水流横向偏移较大时放宽对齐范围，仍要求先推进到台阶边缘。
+     */
     static boolean isAtFluidLaunchPoint(Vec3 position, PathWaypoint start, PathWaypoint landing, double bodyWidth) {
         return isAtLaunchPoint(position, start, landing, bodyWidth, MAX_FLUID_LATERAL_OFFSET);
     }
@@ -71,7 +79,9 @@ public final class JumpWaypointPolicy {
                 && Math.abs(position.y - startPosition.y) <= MAX_VERTICAL_OFFSET;
     }
 
-    /** launchDistance: 按实体碰撞箱宽度预留台阶边缘安全距离。 */
+    /**
+     * launchDistance: 按实体碰撞箱宽度预留台阶边缘安全距离。
+     */
     private static double launchDistance(double horizontalLength, double bodyWidth) {
         double safeBodyWidth = Math.max(0.0D, bodyWidth);
         double desiredDistance = BLOCK_EDGE_DISTANCE - safeBodyWidth * 0.5D - LIP_CLEARANCE;

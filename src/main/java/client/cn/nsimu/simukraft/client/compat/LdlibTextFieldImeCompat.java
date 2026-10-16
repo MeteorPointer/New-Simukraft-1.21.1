@@ -6,11 +6,7 @@ import common.cn.nsimu.simukraft.SimuKraft;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
+import java.lang.reflect.*;
 
 /**
  * LdlibTextFieldImeCompat: 通过反射软兼容 IMBlocker，让 LDLib2 文本框能被输入法焦点系统识别。
@@ -33,7 +29,9 @@ public final class LdlibTextFieldImeCompat {
     private LdlibTextFieldImeCompat() {
     }
 
-    /** createProxy: 为单个 LDLib2 文本框创建 IMBlocker 可识别的动态代理。 */
+    /**
+     * createProxy: 为单个 LDLib2 文本框创建 IMBlocker 可识别的动态代理。
+     */
     public static Object createProxy(TextField field) {
         if (field == null || !isAvailable()) {
             return null;
@@ -44,7 +42,9 @@ public final class LdlibTextFieldImeCompat {
                 new TextFieldProxy(field));
     }
 
-    /** onFocusGained: 文本框获得焦点时通知 IMBlocker 开启输入法上下文。 */
+    /**
+     * onFocusGained: 文本框获得焦点时通知 IMBlocker 开启输入法上下文。
+     */
     public static void onFocusGained(Object proxy) {
         if (proxy == null || !isAvailable()) {
             return;
@@ -52,7 +52,9 @@ public final class LdlibTextFieldImeCompat {
         invoke(requestFocusMethod, minecraftFocusContainer, proxy);
     }
 
-    /** onFocusLost: 文本框失去焦点时移除 IMBlocker 的焦点候选。 */
+    /**
+     * onFocusLost: 文本框失去焦点时移除 IMBlocker 的焦点候选。
+     */
     public static void onFocusLost(Object proxy) {
         if (proxy == null || !isAvailable()) {
             return;
@@ -60,7 +62,9 @@ public final class LdlibTextFieldImeCompat {
         invoke(removeFocusMethod, minecraftFocusContainer, proxy);
     }
 
-    /** onFocusProbe: 吞掉 IMBlocker 的探测字符，并把真实焦点切到当前文本框代理。 */
+    /**
+     * onFocusProbe: 吞掉 IMBlocker 的探测字符，并把真实焦点切到当前文本框代理。
+     */
     public static void onFocusProbe(TextField field, Object proxy, UIEvent event) {
         if (field == null || proxy == null || event == null || !isAvailable() || !isTrackingFocus()) {
             return;
@@ -71,7 +75,9 @@ public final class LdlibTextFieldImeCompat {
         }
     }
 
-    /** onCursorChanged: 光标移动后更新输入法候选框位置。 */
+    /**
+     * onCursorChanged: 光标移动后更新输入法候选框位置。
+     */
     public static void onCursorChanged(TextField field) {
         if (field == null || !field.isFocused() || !isAvailable()) {
             return;
@@ -79,7 +85,9 @@ public final class LdlibTextFieldImeCompat {
         invoke(updateCompositionWindowPosMethod, null);
     }
 
-    /** isAvailable: 懒加载 IMBlocker 反射入口，避免未安装时产生硬依赖。 */
+    /**
+     * isAvailable: 懒加载 IMBlocker 反射入口，避免未安装时产生硬依赖。
+     */
     private static boolean isAvailable() {
         if (!initialized) {
             initialize();
@@ -87,7 +95,9 @@ public final class LdlibTextFieldImeCompat {
         return available;
     }
 
-    /** initialize: 查找 IMBlocker 焦点接口和基础数据类型。 */
+    /**
+     * initialize: 查找 IMBlocker 焦点接口和基础数据类型。
+     */
     private static synchronized void initialize() {
         if (initialized) {
             return;
@@ -119,7 +129,9 @@ public final class LdlibTextFieldImeCompat {
         }
     }
 
-    /** isTrackingFocus: 读取 IMBlocker 是否正在用探测字符定位真实焦点。 */
+    /**
+     * isTrackingFocus: 读取 IMBlocker 是否正在用探测字符定位真实焦点。
+     */
     private static boolean isTrackingFocus() {
         try {
             return trackingFocusField != null && trackingFocusField.getBoolean(null);
@@ -129,7 +141,9 @@ public final class LdlibTextFieldImeCompat {
         }
     }
 
-    /** invoke: 安全调用可选模组反射方法，失败只记录一次。 */
+    /**
+     * invoke: 安全调用可选模组反射方法，失败只记录一次。
+     */
     private static Object invoke(Method method, Object target, Object... args) {
         if (method == null) {
             return null;
@@ -142,7 +156,9 @@ public final class LdlibTextFieldImeCompat {
         }
     }
 
-    /** newPoint: 创建 IMBlocker 坐标对象。 */
+    /**
+     * newPoint: 创建 IMBlocker 坐标对象。
+     */
     private static Object newPoint(double scale, int x, int y) {
         try {
             return pointConstructor.newInstance(scale, x, y);
@@ -152,7 +168,9 @@ public final class LdlibTextFieldImeCompat {
         }
     }
 
-    /** newRectangle: 创建 IMBlocker 边界对象。 */
+    /**
+     * newRectangle: 创建 IMBlocker 边界对象。
+     */
     private static Object newRectangle(double scale, int x, int y, int width, int height) {
         try {
             return rectangleConstructor.newInstance(scale, x, y, width, height);
@@ -162,13 +180,17 @@ public final class LdlibTextFieldImeCompat {
         }
     }
 
-    /** guiScale: 返回当前 GUI 缩放，用于把 LDLib2 坐标换算到窗口坐标。 */
+    /**
+     * guiScale: 返回当前 GUI 缩放，用于把 LDLib2 坐标换算到窗口坐标。
+     */
     private static double guiScale() {
         Minecraft minecraft = Minecraft.getInstance();
         return minecraft != null ? minecraft.getWindow().getGuiScale() : 1.0D;
     }
 
-    /** warnOnce: 兼容层异常只记录一次，避免输入时刷日志。 */
+    /**
+     * warnOnce: 兼容层异常只记录一次，避免输入时刷日志。
+     */
     private static void warnOnce(Throwable exception) {
         if (!warningLogged) {
             warningLogged = true;
@@ -176,7 +198,9 @@ public final class LdlibTextFieldImeCompat {
         }
     }
 
-    /** TextFieldProxy: 把 LDLib2 文本框适配成 IMBlocker 的 MinecraftTextFieldWidget。 */
+    /**
+     * TextFieldProxy: 把 LDLib2 文本框适配成 IMBlocker 的 MinecraftTextFieldWidget。
+     */
     private static final class TextFieldProxy implements InvocationHandler {
         private final TextField field;
 
@@ -184,7 +208,9 @@ public final class LdlibTextFieldImeCompat {
             this.field = field;
         }
 
-        /** invoke: 响应 IMBlocker 焦点接口所需的方法。 */
+        /**
+         * invoke: 响应 IMBlocker 焦点接口所需的方法。
+         */
         @Override
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
             String name = method.getName();
@@ -203,11 +229,14 @@ public final class LdlibTextFieldImeCompat {
                 case "updateCursorInfo" -> true;
                 case "getCursorInfo" -> null;
                 case "checkVisibility", "setPreferredEnglishState" -> null;
-                default -> method.isDefault() ? InvocationHandler.invokeDefault(proxy, method, args) : defaultValue(method.getReturnType());
+                default ->
+                        method.isDefault() ? InvocationHandler.invokeDefault(proxy, method, args) : defaultValue(method.getReturnType());
             };
         }
 
-        /** objectMethod: 保持动态代理的基础对象语义。 */
+        /**
+         * objectMethod: 保持动态代理的基础对象语义。
+         */
         private Object objectMethod(Object proxy, String name, Object[] args) {
             return switch (name) {
                 case "toString" -> "SimuKraftLdlibTextFieldImeProxy[" + field + "]";
@@ -217,7 +246,9 @@ public final class LdlibTextFieldImeCompat {
             };
         }
 
-        /** bounds: 返回文本框内容区域在窗口中的边界。 */
+        /**
+         * bounds: 返回文本框内容区域在窗口中的边界。
+         */
         private Object bounds() {
             int x = Math.round(field.getContentX());
             int y = Math.round(field.getContentY());
@@ -226,7 +257,9 @@ public final class LdlibTextFieldImeCompat {
             return newRectangle(guiScale(), x, y, width, height);
         }
 
-        /** caret: 返回光标相对文本框内容区域的位置。 */
+        /**
+         * caret: 返回光标相对文本框内容区域的位置。
+         */
         private Object caret() {
             Font font = Minecraft.getInstance().font;
             int cursor = Math.clamp(field.getCursorPos(), 0, field.getRawText().length());
@@ -238,7 +271,9 @@ public final class LdlibTextFieldImeCompat {
             return newPoint(guiScale(), caretX, caretY);
         }
 
-        /** defaultValue: 返回反射代理未处理方法的基础默认值。 */
+        /**
+         * defaultValue: 返回反射代理未处理方法的基础默认值。
+         */
         private Object defaultValue(Class<?> type) {
             if (!type.isPrimitive() || type == void.class) {
                 return null;

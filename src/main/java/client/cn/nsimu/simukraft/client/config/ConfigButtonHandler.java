@@ -17,7 +17,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 import java.util.Objects;
 
-/** ConfigButtonHandler：在主菜单 Mod 按钮左侧和暂停菜单统计信息按钮右侧注入配置入口按钮。 */
+/**
+ * ConfigButtonHandler：在主菜单 Mod 按钮左侧和暂停菜单统计信息按钮右侧注入配置入口按钮。
+ */
 @OnlyIn(Dist.CLIENT)
 
 public final class ConfigButtonHandler {
@@ -25,7 +27,9 @@ public final class ConfigButtonHandler {
     private static final int BUTTON_SIZE = 20;
     private static final int BUTTON_SPACING = 5;
 
-    /** onScreenInit：主菜单 / 暂停菜单初始化后注入按钮。 */
+    /**
+     * onScreenInit：主菜单 / 暂停菜单初始化后注入按钮。
+     */
     @SubscribeEvent
     public void onScreenInit(ScreenEvent.Init.Post event) {
         if (event.getScreen() instanceof TitleScreen titleScreen) {
@@ -35,7 +39,9 @@ public final class ConfigButtonHandler {
         }
     }
 
-    /** injectTitleScreenButton：在 Mod 按钮左侧添加配置按钮。 */
+    /**
+     * injectTitleScreenButton：在 Mod 按钮左侧添加配置按钮。
+     */
     private void injectTitleScreenButton(ScreenEvent.Init.Post event, TitleScreen screen) {
         Button modButton = findModButton(screen);
         if (modButton == null) return;
@@ -55,7 +61,9 @@ public final class ConfigButtonHandler {
         event.addListener(nn(btn));
     }
 
-    /** injectPauseScreenButton：在统计信息按钮右侧添加配置按钮。 */
+    /**
+     * injectPauseScreenButton：在统计信息按钮右侧添加配置按钮。
+     */
     private void injectPauseScreenButton(ScreenEvent.Init.Post event, PauseScreen screen) {
         Button statsButton = findStatsButton(screen);
         if (statsButton == null) return;
@@ -71,7 +79,9 @@ public final class ConfigButtonHandler {
         event.addListener(nn(btn));
     }
 
-    /** findModButton：在主菜单查找 Mods 按钮（位于屏幕左半侧，Y ≈ height/4+96）。 */
+    /**
+     * findModButton：在主菜单查找 Mods 按钮（位于屏幕左半侧，Y ≈ height/4+96）。
+     */
     @Nullable
     private Button findModButton(TitleScreen screen) {
         List<? extends GuiEventListener> children = screen.children();
@@ -92,7 +102,9 @@ public final class ConfigButtonHandler {
         return fallback;
     }
 
-    /** findStatsButton：通过原版翻译键查找暂停菜单的统计信息按钮。 */
+    /**
+     * findStatsButton：通过原版翻译键查找暂停菜单的统计信息按钮。
+     */
     @Nullable
     private Button findStatsButton(PauseScreen screen) {
         for (GuiEventListener listener : screen.children()) {

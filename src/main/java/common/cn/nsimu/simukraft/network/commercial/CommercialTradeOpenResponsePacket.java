@@ -52,7 +52,9 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
         return TYPE;
     }
 
-    /** encode: 写入 NPC 商业交易视图响应。 */
+    /**
+     * encode: 写入 NPC 商业交易视图响应。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, CommercialTradeOpenResponsePacket packet) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.workerId() != null);
@@ -69,7 +71,9 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
         }
     }
 
-    /** decode: 读取 NPC 商业交易视图响应。 */
+    /**
+     * decode: 读取 NPC 商业交易视图响应。
+     */
     public static CommercialTradeOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         UUID workerId = buffer.readBoolean() ? buffer.readUUID() : null;
@@ -85,7 +89,9 @@ public record CommercialTradeOpenResponsePacket(BlockPos boxPos,
         return new CommercialTradeOpenResponsePacket(boxPos, workerId, shopName, workerName, cityBalance, running, List.copyOf(offers));
     }
 
-    /** handle: 分发 NPC 商业交易视图到客户端 UI。 */
+    /**
+     * handle: 分发 NPC 商业交易视图到客户端 UI。
+     */
     public static void handle(CommercialTradeOpenResponsePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> ClientboundNetworkBridge.handleCommercialTradeOpenResponse(packet));
     }

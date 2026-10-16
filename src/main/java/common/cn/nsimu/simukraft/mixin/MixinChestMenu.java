@@ -9,10 +9,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
-/** RTS 远程箱子兼容：仅维持当前已授权会话的有效性。 */
+/**
+ * RTS 远程箱子兼容：仅维持当前已授权会话的有效性。
+ */
 @Mixin(ChestMenu.class)
 public abstract class MixinChestMenu {
-    /** simukraft$keepRtsRemoteChestOpen: 为授权的远程箱子跳过本体距离校验。 */
+    /**
+     * simukraft$keepRtsRemoteChestOpen: 为授权的远程箱子跳过本体距离校验。
+     */
     @Inject(method = "stillValid", at = @At("HEAD"), cancellable = true)
     private void simukraft$keepRtsRemoteChestOpen(Player player, CallbackInfoReturnable<Boolean> callback) {
         if (player instanceof ServerPlayer serverPlayer

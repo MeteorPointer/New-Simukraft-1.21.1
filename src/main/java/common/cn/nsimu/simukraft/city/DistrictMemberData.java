@@ -28,9 +28,23 @@ public final class DistrictMemberData {
         return tag;
     }
 
-    public UUID playerId() { return playerId; }
-    public String playerName() { return playerName; }
-    public DistrictRole role() { return role; }
-    public void setPlayerName(String value) { if (value != null && !value.isBlank()) playerName = value; }
-    public void setRole(DistrictRole value) { if (value != null) role = value; }
+    public UUID playerId() {
+        return playerId;
+    }
+
+    public String playerName() {
+        return playerName;
+    }
+
+    public DistrictRole role() {
+        return role;
+    }
+
+    public void setPlayerName(String value) {
+        if (value != null && !value.isBlank()) playerName = value;
+    }
+
+    public void setRole(DistrictRole value) {
+        if (value != null) role = value;
+    }
 }

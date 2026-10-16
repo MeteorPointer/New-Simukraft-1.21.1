@@ -1,19 +1,19 @@
 package common.cn.nsimu.simukraft.building;
 
+import common.cn.nsimu.simukraft.building.controlbox.ResidentialControlBoxService;
+import common.cn.nsimu.simukraft.building.controlbox.ResidentialControlBoxView;
 import common.cn.nsimu.simukraft.city.poi.CityPoiData;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
 import common.cn.nsimu.simukraft.city.poi.CityPoiType;
-import common.cn.nsimu.simukraft.building.controlbox.ResidentialControlBoxService;
-import common.cn.nsimu.simukraft.building.controlbox.ResidentialControlBoxView;
 import common.cn.nsimu.simukraft.network.building.controlbox.ResidentialControlBoxBoundsUpdatePacket;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

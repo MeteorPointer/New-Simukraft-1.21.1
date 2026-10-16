@@ -1,10 +1,10 @@
 package client.cn.nsimu.simukraft.client.city.map;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.joml.Matrix4f;
 import org.joml.Vector4f;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SimuMap3DCameraTest {
     @Test

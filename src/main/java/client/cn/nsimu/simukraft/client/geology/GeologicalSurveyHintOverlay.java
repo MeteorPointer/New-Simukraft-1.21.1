@@ -2,18 +2,20 @@ package client.cn.nsimu.simukraft.client.geology;
 
 import common.cn.nsimu.simukraft.block.LightBlockSpeech;
 import common.cn.nsimu.simukraft.util.TypewriterReveal;
+import net.minecraft.Util;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.Util;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 
 import java.util.List;
 
-/** GeologicalSurveyHintOverlay: 在准星右下方绘制地质锤短提示。 */
+/**
+ * GeologicalSurveyHintOverlay: 在准星右下方绘制地质锤短提示。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class GeologicalSurveyHintOverlay {
@@ -36,12 +38,16 @@ public final class GeologicalSurveyHintOverlay {
     private GeologicalSurveyHintOverlay() {
     }
 
-    /** show: 替换当前提示并重新开始两秒计时。 */
+    /**
+     * show: 替换当前提示并重新开始两秒计时。
+     */
     public static void show(Component newMessage) {
         show(newMessage, false, 0);
     }
 
-    /** showTypewriter: 用同一文本框逐字打出台词。 */
+    /**
+     * showTypewriter: 用同一文本框逐字打出台词。
+     */
     public static void showTypewriter(Component newMessage, int lingerMillis) {
         show(newMessage, true, lingerMillis);
     }
@@ -61,7 +67,9 @@ public final class GeologicalSurveyHintOverlay {
         }
     }
 
-    /** render: 绘制仍在有效期内的勘探提示。 */
+    /**
+     * render: 绘制仍在有效期内的勘探提示。
+     */
     public static void render(RenderGuiEvent.Post event) {
         if (fullText == null || fullText.isBlank()) {
             return;
@@ -105,7 +113,9 @@ public final class GeologicalSurveyHintOverlay {
         }
     }
 
-    /** clear: 清理退出服务器后的临时提示状态。 */
+    /**
+     * clear: 清理退出服务器后的临时提示状态。
+     */
     public static void clear() {
         message = Component.empty();
         fullText = "";

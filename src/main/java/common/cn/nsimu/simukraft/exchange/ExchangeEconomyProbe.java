@@ -14,12 +14,16 @@ import net.minecraft.server.level.ServerLevel;
 
 import java.util.Collection;
 
-/** ExchangeEconomyProbe: 每个交易日读一次主世界城市，供当天的合理价使用。 */
+/**
+ * ExchangeEconomyProbe: 每个交易日读一次主世界城市，供当天的合理价使用。
+ */
 public final class ExchangeEconomyProbe {
     private ExchangeEconomyProbe() {
     }
 
-    /** capture: 汇总人口、财政、岗位和钻井。读失败时退回空市，价格停在发行价附近。 */
+    /**
+     * capture: 汇总人口、财政、岗位和钻井。读失败时退回空市，价格停在发行价附近。
+     */
     public static ExchangeEconomySnapshot capture(ServerLevel level) {
         if (level == null) {
             return ExchangeEconomySnapshot.idle();
@@ -145,7 +149,9 @@ public final class ExchangeEconomyProbe {
         return ledger;
     }
 
-    /** skipped: 转账、命令发钱和股票自己的成交不算经营现金流。 */
+    /**
+     * skipped: 转账、命令发钱和股票自己的成交不算经营现金流。
+     */
     static boolean skipped(String reason) {
         if (reason == null || reason.isEmpty()) {
             return false;

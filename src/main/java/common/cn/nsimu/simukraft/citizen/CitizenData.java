@@ -468,12 +468,16 @@ public final class CitizenData {
         this.dimensionId = (dimensionId != null && !dimensionId.isBlank()) ? dimensionId : "minecraft:overworld";
     }
 
-    /** lastKnownChunk：返回居民最后一次由服务端确认的实体区块。 */
+    /**
+     * lastKnownChunk：返回居民最后一次由服务端确认的实体区块。
+     */
     public Optional<ChunkPos> lastKnownChunk() {
         return lastKnownChunk != Long.MIN_VALUE ? Optional.of(new ChunkPos(lastKnownChunk)) : Optional.empty();
     }
 
-    /** updateLastKnownChunk：实体跨区块时更新恢复定位信息。 */
+    /**
+     * updateLastKnownChunk：实体跨区块时更新恢复定位信息。
+     */
     public boolean updateLastKnownChunk(ChunkPos chunkPos) {
         if (chunkPos == null || lastKnownChunk == chunkPos.toLong()) {
             return false;

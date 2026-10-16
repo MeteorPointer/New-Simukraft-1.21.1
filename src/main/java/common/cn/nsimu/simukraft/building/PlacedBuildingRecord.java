@@ -83,7 +83,9 @@ public record PlacedBuildingRecord(UUID buildingId,
         return voxels.blocks();
     }
 
-    /** withDistrictId: 复制建筑记录并替换分区归属，其它字段保持不变。 */
+    /**
+     * withDistrictId: 复制建筑记录并替换分区归属，其它字段保持不变。
+     */
     public PlacedBuildingRecord withDistrictId(UUID districtId) {
         if (Objects.equals(this.districtId, districtId)) {
             return this;

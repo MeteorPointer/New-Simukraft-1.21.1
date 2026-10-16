@@ -9,13 +9,13 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.Property;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,7 +35,9 @@ public final class BuildingStructureService {
         return BuildingCatalog.findBuilding(category, buildingFileName).flatMap(BuildingStructureService::loadStructure);
     }
 
-    /** loadStructure: 按建筑任务保存的结构文件优先加载，避免恢复施工或清单材料时读错建筑。 */
+    /**
+     * loadStructure: 按建筑任务保存的结构文件优先加载，避免恢复施工或清单材料时读错建筑。
+     */
     public static Optional<BuildingStructure> loadStructure(BuildingTaskData task) {
         if (task == null) {
             return Optional.empty();
@@ -208,7 +210,9 @@ public final class BuildingStructureService {
         return property.getValue(value).map(parsed -> state.setValue(property, parsed)).orElse(state);
     }
 
-    /** 扫描 NBT：红床→住宅，白床→医疗；银行/交易所以 JSON type 为准。 */
+    /**
+     * 扫描 NBT：红床→住宅，白床→医疗；银行/交易所以 JSON type 为准。
+     */
     private static List<BuildingPoiDefinition> scanPoiDefinitions(List<BuildingBlockData> blocks,
                                                                   BuildingCatalog.BuildingType buildingType) {
         BuildingCatalog.BuildingType type = buildingType != null ? buildingType : BuildingCatalog.BuildingType.STANDARD;

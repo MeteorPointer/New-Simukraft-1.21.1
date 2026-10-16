@@ -7,7 +7,9 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** 通知客户端重新读取指南书页面。 */
+/**
+ * 通知客户端重新读取指南书页面。
+ */
 public record ReloadGuideBookPacket() implements CustomPacketPayload {
     public static final Type<ReloadGuideBookPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath("simukraft", "reload_guide_book"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ReloadGuideBookPacket> STREAM_CODEC = StreamCodec.unit(new ReloadGuideBookPacket());

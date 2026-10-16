@@ -1,9 +1,9 @@
 package common.cn.nsimu.simukraft.exchange;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
-import org.junit.jupiter.api.Test;
 
 class ExchangeFundamentalsTest {
     private final ExchangeCompany farm = new ExchangeCompany("mochen_dairy", "沐尘奶业", "agriculture", 0.95D, 0.018D);
@@ -128,10 +128,10 @@ class ExchangeFundamentalsTest {
     }
 
     private static ExchangeEconomySnapshot city(int population, int housing, double funds, double income, double expense,
-                                                 double construction, double rent, double commercialIncome,
-                                                 int commercial, int industrial, int farmland, int medical,
-                                                 int bank, int exchange, int rigs, int builders, int farmers,
-                                                 int workers, int doctors, int clerks, int brokers, double level) {
+                                                double construction, double rent, double commercialIncome,
+                                                int commercial, int industrial, int farmland, int medical,
+                                                int bank, int exchange, int rigs, int builders, int farmers,
+                                                int workers, int doctors, int clerks, int brokers, double level) {
         return new ExchangeEconomySnapshot(true, population, housing, funds, income, expense, construction, rent,
                 commercialIncome, commercial, industrial, farmland, medical, bank, exchange, rigs, builders, farmers,
                 workers, doctors, clerks, brokers, level);

@@ -82,10 +82,10 @@ public final class FamilySqliteRepository {
         String familyId = family.familyId().toString();
         try (PreparedStatement stmt = connection.prepareStatement(
                 "INSERT INTO families(family_id, city_id, husband_id, wife_id, paternal_family_id, maternal_family_id, generation, status) " +
-                "VALUES(?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(family_id) DO UPDATE SET " +
-                "city_id = excluded.city_id, husband_id = excluded.husband_id, wife_id = excluded.wife_id, " +
-                "paternal_family_id = excluded.paternal_family_id, maternal_family_id = excluded.maternal_family_id, " +
-                "generation = excluded.generation, status = excluded.status")) {
+                        "VALUES(?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(family_id) DO UPDATE SET " +
+                        "city_id = excluded.city_id, husband_id = excluded.husband_id, wife_id = excluded.wife_id, " +
+                        "paternal_family_id = excluded.paternal_family_id, maternal_family_id = excluded.maternal_family_id, " +
+                        "generation = excluded.generation, status = excluded.status")) {
             stmt.setString(1, familyId);
             SqliteNbtHelper.setNullableString(stmt, 2, family.cityId() != null ? family.cityId().toString() : null);
             SqliteNbtHelper.setNullableString(stmt, 3, family.husbandId() != null ? family.husbandId().toString() : null);

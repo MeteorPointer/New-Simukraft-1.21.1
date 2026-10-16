@@ -29,7 +29,9 @@ public record ExchangeEconomySnapshot(
         int brokers,
         double averageCityLevel) {
 
-    /** idle: 还没有城市时，合理价停在发行价，市况平盘。 */
+    /**
+     * idle: 还没有城市时，合理价停在发行价，市况平盘。
+     */
     public static ExchangeEconomySnapshot idle() {
         return new ExchangeEconomySnapshot(false, 0, 0, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D, 0.0D,
                 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1.0D);

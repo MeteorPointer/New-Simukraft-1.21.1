@@ -1,24 +1,23 @@
 package common.cn.nsimu.simukraft.mineraldrilling;
 
+import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import common.cn.nsimu.simukraft.industrial.IndustrialConstants;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
 import common.cn.nsimu.simukraft.job.CityJobMobilityService;
 import common.cn.nsimu.simukraft.job.CityJobType;
-import common.cn.nsimu.simukraft.industrial.IndustrialConstants;
-import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import net.minecraft.core.BlockPos;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 class MineralDrillingUiContractTest {
-    /** keepsReferenceSizeAndPanelsInsideWorkspace: 固定参考图上限并验证主要区域不越界。 */
+    /**
+     * keepsReferenceSizeAndPanelsInsideWorkspace: 固定参考图上限并验证主要区域不越界。
+     */
     @Test
     void keepsReferenceSizeAndPanelsInsideWorkspace() {
         MineralDrillingUiMetrics maximum = MineralDrillingUiMetrics.fit(1920, 1080);
@@ -44,7 +43,9 @@ class MineralDrillingUiContractTest {
         assertTrue(minimum.bottomHeight() >= MineralDrillingUiMetrics.PLAYER_SLOTS_HEIGHT);
     }
 
-    /** letsControlsReceiveClicksOutsideInventorySlots: 全屏槽位容器不能遮挡下层按钮和深度滑块。 */
+    /**
+     * letsControlsReceiveClicksOutsideInventorySlots: 全屏槽位容器不能遮挡下层按钮和深度滑块。
+     */
     @Test
     void letsControlsReceiveClicksOutsideInventorySlots() {
         UIElement slotLayer = MineralDrillingSlotLayout.create(
@@ -55,7 +56,9 @@ class MineralDrillingUiContractTest {
         assertTrue(slotLayer.getChildren().stream().allMatch(UIElement::isAllowHitTest));
     }
 
-    /** mapsReleasedScrollerValueToWorldDepth: 释放滑块时保留范围边界并还原反向的世界 Y 坐标。 */
+    /**
+     * mapsReleasedScrollerValueToWorldDepth: 释放滑块时保留范围边界并还原反向的世界 Y 坐标。
+     */
     @Test
     void mapsReleasedScrollerValueToWorldDepth() {
         assertEquals(-64, MineralDrillingDepthPanel.selectedDepth(64.0F, -64, 80));
@@ -64,7 +67,9 @@ class MineralDrillingUiContractTest {
         assertEquals(80, MineralDrillingDepthPanel.selectedDepth(-128.0F, -64, 80));
     }
 
-    /** limitsAndPrioritizesVeinMarkers: 菜单只同步两个矿脉并优先保留当前矿脉。 */
+    /**
+     * limitsAndPrioritizesVeinMarkers: 菜单只同步两个矿脉并优先保留当前矿脉。
+     */
     @Test
     void limitsAndPrioritizesVeinMarkers() {
         MineralDrillingControlBoxView view = new MineralDrillingControlBoxView(
@@ -88,7 +93,9 @@ class MineralDrillingUiContractTest {
         assertEquals("coal", snapshot.markers().get(1).veinId());
     }
 
-    /** keepsDrillingWorkplaceDistinctFromIndustry: 钻井复用工业职业但保持独立稳定岗位。 */
+    /**
+     * keepsDrillingWorkplaceDistinctFromIndustry: 钻井复用工业职业但保持独立稳定岗位。
+     */
     @Test
     void keepsDrillingWorkplaceDistinctFromIndustry() {
         BlockPos boxPos = new BlockPos(12, 64, 12);

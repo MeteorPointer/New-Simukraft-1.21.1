@@ -22,14 +22,18 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.BlockHitResult;
 
-/** ExchangeControlBoxBlock: 交易所控制箱，打开股市界面。 */
+/**
+ * ExchangeControlBoxBlock: 交易所控制箱，打开股市界面。
+ */
 public final class ExchangeControlBoxBlock extends Block {
     public ExchangeControlBoxBlock() {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.METAL).strength(1.0F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK));
         registerDefaultState(stateDefinition.any().setValue(BlockStateProperties.HORIZONTAL_FACING, Direction.NORTH));
     }
 
-    /** getStateForPlacement: 点在墙面上时正面朝外，点在地面或顶面时正面朝向玩家。 */
+    /**
+     * getStateForPlacement: 点在墙面上时正面朝外，点在地面或顶面时正面朝向玩家。
+     */
     @Override
     public BlockState getStateForPlacement(BlockPlaceContext context) {
         Direction clicked = context.getClickedFace();
@@ -39,7 +43,9 @@ public final class ExchangeControlBoxBlock extends Block {
         return defaultBlockState().setValue(BlockStateProperties.HORIZONTAL_FACING, facing);
     }
 
-    /** rotate: 结构旋转时同步水平朝向。 */
+    /**
+     * rotate: 结构旋转时同步水平朝向。
+     */
     @Override
     protected BlockState rotate(BlockState state, Rotation rotation) {
         return state.setValue(
@@ -47,14 +53,18 @@ public final class ExchangeControlBoxBlock extends Block {
                 rotation.rotate(state.getValue(BlockStateProperties.HORIZONTAL_FACING)));
     }
 
-    /** mirror: 结构镜像时同步水平朝向。 */
+    /**
+     * mirror: 结构镜像时同步水平朝向。
+     */
     @Override
     protected BlockState mirror(BlockState state, Mirror mirror) {
         Direction facing = state.getValue(BlockStateProperties.HORIZONTAL_FACING);
         return state.setValue(BlockStateProperties.HORIZONTAL_FACING, mirror.getRotation(facing).rotate(facing));
     }
 
-    /** useWithoutItem: 空手右键打开交易所控制箱。 */
+    /**
+     * useWithoutItem: 空手右键打开交易所控制箱。
+     */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
@@ -63,7 +73,9 @@ public final class ExchangeControlBoxBlock extends Block {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    /** onRemove: 拆除时解除经纪人并注销建筑。 */
+    /**
+     * onRemove: 拆除时解除经纪人并注销建筑。
+     */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide() && !state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {
@@ -72,7 +84,9 @@ public final class ExchangeControlBoxBlock extends Block {
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
 
-    /** createBlockStateDefinition: 注册控制箱的水平朝向属性。 */
+    /**
+     * createBlockStateDefinition: 注册控制箱的水平朝向属性。
+     */
     @Override
     protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
         builder.add(BlockStateProperties.HORIZONTAL_FACING);

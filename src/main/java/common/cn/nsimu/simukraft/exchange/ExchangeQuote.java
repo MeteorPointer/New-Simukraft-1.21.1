@@ -2,7 +2,9 @@ package common.cn.nsimu.simukraft.exchange;
 
 import java.util.List;
 
-/** ExchangeQuote: 一只股票的行情与持仓。 */
+/**
+ * ExchangeQuote: 一只股票的行情与持仓。
+ */
 public record ExchangeQuote(String id,
                             String displayName,
                             double price,
@@ -27,7 +29,9 @@ public record ExchangeQuote(String id,
         return price * sharesHeld;
     }
 
-    /** candlesInLastDays: 从最近一根起向前取若干个交易日的小时柱。 */
+    /**
+     * candlesInLastDays: 从最近一根起向前取若干个交易日的小时柱。
+     */
     public List<ExchangeCandle> candlesInLastDays(int days) {
         if (candles.isEmpty() || days <= 0) {
             return List.of();

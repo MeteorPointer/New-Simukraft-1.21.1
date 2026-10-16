@@ -1,6 +1,5 @@
 package common.cn.kafei.simukraft.guard;
 
-import net.neoforged.fml.ModList;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -17,10 +16,14 @@ import java.util.Properties;
  */
 public final class NtIntegrityGuard {
 
-    /** NT 保护模组 ID（与 NT 项目 neoforge.mods.toml 中声明一致） */
+    /**
+     * NT 保护模组 ID（与 NT 项目 neoforge.mods.toml 中声明一致）
+     */
     private static final String NT_MOD_ID = "nt";
 
-    /** 构建类型标记文件路径（由 build.gradle 的 generateBuildMarker 任务生成） */
+    /**
+     * 构建类型标记文件路径（由 build.gradle 的 generateBuildMarker 任务生成）
+     */
     private static final String BUILD_MARKER = "/META-INF/simukraft-build.properties";
 
     private NtIntegrityGuard() {

@@ -1,10 +1,10 @@
 package common.cn.nsimu.simukraft.network.city.member;
 
-import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.city.CityData;
 import common.cn.nsimu.simukraft.city.CityPermissionLevel;
 import common.cn.nsimu.simukraft.network.city.CityNetworkViewFactory;
+import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
@@ -17,7 +17,10 @@ import java.util.List;
 import java.util.UUID;
 
 
-public record CityCoreMembersResponsePacket(BlockPos pos, UUID cityId, String cityName, double funds, int cityLevel, List<MemberEntry> members, List<CandidateEntry> onlineCandidates, CityPermissionLevel viewerPermission, boolean canManageCity) implements CustomPacketPayload {
+public record CityCoreMembersResponsePacket(BlockPos pos, UUID cityId, String cityName, double funds, int cityLevel,
+                                            List<MemberEntry> members, List<CandidateEntry> onlineCandidates,
+                                            CityPermissionLevel viewerPermission,
+                                            boolean canManageCity) implements CustomPacketPayload {
     public static final Type<CityCoreMembersResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_core_members_response"));
     public static final StreamCodec<RegistryFriendlyByteBuf, CityCoreMembersResponsePacket> STREAM_CODEC = StreamCodec.of(CityCoreMembersResponsePacket::encode, CityCoreMembersResponsePacket::decode);
 

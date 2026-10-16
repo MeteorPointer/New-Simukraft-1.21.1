@@ -8,10 +8,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** RTS 远程末影箱兼容：保持已授权会话的原版开盖计数。 */
+/**
+ * RTS 远程末影箱兼容：保持已授权会话的原版开盖计数。
+ */
 @Mixin(EnderChestBlockEntity.class)
 public abstract class MixinEnderChestBlockEntity {
-    /** simukraft$keepRtsEnderChestOpen: 远程菜单有效时跳过原版近距离开箱者复检。 */
+    /**
+     * simukraft$keepRtsEnderChestOpen: 远程菜单有效时跳过原版近距离开箱者复检。
+     */
     @Inject(method = "recheckOpen", at = @At("HEAD"), cancellable = true)
     private void simukraft$keepRtsEnderChestOpen(CallbackInfo callback) {
         EnderChestBlockEntity chest = (EnderChestBlockEntity) (Object) this;

@@ -1,10 +1,10 @@
 package client.cn.nsimu.simukraft.client.input;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import org.lwjgl.glfw.GLFW;
 
@@ -69,9 +69,9 @@ public final class SimuKraftKeyMappings {
         InputConstants.Key key = mapping.getKey();
         if (key.getType() == InputConstants.Type.KEYSYM) {
             String arrow = switch (key.getValue()) {
-                case GLFW.GLFW_KEY_UP    -> "↑";
-                case GLFW.GLFW_KEY_DOWN  -> "↓";
-                case GLFW.GLFW_KEY_LEFT  -> "←";
+                case GLFW.GLFW_KEY_UP -> "↑";
+                case GLFW.GLFW_KEY_DOWN -> "↓";
+                case GLFW.GLFW_KEY_LEFT -> "←";
                 case GLFW.GLFW_KEY_RIGHT -> "→";
                 default -> null;
             };

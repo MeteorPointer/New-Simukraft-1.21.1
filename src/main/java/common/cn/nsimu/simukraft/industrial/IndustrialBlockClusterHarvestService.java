@@ -5,8 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
+import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.material.GenericContainerAccess;
@@ -29,20 +29,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.function.Predicate;
 
 
 public final class IndustrialBlockClusterHarvestService {
@@ -61,7 +53,9 @@ public final class IndustrialBlockClusterHarvestService {
     private IndustrialBlockClusterHarvestService() {
     }
 
-    /** clearServerCaches: 清理采集运行时计数，避免静态缓存跨存档残留。 */
+    /**
+     * clearServerCaches: 清理采集运行时计数，避免静态缓存跨存档残留。
+     */
     public static void clearServerCaches(MinecraftServer server) {
         String serverKey = SaveScopedCacheKey.serverKey(server).toLowerCase(Locale.ROOT);
         MINING_RUNTIMES.keySet().removeIf(key -> key.startsWith(serverKey + "|"));
@@ -72,7 +66,9 @@ public final class IndustrialBlockClusterHarvestService {
         private final AtomicLong lastSeenAt = new AtomicLong();
     }
 
-    /** execute: 执行“区域方块簇采集”通用动作，产物先进入持久化临时携带状态。 */
+    /**
+     * execute: 执行“区域方块簇采集”通用动作，产物先进入持久化临时携带状态。
+     */
     public static ActionResult execute(ServerLevel level,
                                        IndustrialBoxManager manager,
                                        IndustrialBoxData data,
@@ -156,7 +152,9 @@ public final class IndustrialBlockClusterHarvestService {
         return mineStumpThenFellCluster(level, manager, data, building, definition, step, state, worker);
     }
 
-    /** repairActiveState：修复旧存档或异常中缺失树桩目标的采集状态，避免 NPC 原地空等。 */
+    /**
+     * repairActiveState：修复旧存档或异常中缺失树桩目标的采集状态，避免 NPC 原地空等。
+     */
     private static HarvestState repairActiveState(ServerLevel level,
                                                   IndustrialBoxManager manager,
                                                   IndustrialBoxData data,
@@ -206,7 +204,9 @@ public final class IndustrialBlockClusterHarvestService {
         return ActionResult.MOVING;
     }
 
-    /** mineStumpThenFellCluster：先按正常挖掘进度砍树桩，完成后一次性结算整棵树。 */
+    /**
+     * mineStumpThenFellCluster：先按正常挖掘进度砍树桩，完成后一次性结算整棵树。
+     */
     private static ActionResult mineStumpThenFellCluster(ServerLevel level,
                                                          IndustrialBoxManager manager,
                                                          IndustrialBoxData data,
@@ -265,7 +265,9 @@ public final class IndustrialBlockClusterHarvestService {
         }
     }
 
-    /** nextMiningTicks: 运行时累计树桩挖掘进度，避免外层状态刷新导致每 tick 从 0 重来。 */
+    /**
+     * nextMiningTicks: 运行时累计树桩挖掘进度，避免外层状态刷新导致每 tick 从 0 重来。
+     */
     private static int nextMiningTicks(ServerLevel level, IndustrialBoxData data, HarvestState state, BlockPos stump) {
         String key = miningRuntimeKey(level, data, stump);
         MiningRuntime runtime = MINING_RUNTIMES.computeIfAbsent(key, ignored -> new MiningRuntime());
@@ -280,12 +282,16 @@ public final class IndustrialBlockClusterHarvestService {
         }
     }
 
-    /** resetMiningRuntime: 树桩完成或失效后释放对应运行时计数。 */
+    /**
+     * resetMiningRuntime: 树桩完成或失效后释放对应运行时计数。
+     */
     private static void resetMiningRuntime(ServerLevel level, IndustrialBoxData data, BlockPos stump) {
         MINING_RUNTIMES.remove(miningRuntimeKey(level, data, stump));
     }
 
-    /** cleanupMiningRuntimes: 周期清理长期未访问的挖掘计数，防止运行时缓存积累。 */
+    /**
+     * cleanupMiningRuntimes: 周期清理长期未访问的挖掘计数，防止运行时缓存积累。
+     */
     private static void cleanupMiningRuntimes(ServerLevel level) {
         long gameTime = level.getGameTime();
         if (gameTime % MINING_RUNTIME_CLEANUP_INTERVAL_TICKS != 0L) {
@@ -296,7 +302,9 @@ public final class IndustrialBlockClusterHarvestService {
                 entry.getKey().startsWith(prefix) && gameTime - entry.getValue().lastSeenAt.get() > MINING_RUNTIME_TTL_TICKS);
     }
 
-    /** miningRuntimeKey: 以存档、维度、控制箱和树桩坐标隔离挖掘计数。 */
+    /**
+     * miningRuntimeKey: 以存档、维度、控制箱和树桩坐标隔离挖掘计数。
+     */
     private static String miningRuntimeKey(ServerLevel level, IndustrialBoxData data, BlockPos stump) {
         long box = data != null && data.boxPos() != null ? data.boxPos().asLong() : 0L;
         long pos = stump != null ? stump.asLong() : 0L;
@@ -336,7 +344,9 @@ public final class IndustrialBlockClusterHarvestService {
         return pos == null ? "?" : pos.getX() + "," + pos.getY() + "," + pos.getZ();
     }
 
-    /** fellActiveCluster：树桩挖掘完成后移除整棵树，并把真实掉落写入临时携带状态。 */
+    /**
+     * fellActiveCluster：树桩挖掘完成后移除整棵树，并把真实掉落写入临时携带状态。
+     */
     private static ActionResult fellActiveCluster(ServerLevel level,
                                                   IndustrialBoxManager manager,
                                                   IndustrialBoxData data,
@@ -402,7 +412,9 @@ public final class IndustrialBlockClusterHarvestService {
                 : ActionResult.HARVESTED;
     }
 
-    /** destroyHarvestedBlock: 走服务端原版破坏流程移除方块，并复查结果避免客户端回滚后反复采集。 */
+    /**
+     * destroyHarvestedBlock: 走服务端原版破坏流程移除方块，并复查结果避免客户端回滚后反复采集。
+     */
     private static boolean destroyHarvestedBlock(ServerLevel level, BlockPos pos, CitizenEntity worker) {
         if (level == null || pos == null || level.getBlockState(pos).isAir()) {
             return true;
@@ -429,7 +441,9 @@ public final class IndustrialBlockClusterHarvestService {
         return false;
     }
 
-    /** harvestOrder: 先移除正在挖的树桩，再移除其它树干，最后处理树叶等附着方块。 */
+    /**
+     * harvestOrder: 先移除正在挖的树桩，再移除其它树干，最后处理树叶等附着方块。
+     */
     private static void dropFailedCarryItems(ServerLevel level, IndustrialBoxData data, CitizenEntity worker, List<ItemStack> drops) {
         BlockPos fallback = worker != null ? worker.blockPosition() : data.boxPos();
         for (ItemStack drop : drops) {
@@ -467,7 +481,9 @@ public final class IndustrialBlockClusterHarvestService {
         }
     }
 
-    /** stumpDigTicks：按方块硬度和 NPC 主手工具估算接近原版挖掘速度的耗时。 */
+    /**
+     * stumpDigTicks：按方块硬度和 NPC 主手工具估算接近原版挖掘速度的耗时。
+     */
     private static int stumpDigTicks(ServerLevel level, BlockPos pos, BlockState state, ItemStack tool, IndustrialDefinition.StepDefinition step) {
         if (step != null && step.ticks() > 1) {
             return Math.max(1, step.ticks());
@@ -486,7 +502,9 @@ public final class IndustrialBlockClusterHarvestService {
         return Math.max(MIN_STUMP_DIG_TICKS, Math.min(MAX_STUMP_DIG_TICKS, ticks));
     }
 
-    /** effectiveTool: 使用实体真实主手或 JSON 步骤工具计算挖掘速度与掉落，避免视觉手持物尚未同步时按空手处理。 */
+    /**
+     * effectiveTool: 使用实体真实主手或 JSON 步骤工具计算挖掘速度与掉落，避免视觉手持物尚未同步时按空手处理。
+     */
     private static ItemStack effectiveTool(ServerLevel level, CitizenEntity worker, IndustrialDefinition.StepDefinition step) {
         ItemStack held = worker != null ? worker.getMainHandItem() : ItemStack.EMPTY;
         if (held != null && !held.isEmpty()) {
@@ -499,7 +517,9 @@ public final class IndustrialBlockClusterHarvestService {
         return spec.stack(1, level.registryAccess());
     }
 
-    /** clearBreakProgress：清理树桩破坏裂纹，避免完成或中断后客户端残留进度。 */
+    /**
+     * clearBreakProgress：清理树桩破坏裂纹，避免完成或中断后客户端残留进度。
+     */
     private static void clearBreakProgress(ServerLevel level, CitizenEntity worker, BlockPos pos) {
         if (worker != null && pos != null) {
             level.destroyBlockProgress(worker.getId(), pos, -1);
@@ -727,7 +747,9 @@ public final class IndustrialBlockClusterHarvestService {
         return harvest.isEmpty() ? null : new Cluster(harvest, roots, roots.getFirst());
     }
 
-    /** isBetterCandidate: 扫描完整作业区前缓存距离 NPC 最近的树簇，避免按外圈游标顺序抢目标。 */
+    /**
+     * isBetterCandidate: 扫描完整作业区前缓存距离 NPC 最近的树簇，避免按外圈游标顺序抢目标。
+     */
     private static boolean isBetterCandidate(Cluster candidate, Cluster currentBest, Vec3 workerPosition) {
         if (candidate == null) {
             return false;
@@ -847,7 +869,9 @@ public final class IndustrialBlockClusterHarvestService {
         return PlacedBuildingService.findByContainedPos(level, pos) != null;
     }
 
-    /** blockMatcher: "#tag" → 标签匹配；无 # 前缀 → 直接方块 ID 匹配；解析失败返回 null。 */
+    /**
+     * blockMatcher: "#tag" → 标签匹配；无 # 前缀 → 直接方块 ID 匹配；解析失败返回 null。
+     */
     private static Predicate<BlockState> blockMatcher(ServerLevel level, String tagOrId) {
         if (tagOrId == null || tagOrId.isBlank()) {
             return null;

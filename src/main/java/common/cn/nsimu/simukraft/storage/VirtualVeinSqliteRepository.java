@@ -1,11 +1,7 @@
 package common.cn.nsimu.simukraft.storage;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinConsumption;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinFieldKey;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinFieldProfile;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinSlot;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinSlotState;
+import common.cn.nsimu.simukraft.virtualvein.*;
 import net.minecraft.resources.ResourceLocation;
 
 import java.sql.Connection;
@@ -16,7 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/** VirtualVeinSqliteRepository: 持久化矿区档案和共享储量。 */
+/**
+ * VirtualVeinSqliteRepository: 持久化矿区档案和共享储量。
+ */
 
 public final class VirtualVeinSqliteRepository {
     private static final String TABLE = "virtual_vein_fields";
@@ -43,7 +41,9 @@ public final class VirtualVeinSqliteRepository {
         }
     }
 
-    /** createIfAbsent: 原子建立矿区档案。在写线程执行并同步等待结果。 */
+    /**
+     * createIfAbsent: 原子建立矿区档案。在写线程执行并同步等待结果。
+     */
     public Optional<VirtualVeinFieldProfile> createIfAbsent(VirtualVeinFieldProfile profile) {
         Optional<VirtualVeinFieldProfile> stored = database.callSync(connection -> createIfAbsent(connection, profile));
         return stored != null ? stored : Optional.empty();
@@ -57,7 +57,9 @@ public final class VirtualVeinSqliteRepository {
         return find(connection, profile.dimensionId(), profile.key());
     }
 
-    /** replaceLegacyEmptyProfile: 仅替换旧匹配策略错误生成的空矿区档案。在写线程执行并同步等待结果。 */
+    /**
+     * replaceLegacyEmptyProfile: 仅替换旧匹配策略错误生成的空矿区档案。在写线程执行并同步等待结果。
+     */
     public Optional<VirtualVeinFieldProfile> replaceLegacyEmptyProfile(VirtualVeinFieldProfile profile) {
         Optional<VirtualVeinFieldProfile> stored = database.callSync(connection -> replaceLegacyEmptyProfile(connection, profile));
         return stored != null ? stored : Optional.empty();
@@ -76,7 +78,9 @@ public final class VirtualVeinSqliteRepository {
         return find(connection, profile.dimensionId(), profile.key());
     }
 
-    /** consume: 原子扣减指定槽位的储量。在写线程执行并同步等待结果。 */
+    /**
+     * consume: 原子扣减指定槽位的储量。在写线程执行并同步等待结果。
+     */
     public Optional<VirtualVeinConsumption> consume(String dimensionId, VirtualVeinFieldKey key, int slotIndex, int requestedAmount) {
         if (slotIndex < 0 || slotIndex > 1 || requestedAmount <= 0) {
             return Optional.empty();

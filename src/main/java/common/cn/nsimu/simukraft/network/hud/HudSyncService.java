@@ -1,12 +1,12 @@
 package common.cn.nsimu.simukraft.network.hud;
 
+import common.cn.nsimu.simukraft.citizen.CitizenManager;
 import common.cn.nsimu.simukraft.city.CityData;
 import common.cn.nsimu.simukraft.city.CityPermissionLevel;
 import common.cn.nsimu.simukraft.city.CityPopulationStats;
 import common.cn.nsimu.simukraft.city.CityService;
 import common.cn.nsimu.simukraft.city.group.CityUserGroup;
 import common.cn.nsimu.simukraft.city.group.CityUserGroupService;
-import common.cn.nsimu.simukraft.citizen.CitizenManager;
 import common.cn.nsimu.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;

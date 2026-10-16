@@ -9,17 +9,16 @@ import org.junit.jupiter.api.io.TempDir;
 import java.lang.reflect.Constructor;
 import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 class MineralDrillingBoxSqliteRepositoryTest {
     @TempDir
     Path tempDir;
 
-    /** persistsDimensionScopedInventoryAndRejectsStaleRevision: 验证维度隔离、NBT 回读与版本防倒退。 */
+    /**
+     * persistsDimensionScopedInventoryAndRejectsStaleRevision: 验证维度隔离、NBT 回读与版本防倒退。
+     */
     @Test
     void persistsDimensionScopedInventoryAndRejectsStaleRevision() throws Exception {
         try (SimuSqliteDatabase database = openDatabase(tempDir.resolve("mineral-drilling.sqlite"))) {
@@ -48,7 +47,9 @@ class MineralDrillingBoxSqliteRepositoryTest {
         }
     }
 
-    /** box: 构造 repository 使用的最小控制箱 NBT 快照。 */
+    /**
+     * box: 构造 repository 使用的最小控制箱 NBT 快照。
+     */
     private static CompoundTag box(long boxPos, int depth, long revision, String marker) {
         CompoundTag inventory = new CompoundTag();
         inventory.putString("Marker", marker);
@@ -66,14 +67,18 @@ class MineralDrillingBoxSqliteRepositoryTest {
         return box;
     }
 
-    /** emptyRoot: 构造指定维度的空整表快照。 */
+    /**
+     * emptyRoot: 构造指定维度的空整表快照。
+     */
     private static CompoundTag emptyRoot() {
         CompoundTag root = new CompoundTag();
         root.put("Boxes", new ListTag());
         return root;
     }
 
-    /** openDatabase: 复用生产数据库初始化流程创建临时 SQLite。 */
+    /**
+     * openDatabase: 复用生产数据库初始化流程创建临时 SQLite。
+     */
     private static SimuSqliteDatabase openDatabase(Path databasePath) throws Exception {
         Constructor<SimuSqliteDatabase> constructor = SimuSqliteDatabase.class.getDeclaredConstructor(Path.class);
         constructor.setAccessible(true);

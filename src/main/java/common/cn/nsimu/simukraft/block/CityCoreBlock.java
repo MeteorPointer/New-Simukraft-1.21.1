@@ -1,11 +1,7 @@
 package common.cn.nsimu.simukraft.block;
 
-import common.cn.nsimu.simukraft.city.CityData;
-import common.cn.nsimu.simukraft.city.CityService;
-import common.cn.nsimu.simukraft.city.DistrictData;
-import common.cn.nsimu.simukraft.city.DistrictManager;
-import common.cn.nsimu.simukraft.city.DistrictRole;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
+import common.cn.nsimu.simukraft.city.*;
 import common.cn.nsimu.simukraft.network.city.core.CityCoreOpenRequestPacket;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
@@ -28,8 +24,8 @@ import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
-import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
 
@@ -73,7 +69,9 @@ public final class CityCoreBlock extends Block {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    /** 属性上的 BLOCK 之外再覆盖一次。活塞若仍把核心搬走，onRemove 会在原位补一块，搬走的那块就能挖成物品。 */
+    /**
+     * 属性上的 BLOCK 之外再覆盖一次。活塞若仍把核心搬走，onRemove 会在原位补一块，搬走的那块就能挖成物品。
+     */
     @Override
     public PushReaction getPistonPushReaction(BlockState state) {
         return PushReaction.BLOCK;

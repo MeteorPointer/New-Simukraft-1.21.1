@@ -1,10 +1,6 @@
 package common.cn.nsimu.simukraft.path;
 
-import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import it.unimi.dsi.fastutil.longs.Long2ByteMap;
-import it.unimi.dsi.fastutil.longs.Long2ByteMaps;
-import it.unimi.dsi.fastutil.longs.LongSet;
-import it.unimi.dsi.fastutil.longs.LongSets;
+import it.unimi.dsi.fastutil.longs.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -12,7 +8,8 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 
 import java.util.Collection;
 
-public record PathSnapshot(ResourceLocation dimensionId, BlockPos startPos, BlockPos targetPos, Long2ObjectOpenHashMap<PathCell> cells,
+public record PathSnapshot(ResourceLocation dimensionId, BlockPos startPos, BlockPos targetPos,
+                           Long2ObjectOpenHashMap<PathCell> cells,
                            LongSet bodyPassages, Long2ByteMap horizontalBarriers,
                            int minY, int maxY, long createdAt, boolean complete,
                            Long2ObjectOpenHashMap<VoxelShape> collisionShapes) {
@@ -55,7 +52,9 @@ public record PathSnapshot(ResourceLocation dimensionId, BlockPos startPos, Bloc
         return bodyPassages.contains(BlockPos.asLong(x, y, z));
     }
 
-    /** Returns whether a horizontal move crosses a captured thin wall, such as an open trapdoor. */
+    /**
+     * Returns whether a horizontal move crosses a captured thin wall, such as an open trapdoor.
+     */
     public boolean blocksHorizontalBoundary(int fromX, int y, int fromZ, int toX, int toZ) {
         int dx = Integer.compare(toX - fromX, 0);
         int dz = Integer.compare(toZ - fromZ, 0);

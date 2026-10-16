@@ -32,12 +32,16 @@ public final class CommercialSqliteRepository {
         }
     }
 
-    /** upsertBox: 保存单个商业箱状态。 */
+    /**
+     * upsertBox: 保存单个商业箱状态。
+     */
     public void upsertBox(Connection connection, CompoundTag boxTag, String dimensionId) throws SQLException {
         saveBox(connection, boxTag, normalizeDimensionId(dimensionId));
     }
 
-    /** deleteBox: 删除指定维度的商业箱和其库存。 */
+    /**
+     * deleteBox: 删除指定维度的商业箱和其库存。
+     */
     public void deleteBox(Connection connection, long boxPosLong, String dimensionId) throws SQLException {
         String normalized = normalizeDimensionId(dimensionId);
         try (PreparedStatement stockStatement = connection.prepareStatement(
@@ -53,7 +57,9 @@ public final class CommercialSqliteRepository {
         }
     }
 
-    /** loadBoxes: 读取指定维度的商业箱状态。 */
+    /**
+     * loadBoxes: 读取指定维度的商业箱状态。
+     */
     public synchronized CompoundTag loadBoxes(String dimensionId) {
         CompoundTag tag = new CompoundTag();
         ListTag boxes = new ListTag();
@@ -95,12 +101,16 @@ public final class CommercialSqliteRepository {
         }
     }
 
-    /** upsertStockEntry: 保存单个商业库存条目。 */
+    /**
+     * upsertStockEntry: 保存单个商业库存条目。
+     */
     public void upsertStockEntry(Connection connection, CompoundTag stockTag, String dimensionId) throws SQLException {
         saveStockEntry(connection, stockTag, normalizeDimensionId(dimensionId));
     }
 
-    /** deleteStockAtBox: 删除指定维度商业箱库存。 */
+    /**
+     * deleteStockAtBox: 删除指定维度商业箱库存。
+     */
     public void deleteStockAtBox(Connection connection, long boxPosLong, String dimensionId) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement(
                 "DELETE FROM commercial_stock WHERE dimension_id = ? AND box_pos_long = ?")) {
@@ -110,7 +120,9 @@ public final class CommercialSqliteRepository {
         }
     }
 
-    /** loadStock: 读取指定维度的商业库存。 */
+    /**
+     * loadStock: 读取指定维度的商业库存。
+     */
     public synchronized CompoundTag loadStock(String dimensionId) {
         CompoundTag tag = new CompoundTag();
         ListTag stock = new ListTag();
@@ -139,7 +151,9 @@ public final class CommercialSqliteRepository {
         }
     }
 
-    /** addDailyIncome: 累加指定城市在某个 MC 日的商业营业收入。在写线程执行并同步等待结果。 */
+    /**
+     * addDailyIncome: 累加指定城市在某个 MC 日的商业营业收入。在写线程执行并同步等待结果。
+     */
     public boolean addDailyIncome(UUID cityId, long incomeDay, double amount) {
         if (cityId == null || incomeDay <= 0L || amount <= 0.0D) {
             return false;
@@ -160,7 +174,9 @@ public final class CommercialSqliteRepository {
         }
     }
 
-    /** loadUntaxedIncomeBefore: 读取指定日期之前尚未上交企业税的商业收入。 */
+    /**
+     * loadUntaxedIncomeBefore: 读取指定日期之前尚未上交企业税的商业收入。
+     */
     public synchronized Map<UUID, Double> loadUntaxedIncomeBefore(long dayExclusive) {
         if (dayExclusive <= 1L) {
             return Map.of();
@@ -183,7 +199,9 @@ public final class CommercialSqliteRepository {
         return Map.copyOf(result);
     }
 
-    /** shiftIncomeDays：只平移该维度城市的收入日，已征税标记保持不变，事务交给写队列。 */
+    /**
+     * shiftIncomeDays：只平移该维度城市的收入日，已征税标记保持不变，事务交给写队列。
+     */
     public void shiftIncomeDays(String dimensionId, long deltaDays) {
         if (dimensionId == null || dimensionId.isBlank() || deltaDays <= 0L || database.isDegraded()) {
             return;
@@ -204,7 +222,9 @@ public final class CommercialSqliteRepository {
         }
     }
 
-    /** markIncomeTaxCollectedBefore: 标记指定城市在日期之前的商业收入已完成企业税结算。在写线程执行并同步等待结果。 */
+    /**
+     * markIncomeTaxCollectedBefore: 标记指定城市在日期之前的商业收入已完成企业税结算。在写线程执行并同步等待结果。
+     */
     public boolean markIncomeTaxCollectedBefore(UUID cityId, long dayExclusive) {
         if (cityId == null || dayExclusive <= 1L) {
             return false;
@@ -256,7 +276,9 @@ public final class CommercialSqliteRepository {
         }
     }
 
-    /** normalizeDimensionId: 空维度归入主世界，和仓库层其他表口径一致。 */
+    /**
+     * normalizeDimensionId: 空维度归入主世界，和仓库层其他表口径一致。
+     */
     private static String normalizeDimensionId(String dimensionId) {
         return dimensionId == null || dimensionId.isBlank() ? "minecraft:overworld" : dimensionId;
     }

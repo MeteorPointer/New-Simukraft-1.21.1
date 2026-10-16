@@ -24,7 +24,9 @@ public final class BuildingVoxelSnapshot {
         return EMPTY;
     }
 
-    /** of: 已经在内存中的方块列表（完工登记、搬家后的新快照）。 */
+    /**
+     * of: 已经在内存中的方块列表（完工登记、搬家后的新快照）。
+     */
     public static BuildingVoxelSnapshot of(List<BuildingBlockData> blocks) {
         if (blocks == null || blocks.isEmpty()) {
             return EMPTY;
@@ -32,7 +34,9 @@ public final class BuildingVoxelSnapshot {
         return new BuildingVoxelSnapshot(List.copyOf(blocks), null);
     }
 
-    /** lazy: 第一次访问时才从库里读 payload。 */
+    /**
+     * lazy: 第一次访问时才从库里读 payload。
+     */
     public static BuildingVoxelSnapshot lazy(Supplier<List<BuildingBlockData>> loader) {
         if (loader == null) {
             return EMPTY;

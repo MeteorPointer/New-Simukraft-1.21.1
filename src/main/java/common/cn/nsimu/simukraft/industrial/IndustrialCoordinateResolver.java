@@ -15,7 +15,9 @@ public final class IndustrialCoordinateResolver {
     private IndustrialCoordinateResolver() {
     }
 
-    /** resolvePositions: 将工业/商业 JSON 中的容器或工作点结构坐标解析为世界坐标。 */
+    /**
+     * resolvePositions: 将工业/商业 JSON 中的容器或工作点结构坐标解析为世界坐标。
+     */
     public static List<BlockPos> resolvePositions(PlacedBuildingRecord building, List<BlockPos> structurePositions) {
         if (building == null || structurePositions == null || structurePositions.isEmpty()) {
             return List.of();
@@ -34,7 +36,9 @@ public final class IndustrialCoordinateResolver {
         return List.copyOf(positions);
     }
 
-    /** selectPoint: 根据选择模式返回固定点或距离 NPC 最近的工作点。 */
+    /**
+     * selectPoint: 根据选择模式返回固定点或距离 NPC 最近的工作点。
+     */
     public static BlockPos selectPoint(PlacedBuildingRecord building, IndustrialDefinition.PointDefinition point, Vec3 origin) {
         List<BlockPos> positions = resolvePositions(building, point != null ? point.positions() : List.of());
         if (positions.isEmpty()) {
@@ -48,7 +52,9 @@ public final class IndustrialCoordinateResolver {
                 .orElse(positions.getFirst());
     }
 
-    /** insideBuilding: 判断坐标是否落在已建建筑记录范围内。 */
+    /**
+     * insideBuilding: 判断坐标是否落在已建建筑记录范围内。
+     */
     public static boolean insideBuilding(PlacedBuildingRecord building, BlockPos pos) {
         if (building == null || pos == null) {
             return false;
@@ -61,7 +67,9 @@ public final class IndustrialCoordinateResolver {
                 && pos.getZ() <= Math.max(building.minPos().getZ(), building.maxPos().getZ());
     }
 
-    /** rotationDegrees: 将已建建筑朝向文本转换为结构旋转角度。 */
+    /**
+     * rotationDegrees: 将已建建筑朝向文本转换为结构旋转角度。
+     */
     private static int rotationDegrees(String facing) {
         String normalized = facing == null ? "" : facing.toLowerCase(Locale.ROOT);
         return switch (normalized) {
@@ -72,7 +80,9 @@ public final class IndustrialCoordinateResolver {
         };
     }
 
-    /** resolvePosition: 兼容旧版世界坐标、旋转结构坐标和早期未旋转相对坐标。 */
+    /**
+     * resolvePosition: 兼容旧版世界坐标、旋转结构坐标和早期未旋转相对坐标。
+     */
     private static BlockPos resolvePosition(PlacedBuildingRecord building, BlockPos storedPos, int rotation) {
         if (insideBuilding(building, storedPos)) {
             return storedPos;

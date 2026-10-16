@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 
 class MineralDrillingClientTextResolverTest {
-    /** resolvesProductIdWithClientItemName: 使用本地物品注册表生成可本地化的物品名称。 */
+    /**
+     * resolvesProductIdWithClientItemName: 使用本地物品注册表生成可本地化的物品名称。
+     */
     @Test
     void resolvesProductIdWithClientItemName() {
         Component expected = Component.translatable("gui.simukraft.mineral_drilling.product",
@@ -18,7 +20,9 @@ class MineralDrillingClientTextResolverTest {
         assertEquals(expected, MineralDrillingClientTextResolver.resolveProductText("minecraft:raw_copper"));
     }
 
-    /** fallsBackForInvalidProductId: 无效资源 ID 不显示服务器传来的原始文本。 */
+    /**
+     * fallsBackForInvalidProductId: 无效资源 ID 不显示服务器传来的原始文本。
+     */
     @Test
     void fallsBackForInvalidProductId() {
         Component expected = Component.translatable("gui.simukraft.mineral_drilling.product",

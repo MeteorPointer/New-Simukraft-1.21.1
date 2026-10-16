@@ -1,39 +1,43 @@
 package common.cn.nsimu.simukraft.mineraldrilling;
 
+import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingControlBoxView.VeinMarker;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingControlBoxView.VeinMarker;
 
 import java.util.List;
 import java.util.UUID;
 
-/** MineralDrillingMenuSnapshot: 限长编码控制箱打开时的客户端初始视图。 */
+/**
+ * MineralDrillingMenuSnapshot: 限长编码控制箱打开时的客户端初始视图。
+ */
 
 public record MineralDrillingMenuSnapshot(BlockPos boxPos,
-                                         boolean hasBuilding,
-                                         String buildingName,
-                                         boolean integrityAvailable,
-                                         float integrityPercent,
-                                         boolean hasWorker,
-                                         UUID workerId,
-                                         String workerName,
-                                         boolean running,
-                                         int drillDepth,
-                                         int minDepth,
-                                         int maxDepth,
-                                         String statusKey,
-                                         String statusText,
-                                         String selectedVeinName,
-                                         String selectedProductId,
-                                         boolean hasBounds,
-                                         BlockPos boundsMin,
-                                         BlockPos boundsMax,
-                                         List<Marker> markers) {
+                                          boolean hasBuilding,
+                                          String buildingName,
+                                          boolean integrityAvailable,
+                                          float integrityPercent,
+                                          boolean hasWorker,
+                                          UUID workerId,
+                                          String workerName,
+                                          boolean running,
+                                          int drillDepth,
+                                          int minDepth,
+                                          int maxDepth,
+                                          String statusKey,
+                                          String statusText,
+                                          String selectedVeinName,
+                                          String selectedProductId,
+                                          boolean hasBounds,
+                                          BlockPos boundsMin,
+                                          BlockPos boundsMax,
+                                          List<Marker> markers) {
     private static final int MAX_TEXT_LENGTH = 256;
     private static final int MAX_STATUS_TEXT_LENGTH = 1024;
     private static final int MAX_MARKERS = 2;
 
-    /** fromView: 将服务端权威视图转换成有限大小的菜单快照。 */
+    /**
+     * fromView: 将服务端权威视图转换成有限大小的菜单快照。
+     */
     public static MineralDrillingMenuSnapshot fromView(MineralDrillingControlBoxView view) {
         if (view == null) {
             return empty(BlockPos.ZERO);
@@ -49,7 +53,9 @@ public record MineralDrillingMenuSnapshot(BlockPos boxPos,
                 safePos(view.boundsMax()), List.copyOf(markers));
     }
 
-    /** empty: 为异常或缺少打开数据时生成安全的空快照。 */
+    /**
+     * empty: 为异常或缺少打开数据时生成安全的空快照。
+     */
     public static MineralDrillingMenuSnapshot empty(BlockPos boxPos) {
         BlockPos safe = safePos(boxPos);
         return new MineralDrillingMenuSnapshot(safe, false, "", false, 0.0F, false, null, "", false,
@@ -57,7 +63,9 @@ public record MineralDrillingMenuSnapshot(BlockPos boxPos,
                 false, BlockPos.ZERO, BlockPos.ZERO, List.of());
     }
 
-    /** encode: 将快照写入菜单打开缓冲区并限制列表长度。 */
+    /**
+     * encode: 将快照写入菜单打开缓冲区并限制列表长度。
+     */
     public void encode(RegistryFriendlyByteBuf buffer) {
         buffer.writeBlockPos(safePos(boxPos));
         buffer.writeBoolean(hasBuilding);
@@ -88,7 +96,9 @@ public record MineralDrillingMenuSnapshot(BlockPos boxPos,
         }
     }
 
-    /** decode: 从菜单打开缓冲区读取并限长校验客户端快照。 */
+    /**
+     * decode: 从菜单打开缓冲区读取并限长校验客户端快照。
+     */
     public static MineralDrillingMenuSnapshot decode(RegistryFriendlyByteBuf buffer) {
         if (buffer == null) {
             return empty(BlockPos.ZERO);
@@ -164,7 +174,9 @@ public record MineralDrillingMenuSnapshot(BlockPos boxPos,
         return value.length() <= maxLength ? value : value.substring(0, maxLength);
     }
 
-    /** Marker: 客户端显示的单条矿脉深度标记。 */
+    /**
+     * Marker: 客户端显示的单条矿脉深度标记。
+     */
     public record Marker(String veinId, String displayName, String productId, int minY, int maxY,
                          long remainingReserve, boolean selected) {
         private void encode(RegistryFriendlyByteBuf buffer) {

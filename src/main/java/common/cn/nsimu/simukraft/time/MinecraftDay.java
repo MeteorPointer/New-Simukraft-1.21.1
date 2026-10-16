@@ -1,13 +1,17 @@
 package common.cn.nsimu.simukraft.time;
 
-/** MinecraftDay：把原版 dayTime 换成游戏日，并在 /time set 回退时平移已记录的日期。 */
+/**
+ * MinecraftDay：把原版 dayTime 换成游戏日，并在 /time set 回退时平移已记录的日期。
+ */
 public final class MinecraftDay {
     public static final long TICKS_PER_DAY = 24_000L;
 
     private MinecraftDay() {
     }
 
-    /** index：dayTime 对应的游戏日。/time set day 会把这个值直接打回 0。 */
+    /**
+     * index：dayTime 对应的游戏日。/time set day 会把这个值直接打回 0。
+     */
     public static long index(long dayTime) {
         return Math.floorDiv(dayTime, TICKS_PER_DAY);
     }

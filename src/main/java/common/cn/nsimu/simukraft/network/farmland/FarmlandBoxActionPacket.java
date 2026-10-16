@@ -72,11 +72,16 @@ public record FarmlandBoxActionPacket(BlockPos pos, Action action) implements Cu
             case TOGGLE_RUN -> {
                 FarmlandBoxService.ToggleResult result = FarmlandBoxService.toggleRunning(level, pos);
                 switch (result) {
-                    case STARTED -> InfoToastService.success(player, Component.translatable("message.simukraft.farmland_box.started"));
-                    case STOPPED -> InfoToastService.send(player, Component.translatable("message.simukraft.farmland_box.stopped"));
-                    case NOT_CONFIGURED -> InfoToastService.warning(player, Component.translatable("message.simukraft.farmland_box.not_configured"));
-                    case NO_CHEST -> InfoToastService.warning(player, Component.translatable("message.simukraft.farmland_box.no_chest"));
-                    case NO_FARMER -> InfoToastService.warning(player, Component.translatable("message.simukraft.farmland_box.no_farmer"));
+                    case STARTED ->
+                            InfoToastService.success(player, Component.translatable("message.simukraft.farmland_box.started"));
+                    case STOPPED ->
+                            InfoToastService.send(player, Component.translatable("message.simukraft.farmland_box.stopped"));
+                    case NOT_CONFIGURED ->
+                            InfoToastService.warning(player, Component.translatable("message.simukraft.farmland_box.not_configured"));
+                    case NO_CHEST ->
+                            InfoToastService.warning(player, Component.translatable("message.simukraft.farmland_box.no_chest"));
+                    case NO_FARMER ->
+                            InfoToastService.warning(player, Component.translatable("message.simukraft.farmland_box.no_farmer"));
                 }
             }
             case FIRE -> fireFarmer(level, player, pos);

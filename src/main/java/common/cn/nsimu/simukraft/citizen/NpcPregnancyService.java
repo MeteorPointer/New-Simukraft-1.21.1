@@ -1,15 +1,15 @@
 package common.cn.nsimu.simukraft.citizen;
 
+import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.citizen.family.FamilyData;
 import common.cn.nsimu.simukraft.citizen.family.FamilyManager;
 import common.cn.nsimu.simukraft.citizen.family.FamilyStatus;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.city.CityRuntimeService;
 import common.cn.nsimu.simukraft.city.poi.CityPoiData;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
 import common.cn.nsimu.simukraft.config.ServerConfig;
-import common.cn.nsimu.simukraft.medical.MedicalService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
+import common.cn.nsimu.simukraft.medical.MedicalService;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 
@@ -48,7 +48,7 @@ public final class NpcPregnancyService {
     }
 
     static void tickPregnanciesForCity(ServerLevel level, RandomSource random, long currentDay,
-            java.util.UUID cityId) {
+                                       java.util.UUID cityId) {
         CitizenManager manager = CitizenManager.get(level);
         FamilyManager familyManager = FamilyManager.get(level);
         double chance = ServerConfig.familyPregnancyChancePerDay();
@@ -58,7 +58,9 @@ public final class NpcPregnancyService {
         }
     }
 
-    /** forcePregnancy：由管理员命令跳过随机概率，为满足正常分娩条件的妻子开始妊娠。 */
+    /**
+     * forcePregnancy：由管理员命令跳过随机概率，为满足正常分娩条件的妻子开始妊娠。
+     */
     public static boolean forcePregnancy(ServerLevel level, CitizenData wife) {
         if (level == null || !canStartPregnancy(wife, level.getDayTime() / 24000L)) {
             return false;
@@ -84,12 +86,16 @@ public final class NpcPregnancyService {
         return true;
     }
 
-    /** canStartPregnancy：妻子必须是未怀孕的存活成年女性，且不在产后、住院或低血量静养中。 */
+    /**
+     * canStartPregnancy：妻子必须是未怀孕的存活成年女性，且不在产后、住院或低血量静养中。
+     */
     static boolean canStartPregnancy(CitizenData wife, long currentDay) {
         return canStartPregnancy(wife, currentDay, ServerConfig.medicalLowHealthThreshold());
     }
 
-    /** canStartPregnancy：可注入低血量阈值，避免单元测试依赖游戏配置。 */
+    /**
+     * canStartPregnancy：可注入低血量阈值，避免单元测试依赖游戏配置。
+     */
     static boolean canStartPregnancy(CitizenData wife, long currentDay, double lowHealthThreshold) {
         if (wife == null || wife.dead() || wife.child() || wife.pregnant()
                 || !"female".equalsIgnoreCase(wife.gender())) {
@@ -102,8 +108,8 @@ public final class NpcPregnancyService {
     }
 
     private static void tryPregnancy(FamilyData family, CitizenManager manager,
-            FamilyManager familyManager, ServerLevel level,
-            RandomSource random, double chance, long currentDay) {
+                                     FamilyManager familyManager, ServerLevel level,
+                                     RandomSource random, double chance, long currentDay) {
         if (family.status() != FamilyStatus.ACTIVE) return;
         // 城市休眠时跳过怀孕判定
         if (!CityRuntimeService.isCityActive(level, family.cityId())) return;
@@ -117,7 +123,8 @@ public final class NpcPregnancyService {
         CitizenData husband = family.husbandId() != null
                 ? manager.getCitizen(family.husbandId()).orElse(null) : null;
         if (NpcMarriageService.isLivingWithOriginFamily(level, manager, wife)) return;
-        if (husband != null && !husband.dead() && NpcMarriageService.isLivingWithOriginFamily(level, manager, husband)) return;
+        if (husband != null && !husband.dead() && NpcMarriageService.isLivingWithOriginFamily(level, manager, husband))
+            return;
 
         // 家庭当前成员数 + 孩子已有数，需要还有空余床位才允许怀孕
         UUID reservedBedId = findVacantBedForBaby(level, manager, wife);
@@ -137,7 +144,9 @@ public final class NpcPregnancyService {
         syncPregnancyStage(level, manager, wife);
     }
 
-    /** syncPregnancyStage：孕期状态变化后立即同步实体，避免客户端等待下一次加载。 */
+    /**
+     * syncPregnancyStage：孕期状态变化后立即同步实体，避免客户端等待下一次加载。
+     */
     private static void syncPregnancyStage(ServerLevel level, CitizenManager manager, CitizenData data) {
         CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, data.uuid());
         if (entity != null) {
@@ -145,7 +154,9 @@ public final class NpcPregnancyService {
         }
     }
 
-    /** findVacantBedForBaby：在妻子所在户中找一张未被占用也未被其他孕妇预约的空床。 */
+    /**
+     * findVacantBedForBaby：在妻子所在户中找一张未被占用也未被其他孕妇预约的空床。
+     */
     private static UUID findVacantBedForBaby(ServerLevel level, CitizenManager manager, CitizenData wife) {
         if (wife.homeId() == null) return null;
         var building = PlacedBuildingService.findByPoi(level, wife.homeId());

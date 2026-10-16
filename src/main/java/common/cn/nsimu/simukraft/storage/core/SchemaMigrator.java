@@ -40,7 +40,9 @@ public final class SchemaMigrator {
         this.migrations = migrations.stream().sorted(java.util.Comparator.comparingInt(Migration::version)).toList();
     }
 
-    /** 基线 DDL。必须幂等：全新库和历史存档都会执行它。 */
+    /**
+     * 基线 DDL。必须幂等：全新库和历史存档都会执行它。
+     */
     @FunctionalInterface
     public interface BaselineSchema {
         void create(Connection connection) throws SQLException;

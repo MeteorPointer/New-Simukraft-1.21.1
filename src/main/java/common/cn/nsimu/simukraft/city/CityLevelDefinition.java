@@ -11,7 +11,9 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.Objects;
 
-/** CityLevelDefinition: 一个目标城市等级、升级门槛和升级后解锁容量。 */
+/**
+ * CityLevelDefinition: 一个目标城市等级、升级门槛和升级后解锁容量。
+ */
 public record CityLevelDefinition(int level,
                                   String displayName,
                                   double requiredFunds,
@@ -32,7 +34,9 @@ public record CityLevelDefinition(int level,
     public static final int DEFAULT_UPGRADE_DURATION_TICKS = 1_200;
     public static final int MAX_UPGRADE_DURATION_TICKS = 1_728_000;
 
-    /** CityLevelDefinition: 兼容未配置解锁容量的旧调用。 */
+    /**
+     * CityLevelDefinition: 兼容未配置解锁容量的旧调用。
+     */
     public CityLevelDefinition(int level,
                                String displayName,
                                double requiredFunds,
@@ -42,7 +46,9 @@ public record CityLevelDefinition(int level,
                 level == MIN_LEVEL ? 0 : DEFAULT_UPGRADE_DURATION_TICKS);
     }
 
-    /** CityLevelDefinition: 兼容旧调用并允许显式设置升级耗时。 */
+    /**
+     * CityLevelDefinition: 兼容旧调用并允许显式设置升级耗时。
+     */
     public CityLevelDefinition(int level,
                                String displayName,
                                double requiredFunds,
@@ -86,19 +92,25 @@ public record CityLevelDefinition(int level,
         items = List.copyOf(items);
     }
 
-    /** requiredChunks: 兼容旧调用，返回升级后解锁的区块容量。 */
+    /**
+     * requiredChunks: 兼容旧调用，返回升级后解锁的区块容量。
+     */
     @Deprecated
     public int requiredChunks() {
         return unlockedChunks;
     }
 
-    /** requiredEnclaves: 兼容旧调用，返回升级后解锁的飞地容量。 */
+    /**
+     * requiredEnclaves: 兼容旧调用，返回升级后解锁的飞地容量。
+     */
     @Deprecated
     public int requiredEnclaves() {
         return unlockedEnclaves;
     }
 
-    /** ItemRequirement: 一个精确物品 ID 或物品标签及其所需数量与可选显示信息。 */
+    /**
+     * ItemRequirement: 一个精确物品 ID 或物品标签及其所需数量与可选显示信息。
+     */
     public record ItemRequirement(ResourceLocation itemId,
                                   ResourceLocation itemTag,
                                   int count,
@@ -108,12 +120,16 @@ public record CityLevelDefinition(int level,
             this(itemId, null, count, null, "");
         }
 
-        /** ItemRequirement: 兼容未定义展示图标和名称的旧调用。 */
+        /**
+         * ItemRequirement: 兼容未定义展示图标和名称的旧调用。
+         */
         public ItemRequirement(ResourceLocation itemId, ResourceLocation itemTag, int count) {
             this(itemId, itemTag, count, null, "");
         }
 
-        /** tag: 创建一个按物品标签匹配的升级材料条件。 */
+        /**
+         * tag: 创建一个按物品标签匹配的升级材料条件。
+         */
         public static ItemRequirement tag(ResourceLocation itemTag, int count) {
             return new ItemRequirement(null, itemTag, count, null, "");
         }
@@ -131,13 +147,17 @@ public record CityLevelDefinition(int level,
             }
         }
 
-        /** isTag: 判断该材料条件是否匹配物品标签。 */
+        /**
+         * isTag: 判断该材料条件是否匹配物品标签。
+         */
         public boolean isTag() {
             return itemTag != null;
         }
 
-        /** matches: 判断物品堆是否满足该材料条件。 */
-        
+        /**
+         * matches: 判断物品堆是否满足该材料条件。
+         */
+
         public boolean matches(ItemStack stack) {
             if (stack == null || stack.isEmpty()) {
                 return false;
@@ -147,7 +167,9 @@ public record CityLevelDefinition(int level,
                     : stack.is(BuiltInRegistries.ITEM.get(itemId));
         }
 
-        /** serializedId: 返回网络和界面使用的物品/标签标识。 */
+        /**
+         * serializedId: 返回网络和界面使用的物品/标签标识。
+         */
         public String serializedId() {
             return isTag() ? "#" + itemTag : itemId.toString();
         }

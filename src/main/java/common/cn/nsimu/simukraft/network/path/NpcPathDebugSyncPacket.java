@@ -1,7 +1,7 @@
 package common.cn.nsimu.simukraft.network.path;
 
-import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import common.cn.nsimu.simukraft.path.PathResult;
 import common.cn.nsimu.simukraft.path.PathWaypoint;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -15,7 +15,8 @@ import java.util.List;
 import java.util.UUID;
 
 
-public record NpcPathDebugSyncPacket(UUID citizenId, boolean success, String reason, String status, List<PathPoint> points) implements CustomPacketPayload {
+public record NpcPathDebugSyncPacket(UUID citizenId, boolean success, String reason, String status,
+                                     List<PathPoint> points) implements CustomPacketPayload {
     public static final Type<NpcPathDebugSyncPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "npc_path_debug_sync"));
     public static final StreamCodec<RegistryFriendlyByteBuf, NpcPathDebugSyncPacket> STREAM_CODEC = StreamCodec.of(NpcPathDebugSyncPacket::encode, NpcPathDebugSyncPacket::decode);
     private static final UUID EMPTY_CITIZEN_ID = new UUID(0L, 0L);

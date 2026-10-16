@@ -33,7 +33,9 @@ public record LogisticsWarehouseGridResponsePacket(BlockPos pos,
         return TYPE;
     }
 
-    /** encode: 写入仓库物品、容器位置和真实数量。 */
+    /**
+     * encode: 写入仓库物品、容器位置和真实数量。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, LogisticsWarehouseGridResponsePacket packet) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeVarInt(packet.items().size());
@@ -50,7 +52,9 @@ public record LogisticsWarehouseGridResponsePacket(BlockPos pos,
         }
     }
 
-    /** decode: 读取仓库物品、容器位置和真实数量。 */
+    /**
+     * decode: 读取仓库物品、容器位置和真实数量。
+     */
     public static LogisticsWarehouseGridResponsePacket decode(RegistryFriendlyByteBuf buffer) {
         BlockPos pos = buffer.readBlockPos();
         int itemCount = Math.max(0, buffer.readVarInt());
@@ -80,7 +84,9 @@ public record LogisticsWarehouseGridResponsePacket(BlockPos pos,
         return new LogisticsWarehouseGridResponsePacket(pos, items, positions, counts);
     }
 
-    /** handle: 客户端把仓库快照交给当前仓库屏幕。 */
+    /**
+     * handle: 客户端把仓库快照交给当前仓库屏幕。
+     */
     public static void handle(LogisticsWarehouseGridResponsePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> ClientboundNetworkBridge.handleLogisticsWarehouseGridResponse(packet));
     }

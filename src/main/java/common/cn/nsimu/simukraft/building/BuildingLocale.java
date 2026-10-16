@@ -8,7 +8,9 @@ import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import java.util.Locale;
 
-/** BuildingLocale: 建筑包中文键与 {@code *_en} 英文字段的选择。 */
+/**
+ * BuildingLocale: 建筑包中文键与 {@code *_en} 英文字段的选择。
+ */
 public final class BuildingLocale {
     private BuildingLocale() {
     }
@@ -63,7 +65,9 @@ public final class BuildingLocale {
         }
     }
 
-    /** text: 英文客户端优先读 {@code key_en}，缺省回退 {@code key}。 */
+    /**
+     * text: 英文客户端优先读 {@code key_en}，缺省回退 {@code key}。
+     */
     public static String text(JsonObject object, String key, String fallback) {
         if (preferEnglish()) {
             String english = raw(object, key + "_en");
@@ -75,7 +79,9 @@ public final class BuildingLocale {
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    /** textAny: 按键名顺序取值，英文客户端先扫每个键的 {@code *_en}。 */
+    /**
+     * textAny: 按键名顺序取值，英文客户端先扫每个键的 {@code *_en}。
+     */
     public static String textAny(JsonObject object, String fallback, String... keys) {
         if (preferEnglish()) {
             for (String key : keys) {

@@ -12,10 +12,7 @@ import java.sql.Statement;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class FamilySqliteRepositoryTest {
     @TempDir
@@ -55,7 +52,9 @@ class FamilySqliteRepositoryTest {
         }
     }
 
-    /** P2 回归：加载失败必须返回 null 并降级，不得把部分结果交给调用方。 */
+    /**
+     * P2 回归：加载失败必须返回 null 并降级，不得把部分结果交给调用方。
+     */
     @Test
     void corruptedRowFailsTheLoadInsteadOfReturningPartialData() throws Exception {
         try (SimuSqliteDatabase database = openDatabase(tempDir.resolve("families-corrupt.sqlite"))) {

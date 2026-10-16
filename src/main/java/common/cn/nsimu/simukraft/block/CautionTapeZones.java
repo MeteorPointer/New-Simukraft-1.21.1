@@ -13,15 +13,11 @@ import net.minecraft.server.level.ServerLevel;
 import net.neoforged.neoforge.server.ServerLifecycleHooks;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
-/** CautionTapeZones: 闭合警戒线内部。只给放置者所属城市的 NPC 加寻路代价。 */
+/**
+ * CautionTapeZones: 闭合警戒线内部。只给放置者所属城市的 NPC 加寻路代价。
+ */
 public final class CautionTapeZones {
     public static final double EXTRA_COST = 20.0D;
 

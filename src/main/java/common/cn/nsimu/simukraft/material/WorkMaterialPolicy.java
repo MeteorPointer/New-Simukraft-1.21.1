@@ -11,12 +11,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -271,7 +266,8 @@ public final class WorkMaterialPolicy {
         }
     }
 
-    private record ParsedRules(Set<String> basicMaterials, Set<String> expertSkipList, Map<String, MaterialGroupInfo> groups) {
+    private record ParsedRules(Set<String> basicMaterials, Set<String> expertSkipList,
+                               Map<String, MaterialGroupInfo> groups) {
         private static final ParsedRules EMPTY = new ParsedRules(Set.of(), Set.of(), Map.of());
 
         private MaterialGroupInfo findGroup(String materialId) {

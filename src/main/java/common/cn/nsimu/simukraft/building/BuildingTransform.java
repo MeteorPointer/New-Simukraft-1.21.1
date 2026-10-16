@@ -11,7 +11,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.Locale;
 
-@SuppressWarnings({"unchecked","deprecation"})
+@SuppressWarnings({"unchecked", "deprecation"})
 public final class BuildingTransform {
     private BuildingTransform() {
     }
@@ -30,7 +30,9 @@ public final class BuildingTransform {
         return new BlockPos(x, y, z);
     }
 
-    /** inverseRotatePosition：将已旋转的结构坐标还原为原始结构坐标。 */
+    /**
+     * inverseRotatePosition：将已旋转的结构坐标还原为原始结构坐标。
+     */
     public static BlockPos inverseRotatePosition(BlockPos pos, int rotationDegrees) {
         return rotatePosition(pos, -rotationDegrees);
     }
@@ -74,7 +76,9 @@ public final class BuildingTransform {
         };
     }
 
-    /** rotationDegreesFromFacing：将建筑存储的朝向名称还原为结构旋转角度。 */
+    /**
+     * rotationDegreesFromFacing：将建筑存储的朝向名称还原为结构旋转角度。
+     */
     public static int rotationDegreesFromFacing(String facing) {
         if (facing == null) {
             return 0;

@@ -93,10 +93,10 @@ public final class SimuSqliteSchema {
             statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_cities_dimension ON cities(dimension_id)");
             statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_finance_city ON finance_transactions(city_id, sort_index)");
             addColumnIfMissing(connection, "citizens", "dimension_id", "TEXT NOT NULL DEFAULT 'minecraft:overworld'");
-            addColumnIfMissing(connection, "citizens", "family_id",        "TEXT");
+            addColumnIfMissing(connection, "citizens", "family_id", "TEXT");
             addColumnIfMissing(connection, "citizens", "origin_family_id", "TEXT");
-            addColumnIfMissing(connection, "citizens", "pregnant",         "INTEGER NOT NULL DEFAULT 0");
-            addColumnIfMissing(connection, "citizens", "pregnant_since",   "INTEGER NOT NULL DEFAULT 0");
+            addColumnIfMissing(connection, "citizens", "pregnant", "INTEGER NOT NULL DEFAULT 0");
+            addColumnIfMissing(connection, "citizens", "pregnant_since", "INTEGER NOT NULL DEFAULT 0");
             addColumnIfMissing(connection, "citizens", "last_age_growth_day", "INTEGER NOT NULL DEFAULT -1");
             addColumnIfMissing(connection, "citizens", "disease_id", "TEXT NOT NULL DEFAULT 'NONE'");
             addColumnIfMissing(connection, "citizens", "disease_since_day", "INTEGER NOT NULL DEFAULT 0");
@@ -134,7 +134,9 @@ public final class SimuSqliteSchema {
         }
     }
 
-    /** ensureVirtualVeinFieldTable: 迁移 256 格群系边界矿区所需的复合主键。 */
+    /**
+     * ensureVirtualVeinFieldTable: 迁移 256 格群系边界矿区所需的复合主键。
+     */
     private static void ensureVirtualVeinFieldTable(Connection connection) throws SQLException {
         if (!tableExists(connection, VIRTUAL_VEIN_FIELD_TABLE)) {
             try (Statement statement = connection.createStatement()) {
@@ -151,7 +153,9 @@ public final class SimuSqliteSchema {
         }
     }
 
-    /** migrateVirtualVeinFieldTable: 保留旧矿区档案并补齐群系复合主键。 */
+    /**
+     * migrateVirtualVeinFieldTable: 保留旧矿区档案并补齐群系复合主键。
+     */
     private static void migrateVirtualVeinFieldTable(Connection connection) throws SQLException {
         if (tableExists(connection, LEGACY_VIRTUAL_VEIN_FIELD_TABLE)) {
             throw new SQLException("Incomplete virtual vein field migration backup exists");
@@ -179,7 +183,9 @@ public final class SimuSqliteSchema {
         }
     }
 
-    /** createVirtualVeinFieldTable: 创建当前版本的虚拟矿区档案表。 */
+    /**
+     * createVirtualVeinFieldTable: 创建当前版本的虚拟矿区档案表。
+     */
     private static void createVirtualVeinFieldTable(Statement statement, String tableName) throws SQLException {
         statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + tableName + "("
                 + "dimension_id TEXT NOT NULL, field_cell_x INTEGER NOT NULL, field_cell_z INTEGER NOT NULL, field_biome_id TEXT NOT NULL, center_x INTEGER NOT NULL, center_z INTEGER NOT NULL, center_biome_id TEXT NOT NULL, created_game_time INTEGER NOT NULL, vein_count INTEGER NOT NULL, generation_version INTEGER NOT NULL DEFAULT 3, "
@@ -188,7 +194,9 @@ public final class SimuSqliteSchema {
                 + "PRIMARY KEY(dimension_id, field_cell_x, field_cell_z, field_biome_id))");
     }
 
-    /** tableExists: 判断 SQLite 业务表是否已经存在。 */
+    /**
+     * tableExists: 判断 SQLite 业务表是否已经存在。
+     */
     private static boolean tableExists(Connection connection, String tableName) throws SQLException {
         try (Statement statement = connection.createStatement();
              var resultSet = statement.executeQuery("SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = '" + tableName + "'")) {

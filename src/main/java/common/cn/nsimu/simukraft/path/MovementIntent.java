@@ -16,7 +16,9 @@ public enum MovementIntent {
     // FLEE：被玩家攻击后的短距逃跑，可抢占其它导航，路径失败不传送。
     FLEE;
 
-    /** allowsTeleportFallback：远距或寻路失败时是否允许传送兜底。 */
+    /**
+     * allowsTeleportFallback：远距或寻路失败时是否允许传送兜底。
+     */
     public boolean allowsTeleportFallback() {
         return this != WANDER && this != FLEE;
     }

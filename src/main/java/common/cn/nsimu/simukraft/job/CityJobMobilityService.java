@@ -1,20 +1,14 @@
 package common.cn.nsimu.simukraft.job;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenPanicService;
-import common.cn.nsimu.simukraft.citizen.CitizenSelfFeedingService;
-import common.cn.nsimu.simukraft.citizen.CitizenService;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
-import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
-import common.cn.nsimu.simukraft.citizen.CitizenWorkplaceMoveService;
+import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.city.CityRuntimeService;
-import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.config.ServerConfig;
+import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.medical.MedicalService;
+import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingConstants;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import common.cn.nsimu.simukraft.path.MovementIntent;
-import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingConstants;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.phys.Vec3;
@@ -27,7 +21,9 @@ public final class CityJobMobilityService {
     private CityJobMobilityService() {
     }
 
-    /** resolveHireRole: 将雇佣界面岗位标识映射为统一职业枚举。 */
+    /**
+     * resolveHireRole: 将雇佣界面岗位标识映射为统一职业枚举。
+     */
     public static CityJobType resolveHireRole(String role) {
         if (role == null || role.isBlank()) {
             return CityJobType.OTHER;
@@ -49,7 +45,9 @@ public final class CityJobMobilityService {
         };
     }
 
-    /** sendToWorkplace：雇佣入职时移动 NPC 到岗位，根据距离选择传送或寻路。 */
+    /**
+     * sendToWorkplace：雇佣入职时移动 NPC 到岗位，根据距离选择传送或寻路。
+     */
     public static void sendToWorkplace(ServerLevel level, UUID citizenId, BlockPos workplacePos, CityJobType jobType, CitizenWorkStatus workStatus, String statusLabel) {
         if (level == null || citizenId == null || workplacePos == null) {
             return;
@@ -88,12 +86,16 @@ public final class CityJobMobilityService {
         syncCitizenEntityState(citizenEntity, jobType, workStatus, effectiveStatusLabel);
     }
 
-    /** teleportToTarget：直接传送 NPC 到目标位置。 */
+    /**
+     * teleportToTarget：直接传送 NPC 到目标位置。
+     */
     private static void teleportToTarget(ServerLevel level, UUID citizenId, Vec3 target) {
         CitizenTeleportService.teleportCitizen(level, citizenId, target);
     }
 
-    /** pathfindToTarget：寻路到目标位置，寻路失败时传送兜底。 */
+    /**
+     * pathfindToTarget：寻路到目标位置，寻路失败时传送兜底。
+     */
     private static void pathfindToTarget(ServerLevel level, UUID citizenId, Vec3 target) {
         if (CitizenPanicService.isFleeing(level, citizenId)) {
             return;
@@ -103,7 +105,9 @@ public final class CityJobMobilityService {
         }
     }
 
-    /** teleportCitizenToWorkplace：保留旧方法名供现有调用点兼容，委托给 sendToWorkplace。 */
+    /**
+     * teleportCitizenToWorkplace：保留旧方法名供现有调用点兼容，委托给 sendToWorkplace。
+     */
     public static void teleportCitizenToWorkplace(ServerLevel level, UUID citizenId, BlockPos workplacePos, CityJobType jobType, CitizenWorkStatus workStatus, String statusLabel) {
         sendToWorkplace(level, citizenId, workplacePos, jobType, workStatus, statusLabel);
     }

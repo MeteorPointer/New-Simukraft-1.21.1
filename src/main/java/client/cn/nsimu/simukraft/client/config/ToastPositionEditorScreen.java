@@ -3,7 +3,6 @@ package client.cn.nsimu.simukraft.client.config;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import client.cn.nsimu.simukraft.client.toast.ClientToastConfig;
 import common.cn.nsimu.simukraft.config.ClientConfig;
-import java.util.Locale;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -12,7 +11,11 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-/** ToastPositionEditorScreen: 预览并调整独立通知的尺寸与六锚点位置。 */
+import java.util.Locale;
+
+/**
+ * ToastPositionEditorScreen: 预览并调整独立通知的尺寸与六锚点位置。
+ */
 @OnlyIn(Dist.CLIENT)
 
 public final class ToastPositionEditorScreen extends Screen {
@@ -77,7 +80,9 @@ public final class ToastPositionEditorScreen extends Screen {
                 .build());
     }
 
-    /** loadConfig: 读取配置并计算通知的当前绝对位置。 */
+    /**
+     * loadConfig: 读取配置并计算通知的当前绝对位置。
+     */
     private void loadConfig() {
         currentAnchor = ClientToastConfig.getAnchor();
         toastWidth = ClientToastConfig.width();
@@ -87,7 +92,9 @@ public final class ToastPositionEditorScreen extends Screen {
         toastAbsoluteY = clamp(position[1], 0, Math.max(0, height - toastHeight));
     }
 
-    /** detectAnchor: 根据通知中心点判定所在六锚点区域。 */
+    /**
+     * detectAnchor: 根据通知中心点判定所在六锚点区域。
+     */
     private ClientToastConfig.Anchor detectAnchor(int centerX, int centerY) {
         boolean isLeft = centerX < regionX1;
         boolean isRight = centerX >= regionX2;
@@ -107,7 +114,9 @@ public final class ToastPositionEditorScreen extends Screen {
         return isTop ? ClientToastConfig.Anchor.TOP_CENTER : ClientToastConfig.Anchor.BOTTOM_CENTER;
     }
 
-    /** saveAndClose: 将编辑器的绝对位置换算成锚点偏移后保存。 */
+    /**
+     * saveAndClose: 将编辑器的绝对位置换算成锚点偏移后保存。
+     */
     private void saveAndClose() {
         int offsetX;
         int offsetY;
@@ -148,7 +157,9 @@ public final class ToastPositionEditorScreen extends Screen {
         Minecraft.getInstance().setScreen(parent);
     }
 
-    /** resetLayout: 将编辑中的预览恢复为默认通知布局。 */
+    /**
+     * resetLayout: 将编辑中的预览恢复为默认通知布局。
+     */
     private void resetLayout() {
         currentAnchor = ClientToastConfig.Anchor.TOP_RIGHT;
         toastWidth = ClientConfig.DEFAULT_TOAST_WIDTH;
@@ -165,27 +176,37 @@ public final class ToastPositionEditorScreen extends Screen {
         toastAbsoluteY = clamp(position[1], 0, Math.max(0, height - toastHeight));
     }
 
-    /** isOnLeftEdge: 判断鼠标是否位于左侧调宽边缘。 */
+    /**
+     * isOnLeftEdge: 判断鼠标是否位于左侧调宽边缘。
+     */
     private boolean isOnLeftEdge(double mouseX, double mouseY) {
         return isWithinEdge(mouseX, mouseY, toastAbsoluteX, toastAbsoluteY, 1, toastHeight);
     }
 
-    /** isOnRightEdge: 判断鼠标是否位于右侧调宽边缘。 */
+    /**
+     * isOnRightEdge: 判断鼠标是否位于右侧调宽边缘。
+     */
     private boolean isOnRightEdge(double mouseX, double mouseY) {
         return isWithinEdge(mouseX, mouseY, toastAbsoluteX + toastWidth, toastAbsoluteY, 1, toastHeight);
     }
 
-    /** isOnTopEdge: 判断鼠标是否位于顶部调高边缘。 */
+    /**
+     * isOnTopEdge: 判断鼠标是否位于顶部调高边缘。
+     */
     private boolean isOnTopEdge(double mouseX, double mouseY) {
         return isWithinEdge(mouseX, mouseY, toastAbsoluteX, toastAbsoluteY, toastWidth, 1);
     }
 
-    /** isOnBottomEdge: 判断鼠标是否位于底部调高边缘。 */
+    /**
+     * isOnBottomEdge: 判断鼠标是否位于底部调高边缘。
+     */
     private boolean isOnBottomEdge(double mouseX, double mouseY) {
         return isWithinEdge(mouseX, mouseY, toastAbsoluteX, toastAbsoluteY + toastHeight, toastWidth, 1);
     }
 
-    /** isWithinEdge: 判断鼠标是否命中指定边缘的感应区域。 */
+    /**
+     * isWithinEdge: 判断鼠标是否命中指定边缘的感应区域。
+     */
     private boolean isWithinEdge(double mouseX, double mouseY, int edgeX, int edgeY, int edgeWidth, int edgeHeight) {
         return mouseX >= edgeX - EDGE_HIT
                 && mouseX <= edgeX + edgeWidth + EDGE_HIT
@@ -193,7 +214,9 @@ public final class ToastPositionEditorScreen extends Screen {
                 && mouseY <= edgeY + edgeHeight + EDGE_HIT;
     }
 
-    /** isOverToast: 判断鼠标是否位于通知预览内部。 */
+    /**
+     * isOverToast: 判断鼠标是否位于通知预览内部。
+     */
     private boolean isOverToast(double mouseX, double mouseY) {
         return mouseX >= toastAbsoluteX
                 && mouseX <= toastAbsoluteX + toastWidth
@@ -249,7 +272,9 @@ public final class ToastPositionEditorScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 
-    /** outlineColor: 返回当前拖拽或悬停状态的预览边框颜色。 */
+    /**
+     * outlineColor: 返回当前拖拽或悬停状态的预览边框颜色。
+     */
     private int outlineColor(int mouseX, int mouseY) {
         if (dragMode != DragMode.NONE) {
             return dragMode == DragMode.MOVE ? 0xFF42D17A : 0xFFFFAA00;
@@ -263,7 +288,9 @@ public final class ToastPositionEditorScreen extends Screen {
         return 0xFF58A6FF;
     }
 
-    /** renderResizeIndicators: 高亮当前可拖动的宽高边缘。 */
+    /**
+     * renderResizeIndicators: 高亮当前可拖动的宽高边缘。
+     */
     private void renderResizeIndicators(GuiGraphics graphics, int mouseX, int mouseY) {
         if (isOnLeftEdge(mouseX, mouseY) || dragMode == DragMode.RESIZE_LEFT) {
             graphics.fill(toastAbsoluteX - 1, toastAbsoluteY, toastAbsoluteX + 2, toastAbsoluteY + toastHeight, 0xCCFFAA00);
@@ -279,7 +306,9 @@ public final class ToastPositionEditorScreen extends Screen {
         }
     }
 
-    /** renderRegions: 绘制当前六锚点区域与选中区域提示。 */
+    /**
+     * renderRegions: 绘制当前六锚点区域与选中区域提示。
+     */
     private void renderRegions(GuiGraphics graphics) {
         int highlightX;
         int highlightY;
@@ -366,7 +395,9 @@ public final class ToastPositionEditorScreen extends Screen {
         return false;
     }
 
-    /** beginDrag: 记录一次拖拽所需的初始几何数据。 */
+    /**
+     * beginDrag: 记录一次拖拽所需的初始几何数据。
+     */
     private void beginDrag(DragMode nextDragMode, double mouseX, double mouseY) {
         dragMode = nextDragMode;
         dragStartMouseX = (int) mouseX;
@@ -396,14 +427,18 @@ public final class ToastPositionEditorScreen extends Screen {
         return true;
     }
 
-    /** movePreview: 移动预览并在跨区域时更新锚点。 */
+    /**
+     * movePreview: 移动预览并在跨区域时更新锚点。
+     */
     private void movePreview(int deltaX, int deltaY) {
         toastAbsoluteX = clamp(dragStartX + deltaX, 0, Math.max(0, width - toastWidth));
         toastAbsoluteY = clamp(dragStartY + deltaY, 0, Math.max(0, height - toastHeight));
         currentAnchor = detectAnchor(toastAbsoluteX + toastWidth / 2, toastAbsoluteY + toastHeight / 2);
     }
 
-    /** resizeLeft: 固定右边界并调整宽度。 */
+    /**
+     * resizeLeft: 固定右边界并调整宽度。
+     */
     private void resizeLeft(int deltaX) {
         int nextWidth = clamp(dragStartWidth - deltaX, MIN_WIDTH, MAX_WIDTH);
         nextWidth = Math.min(nextWidth, dragStartX + dragStartWidth);
@@ -411,13 +446,17 @@ public final class ToastPositionEditorScreen extends Screen {
         toastAbsoluteX = dragStartX + dragStartWidth - nextWidth;
     }
 
-    /** resizeRight: 固定左边界并调整宽度。 */
+    /**
+     * resizeRight: 固定左边界并调整宽度。
+     */
     private void resizeRight(int deltaX) {
         int availableWidth = Math.max(MIN_WIDTH, width - dragStartX);
         toastWidth = clamp(dragStartWidth + deltaX, MIN_WIDTH, Math.min(MAX_WIDTH, availableWidth));
     }
 
-    /** resizeTop: 固定底边界并调整高度。 */
+    /**
+     * resizeTop: 固定底边界并调整高度。
+     */
     private void resizeTop(int deltaY) {
         int nextHeight = clamp(dragStartHeight - deltaY, MIN_HEIGHT, MAX_HEIGHT);
         nextHeight = Math.min(nextHeight, dragStartY + dragStartHeight);
@@ -425,7 +464,9 @@ public final class ToastPositionEditorScreen extends Screen {
         toastAbsoluteY = dragStartY + dragStartHeight - nextHeight;
     }
 
-    /** resizeBottom: 固定顶边界并调整高度。 */
+    /**
+     * resizeBottom: 固定顶边界并调整高度。
+     */
     private void resizeBottom(int deltaY) {
         int availableHeight = Math.max(MIN_HEIGHT, height - dragStartY);
         toastHeight = clamp(dragStartHeight + deltaY, MIN_HEIGHT, Math.min(MAX_HEIGHT, availableHeight));
@@ -449,7 +490,9 @@ public final class ToastPositionEditorScreen extends Screen {
         return true;
     }
 
-    /** clamp: 将整数限制在指定闭区间内。 */
+    /**
+     * clamp: 将整数限制在指定闭区间内。
+     */
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }

@@ -49,7 +49,9 @@ public record CityCitizenManageRequestPacket(BlockPos pos) implements CustomPack
         }
     }
 
-    /** sendCitizens: 构建并下发该城市当前在册（存活）市民列表，actions 复用此方法刷新界面。 */
+    /**
+     * sendCitizens: 构建并下发该城市当前在册（存活）市民列表，actions 复用此方法刷新界面。
+     */
     public static void sendCitizens(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (!CityCoreAccessValidator.requireAccess(level, player, pos)) {
             return;

@@ -17,7 +17,9 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** BankControlBoxDemolishPacket: 拆除银行建筑。 */
+/**
+ * BankControlBoxDemolishPacket: 拆除银行建筑。
+ */
 public record BankControlBoxDemolishPacket(BlockPos pos) implements CustomPacketPayload {
     public static final Type<BankControlBoxDemolishPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "bank_control_box_demolish"));
@@ -29,17 +31,23 @@ public record BankControlBoxDemolishPacket(BlockPos pos) implements CustomPacket
         return TYPE;
     }
 
-    /** encode: 写入坐标。 */
+    /**
+     * encode: 写入坐标。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, BankControlBoxDemolishPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode: 读取坐标。 */
+    /**
+     * decode: 读取坐标。
+     */
     public static BankControlBoxDemolishPacket decode(RegistryFriendlyByteBuf buffer) {
         return new BankControlBoxDemolishPacket(buffer.readBlockPos());
     }
 
-    /** handle: 拆除已绑定的银行建筑。 */
+    /**
+     * handle: 拆除已绑定的银行建筑。
+     */
     public static void handle(BankControlBoxDemolishPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;

@@ -9,18 +9,16 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.entity.BlockEntity;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 
 public final class LogisticsWarehouseInventoryService {
     private LogisticsWarehouseInventoryService() {
     }
 
-    /** aggregate: 汇总物流仓库绑定容器中的物品种类和真实数量。 */
+    /**
+     * aggregate: 汇总物流仓库绑定容器中的物品种类和真实数量。
+     */
     public static List<WarehouseItem> aggregate(ServerLevel level, BlockPos boxPos) {
         LogisticsWarehouseData warehouse = warehouse(level, boxPos);
         if (warehouse == null || warehouse.containers().isEmpty()) {
@@ -38,13 +36,17 @@ public final class LogisticsWarehouseInventoryService {
                 .toList();
     }
 
-    /** containers: 返回当前仓库绑定容器快照。 */
+    /**
+     * containers: 返回当前仓库绑定容器快照。
+     */
     public static List<BlockPos> containers(ServerLevel level, BlockPos boxPos) {
         LogisticsWarehouseData warehouse = warehouse(level, boxPos);
         return warehouse != null ? warehouse.containers() : List.of();
     }
 
-    /** slotAddresses: 返回仓库绑定容器的真实槽位地址，用于原版容器交互。 */
+    /**
+     * slotAddresses: 返回仓库绑定容器的真实槽位地址，用于原版容器交互。
+     */
     public static List<WarehouseSlotAddress> slotAddresses(ServerLevel level, BlockPos boxPos) {
         LogisticsWarehouseData warehouse = warehouse(level, boxPos);
         if (warehouse == null || warehouse.containers().isEmpty()) {
@@ -60,7 +62,9 @@ public final class LogisticsWarehouseInventoryService {
         return List.copyOf(addresses);
     }
 
-    /** extract: 按显示物品原型从仓库中提取指定数量。 */
+    /**
+     * extract: 按显示物品原型从仓库中提取指定数量。
+     */
     public static ItemStack extract(ServerLevel level, BlockPos boxPos, ItemStack target, int count) {
         LogisticsWarehouseData warehouse = warehouse(level, boxPos);
         if (warehouse == null || target == null || target.isEmpty() || count <= 0) {
@@ -93,7 +97,9 @@ public final class LogisticsWarehouseInventoryService {
         return result;
     }
 
-    /** insert: 将物品按绑定容器顺序存入仓库，返回未放入的剩余物。 */
+    /**
+     * insert: 将物品按绑定容器顺序存入仓库，返回未放入的剩余物。
+     */
     public static ItemStack insert(ServerLevel level, BlockPos boxPos, ItemStack stack) {
         LogisticsWarehouseData warehouse = warehouse(level, boxPos);
         if (warehouse == null || stack == null || stack.isEmpty()) {
@@ -109,7 +115,9 @@ public final class LogisticsWarehouseInventoryService {
         return remaining;
     }
 
-    /** insertIntoPlayerInventory: Shift 取出时按原版背包合并规则放入玩家背包。 */
+    /**
+     * insertIntoPlayerInventory: Shift 取出时按原版背包合并规则放入玩家背包。
+     */
     public static ItemStack insertIntoPlayerInventory(Inventory inventory, ItemStack stack) {
         if (inventory == null || stack == null || stack.isEmpty()) {
             return stack == null ? ItemStack.EMPTY : stack;
@@ -140,7 +148,9 @@ public final class LogisticsWarehouseInventoryService {
         return remaining;
     }
 
-    /** itemId: 生成稳定排序和展示用物品 ID。 */
+    /**
+     * itemId: 生成稳定排序和展示用物品 ID。
+     */
     public static String itemId(ItemStack stack) {
         return stack == null || stack.isEmpty() ? "" : stack.getItemHolder().unwrapKey()
                 .map(key -> key.location().toString())
@@ -184,7 +194,9 @@ public final class LogisticsWarehouseInventoryService {
         return current;
     }
 
-    /** usableContainers: 按规范坐标去重并跳过会重复暴露库存的副箱。 */
+    /**
+     * usableContainers: 按规范坐标去重并跳过会重复暴露库存的副箱。
+     */
     private static List<BlockPos> usableContainers(ServerLevel level, List<BlockPos> containers) {
         if (level == null || containers == null || containers.isEmpty()) {
             return List.of();
@@ -207,7 +219,9 @@ public final class LogisticsWarehouseInventoryService {
         return current != null && target != null && !current.isEmpty() && stacksMatchExactly(current, target);
     }
 
-    /** stacksMatchExactly: 1.21.1 下按物品和组件精确匹配，等价于旧版 NBT 精确匹配。 */
+    /**
+     * stacksMatchExactly: 1.21.1 下按物品和组件精确匹配，等价于旧版 NBT 精确匹配。
+     */
     private static boolean stacksMatchExactly(ItemStack first, ItemStack second) {
         return first != null && second != null && !first.isEmpty() && !second.isEmpty()
                 && ItemStack.isSameItemSameComponents(first, second);

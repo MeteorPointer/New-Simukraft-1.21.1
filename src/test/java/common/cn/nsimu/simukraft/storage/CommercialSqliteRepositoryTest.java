@@ -15,9 +15,7 @@ import java.sql.Statement;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class CommercialSqliteRepositoryTest {
     private static final String OVERWORLD = "minecraft:overworld";
@@ -26,7 +24,9 @@ class CommercialSqliteRepositoryTest {
     @TempDir
     Path tempDir;
 
-    /** accumulatesIncomeAndMarksEnterpriseTaxCollected: 验证商业日收入累加后只结算一次企业税。 */
+    /**
+     * accumulatesIncomeAndMarksEnterpriseTaxCollected: 验证商业日收入累加后只结算一次企业税。
+     */
     @Test
     void accumulatesIncomeAndMarksEnterpriseTaxCollected() throws Exception {
         try (SimuSqliteDatabase database = openDatabase(tempDir.resolve("commercial.sqlite"))) {
@@ -49,7 +49,9 @@ class CommercialSqliteRepositoryTest {
         }
     }
 
-    /** samePositionDifferentDimensionsStayIsolated: 同坐标不同维度的商业箱和库存互不影响。 */
+    /**
+     * samePositionDifferentDimensionsStayIsolated: 同坐标不同维度的商业箱和库存互不影响。
+     */
     @Test
     void samePositionDifferentDimensionsStayIsolated() throws Exception {
         try (SimuSqliteDatabase database = openDatabase(tempDir.resolve("commercial-dimension.sqlite"))) {
@@ -82,7 +84,9 @@ class CommercialSqliteRepositoryTest {
         }
     }
 
-    /** legacyBoxesMigrateToOverworld: 旧库没有 dimension_id 的商业箱升级后归入主世界。 */
+    /**
+     * legacyBoxesMigrateToOverworld: 旧库没有 dimension_id 的商业箱升级后归入主世界。
+     */
     @Test
     void legacyBoxesMigrateToOverworld() throws Exception {
         Path databasePath = tempDir.resolve("commercial-legacy.sqlite");
@@ -112,14 +116,18 @@ class CommercialSqliteRepositoryTest {
         }
     }
 
-    /** openDatabase: 通过反射创建测试用 SQLite 数据库实例。 */
+    /**
+     * openDatabase: 通过反射创建测试用 SQLite 数据库实例。
+     */
     private static SimuSqliteDatabase openDatabase(Path databasePath) throws Exception {
         Constructor<SimuSqliteDatabase> constructor = SimuSqliteDatabase.class.getDeclaredConstructor(Path.class);
         constructor.setAccessible(true);
         return constructor.newInstance(databasePath);
     }
 
-    /** insertCity: 为外键约束准备测试城市。 */
+    /**
+     * insertCity: 为外键约束准备测试城市。
+     */
     private static void insertCity(SimuSqliteDatabase database, UUID cityId) throws Exception {
         try (var connection = database.borrowConnection();
              PreparedStatement statement = connection.prepareStatement(

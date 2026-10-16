@@ -14,10 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 class GeologicalHammerItemTest {
@@ -37,7 +34,9 @@ class GeologicalHammerItemTest {
         assertEquals(ironPickaxe.get(DataComponents.ATTRIBUTE_MODIFIERS), hammer.get(DataComponents.ATTRIBUTE_MODIFIERS));
     }
 
-    /** addsMemorialDescription: 地质锤物品提示应显示本地化叙述。 */
+    /**
+     * addsMemorialDescription: 地质锤物品提示应显示本地化叙述。
+     */
     @Test
     void addsMemorialDescriptionToTooltip() {
         ItemStack hammer = new ItemStack(ModItems.GEOLOGICAL_HAMMER.get());
@@ -51,14 +50,18 @@ class GeologicalHammerItemTest {
                         && "tooltip.simukraft.geological_hammer.description".equals(contents.getKey())));
     }
 
-    /** limitsProspectingToSixtyBlocksBelowClick: 探查范围仅覆盖点击处向下 60 格且不低于世界下限。 */
+    /**
+     * limitsProspectingToSixtyBlocksBelowClick: 探查范围仅覆盖点击处向下 60 格且不低于世界下限。
+     */
     @Test
     void limitsProspectingToSixtyBlocksBelowClick() {
         assertEquals(40, GeologicalHammerItem.scanMinimumY(100, -64));
         assertEquals(-64, GeologicalHammerItem.scanMinimumY(-40, -64));
     }
 
-    /** matchesOnlyVeinsIntersectingProspectingRange: 仅命中与向下探查范围相交的矿脉。 */
+    /**
+     * matchesOnlyVeinsIntersectingProspectingRange: 仅命中与向下探查范围相交的矿脉。
+     */
     @Test
     void matchesOnlyVeinsIntersectingProspectingRange() {
         VirtualVeinSlot slot = new VirtualVeinSlot("copper", "铜矿脉",

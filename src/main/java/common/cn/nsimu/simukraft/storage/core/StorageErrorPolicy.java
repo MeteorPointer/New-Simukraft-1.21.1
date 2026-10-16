@@ -33,12 +33,16 @@ public final class StorageErrorPolicy {
         return StorageFault.ENV_FAULT;
     }
 
-    /** classify: op 代码抛出的运行时异常（NPE、非法参数等）是操作自身的问题，按 OP_FAULT 处理。 */
+    /**
+     * classify: op 代码抛出的运行时异常（NPE、非法参数等）是操作自身的问题，按 OP_FAULT 处理。
+     */
     public static StorageFault classify(RuntimeException exception) {
         return StorageFault.OP_FAULT;
     }
 
-    /** 环境故障回调。由数据库句柄接线到降级标记。 */
+    /**
+     * 环境故障回调。由数据库句柄接线到降级标记。
+     */
     @FunctionalInterface
     public interface FaultHandler {
         void onEnvironmentFault(String context, Throwable cause);

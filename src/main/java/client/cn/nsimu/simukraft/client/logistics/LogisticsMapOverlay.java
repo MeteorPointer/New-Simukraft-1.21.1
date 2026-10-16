@@ -41,7 +41,9 @@ final class LogisticsMapOverlay {
     private LogisticsMapOverlay() {
     }
 
-    /** laneOffset: 同一对端点多条线路时沿法线错开，避免完全重叠。 */
+    /**
+     * laneOffset: 同一对端点多条线路时沿法线错开，避免完全重叠。
+     */
     static float laneOffset(int slot, int total) {
         if (total <= 1) {
             return 0.0F;
@@ -49,39 +51,49 @@ final class LogisticsMapOverlay {
         return (slot - (total - 1) * 0.5F) * 5.0F;
     }
 
-    /** containsMarker: 判断鼠标是否点中端点图标。 */
+    /**
+     * containsMarker: 判断鼠标是否点中端点图标。
+     */
     static boolean containsMarker(double mouseX, double mouseY, int x, int y) {
         return mouseX >= x - HIT_RADIUS && mouseX <= x + HIT_RADIUS
                 && mouseY >= y - HIT_RADIUS && mouseY <= y + HIT_RADIUS;
     }
 
-    /** offsetAlongNormal: 把线段沿垂直方向平移，用于并行路线。 */
+    /**
+     * offsetAlongNormal: 把线段沿垂直方向平移，用于并行路线。
+     */
     static float[] offsetAlongNormal(float x1, float y1, float x2, float y2, float distance) {
         float dx = x2 - x1;
         float dy = y2 - y1;
         float length = (float) Math.hypot(dx, dy);
         if (length < 0.001F || distance == 0.0F) {
-            return new float[] {x1, y1, x2, y2};
+            return new float[]{x1, y1, x2, y2};
         }
         float nx = -dy / length * distance;
         float ny = dx / length * distance;
-        return new float[] {x1 + nx, y1 + ny, x2 + nx, y2 + ny};
+        return new float[]{x1 + nx, y1 + ny, x2 + nx, y2 + ny};
     }
 
-    /** arrowTipInset: 箭头尖端相对终点的内收距离，避免完全盖住节点。 */
+    /**
+     * arrowTipInset: 箭头尖端相对终点的内收距离，避免完全盖住节点。
+     */
     static float arrowTipInset(float length) {
         return Math.min(9.0F, length * 0.16F);
     }
 
-    /** arrowStops: 终点一侧箭头尖端的路径比例。 */
+    /**
+     * arrowStops: 终点一侧箭头尖端的路径比例。
+     */
     static float[] arrowStops(float length) {
         if (length < 18.0F) {
             return new float[0];
         }
-        return new float[] {1.0F - arrowTipInset(length) / length};
+        return new float[]{1.0F - arrowTipInset(length) / length};
     }
 
-    /** animationPhase: 把毫秒时间折成 0~1 的循环相位。 */
+    /**
+     * animationPhase: 把毫秒时间折成 0~1 的循环相位。
+     */
     static float animationPhase(long millis, long periodMs) {
         if (periodMs <= 0L) {
             return 0.0F;
@@ -90,7 +102,9 @@ final class LogisticsMapOverlay {
         return wrapped / (float) periodMs;
     }
 
-    /** flowShift: 流动标记沿路径的像素偏移。 */
+    /**
+     * flowShift: 流动标记沿路径的像素偏移。
+     */
     static float flowShift(float phase, float spacing) {
         float wrapped = phase - (float) Math.floor(phase);
         if (wrapped < 0.0F) {
@@ -99,7 +113,9 @@ final class LogisticsMapOverlay {
         return wrapped * spacing;
     }
 
-    /** distanceToSegment: 点到线段的最短像素距离，用于路线悬浮判定。 */
+    /**
+     * distanceToSegment: 点到线段的最短像素距离，用于路线悬浮判定。
+     */
     static double distanceToSegment(double px, double py, double x1, double y1, double x2, double y2) {
         double dx = x2 - x1;
         double dy = y2 - y1;
@@ -112,18 +128,24 @@ final class LogisticsMapOverlay {
         return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
     }
 
-    /** isNearRoute: 鼠标是否落在带车道偏移的路线附近。 */
+    /**
+     * isNearRoute: 鼠标是否落在带车道偏移的路线附近。
+     */
     static boolean isNearRoute(double mouseX, double mouseY, float x1, float y1, float x2, float y2, float lane) {
         return routeDistance(mouseX, mouseY, x1, y1, x2, y2, lane) <= ROUTE_HOVER_DISTANCE;
     }
 
-    /** routeDistance: 鼠标到绘制后直线的距离。 */
+    /**
+     * routeDistance: 鼠标到绘制后直线的距离。
+     */
     static double routeDistance(double mouseX, double mouseY, float x1, float y1, float x2, float y2, float lane) {
         float[] offset = offsetAlongNormal(x1, y1, x2, y2, lane);
         return distanceToSegment(mouseX, mouseY, offset[0], offset[1], offset[2], offset[3]);
     }
 
-    /** drawRoute: 画直线路径；终点实心箭头，启用时沿线流动，双向则两端各一枚箭头。 */
+    /**
+     * drawRoute: 画直线路径；终点实心箭头，启用时沿线流动，双向则两端各一枚箭头。
+     */
     static void drawRoute(GuiGraphics graphics, float x1, float y1, float x2, float y2,
                           boolean enabled, float lane, boolean highlighted, boolean bidirectional) {
         float[] offset = offsetAlongNormal(x1, y1, x2, y2, lane);
@@ -178,7 +200,9 @@ final class LogisticsMapOverlay {
         }
     }
 
-    /** drawWarehouseMarker: 仓库端点画成带屋顶的仓房图标。 */
+    /**
+     * drawWarehouseMarker: 仓库端点画成带屋顶的仓房图标。
+     */
     static void drawWarehouseMarker(GuiGraphics graphics, Font font, int x, int y, String label,
                                     boolean selected, boolean receiver, boolean sender) {
         drawRoleRings(graphics, x, y, 11, selected, receiver, sender);
@@ -189,7 +213,9 @@ final class LogisticsMapOverlay {
         drawLabel(graphics, font, label, x, y + 12);
     }
 
-    /** drawClientMarker: 客户端端点画成菱形节点。 */
+    /**
+     * drawClientMarker: 客户端端点画成菱形节点。
+     */
     static void drawClientMarker(GuiGraphics graphics, Font font, int x, int y, String label,
                                  boolean selected, boolean receiver, boolean sender) {
         drawRoleRings(graphics, x, y, 10, selected, receiver, sender);
@@ -240,12 +266,16 @@ final class LogisticsMapOverlay {
         graphics.drawCenteredString(font, text, x, y, LogisticsNativeStyle.TEXT);
     }
 
-    /** lineSteps: 按像素长度取样，供测试核对。 */
+    /**
+     * lineSteps: 按像素长度取样，供测试核对。
+     */
     static int lineSteps(float x1, float y1, float x2, float y2) {
         return Math.max(1, Math.round((float) Math.hypot(x2 - x1, y2 - y1)));
     }
 
-    /** appendLineQuad: 沿线做法线偏移四边形，正反两面都写，避免界面背面剔除。 */
+    /**
+     * appendLineQuad: 沿线做法线偏移四边形，正反两面都写，避免界面背面剔除。
+     */
     static void appendLineQuad(VertexConsumer consumer, Matrix4f matrix,
                                float x1, float y1, float x2, float y2, float width, int argb) {
         float dx = x2 - x1;
@@ -285,7 +315,9 @@ final class LogisticsMapOverlay {
         }
     }
 
-    /** appendFilledHead: 画上窄下宽的实心三角箭头，尖端指向 (ux, uy)。 */
+    /**
+     * appendFilledHead: 画上窄下宽的实心三角箭头，尖端指向 (ux, uy)。
+     */
     private static void appendFilledHead(VertexConsumer consumer, Matrix4f matrix,
                                          float baseX, float baseY, float tipX, float tipY,
                                          float ux, float uy, float headWidth, int core, int outline) {
@@ -303,7 +335,9 @@ final class LogisticsMapOverlay {
         putQuadBoth(consumer, matrix, leftX, leftY, tipX, tipY, rightX, rightY, baseX, baseY, core);
     }
 
-    /** appendFlowMarks: 沿线绘制朝终点移动的小箭头；双向时对向各一列。 */
+    /**
+     * appendFlowMarks: 沿线绘制朝终点移动的小箭头；双向时对向各一列。
+     */
     private static void appendFlowMarks(VertexConsumer consumer, Matrix4f matrix,
                                         float x1, float y1, float x2, float y2,
                                         float ux, float uy, boolean bidirectional) {
@@ -330,7 +364,9 @@ final class LogisticsMapOverlay {
         }
     }
 
-    /** appendMiniChevron: 流动用的小三角，尖端沿前进方向。 */
+    /**
+     * appendMiniChevron: 流动用的小三角，尖端沿前进方向。
+     */
     private static void appendMiniChevron(VertexConsumer consumer, Matrix4f matrix,
                                           float x, float y, float ux, float uy) {
         float px = -uy;

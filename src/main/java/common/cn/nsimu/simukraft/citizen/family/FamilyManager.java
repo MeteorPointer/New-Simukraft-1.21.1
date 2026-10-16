@@ -20,6 +20,7 @@ public final class FamilyManager extends SavedData {
     private final ConcurrentMap<UUID, FamilyData> families = new ConcurrentHashMap<>();
     private final ConcurrentMap<UUID, UUID> citizenFamilyIndex = new ConcurrentHashMap<>();
     private volatile boolean sqliteLoaded;
+
     public static FamilyManager get(ServerLevel level) {
         ServerLevel storageLevel = storageLevel(level);
         FamilyManager manager = storageLevel.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
@@ -195,7 +196,9 @@ public final class FamilyManager extends SavedData {
         return manager.getCitizen(citizenId).map(c -> c.dead()).orElse(true);
     }
 
-    /** dissolveIfSingle: 若该家庭是市民成年时创建的单身FORMING家庭，则将其从内存和数据库中清除。 */
+    /**
+     * dissolveIfSingle: 若该家庭是市民成年时创建的单身FORMING家庭，则将其从内存和数据库中清除。
+     */
     private void dissolveIfSingle(ServerLevel level, FamilyData family, UUID citizenId) {
         if (family == null || family.status() != FamilyStatus.FORMING) return;
         boolean isSelf = citizenId.equals(family.husbandId()) && family.wifeId() == null

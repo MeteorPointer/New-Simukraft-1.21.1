@@ -1,10 +1,6 @@
 package client.cn.nsimu.simukraft.client.config;
 
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ItemStackTexture;
+import com.lowdragmc.lowdraglib2.gui.texture.*;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
 import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
@@ -51,7 +47,9 @@ final class SimuKraftMaterialCategoryGroupEditor {
         selectedGroup = groupNames.isEmpty() ? null : groupNames.getFirst();
     }
 
-    /** create: 创建旧版三栏通类匹配组编辑器。 */
+    /**
+     * create: 创建旧版三栏通类匹配组编辑器。
+     */
     static UIElement create(Component title, Component hint, List<String> values, Consumer<List<String>> onChanged) {
         SimuKraftMaterialCategoryGroupEditor editor = new SimuKraftMaterialCategoryGroupEditor(values, onChanged);
         return editor.build(title, hint);
@@ -144,7 +142,8 @@ final class SimuKraftMaterialCategoryGroupEditor {
             layout.gapAll(4);
             layout.flexShrink(0);
         });
-        TextField field = SimuKraftConfigWidgets.textField("", value -> {});
+        TextField field = SimuKraftConfigWidgets.textField("", value -> {
+        });
         field.textFieldStyle(style -> style.placeholder(placeholder));
         field.layout(layout -> {
             layout.flex(1);
@@ -160,7 +159,9 @@ final class SimuKraftMaterialCategoryGroupEditor {
         return row;
     }
 
-    /** itemSearchRow: 使用 SearchComponent 搜索物品/方块并限制候选渲染量。 */
+    /**
+     * itemSearchRow: 使用 SearchComponent 搜索物品/方块并限制候选渲染量。
+     */
     private SearchComponent<String> itemSearchRow(Consumer<String> addAction) {
         SearchComponent<String> search = new SearchComponent<>(new SearchComponent.ISearchUI<>() {
             @Override
@@ -289,7 +290,8 @@ final class SimuKraftMaterialCategoryGroupEditor {
     }
 
     private Button itemRow(String itemId, int textColor, Runnable deleteAction) {
-        Button row = rowButton(() -> {}, SimuKraftConfigWidgets.CARD_BG);
+        Button row = rowButton(() -> {
+        }, SimuKraftConfigWidgets.CARD_BG);
         row.addChild(new UIElement().layout(layout -> {
             layout.width(ICON_SIZE);
             layout.height(ICON_SIZE);

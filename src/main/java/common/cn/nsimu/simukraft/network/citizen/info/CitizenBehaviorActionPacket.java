@@ -4,8 +4,8 @@ import com.lowdragmc.lowdraglib2.gui.holder.ModularUIContainerMenu;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.citizen.CitizenInfoMenuHolder;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
-import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteCitizenAccess;
+import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -16,7 +16,9 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
 
-/** NPC 信息界面的跟随与原地停留操作。 */
+/**
+ * NPC 信息界面的跟随与原地停留操作。
+ */
 
 public record CitizenBehaviorActionPacket(UUID citizenId, Action action) implements CustomPacketPayload {
     public static final Type<CitizenBehaviorActionPacket> TYPE = new Type<>(
@@ -34,18 +36,24 @@ public record CitizenBehaviorActionPacket(UUID citizenId, Action action) impleme
         return TYPE;
     }
 
-    /** encode：写入目标 UUID 和有限枚举序号。 */
+    /**
+     * encode：写入目标 UUID 和有限枚举序号。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, CitizenBehaviorActionPacket packet) {
         buffer.writeUUID(packet.citizenId());
         buffer.writeEnum(packet.action());
     }
 
-    /** decode：读取目标 UUID 和操作类型。 */
+    /**
+     * decode：读取目标 UUID 和操作类型。
+     */
     public static CitizenBehaviorActionPacket decode(RegistryFriendlyByteBuf buffer) {
         return new CitizenBehaviorActionPacket(buffer.readUUID(), buffer.readEnum(Action.class));
     }
 
-    /** handle：仅允许当前打开对应 NPC 容器且仍在八格内的玩家修改行为。 */
+    /**
+     * handle：仅允许当前打开对应 NPC 容器且仍在八格内的玩家修改行为。
+     */
     public static void handle(CitizenBehaviorActionPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player)
                 || !(player.level() instanceof ServerLevel level)

@@ -204,7 +204,9 @@ public final class CityChunkManager extends SavedData {
                 || chunks.contains(ChunkPos.asLong(chunkPos.x, chunkPos.z - 1));
     }
 
-    /** isConnectedToCore：判断目标区块是否与城市核心所在的主领地连通。 */
+    /**
+     * isConnectedToCore：判断目标区块是否与城市核心所在的主领地连通。
+     */
     public synchronized boolean isConnectedToCore(UUID cityId, long chunkLong, long coreChunkLong) {
         Set<Long> chunks = cityChunks.get(cityId);
         if (chunks == null || !chunks.contains(coreChunkLong)) {
@@ -237,7 +239,9 @@ public final class CityChunkManager extends SavedData {
         return false;
     }
 
-    /** countEnclaves：统计与城市核心区块不连通的四向区块连通分量数量。 */
+    /**
+     * countEnclaves：统计与城市核心区块不连通的四向区块连通分量数量。
+     */
     public synchronized int countEnclaves(UUID cityId, long coreChunkLong) {
         Set<Long> chunks = cityChunks.get(cityId);
         if (chunks == null || chunks.isEmpty()) {

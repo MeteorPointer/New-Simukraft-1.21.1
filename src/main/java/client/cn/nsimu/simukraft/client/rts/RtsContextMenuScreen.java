@@ -13,7 +13,9 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** RTS 右键下拉菜单：只负责客户端菜单呈现和发送已验证的动作请求。 */
+/**
+ * RTS 右键下拉菜单：只负责客户端菜单呈现和发送已验证的动作请求。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class RtsContextMenuScreen extends Screen {
@@ -44,7 +46,9 @@ public final class RtsContextMenuScreen extends Screen {
         this.cursorY = cursorY;
     }
 
-    /** open: 在当前系统光标附近打开菜单。 */
+    /**
+     * open: 在当前系统光标附近打开菜单。
+     */
     public static void open(BlockPos targetPos) {
         Minecraft minecraft = Minecraft.getInstance();
         if (targetPos == null || minecraft.screen != null) {
@@ -75,7 +79,9 @@ public final class RtsContextMenuScreen extends Screen {
         closeMenu();
     }
 
-    /** beginMove: 关闭菜单并把目标交给光标落点选择状态。 */
+    /**
+     * beginMove: 关闭菜单并把目标交给光标落点选择状态。
+     */
     private void beginMove() {
         RtsSelectionManager.beginMove(targetPos);
         closeMenu();
@@ -161,7 +167,9 @@ public final class RtsContextMenuScreen extends Screen {
         return -1;
     }
 
-    /** resolveTargetName: 建筑优先显示登记名称，普通方块显示当前语言的本地化名称。 */
+    /**
+     * resolveTargetName: 建筑优先显示登记名称，普通方块显示当前语言的本地化名称。
+     */
     private static Component resolveTargetName(BlockPos targetPos) {
         String buildingName = BuildingBoundsRenderer.knownRtsBuildingNameAt(targetPos);
         if (!buildingName.isBlank()) {
@@ -177,7 +185,9 @@ public final class RtsContextMenuScreen extends Screen {
         return Component.empty();
     }
 
-    /** fitTitle: 将标题限制在既有窄菜单宽度内，避免名称越界。 */
+    /**
+     * fitTitle: 将标题限制在既有窄菜单宽度内，避免名称越界。
+     */
     private String fitTitle(String title) {
         int maxWidth = MENU_WIDTH - 12;
         if (font.width(title) <= maxWidth) {

@@ -14,30 +14,40 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-/** MineralDrillingOutputService: 将钻井产物写入钻井平台结构内的木桶。 */
+/**
+ * MineralDrillingOutputService: 将钻井产物写入钻井平台结构内的木桶。
+ */
 
 public final class MineralDrillingOutputService {
     private MineralDrillingOutputService() {
     }
 
-    /** canStore: 在扣减矿脉储量前，确认所有产物均可放入平台木桶。 */
+    /**
+     * canStore: 在扣减矿脉储量前，确认所有产物均可放入平台木桶。
+     */
     public static boolean canStore(ServerLevel level, PlacedBuildingRecord building, ItemStack stack) {
         return canStoreInContainers(outputContainers(level, building), stack);
     }
 
-    /** store: 将已确认有容量的产物依次写入平台木桶。 */
+    /**
+     * store: 将已确认有容量的产物依次写入平台木桶。
+     */
     public static boolean store(ServerLevel level, PlacedBuildingRecord building, ItemStack stack) {
         return storeInContainers(outputContainers(level, building), stack);
     }
 
-    /** canStoreAll: 在扣减多个重叠矿脉前一次性预检全部产物的总容量。 */
+    /**
+     * canStoreAll: 在扣减多个重叠矿脉前一次性预检全部产物的总容量。
+     */
     public static boolean canStoreAll(ServerLevel level,
                                       PlacedBuildingRecord building,
                                       List<ItemStack> stacks) {
         return canStoreAllInContainers(outputContainers(level, building), stacks);
     }
 
-    /** storeAll: 将同一 Y 层多个矿脉的产物合并写入平台木桶。 */
+    /**
+     * storeAll: 将同一 Y 层多个矿脉的产物合并写入平台木桶。
+     */
     public static boolean storeAll(ServerLevel level,
                                    PlacedBuildingRecord building,
                                    List<ItemStack> stacks) {
@@ -105,7 +115,9 @@ public final class MineralDrillingOutputService {
         return true;
     }
 
-    /** outputContainers: 优先使用钻井 JSON 声明的木桶，兼容旧建筑包的结构扫描。 */
+    /**
+     * outputContainers: 优先使用钻井 JSON 声明的木桶，兼容旧建筑包的结构扫描。
+     */
     private static List<Container> outputContainers(ServerLevel level, PlacedBuildingRecord building) {
         if (level == null || building == null) {
             return List.of();
@@ -124,7 +136,9 @@ public final class MineralDrillingOutputService {
         return List.copyOf(barrels);
     }
 
-    /** legacyBarrelPositions: 为没有专用 JSON 的旧钻井平台扫描结构木桶。 */
+    /**
+     * legacyBarrelPositions: 为没有专用 JSON 的旧钻井平台扫描结构木桶。
+     */
     private static List<BlockPos> legacyBarrelPositions(ServerLevel level, PlacedBuildingRecord building) {
         if (building.blocks() == null || building.blocks().isEmpty()) {
             return List.of();
@@ -142,14 +156,18 @@ public final class MineralDrillingOutputService {
         return List.copyOf(positions);
     }
 
-    /** addBarrelPosition: 仅保留已加载且未被玩家替换的结构木桶。 */
+    /**
+     * addBarrelPosition: 仅保留已加载且未被玩家替换的结构木桶。
+     */
     private static void addBarrelPosition(ServerLevel level, Set<BlockPos> positions, BlockPos candidate) {
         if (level.isLoaded(candidate) && level.getBlockState(candidate).is(Blocks.BARREL)) {
             positions.add(candidate.immutable());
         }
     }
 
-    /** simulateInsert: 使用容器快照计算单个木桶对产物的可容纳数量。 */
+    /**
+     * simulateInsert: 使用容器快照计算单个木桶对产物的可容纳数量。
+     */
     private static ItemStack simulateInsert(Container container, ItemStack stack) {
         if (container == null || stack.isEmpty()) {
             return stack;
@@ -177,8 +195,8 @@ public final class MineralDrillingOutputService {
     }
 
     private static ItemStack mergeSnapshot(ContainerSnapshot snapshot,
-                                            ItemStack remaining,
-                                            boolean emptySlots) {
+                                           ItemStack remaining,
+                                           boolean emptySlots) {
         merge(snapshot.container(), snapshot.slots(), remaining, emptySlots);
         return remaining;
     }
@@ -198,7 +216,9 @@ public final class MineralDrillingOutputService {
         return snapshots;
     }
 
-    /** insert: 先合并同类物品，再填充空槽，保持木桶库存紧凑。 */
+    /**
+     * insert: 先合并同类物品，再填充空槽，保持木桶库存紧凑。
+     */
     private static ItemStack insert(Container container, ItemStack stack) {
         if (container == null || stack.isEmpty()) {
             return stack;
@@ -231,7 +251,9 @@ public final class MineralDrillingOutputService {
         return remaining;
     }
 
-    /** merge: 将产物合并进虚拟槽位，用于无副作用容量预检。 */
+    /**
+     * merge: 将产物合并进虚拟槽位，用于无副作用容量预检。
+     */
     private static void merge(Container container, List<ItemStack> slots, ItemStack remaining, boolean emptySlots) {
         for (int slot = 0; slot < slots.size() && !remaining.isEmpty(); slot++) {
             ItemStack existing = slots.get(slot);

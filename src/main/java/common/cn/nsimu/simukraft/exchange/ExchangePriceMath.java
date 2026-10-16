@@ -4,7 +4,9 @@ import common.cn.nsimu.simukraft.economy.EconomyService;
 
 import java.util.List;
 
-/** ExchangePriceMath: 每小时向合理价回归，并计入这一小时的净买卖。 */
+/**
+ * ExchangePriceMath: 每小时向合理价回归，并计入这一小时的净买卖。
+ */
 public final class ExchangePriceMath {
     private static final double HOURLY_STEP = 0.045D;
     private static final double TRADE_ROOM = 0.08D;
@@ -44,7 +46,9 @@ public final class ExchangePriceMath {
         return EconomyService.normalizeAmount(Math.max(0.01D, price * (1.0D + change)));
     }
 
-    /** volume: 行业越忙、波动越大、玩家成交越多，量越大。 */
+    /**
+     * volume: 行业越忙、波动越大、玩家成交越多，量越大。
+     */
     public static int volume(double previous, double next, int tradedShares, double sectorScore) {
         double move = previous <= 0.0D ? 0.0D : Math.abs(next - previous) / previous;
         double activity = clamp((sectorScore + 1.0D) * 0.5D, 0.0D, 1.0D);
@@ -52,7 +56,9 @@ public final class ExchangePriceMath {
         return Math.max(1, organic + Math.max(0, tradedShares));
     }
 
-    /** simpleMovingAverage: 收盘价简单均线，样本不足返回 NaN。 */
+    /**
+     * simpleMovingAverage: 收盘价简单均线，样本不足返回 NaN。
+     */
     public static double simpleMovingAverage(List<ExchangeCandle> candles, int index, int period) {
         if (candles == null || period <= 0 || index < period - 1 || index >= candles.size()) {
             return Double.NaN;

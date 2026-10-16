@@ -25,12 +25,16 @@ final class LogisticsNativeStyle {
     private LogisticsNativeStyle() {
     }
 
-    /** drawBackdrop: 绘制旧版物流界面的半透明深色背景。 */
+    /**
+     * drawBackdrop: 绘制旧版物流界面的半透明深色背景。
+     */
     static void drawBackdrop(GuiGraphics graphics, int width, int height) {
         graphics.fill(0, 0, width, height, 0x660D0D1A);
     }
 
-    /** drawPanel: 绘制旧版直角信息面板。 */
+    /**
+     * drawPanel: 绘制旧版直角信息面板。
+     */
     static void drawPanel(GuiGraphics graphics, int x, int y, int width, int height) {
         graphics.fill(x, y, x + width, y + height, PANEL);
         graphics.fill(x, y, x + width, y + 1, PANEL_LINE);
@@ -39,22 +43,30 @@ final class LogisticsNativeStyle {
         graphics.fill(x + width - 1, y, x + width, y + height, PANEL_LINE);
     }
 
-    /** button: 创建原生按钮，外观跟随 Minecraft 默认样式。 */
+    /**
+     * button: 创建原生按钮，外观跟随 Minecraft 默认样式。
+     */
     static Button button(Component text, int x, int y, int width, int height, Runnable action) {
         return Button.builder(text, ignored -> action.run()).bounds(x, y, width, height).build();
     }
 
-    /** drawFitString: 在给定宽度内绘制单行文本，过长时截断。 */
+    /**
+     * drawFitString: 在给定宽度内绘制单行文本，过长时截断。
+     */
     static void drawFitString(GuiGraphics graphics, Font font, String text, int x, int y, int maxWidth, int color) {
         graphics.drawString(font, fit(font, text, maxWidth), x, y, color, false);
     }
 
-    /** drawFitString: 在给定宽度内绘制组件文本，过长时截断。 */
+    /**
+     * drawFitString: 在给定宽度内绘制组件文本，过长时截断。
+     */
     static void drawFitString(GuiGraphics graphics, Font font, Component text, int x, int y, int maxWidth, int color) {
         drawFitString(graphics, font, text.getString(), x, y, maxWidth, color);
     }
 
-    /** drawStatusBadge: 绘制路线启停状态的红绿文字色块。 */
+    /**
+     * drawStatusBadge: 绘制路线启停状态的红绿文字色块。
+     */
     static void drawStatusBadge(GuiGraphics graphics, Font font, boolean enabled, int x, int y) {
         String text = enabled ? "ON" : "OFF";
         int width = 25;
@@ -69,7 +81,9 @@ final class LogisticsNativeStyle {
         graphics.drawCenteredString(font, text, x + width / 2, y + 1, TEXT);
     }
 
-    /** fit: 将长文本压缩成带省略号的单行内容。 */
+    /**
+     * fit: 将长文本压缩成带省略号的单行内容。
+     */
     static String fit(Font font, String text, int maxWidth) {
         if (text == null || maxWidth <= 0 || font.width(text) <= maxWidth) {
             return text == null ? "" : text;
@@ -82,12 +96,16 @@ final class LogisticsNativeStyle {
         return font.plainSubstrByWidth(text, Math.max(1, maxWidth - ellipsisWidth)) + ellipsis;
     }
 
-    /** posText: 格式化方块坐标，供列表和提示使用。 */
+    /**
+     * posText: 格式化方块坐标，供列表和提示使用。
+     */
     static String posText(BlockPos pos) {
         return pos.getX() + ", " + pos.getY() + ", " + pos.getZ();
     }
 
-    /** clamp: 将数值限制到指定范围。 */
+    /**
+     * clamp: 将数值限制到指定范围。
+     */
     static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
     }

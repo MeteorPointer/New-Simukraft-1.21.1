@@ -2,8 +2,8 @@ package common.cn.nsimu.simukraft.network.logistics;
 
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.logistics.LogisticsControlBoxService;
-import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.nsimu.simukraft.logistics.LogisticsDirection;
+import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
@@ -17,9 +17,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.UUID;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 
 public record LogisticsBoxActionPacket(BlockPos boxPos,
@@ -156,10 +156,13 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
     private static LogisticsControlBoxService.ActionResult applyServer(ServerLevel level, ServerPlayer player, LogisticsBoxActionPacket packet) {
         return switch (packet.action()) {
             case BIND_WAREHOUSE_ADJACENT -> LogisticsControlBoxService.bindWarehouseAdjacent(level, packet.boxPos());
-            case BIND_WAREHOUSE_AREA -> LogisticsControlBoxService.bindWarehouseArea(level, packet.boxPos(), packet.areaMin(), packet.areaMax());
+            case BIND_WAREHOUSE_AREA ->
+                    LogisticsControlBoxService.bindWarehouseArea(level, packet.boxPos(), packet.areaMin(), packet.areaMax());
             case DELETE_WAREHOUSE -> LogisticsControlBoxService.deleteWarehouse(level, packet.boxPos());
-            case REMOVE_WAREHOUSE_CONTAINER -> LogisticsControlBoxService.removeWarehouseContainer(level, packet.boxPos(), packet.targetPos());
-            case ADD_CHANNEL -> LogisticsControlBoxService.addChannel(level, packet.boxPos(), packet.clientId(), packet.direction(), packet.value(), packet.filters());
+            case REMOVE_WAREHOUSE_CONTAINER ->
+                    LogisticsControlBoxService.removeWarehouseContainer(level, packet.boxPos(), packet.targetPos());
+            case ADD_CHANNEL ->
+                    LogisticsControlBoxService.addChannel(level, packet.boxPos(), packet.clientId(), packet.direction(), packet.value(), packet.filters());
             case TOGGLE_CHANNEL -> LogisticsControlBoxService.toggleChannel(level, packet.channelId());
             case DELETE_CHANNEL -> LogisticsControlBoxService.removeChannel(level, packet.channelId());
             case SET_CHANNEL_KEEP_QUANTITY -> {
@@ -174,7 +177,8 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
                 }
             }
             case DEPOSIT_INVENTORY -> LogisticsControlBoxService.depositPlayerInventory(level, packet.boxPos(), player);
-            case EXTRACT_ITEM -> LogisticsControlBoxService.extractWarehouseItem(level, packet.boxPos(), player, packet.value());
+            case EXTRACT_ITEM ->
+                    LogisticsControlBoxService.extractWarehouseItem(level, packet.boxPos(), player, packet.value());
             default -> LogisticsControlBoxService.ActionResult.INVALID_TARGET;
         };
     }
@@ -182,8 +186,10 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
     private static LogisticsControlBoxService.ActionResult applyClient(ServerLevel level, LogisticsBoxActionPacket packet) {
         return switch (packet.action()) {
             case BIND_CLIENT_ADJACENT -> LogisticsControlBoxService.bindClientAdjacent(level, packet.boxPos());
-            case BIND_CLIENT_AREA -> LogisticsControlBoxService.bindClientArea(level, packet.boxPos(), packet.areaMin(), packet.areaMax());
-            case REMOVE_CLIENT_PORT -> LogisticsControlBoxService.removeClientPort(level, packet.boxPos(), packet.value());
+            case BIND_CLIENT_AREA ->
+                    LogisticsControlBoxService.bindClientArea(level, packet.boxPos(), packet.areaMin(), packet.areaMax());
+            case REMOVE_CLIENT_PORT ->
+                    LogisticsControlBoxService.removeClientPort(level, packet.boxPos(), packet.value());
             case RENAME_CLIENT -> LogisticsControlBoxService.renameClient(level, packet.boxPos(), packet.value());
             case TOGGLE_CHANNEL -> LogisticsControlBoxService.toggleChannel(level, packet.channelId());
             case DELETE_CHANNEL -> LogisticsControlBoxService.removeChannel(level, packet.channelId());
@@ -201,14 +207,22 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
 
     private static void sendResult(ServerPlayer player, LogisticsControlBoxService.ActionResult result) {
         switch (result) {
-            case SUCCESS -> InfoToastService.success(player, Component.translatable("message.simukraft.logistics.action_success"));
-            case NO_CONTAINER -> InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.no_adjacent_container"));
-            case NO_SPACE -> InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.no_space"));
-            case LIMIT_REACHED -> InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.limit_reached"));
-            case AREA_TOO_LARGE -> InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.area_too_large"));
-            case INVALID_TARGET -> InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.invalid_target"));
-            case NO_PERMISSION -> InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.no_permission"));
-            case NOT_FOUND -> InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.not_found"));
+            case SUCCESS ->
+                    InfoToastService.success(player, Component.translatable("message.simukraft.logistics.action_success"));
+            case NO_CONTAINER ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.no_adjacent_container"));
+            case NO_SPACE ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.no_space"));
+            case LIMIT_REACHED ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.limit_reached"));
+            case AREA_TOO_LARGE ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.area_too_large"));
+            case INVALID_TARGET ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.invalid_target"));
+            case NO_PERMISSION ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.no_permission"));
+            case NOT_FOUND ->
+                    InfoToastService.warning(player, Component.translatable("message.simukraft.logistics.not_found"));
         }
     }
 }

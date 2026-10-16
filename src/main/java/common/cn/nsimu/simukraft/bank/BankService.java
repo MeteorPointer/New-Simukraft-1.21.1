@@ -14,7 +14,9 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 
-/** BankService: 存钱、取钱、城际转账。 */
+/**
+ * BankService: 存钱、取钱、城际转账。
+ */
 public final class BankService {
     public enum Action {
         DEPOSIT,
@@ -39,7 +41,9 @@ public final class BankService {
     private BankService() {
     }
 
-    /** execute: 执行银行柜面操作。 */
+    /**
+     * execute: 执行银行柜面操作。
+     */
     public static Result execute(ServerLevel level, ServerPlayer player, BlockPos boxPos,
                                  Action action, double amount, String transferTarget) {
         if (!BankControlBoxService.isOperational(level, boxPos)) {

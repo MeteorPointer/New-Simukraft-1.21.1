@@ -31,7 +31,9 @@ public final class CitizenFoodConsumptionService {
     private CitizenFoodConsumptionService() {
     }
 
-    /** canEatStack: 判断指定物品是否能给未吃饱的 NPC 增加饥饿值。 */
+    /**
+     * canEatStack: 判断指定物品是否能给未吃饱的 NPC 增加饥饿值。
+     */
     public static boolean canEatStack(CitizenEntity entity, ItemStack stack) {
         if (entity == null || entity.getHungerValue() >= FULL_HUNGER) {
             return false;
@@ -40,13 +42,17 @@ public final class CitizenFoodConsumptionService {
         return properties != null && properties.nutrition() > 0;
     }
 
-    /** isFoodStack：判断物品是否为可供 NPC 食用的有效食物，不受当前饱食度影响。 */
+    /**
+     * isFoodStack：判断物品是否为可供 NPC 食用的有效食物，不受当前饱食度影响。
+     */
     public static boolean isFoodStack(CitizenEntity entity, ItemStack stack) {
         FoodProperties properties = foodProperties(entity, stack);
         return properties != null && properties.nutrition() > 0;
     }
 
-    /** tryEatBackpackFood：让未吃饱的 NPC 从真实背包取出并食用一份食物。 */
+    /**
+     * tryEatBackpackFood：让未吃饱的 NPC 从真实背包取出并食用一份食物。
+     */
     public static boolean tryEatBackpackFood(ServerLevel level, CitizenEntity entity, CitizenData data) {
         if (level == null || entity == null || data == null || data.dead() || entity.getHungerValue() >= FULL_HUNGER) {
             return false;
@@ -64,7 +70,9 @@ public final class CitizenFoodConsumptionService {
         return false;
     }
 
-    /** foodProperties: 兼容读取原版和模组食物属性，异常只记录一次。 */
+    /**
+     * foodProperties: 兼容读取原版和模组食物属性，异常只记录一次。
+     */
     static FoodProperties foodProperties(CitizenEntity entity, ItemStack stack) {
         if (stack == null || stack.isEmpty()) {
             return null;
@@ -80,7 +88,9 @@ public final class CitizenFoodConsumptionService {
         }
     }
 
-    /** applyFood: 应用一次食物效果并同步实体 NBT 饱食度和吃饭表现。 */
+    /**
+     * applyFood: 应用一次食物效果并同步实体 NBT 饱食度和吃饭表现。
+     */
     static boolean applyFood(ServerLevel level, CitizenEntity entity, CitizenData data, ItemStack visualStack, FoodProperties properties) {
         if (level == null || entity == null || data == null || data.dead() || properties == null) {
             return false;
@@ -111,7 +121,9 @@ public final class CitizenFoodConsumptionService {
         return true;
     }
 
-    /** clearExpiredVisual: 到期后恢复 NPC 原本的职业手持物。 */
+    /**
+     * clearExpiredVisual: 到期后恢复 NPC 原本的职业手持物。
+     */
     public static void clearExpiredVisual(ServerLevel level, CitizenEntity entity, CitizenData data) {
         if (level == null || entity == null || data == null) {
             return;
@@ -126,7 +138,9 @@ public final class CitizenFoodConsumptionService {
         }
     }
 
-    /** clearServerCaches: 清理指定服务器存档下的吃饭表现缓存。 */
+    /**
+     * clearServerCaches: 清理指定服务器存档下的吃饭表现缓存。
+     */
     public static void clearServerCaches(MinecraftServer server) {
         String serverKey = SaveScopedCacheKey.serverKey(server).toLowerCase(Locale.ROOT);
         RUNTIMES.forEach((key, runtime) -> {
@@ -137,12 +151,16 @@ public final class CitizenFoodConsumptionService {
         RUNTIMES.keySet().removeIf(key -> key.startsWith(serverKey + "|"));
     }
 
-    /** runtime: 按存档和维度隔离运行时缓存，避免跨世界串数据。 */
+    /**
+     * runtime: 按存档和维度隔离运行时缓存，避免跨世界串数据。
+     */
     private static LevelRuntime runtime(ServerLevel level) {
         return RUNTIMES.computeIfAbsent(SaveScopedCacheKey.levelKey(level).toLowerCase(Locale.ROOT), ignored -> new LevelRuntime());
     }
 
-    /** isFoodPoisoningItem: 判断食物是否会触发食物中毒。 */
+    /**
+     * isFoodPoisoningItem: 判断食物是否会触发食物中毒。
+     */
     static boolean isFoodPoisoningItem(ItemStack stack) {
         if (stack == null || stack.isEmpty()) return false;
         Item item = stack.getItem();

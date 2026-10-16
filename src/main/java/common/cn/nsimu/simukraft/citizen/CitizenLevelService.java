@@ -65,7 +65,9 @@ public final class CitizenLevelService {
         return new CitizenSkillSnapshot(normalizedType, level, xp, normalizedMaxLevel);
     }
 
-    /** setExperience：直接将 NPC 全局 XP 设为指定值（上限为满级所需 XP）。 */
+    /**
+     * setExperience：直接将 NPC 全局 XP 设为指定值（上限为满级所需 XP）。
+     */
     public static LevelUpdateResult setExperience(ServerLevel level, UUID citizenId, CityJobType skillType, int xp) {
         CityJobType normalizedType = normalizeSkillType(skillType);
         if (level == null || citizenId == null) {
@@ -90,7 +92,9 @@ public final class CitizenLevelService {
         return result;
     }
 
-    /** removeExperience：从 NPC 当前 XP 中减去指定数值（下限为 0）。 */
+    /**
+     * removeExperience：从 NPC 当前 XP 中减去指定数值（下限为 0）。
+     */
     public static LevelUpdateResult removeExperience(ServerLevel level, UUID citizenId, CityJobType skillType, int amount) {
         CityJobType normalizedType = normalizeSkillType(skillType);
         if (level == null || citizenId == null || amount <= 0) {
@@ -115,7 +119,9 @@ public final class CitizenLevelService {
         return result;
     }
 
-    /** setLevel：将 NPC 等级直接设为目标值，XP 置为该等级的起始值。 */
+    /**
+     * setLevel：将 NPC 等级直接设为目标值，XP 置为该等级的起始值。
+     */
     public static LevelUpdateResult setLevel(ServerLevel level, UUID citizenId, CityJobType skillType, int targetLevel) {
         CityJobType normalizedType = normalizeSkillType(skillType);
         if (level == null || citizenId == null) {

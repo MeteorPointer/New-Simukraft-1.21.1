@@ -1,8 +1,8 @@
 package client.cn.nsimu.simukraft.client;
 
+import common.cn.nsimu.simukraft.city.CityPermissionLevel;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import common.cn.nsimu.simukraft.city.CityPermissionLevel;
 
 @OnlyIn(Dist.CLIENT)
 public final class ClientSimukraftData {

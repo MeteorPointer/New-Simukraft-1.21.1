@@ -11,12 +11,7 @@ import net.minecraft.server.level.ServerLevel;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -79,7 +74,9 @@ public final class SimuSqliteStorage {
 
     // ── 生命周期 ──────────────────────────────────────────────────────────────
 
-    /** bootstrap: 服务器启动时打开数据库并建表，把建库失败暴露在启动阶段而不是首个 tick。 */
+    /**
+     * bootstrap: 服务器启动时打开数据库并建表，把建库失败暴露在启动阶段而不是首个 tick。
+     */
     public static void bootstrap(MinecraftServer server) {
         if (server == null) {
             return;
@@ -90,13 +87,17 @@ public final class SimuSqliteStorage {
         }
     }
 
-    /** flush: 等待已提交的写入全部落库。关服与调试命令用。 */
+    /**
+     * flush: 等待已提交的写入全部落库。关服与调试命令用。
+     */
     public static boolean flush(MinecraftServer server) {
         SimuSqliteStorage storage = server != null ? STORAGES.get(server) : null;
         return storage == null || storage.database.drainWrites();
     }
 
-    /** shutdown: 排空写队列、checkpoint WAL 并关闭数据库。必须在清理各服务缓存之前调用。 */
+    /**
+     * shutdown: 排空写队列、checkpoint WAL 并关闭数据库。必须在清理各服务缓存之前调用。
+     */
     public static void shutdown(MinecraftServer server) {
         if (server == null) {
             return;
@@ -109,7 +110,9 @@ public final class SimuSqliteStorage {
         }
     }
 
-    /** forgetServer: 服务器实例彻底退出后释放引用，避免 SHUTDOWN 集合长期持有强引用。 */
+    /**
+     * forgetServer: 服务器实例彻底退出后释放引用，避免 SHUTDOWN 集合长期持有强引用。
+     */
     public static void forgetServer(MinecraftServer server) {
         if (server != null) {
             STORAGES.remove(server);
@@ -117,13 +120,17 @@ public final class SimuSqliteStorage {
         }
     }
 
-    /** isDegraded: 数据库是否已进入降级（只读）状态。 */
+    /**
+     * isDegraded: 数据库是否已进入降级（只读）状态。
+     */
     public static boolean isDegraded(ServerLevel level) {
         SimuSqliteStorage storage = level != null && level.getServer() != null ? STORAGES.get(level.getServer()) : null;
         return storage == null || storage.database.isDegraded();
     }
 
-    /** summarizeStorage: 输出主库的指标快照（/simukraft storage 命令用）；库不可用时返回不可用说明。 */
+    /**
+     * summarizeStorage: 输出主库的指标快照（/simukraft storage 命令用）；库不可用时返回不可用说明。
+     */
     public static String summarizeStorage(MinecraftServer server) {
         SimuSqliteStorage storage = server != null ? STORAGES.get(server) : null;
         return storage != null
@@ -148,13 +155,17 @@ public final class SimuSqliteStorage {
         return level != null ? openSafely(level.getServer()) : null;
     }
 
-    /** StorageWrite: 一次针对仓库的写入。允许抛出 SQLException，由写线程的事务边界统一处理。 */
+    /**
+     * StorageWrite: 一次针对仓库的写入。允许抛出 SQLException，由写线程的事务边界统一处理。
+     */
     @FunctionalInterface
     private interface StorageWrite {
         void execute(SimuSqliteStorage storage, Connection connection) throws SQLException;
     }
 
-    /** write: 提交一次带合并键的写入；库不可用或已降级时静默丢弃（内存仍是权威）。 */
+    /**
+     * write: 提交一次带合并键的写入；库不可用或已降级时静默丢弃（内存仍是权威）。
+     */
     private static void write(ServerLevel level, String key, StorageWrite action) {
         SimuSqliteStorage storage = openSafely(level);
         if (storage != null) {
@@ -162,7 +173,9 @@ public final class SimuSqliteStorage {
         }
     }
 
-    /** writeOrdered: 提交一次不参与合并的写入，严格按提交顺序执行（多行/集合写入用）。 */
+    /**
+     * writeOrdered: 提交一次不参与合并的写入，严格按提交顺序执行（多行/集合写入用）。
+     */
     private static void writeOrdered(ServerLevel level, StorageWrite action) {
         SimuSqliteStorage storage = openSafely(level);
         if (storage != null) {
@@ -273,7 +286,9 @@ public final class SimuSqliteStorage {
         write(level, "city_pois:" + poiTag.getUUID("PoiId"), (storage, connection) -> storage.cityPois.upsert(connection, poiTag, dimensionId));
     }
 
-    /** deleteCityPoi: 删除单个 POI。合并键与 {@link #saveCityPoi} 相同，同一 POI 的 upsert 与 delete 天然定序。 */
+    /**
+     * deleteCityPoi: 删除单个 POI。合并键与 {@link #saveCityPoi} 相同，同一 POI 的 upsert 与 delete 天然定序。
+     */
     public static void deleteCityPoi(ServerLevel level, UUID poiId) {
         if (poiId == null) {
             return;
@@ -394,27 +409,35 @@ public final class SimuSqliteStorage {
 
     // ── 商业 ──────────────────────────────────────────────────────────────────
 
-    /** loadMineralDrillingBoxes: 读取当前维度的全部钻井控制箱。 */
+    /**
+     * loadMineralDrillingBoxes: 读取当前维度的全部钻井控制箱。
+     */
     public static CompoundTag loadMineralDrillingBoxes(ServerLevel level) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null ? storage.mineralDrillingBoxes.loadAll(dimensionId(level)) : null;
     }
 
-    /** saveMineralDrillingBoxes: 原子替换当前维度的钻井控制箱快照。 */
+    /**
+     * saveMineralDrillingBoxes: 原子替换当前维度的钻井控制箱快照。
+     */
     public static boolean saveMineralDrillingBoxes(ServerLevel level, CompoundTag tag) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null && tag != null
                 && storage.mineralDrillingBoxes.saveAll(dimensionId(level), tag);
     }
 
-    /** saveMineralDrillingBox: 增量写入一个钻井控制箱。 */
+    /**
+     * saveMineralDrillingBox: 增量写入一个钻井控制箱。
+     */
     public static boolean saveMineralDrillingBox(ServerLevel level, CompoundTag boxTag) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null && boxTag != null
                 && storage.mineralDrillingBoxes.upsert(dimensionId(level), boxTag);
     }
 
-    /** deleteMineralDrillingBox: 删除当前维度指定位置的钻井控制箱。 */
+    /**
+     * deleteMineralDrillingBox: 删除当前维度指定位置的钻井控制箱。
+     */
     public static boolean deleteMineralDrillingBox(ServerLevel level, long boxPosLong) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null
@@ -476,19 +499,25 @@ public final class SimuSqliteStorage {
         writeOrdered(level, (storage, connection) -> storage.commercial.deleteStockAtBox(connection, boxPosLong, dimensionId));
     }
 
-    /** addCommercialDailyIncome: 写入指定城市当天的商业营业收入增量。 */
+    /**
+     * addCommercialDailyIncome: 写入指定城市当天的商业营业收入增量。
+     */
     public static boolean addCommercialDailyIncome(ServerLevel level, UUID cityId, long incomeDay, double amount) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null && !storage.database.isDegraded() && storage.commercial.addDailyIncome(cityId, incomeDay, amount);
     }
 
-    /** loadUntaxedCommercialIncome: 读取指定日期前尚未结算企业税的商业收入。 */
+    /**
+     * loadUntaxedCommercialIncome: 读取指定日期前尚未结算企业税的商业收入。
+     */
     public static Map<UUID, Double> loadUntaxedCommercialIncome(ServerLevel level, long dayExclusive) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null ? storage.commercial.loadUntaxedIncomeBefore(dayExclusive) : Map.of();
     }
 
-    /** shiftCommercialIncomeDays：日号回退时平移商业收入所属日。 */
+    /**
+     * shiftCommercialIncomeDays：日号回退时平移商业收入所属日。
+     */
     public static void shiftCommercialIncomeDays(ServerLevel level, long deltaDays) {
         SimuSqliteStorage storage = openSafely(level);
         if (storage != null && !storage.database.isDegraded()) {
@@ -496,7 +525,9 @@ public final class SimuSqliteStorage {
         }
     }
 
-    /** markCommercialIncomeTaxCollected: 标记指定城市在日期前的企业税已结算。 */
+    /**
+     * markCommercialIncomeTaxCollected: 标记指定城市在日期前的企业税已结算。
+     */
     public static boolean markCommercialIncomeTaxCollected(ServerLevel level, UUID cityId, long dayExclusive) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null && !storage.database.isDegraded() && storage.commercial.markIncomeTaxCollectedBefore(cityId, dayExclusive);
@@ -585,7 +616,9 @@ public final class SimuSqliteStorage {
 
     // ── 家庭 ──────────────────────────────────────────────────────────────────
 
-    /** loadFamilies: 加载全部家庭；库不可用或加载失败返回 null（调用方据此举重试），空表返回空列表。 */
+    /**
+     * loadFamilies: 加载全部家庭；库不可用或加载失败返回 null（调用方据此举重试），空表返回空列表。
+     */
     public static java.util.List<common.cn.nsimu.simukraft.citizen.family.FamilyData> loadFamilies(ServerLevel level) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null ? storage.families.loadAll() : null;
@@ -629,13 +662,17 @@ public final class SimuSqliteStorage {
 
     // ── 住宅入住开关 ──────────────────────────────────────────────────────────
 
-    /** loadClosedResidentialOccupancy: 读取禁止分配入住的住宅建筑。 */
+    /**
+     * loadClosedResidentialOccupancy: 读取禁止分配入住的住宅建筑。
+     */
     public static java.util.Set<UUID> loadClosedResidentialOccupancy(ServerLevel level) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null ? storage.residentialOccupancy.loadClosedBuildingIds() : java.util.Set.of();
     }
 
-    /** saveResidentialOccupancy: 保存一座住宅是否允许分配入住。 */
+    /**
+     * saveResidentialOccupancy: 保存一座住宅是否允许分配入住。
+     */
     public static void saveResidentialOccupancy(ServerLevel level, UUID buildingId, boolean occupancyAllowed) {
         if (buildingId == null) {
             return;
@@ -644,7 +681,9 @@ public final class SimuSqliteStorage {
                 (storage, connection) -> storage.residentialOccupancy.upsert(connection, buildingId, occupancyAllowed));
     }
 
-    /** deleteResidentialOccupancy: 拆除后删除入住开关。 */
+    /**
+     * deleteResidentialOccupancy: 拆除后删除入住开关。
+     */
     public static void deleteResidentialOccupancy(ServerLevel level, UUID buildingId) {
         if (buildingId == null) {
             return;
@@ -657,13 +696,17 @@ public final class SimuSqliteStorage {
     // 这几个操作是"读-改-写"且需要返回结果（原子建档、原子扣减储量）：
     // 仓储内部经 callSync 提交到写线程执行并阻塞等待，与队列中其他写入保持全序，主线程不再直接执行 SQL。
 
-    /** findVirtualVeinField: 查询已经建立的虚拟矿区档案。 */
+    /**
+     * findVirtualVeinField: 查询已经建立的虚拟矿区档案。
+     */
     public static Optional<VirtualVeinFieldProfile> findVirtualVeinField(ServerLevel level, VirtualVeinFieldKey key) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null && key != null ? storage.virtualVeins.find(dimensionId(level), key) : Optional.empty();
     }
 
-    /** createVirtualVeinFieldIfAbsent: 原子建立虚拟矿区档案。 */
+    /**
+     * createVirtualVeinFieldIfAbsent: 原子建立虚拟矿区档案。
+     */
     public static Optional<VirtualVeinFieldProfile> createVirtualVeinFieldIfAbsent(ServerLevel level, VirtualVeinFieldProfile profile) {
         SimuSqliteStorage storage = openSafely(level);
         if (storage == null || profile == null || storage.database.isDegraded()) {
@@ -672,7 +715,9 @@ public final class SimuSqliteStorage {
         return storage.virtualVeins.createIfAbsent(profile);
     }
 
-    /** repairLegacyVirtualVeinField: 修复旧六项函数匹配逻辑误建的空矿区档案。 */
+    /**
+     * repairLegacyVirtualVeinField: 修复旧六项函数匹配逻辑误建的空矿区档案。
+     */
     public static Optional<VirtualVeinFieldProfile> repairLegacyVirtualVeinField(ServerLevel level, VirtualVeinFieldProfile profile) {
         SimuSqliteStorage storage = openSafely(level);
         if (storage == null || profile == null || storage.database.isDegraded()) {
@@ -681,7 +726,9 @@ public final class SimuSqliteStorage {
         return storage.virtualVeins.replaceLegacyEmptyProfile(profile);
     }
 
-    /** consumeVirtualVein: 原子扣减指定矿脉槽位的储量。 */
+    /**
+     * consumeVirtualVein: 原子扣减指定矿脉槽位的储量。
+     */
     public static Optional<VirtualVeinConsumption> consumeVirtualVein(ServerLevel level, VirtualVeinFieldKey key, int slotIndex, int amount) {
         SimuSqliteStorage storage = openSafely(level);
         if (storage == null || key == null || storage.database.isDegraded()) {
@@ -690,58 +737,76 @@ public final class SimuSqliteStorage {
         return storage.virtualVeins.consume(dimensionId(level), key, slotIndex, amount);
     }
 
-    /** loadExchangeMarket: 读取当日市况。 */
+    /**
+     * loadExchangeMarket: 读取当日市况。
+     */
     public static ExchangeSqliteRepository.MarketRow loadExchangeMarket(ServerLevel level) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null ? storage.exchange.loadMarket(dimensionId(level)) : null;
     }
 
-    /** saveExchangeMarket: 写入当日市况。 */
+    /**
+     * saveExchangeMarket: 写入当日市况。
+     */
     public static void saveExchangeMarket(ServerLevel level, long day, String regime, int lastHour) {
         String dimensionId = dimensionId(level);
         write(level, "exchange_market:" + dimensionId,
                 (storage, connection) -> storage.exchange.saveMarket(connection, dimensionId, day, regime, lastHour));
     }
 
-    /** loadExchangeQuotes: 读取行情。 */
+    /**
+     * loadExchangeQuotes: 读取行情。
+     */
     public static List<ExchangeSqliteRepository.QuoteRow> loadExchangeQuotes(ServerLevel level) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null ? storage.exchange.loadQuotes(dimensionId(level)) : List.of();
     }
 
-    /** saveExchangeQuote: 写入单只行情。 */
+    /**
+     * saveExchangeQuote: 写入单只行情。
+     */
     public static void saveExchangeQuote(ServerLevel level, String companyId, double price, double previousClose, int volume) {
         String dimensionId = dimensionId(level);
         write(level, "exchange_quote:" + dimensionId + ":" + companyId,
                 (storage, connection) -> storage.exchange.saveQuote(connection, dimensionId, companyId, price, previousClose, volume));
     }
 
-    /** loadExchangeCandles: 读取 K 线。 */
+    /**
+     * loadExchangeCandles: 读取 K 线。
+     */
     public static List<ExchangeCandle> loadExchangeCandles(ServerLevel level, String companyId) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null ? storage.exchange.loadCandles(dimensionId(level), companyId) : List.of();
     }
 
-    /** saveExchangeCandle: 写入一根 K 线。 */
+    /**
+     * saveExchangeCandle: 写入一根 K 线。
+     */
     public static void saveExchangeCandle(ServerLevel level, String companyId, long day, ExchangeCandle candle) {
         String dimensionId = dimensionId(level);
         write(level, "exchange_candle:" + dimensionId + ":" + companyId + ":" + day + ":" + candle.hourIndex(),
                 (storage, connection) -> storage.exchange.saveCandle(connection, dimensionId, companyId, day, candle));
     }
 
-    /** deleteExchangeCandlesAfter: 删除尚未走到的小时柱，避免一次性补全日后挡住后续整点。 */
+    /**
+     * deleteExchangeCandlesAfter: 删除尚未走到的小时柱，避免一次性补全日后挡住后续整点。
+     */
     public static void deleteExchangeCandlesAfter(ServerLevel level, long day, int maxHour) {
         String dimensionId = dimensionId(level);
         writeOrdered(level, (storage, connection) -> storage.exchange.deleteCandlesAfter(connection, dimensionId, day, maxHour));
     }
 
-    /** loadExchangeHoldings: 读取城市持仓。 */
+    /**
+     * loadExchangeHoldings: 读取城市持仓。
+     */
     public static List<ExchangeSqliteRepository.HoldingRow> loadExchangeHoldings(ServerLevel level, UUID cityId) {
         SimuSqliteStorage storage = openSafely(level);
         return storage != null && cityId != null ? storage.exchange.loadHoldings(cityId) : List.of();
     }
 
-    /** saveExchangeHolding: 写入城市持仓。 */
+    /**
+     * saveExchangeHolding: 写入城市持仓。
+     */
     public static void saveExchangeHolding(ServerLevel level, UUID cityId, String companyId, int shares, double costBasis) {
         if (cityId == null || companyId == null) {
             return;

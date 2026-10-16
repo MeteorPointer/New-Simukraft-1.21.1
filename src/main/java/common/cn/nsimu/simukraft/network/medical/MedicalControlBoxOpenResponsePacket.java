@@ -14,7 +14,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** 医疗控制箱服务端视图响应。 */
+/**
+ * 医疗控制箱服务端视图响应。
+ */
 
 public record MedicalControlBoxOpenResponsePacket(BlockPos boxPos,
                                                   boolean hasBuilding,
@@ -37,7 +39,9 @@ public record MedicalControlBoxOpenResponsePacket(BlockPos boxPos,
         patients = patients != null ? List.copyOf(patients) : List.of();
     }
 
-    /** from：把服务端视图转换为网络响应。 */
+    /**
+     * from：把服务端视图转换为网络响应。
+     */
     public static MedicalControlBoxOpenResponsePacket from(MedicalControlBoxView view) {
         return new MedicalControlBoxOpenResponsePacket(view.boxPos(), view.hasBuilding(), view.buildingName(),
                 view.definitionValid(), view.definitionName(), view.serviceRangeRings(), view.coveredChunkCount(),
@@ -50,7 +54,9 @@ public record MedicalControlBoxOpenResponsePacket(BlockPos boxPos,
         return TYPE;
     }
 
-    /** encode：写入医疗控制箱视图。 */
+    /**
+     * encode：写入医疗控制箱视图。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, MedicalControlBoxOpenResponsePacket packet) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasBuilding());
@@ -78,7 +84,9 @@ public record MedicalControlBoxOpenResponsePacket(BlockPos boxPos,
         }
     }
 
-    /** decode：读取医疗控制箱视图。 */
+    /**
+     * decode：读取医疗控制箱视图。
+     */
     public static MedicalControlBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         boolean hasBuilding = buffer.readBoolean();
@@ -102,7 +110,9 @@ public record MedicalControlBoxOpenResponsePacket(BlockPos boxPos,
                 definitionName, rings, chunks, statusKey, hasDoctor, doctorId, doctorName, bedCount, occupied, patients);
     }
 
-    /** handle：分发视图到客户端 LDLib 界面。 */
+    /**
+     * handle：分发视图到客户端 LDLib 界面。
+     */
     public static void handle(MedicalControlBoxOpenResponsePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> ClientboundNetworkBridge.handleMedicalControlBoxOpenResponse(packet));
     }

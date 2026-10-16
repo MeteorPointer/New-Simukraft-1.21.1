@@ -14,7 +14,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(ExtraCodecs.class)
 public abstract class MixinExtraCodecsStackRange {
-    /** simukraft$widenVanillaStackRange：只放宽原版 1–99 这一档，避免影响其它数值范围。 */
+    /**
+     * simukraft$widenVanillaStackRange：只放宽原版 1–99 这一档，避免影响其它数值范围。
+     */
     @Inject(method = "intRange(II)Lcom/mojang/serialization/Codec;", at = @At("RETURN"), cancellable = true)
     private static void simukraft$widenVanillaStackRange(int min, int max, CallbackInfoReturnable<Codec<Integer>> callback) {
         if (min == 1 && max == 99) {

@@ -12,7 +12,6 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
 
-
 public final class SimuKraftClientConfigScreen {
     private static final int WINDOW_WIDTH = 280;
     private static final int WINDOW_HEIGHT = 320;
@@ -23,12 +22,16 @@ public final class SimuKraftClientConfigScreen {
     private SimuKraftClientConfigScreen() {
     }
 
-    /** create: 创建客户端配置页。 */
+    /**
+     * create: 创建客户端配置页。
+     */
     public static Screen create(Screen parent) {
         return new ModularUIScreen(SimuKraftConfigWidgets.screenUi(createUi(parent)), Component.translatable("gui.simukraft.config.client"));
     }
 
-    /** createUi: 按旧版小窗口样式组装客户端配置。 */
+    /**
+     * createUi: 按旧版小窗口样式组装客户端配置。
+     */
     private static UIElement createUi(Screen parent) {
         UIElement window = SimuKraftConfigWidgets.window(WINDOW_WIDTH, WINDOW_HEIGHT, MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT);
         window.addChild(SimuKraftConfigWidgets.header(Component.translatable("gui.simukraft.config.client"), HEADER_HEIGHT));
@@ -82,12 +85,14 @@ public final class SimuKraftClientConfigScreen {
         });
     }
 
-    /** openHudEditorRow: 提供单一按钮入口，打开旧版拖拽式 HUD 编辑器。 */
+    /**
+     * openHudEditorRow: 提供单一按钮入口，打开旧版拖拽式 HUD 编辑器。
+     */
     private static UIElement openHudEditorRow() {
         return SimuKraftConfigWidgets.row(
                 Component.translatable("gui.simukraft.config.client.hud_position"),
                 SimuKraftConfigWidgets.button(Component.translatable("gui.simukraft.config.open"),
-                        () -> Minecraft.getInstance().setScreen(new HUDPositionEditorScreen(Minecraft.getInstance().screen)), true)
+                                () -> Minecraft.getInstance().setScreen(new HUDPositionEditorScreen(Minecraft.getInstance().screen)), true)
                         .layout(layout -> {
                             layout.width(96);
                             layout.height(24);
@@ -95,14 +100,16 @@ public final class SimuKraftClientConfigScreen {
                         }));
     }
 
-    /** openToastEditorRow: 打开独立通知弹窗编辑器。 */
+    /**
+     * openToastEditorRow: 打开独立通知弹窗编辑器。
+     */
     private static UIElement openToastEditorRow() {
         return SimuKraftConfigWidgets.row(
                 Component.translatable("gui.simukraft.config.client.toast_position"),
                 SimuKraftConfigWidgets.button(Component.translatable("gui.simukraft.config.open"),
-                        () -> Minecraft.getInstance().setScreen(
-                                new ToastPositionEditorScreen(Minecraft.getInstance().screen)),
-                        true)
+                                () -> Minecraft.getInstance().setScreen(
+                                        new ToastPositionEditorScreen(Minecraft.getInstance().screen)),
+                                true)
                         .layout(layout -> {
                             layout.width(96);
                             layout.height(24);
@@ -110,13 +117,17 @@ public final class SimuKraftClientConfigScreen {
                         }));
     }
 
-    /** save: 保存客户端配置并清理 HUD 缓存。 */
+    /**
+     * save: 保存客户端配置并清理 HUD 缓存。
+     */
     private static void save() {
         ClientConfig.SPEC.save();
         ClientHUDOverlay.resetCache();
     }
 
-    /** reset: 恢复客户端配置默认值。 */
+    /**
+     * reset: 恢复客户端配置默认值。
+     */
     private static void reset(Screen parent) {
         ClientConfig.HUD_ENABLED.set(true);
         ClientConfig.HUD_ANCHOR.set(ClientConfig.DEFAULT_HUD_ANCHOR);

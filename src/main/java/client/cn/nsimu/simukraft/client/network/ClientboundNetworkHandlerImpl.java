@@ -1,19 +1,23 @@
 package client.cn.nsimu.simukraft.client.network;
 
 import client.cn.nsimu.simukraft.client.ClientSimukraftData;
+import client.cn.nsimu.simukraft.client.bank.BankControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.buildbox.BuildBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.buildbox.BuildingBoundsRenderer;
 import client.cn.nsimu.simukraft.client.buildbox.BuildingCacheService;
 import client.cn.nsimu.simukraft.client.buildbox.PlannerMaterialSelectionScreenOpener;
 import client.cn.nsimu.simukraft.client.citizen.CityCitizenManageScreen;
-import client.cn.nsimu.simukraft.client.city.ClientCityChunkCache;
 import client.cn.nsimu.simukraft.client.city.CityCoreScreenOpener;
+import client.cn.nsimu.simukraft.client.city.ClientCityChunkCache;
 import client.cn.nsimu.simukraft.client.commercial.CommercialControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.compat.ClientCompatHooks;
-import common.cn.nsimu.simukraft.commercial.CommercialTradeUiRoot;
 import client.cn.nsimu.simukraft.client.controlbox.ResidentialControlBoxScreenOpener;
+import client.cn.nsimu.simukraft.client.exchange.ExchangeControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.farmland.FarmlandBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.farmland.FarmlandHoverPreview;
+import client.cn.nsimu.simukraft.client.geology.GeologicalSurveyHintOverlay;
+import client.cn.nsimu.simukraft.client.guidebook.GuideBookLang;
+import client.cn.nsimu.simukraft.client.guidebook.GuideBookLoader;
 import client.cn.nsimu.simukraft.client.hire.NpcHireScreen;
 import client.cn.nsimu.simukraft.client.industrial.IndustrialControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.logistics.LogisticsClientBoxScreenOpener;
@@ -21,9 +25,8 @@ import client.cn.nsimu.simukraft.client.logistics.LogisticsServerBoxScreenOpener
 import client.cn.nsimu.simukraft.client.medical.MedicalControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
-import client.cn.nsimu.simukraft.client.geology.GeologicalSurveyHintOverlay;
-import client.cn.nsimu.simukraft.client.guidebook.GuideBookLang;
-import client.cn.nsimu.simukraft.client.guidebook.GuideBookLoader;
+import common.cn.nsimu.simukraft.commercial.CommercialTradeUiRoot;
+import common.cn.nsimu.simukraft.network.bank.BankControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.building.BuildingCacheReloadPacket;
 import common.cn.nsimu.simukraft.network.building.controlbox.ResidentialControlBoxBoundsUpdatePacket;
 import common.cn.nsimu.simukraft.network.building.controlbox.ResidentialControlBoxOpenResponsePacket;
@@ -37,6 +40,7 @@ import common.cn.nsimu.simukraft.network.city.member.CityCoreMembersResponsePack
 import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkHandler;
 import common.cn.nsimu.simukraft.network.commercial.CommercialControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.commercial.CommercialTradeOpenResponsePacket;
+import common.cn.nsimu.simukraft.network.exchange.ExchangeControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxBoundsResponsePacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.geology.GeologicalSurveyHintPacket;
@@ -47,17 +51,13 @@ import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxViewUpda
 import common.cn.nsimu.simukraft.network.logistics.LogisticsClientBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsServerBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsWarehouseGridResponsePacket;
-import client.cn.nsimu.simukraft.client.bank.BankControlBoxScreenOpener;
-import client.cn.nsimu.simukraft.client.exchange.ExchangeControlBoxScreenOpener;
-import common.cn.nsimu.simukraft.network.bank.BankControlBoxOpenResponsePacket;
-import common.cn.nsimu.simukraft.network.exchange.ExchangeControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.medical.MedicalControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.npc.hire.NpcHireListResponsePacket;
 import common.cn.nsimu.simukraft.network.npc.state.EmploymentStateResponsePacket;
 import common.cn.nsimu.simukraft.network.path.NpcPathDebugSyncPacket;
 import common.cn.nsimu.simukraft.network.planner.PlannerMaterialScanResponsePacket;
-import common.cn.nsimu.simukraft.network.toast.InfoToastPacket;
 import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsSyncPacket;
+import common.cn.nsimu.simukraft.network.toast.InfoToastPacket;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -252,7 +252,9 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
         ClientInfoToast.show(packet.title(), packet.message(), packet.style(), packet.iconStack());
     }
 
-    /** handleGeologicalSurveyHint: 显示地质锤准星提示。 */
+    /**
+     * handleGeologicalSurveyHint: 显示地质锤准星提示。
+     */
     @Override
     public void handleGeologicalSurveyHint(GeologicalSurveyHintPacket packet) {
         if (packet.typewriter()) {

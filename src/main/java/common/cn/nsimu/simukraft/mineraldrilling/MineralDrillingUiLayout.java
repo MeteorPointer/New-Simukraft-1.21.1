@@ -26,7 +26,9 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.function.Supplier;
 
-/** MineralDrillingUiLayout: 组合钻井控制区、矿脉信息、操作按钮和玩家背包。 */
+/**
+ * MineralDrillingUiLayout: 组合钻井控制区、矿脉信息、操作按钮和玩家背包。
+ */
 
 public final class MineralDrillingUiLayout {
     private static final ResourceLocation ORE_STYLESHEET = StylesheetManager.ORE;
@@ -42,7 +44,9 @@ public final class MineralDrillingUiLayout {
     private static final int CARD_ACCENT = 0xFFC8A260;
     private static final int TEXT_PRIMARY = 0xFF242727;
     private static final int TEXT_ON_DARK = 0xFFF1F1ED;
-    /** NPC 信息界面护甲条的蓝灰填充色。 */
+    /**
+     * NPC 信息界面护甲条的蓝灰填充色。
+     */
     private static final int INTEGRITY_BLUE = 0xFF8294A2;
     private static final int BUTTON_HOVER = 0xFFF2F2ED;
     private static final int BUTTON_PRESSED = 0xFFD2B478;
@@ -52,7 +56,9 @@ public final class MineralDrillingUiLayout {
     private MineralDrillingUiLayout() {
     }
 
-    /** createModularUi: 创建两端同序的容器元素树并启用 Esc 关闭。 */
+    /**
+     * createModularUi: 创建两端同序的容器元素树并启用 Esc 关闭。
+     */
     public static ModularUI createModularUi(MineralDrillingMenuHolder holder,
                                             Player player,
                                             MineralDrillingUiMetrics metrics,
@@ -60,7 +66,9 @@ public final class MineralDrillingUiLayout {
         return createModularUi(holder, player, metrics, clientActions, ProductTextResolver.IDENTIFIER);
     }
 
-    /** createModularUi: 创建容器元素树，并将服务端产物 ID 的显示解析委托给物理客户端。 */
+    /**
+     * createModularUi: 创建容器元素树，并将服务端产物 ID 的显示解析委托给物理客户端。
+     */
     public static ModularUI createModularUi(MineralDrillingMenuHolder holder,
                                             Player player,
                                             MineralDrillingUiMetrics metrics,
@@ -318,7 +326,9 @@ public final class MineralDrillingUiLayout {
         return new GuiTextureGroup(new ColorRectTexture(color), new ColorBorderTexture(1, FRAME_OUTER));
     }
 
-    /** bindActive: 将服务端权威的可用状态单向同步到客户端按钮。 */
+    /**
+     * bindActive: 将服务端权威的可用状态单向同步到客户端按钮。
+     */
     private static void bindActive(Button button, Supplier<Boolean> activeSupplier) {
         button.addSyncValue(DataBindingBuilder.boolS2C(activeSupplier)
                 .remoteSetter(button::setActive)
@@ -338,7 +348,9 @@ public final class MineralDrillingUiLayout {
         return label;
     }
 
-    /** boundProductLabel: 服务端只同步资源 ID，由客户端的数据接收端解析物品本地化名称。 */
+    /**
+     * boundProductLabel: 服务端只同步资源 ID，由客户端的数据接收端解析物品本地化名称。
+     */
     private static Label boundProductLabel(Supplier<String> productIdSupplier,
                                            ProductTextResolver productTextResolver,
                                            boolean isClient,
@@ -360,7 +372,9 @@ public final class MineralDrillingUiLayout {
         return label;
     }
 
-    /** safeProductId: 规范化同步前的产物资源 ID，避免空值写入组件。 */
+    /**
+     * safeProductId: 规范化同步前的产物资源 ID，避免空值写入组件。
+     */
     private static String safeProductId(String productId) {
         return productId == null ? "" : productId;
     }
@@ -410,27 +424,37 @@ public final class MineralDrillingUiLayout {
         layout.height(Math.max(1.0F, height));
     }
 
-    /** ClientActions: 封装只允许物理客户端执行的雇佣和边界显示操作。 */
+    /**
+     * ClientActions: 封装只允许物理客户端执行的雇佣和边界显示操作。
+     */
     public interface ClientActions {
         ClientActions NONE = new ClientActions() {
         };
 
-        /** requestHire: 打开钻井工雇佣候选界面。 */
+        /**
+         * requestHire: 打开钻井工雇佣候选界面。
+         */
         default void requestHire(net.minecraft.core.BlockPos boxPos) {
         }
 
-        /** toggleBounds: 切换当前建筑边界渲染。 */
+        /**
+         * toggleBounds: 切换当前建筑边界渲染。
+         */
         default void toggleBounds(MineralDrillingMenuSnapshot snapshot) {
         }
 
-        /** clearBounds: 清理拆除请求对应的客户端建筑边界。 */
+        /**
+         * clearBounds: 清理拆除请求对应的客户端建筑边界。
+         */
         default void clearBounds(MineralDrillingMenuSnapshot snapshot) {
         }
     }
 
     @FunctionalInterface
     public interface ProductTextResolver {
-        /** resolve: 将服务端同步的物品资源 ID 转为当前物理客户端可见的文本。 */
+        /**
+         * resolve: 将服务端同步的物品资源 ID 转为当前物理客户端可见的文本。
+         */
         Component resolve(String productId);
 
         ProductTextResolver IDENTIFIER = productId -> Component.translatable(

@@ -66,7 +66,9 @@ public record CommercialControlBoxOpenResponsePacket(BlockPos boxPos,
         return TYPE;
     }
 
-    /** encode: 写入商业控制箱视图响应。 */
+    /**
+     * encode: 写入商业控制箱视图响应。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, CommercialControlBoxOpenResponsePacket packet) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasBuilding());
@@ -92,7 +94,9 @@ public record CommercialControlBoxOpenResponsePacket(BlockPos boxPos,
         buffer.writeDouble(packet.integrityRepairCost());
     }
 
-    /** decode: 读取商业控制箱视图响应。 */
+    /**
+     * decode: 读取商业控制箱视图响应。
+     */
     public static CommercialControlBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         boolean hasBuilding = buffer.readBoolean();
@@ -120,7 +124,9 @@ public record CommercialControlBoxOpenResponsePacket(BlockPos boxPos,
                 integrityManualRepairBlocks, integrityRepairCost);
     }
 
-    /** handle: 分发商业控制箱视图到客户端 UI。 */
+    /**
+     * handle: 分发商业控制箱视图到客户端 UI。
+     */
     public static void handle(CommercialControlBoxOpenResponsePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> ClientboundNetworkBridge.handleCommercialControlBoxOpenResponse(packet));
     }

@@ -1,9 +1,9 @@
 package common.cn.nsimu.simukraft.economy;
 
+import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-
-import org.junit.jupiter.api.Test;
 
 class CoinDenominationsTest {
     @Test
@@ -16,8 +16,8 @@ class CoinDenominationsTest {
 
     @Test
     void breakdown_isGreedyGoldThenSilverThenCopper() {
-        assertArrayEquals(new int[] {12, 3, 4}, CoinDenominations.breakdown(12.34D));
-        assertArrayEquals(new int[] {0, 0, 0}, CoinDenominations.breakdown(0.0D));
+        assertArrayEquals(new int[]{12, 3, 4}, CoinDenominations.breakdown(12.34D));
+        assertArrayEquals(new int[]{0, 0, 0}, CoinDenominations.breakdown(0.0D));
     }
 
     @Test

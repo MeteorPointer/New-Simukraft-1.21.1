@@ -1,11 +1,7 @@
 package common.cn.nsimu.simukraft.storage;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.storage.core.CommitAwareWrite;
-import common.cn.nsimu.simukraft.storage.core.SqlFunction;
-import common.cn.nsimu.simukraft.storage.core.SqlWrite;
-import common.cn.nsimu.simukraft.storage.core.StorageMetrics;
-import common.cn.nsimu.simukraft.storage.core.TransactionRunner;
+import common.cn.nsimu.simukraft.storage.core.*;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -13,11 +9,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -58,7 +50,7 @@ public final class StorageWriteQueue {
      * 提交一次带合并键的写入。若该 key 已有未执行的提交，则用新 payload 替换并移到队尾，
      * 使落库顺序与最后一次提交顺序一致。
      *
-     * @param key 合并键，需能唯一标识目标行（例如 {@code "citizens:<uuid>"}）
+     * @param key   合并键，需能唯一标识目标行（例如 {@code "citizens:<uuid>"}）
      * @param write 落库 payload，须为不可变快照
      */
     public void submit(Object key, SqlWrite write) {
@@ -87,7 +79,9 @@ public final class StorageWriteQueue {
         }
     }
 
-    /** notifyRejected: 告知关心事务结果的写入"它永远不会被执行"。 */
+    /**
+     * notifyRejected: 告知关心事务结果的写入"它永远不会被执行"。
+     */
     private static void notifyRejected(SqlWrite write) {
         if (write instanceof CommitAwareWrite aware) {
             try {
@@ -98,7 +92,9 @@ public final class StorageWriteQueue {
         }
     }
 
-    /** submitOnce: 提交一次不参与合并的写入，严格按提交顺序执行。 */
+    /**
+     * submitOnce: 提交一次不参与合并的写入，严格按提交顺序执行。
+     */
     public void submitOnce(SqlWrite write) {
         submit(new Object(), write);
     }
@@ -126,7 +122,9 @@ public final class StorageWriteQueue {
         }
     }
 
-    /** drainAndReport: 排空并在超时时报告剩余条数。 */
+    /**
+     * drainAndReport: 排空并在超时时报告剩余条数。
+     */
     public boolean drainAndReport() {
         boolean drained = drain(DRAIN_TIMEOUT_MILLIS);
         if (!drained) {
@@ -183,7 +181,9 @@ public final class StorageWriteQueue {
         }
     }
 
-    /** SyncWrite: 带结果的同步写。语句执行完只暂存结果，事务提交后才完成 future。 */
+    /**
+     * SyncWrite: 带结果的同步写。语句执行完只暂存结果，事务提交后才完成 future。
+     */
     private static final class SyncWrite<T> implements CommitAwareWrite {
         private final SqlFunction<T> function;
         private final CompletableFuture<T> future = new CompletableFuture<>();
@@ -217,7 +217,9 @@ public final class StorageWriteQueue {
         }
     }
 
-    /** close: 停止接收新写入并等待写线程退出。调用方应先执行 {@link #drainAndReport()}。 */
+    /**
+     * close: 停止接收新写入并等待写线程退出。调用方应先执行 {@link #drainAndReport()}。
+     */
     public void close(long timeoutMillis) {
         lock.lock();
         try {
@@ -248,7 +250,9 @@ public final class StorageWriteQueue {
         }
     }
 
-    /** takeBatch: 阻塞取出下一批写入；返回 null 表示队列已关闭且没有剩余工作。 */
+    /**
+     * takeBatch: 阻塞取出下一批写入；返回 null 表示队列已关闭且没有剩余工作。
+     */
     private List<SqlWrite> takeBatch() {
         lock.lock();
         try {

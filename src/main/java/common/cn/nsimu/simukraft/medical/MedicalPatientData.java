@@ -4,7 +4,9 @@ import net.minecraft.nbt.CompoundTag;
 
 import java.util.UUID;
 
-/** 居民医疗状态，随 CitizenData 一起写入 SQLite。 */
+/**
+ * 居民医疗状态，随 CitizenData 一起写入 SQLite。
+ */
 
 public final class MedicalPatientData {
     private DiseaseType disease = DiseaseType.NONE;
@@ -15,7 +17,9 @@ public final class MedicalPatientData {
     private long lastHospitalMealDay = -1L;
     private long lastHospitalProgressDayTime;
 
-    /** fromTag：从居民标签读取医疗状态。 */
+    /**
+     * fromTag：从居民标签读取医疗状态。
+     */
     public void fromTag(CompoundTag tag) {
         disease = DiseaseType.fromName(tag.getString("DiseaseId"));
         diseaseSinceDay = Math.max(0L, tag.getLong("DiseaseSinceDay"));
@@ -27,7 +31,9 @@ public final class MedicalPatientData {
                 ? Math.max(0L, tag.getLong("LastHospitalProgressDayTime")) : 0L;
     }
 
-    /** toTag：将医疗状态写入居民标签。 */
+    /**
+     * toTag：将医疗状态写入居民标签。
+     */
     public void toTag(CompoundTag tag) {
         tag.putString("DiseaseId", disease.name());
         tag.putLong("DiseaseSinceDay", diseaseSinceDay);
@@ -40,7 +46,9 @@ public final class MedicalPatientData {
         tag.putLong("LastHospitalProgressDayTime", lastHospitalProgressDayTime);
     }
 
-    /** setDisease：设置疾病并重置本次疾病的治疗进度。 */
+    /**
+     * setDisease：设置疾病并重置本次疾病的治疗进度。
+     */
     public void setDisease(DiseaseType disease, long sinceDay) {
         DiseaseType safe = disease != null ? disease : DiseaseType.NONE;
         if (this.disease != safe) {
@@ -50,14 +58,18 @@ public final class MedicalPatientData {
         this.diseaseSinceDay = Math.max(0L, sinceDay);
     }
 
-    /** clearDisease：清除疾病及其治疗进度。 */
+    /**
+     * clearDisease：清除疾病及其治疗进度。
+     */
     public void clearDisease() {
         disease = DiseaseType.NONE;
         diseaseSinceDay = 0L;
         diseaseTreatmentTicks = 0L;
     }
 
-    /** clear：清除死亡居民的全部临时医疗状态。 */
+    /**
+     * clear：清除死亡居民的全部临时医疗状态。
+     */
     public void clear() {
         clearDisease();
         medicalBedPoiId = null;
@@ -82,7 +94,9 @@ public final class MedicalPatientData {
         diseaseTreatmentTicks = Math.max(0L, diseaseTreatmentTicks + Math.max(0L, ticks));
     }
 
-    /** postponeDiseaseAnchor：卸载期间把发病日往后推，治疗 tick 和病种保持不变。 */
+    /**
+     * postponeDiseaseAnchor：卸载期间把发病日往后推，治疗 tick 和病种保持不变。
+     */
     public boolean postponeDiseaseAnchor(long days) {
         if (days <= 0L || disease == DiseaseType.NONE) {
             return false;
@@ -111,12 +125,16 @@ public final class MedicalPatientData {
         return lastHospitalMealDay;
     }
 
-    /** setLastHospitalMealDay：记录住院患者最近一次收到医院餐食的游戏日。 */
+    /**
+     * setLastHospitalMealDay：记录住院患者最近一次收到医院餐食的游戏日。
+     */
     public void setLastHospitalMealDay(long lastHospitalMealDay) {
         this.lastHospitalMealDay = Math.max(-1L, lastHospitalMealDay);
     }
 
-    /** shiftDays：时间回退时平移产后、住院吃饭和发病日，治疗 tick 保持不变。 */
+    /**
+     * shiftDays：时间回退时平移产后、住院吃饭和发病日，治疗 tick 保持不变。
+     */
     public boolean shiftDays(long deltaDays) {
         if (deltaDays <= 0L) {
             return false;
@@ -142,7 +160,9 @@ public final class MedicalPatientData {
         return lastHospitalProgressDayTime;
     }
 
-    /** setLastHospitalProgressDayTime：记录上次按世界时间结算住院治疗的 dayTime。 */
+    /**
+     * setLastHospitalProgressDayTime：记录上次按世界时间结算住院治疗的 dayTime。
+     */
     public void setLastHospitalProgressDayTime(long lastHospitalProgressDayTime) {
         this.lastHospitalProgressDayTime = Math.max(0L, lastHospitalProgressDayTime);
     }

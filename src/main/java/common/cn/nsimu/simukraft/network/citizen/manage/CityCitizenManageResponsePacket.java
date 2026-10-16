@@ -17,7 +17,8 @@ import java.util.UUID;
  * CityCitizenManageResponsePacket: 城市核心“市民管理”界面的市民列表快照（服务端 -> 客户端）。
  */
 
-public record CityCitizenManageResponsePacket(BlockPos pos, String cityName, boolean canManage, List<CitizenEntry> citizens) implements CustomPacketPayload {
+public record CityCitizenManageResponsePacket(BlockPos pos, String cityName, boolean canManage,
+                                              List<CitizenEntry> citizens) implements CustomPacketPayload {
     public static final Type<CityCitizenManageResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_citizen_manage_response"));
     public static final StreamCodec<RegistryFriendlyByteBuf, CityCitizenManageResponsePacket> STREAM_CODEC = StreamCodec.of(CityCitizenManageResponsePacket::encode, CityCitizenManageResponsePacket::decode);
 
@@ -70,7 +71,10 @@ public record CityCitizenManageResponsePacket(BlockPos pos, String cityName, boo
         context.enqueueWork(() -> ClientboundNetworkBridge.handleCityCitizenManageResponse(packet));
     }
 
-    /** CitizenEntry: 单个市民的展示信息。jobKey/workStatusKey 为可本地化的翻译键。 */
-    public record CitizenEntry(UUID citizenId, String name, String jobKey, String workStatusKey, int age, String gender, String skinPath) {
+    /**
+     * CitizenEntry: 单个市民的展示信息。jobKey/workStatusKey 为可本地化的翻译键。
+     */
+    public record CitizenEntry(UUID citizenId, String name, String jobKey, String workStatusKey, int age, String gender,
+                               String skinPath) {
     }
 }

@@ -1,16 +1,16 @@
 package client.cn.nsimu.simukraft.client.citizen;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import com.lowdragmc.lowdraglib2.client.shader.LDLibRenderTypes;
-import common.cn.nsimu.simukraft.SimuKraft;
 import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
 import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import common.cn.nsimu.simukraft.SimuKraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -75,7 +75,9 @@ public final class CitizenAvatarFactory {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, normalized + ".png");
     }
 
-    /** blitHead：在画布上绘制头像，已故市民使用灰阶着色。 */
+    /**
+     * blitHead：在画布上绘制头像，已故市民使用灰阶着色。
+     */
     public static void blitHead(GuiGraphics graphics, String skinPath, float x, float y, float size, boolean grayscale) {
         int frame = grayscale ? 0xFF2A2A2A : FRAME_BACKGROUND;
         int inner = grayscale ? 0xFF3F3F3F : FRAME_INNER;

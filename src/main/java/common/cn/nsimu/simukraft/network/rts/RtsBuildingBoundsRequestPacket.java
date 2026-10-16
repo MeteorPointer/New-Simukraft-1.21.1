@@ -12,13 +12,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-import java.util.List;
 import java.util.Comparator;
+import java.util.List;
 
-/** RTS 建筑边界请求：仅请求玩家附近的已登记建筑，不修改服务端状态。 */
+/**
+ * RTS 建筑边界请求：仅请求玩家附近的已登记建筑，不修改服务端状态。
+ */
 public record RtsBuildingBoundsRequestPacket() implements CustomPacketPayload {
     private static final double MAX_DISTANCE_SQR = 192.0D * 192.0D;
-    
+
     public static final Type<RtsBuildingBoundsRequestPacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "rts_building_bounds_request"));
     public static final StreamCodec<RegistryFriendlyByteBuf, RtsBuildingBoundsRequestPacket> STREAM_CODEC =
@@ -29,7 +31,9 @@ public record RtsBuildingBoundsRequestPacket() implements CustomPacketPayload {
         return TYPE;
     }
 
-    /** handle: 在服务端线程读取附近建筑并返回有限快照。 */
+    /**
+     * handle: 在服务端线程读取附近建筑并返回有限快照。
+     */
     public static void handle(RtsBuildingBoundsRequestPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;
@@ -37,8 +41,10 @@ public record RtsBuildingBoundsRequestPacket() implements CustomPacketPayload {
         context.enqueueWork(() -> sendNearbyBounds(player, level));
     }
 
-    /** sendNearbyBounds: 在服务端主线程生成受限边界快照。 */
-    
+    /**
+     * sendNearbyBounds: 在服务端主线程生成受限边界快照。
+     */
+
     public static void sendNearbyBounds(ServerPlayer player, ServerLevel level) {
         List<RtsBuildingBoundsSyncPacket.Entry> entries = PlacedBuildingService.getBuildings(level).stream()
                 .filter(record -> isNear(player, record, MAX_DISTANCE_SQR))
@@ -49,7 +55,9 @@ public record RtsBuildingBoundsRequestPacket() implements CustomPacketPayload {
         PacketDistributor.sendToPlayer(player, new RtsBuildingBoundsSyncPacket(entries));
     }
 
-    /** refreshNearbyPlayers: 新建筑登记后立即刷新附近玩家的 RTS 建筑边界。 */
+    /**
+     * refreshNearbyPlayers: 新建筑登记后立即刷新附近玩家的 RTS 建筑边界。
+     */
     public static void refreshNearbyPlayers(ServerLevel level, PlacedBuildingRecord building) {
         if (level == null || building == null) {
             return;
@@ -68,7 +76,9 @@ public record RtsBuildingBoundsRequestPacket() implements CustomPacketPayload {
         return distanceToBoundsSqr(player, record) <= maxDistanceSqr;
     }
 
-    /** distanceToBoundsSqr: 计算玩家到建筑边界最近点的平方距离。 */
+    /**
+     * distanceToBoundsSqr: 计算玩家到建筑边界最近点的平方距离。
+     */
     private static double distanceToBoundsSqr(ServerPlayer player, PlacedBuildingRecord record) {
         double minX = Math.min(record.minPos().getX(), record.maxPos().getX());
         double minY = Math.min(record.minPos().getY(), record.maxPos().getY());

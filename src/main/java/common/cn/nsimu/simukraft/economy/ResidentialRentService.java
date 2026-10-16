@@ -6,32 +6,22 @@ import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
 import common.cn.nsimu.simukraft.citizen.CitizenManager;
-import common.cn.nsimu.simukraft.city.CityData;
-import common.cn.nsimu.simukraft.city.CityMemberData;
-import common.cn.nsimu.simukraft.city.CityPermissionLevel;
-import common.cn.nsimu.simukraft.city.CityService;
-import common.cn.nsimu.simukraft.city.FinanceTransactionData;
-import common.cn.nsimu.simukraft.commercial.CommercialTaxService;
+import common.cn.nsimu.simukraft.city.*;
 import common.cn.nsimu.simukraft.city.poi.CityPoiData;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
 import common.cn.nsimu.simukraft.city.poi.CityPoiType;
+import common.cn.nsimu.simukraft.commercial.CommercialTaxService;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.registry.ModSoundEvents;
 import common.cn.nsimu.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.network.chat.Component;
-import net.minecraft.sounds.SoundSource;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundSource;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
@@ -55,7 +45,9 @@ public final class ResidentialRentService {
         collectRentForDay(level, rentDay);
     }
 
-    /** markLevelRentDay: 按 MC 日号推进结算游标，并处理 /time set 导致的日号回退。 */
+    /**
+     * markLevelRentDay: 按 MC 日号推进结算游标，并处理 /time set 导致的日号回退。
+     */
     private static boolean markLevelRentDay(ServerLevel level, long rentDay) {
         String levelKey = SaveScopedCacheKey.levelKey(level) + "|residential_rent_day";
         while (true) {
@@ -83,7 +75,9 @@ public final class ResidentialRentService {
         }
     }
 
-    /** resetCityRentDaysAfterTimeRollback: 时间回退时同步重置城市收租游标。 */
+    /**
+     * resetCityRentDaysAfterTimeRollback: 时间回退时同步重置城市收租游标。
+     */
     private static void resetCityRentDaysAfterTimeRollback(ServerLevel level, long rentDay) {
         String cityKeyPrefix = SaveScopedCacheKey.levelKey(level) + "|rent_city=";
         LAST_COLLECTED_RENT_DAY.forEach((key, value) -> {
@@ -196,7 +190,9 @@ public final class ResidentialRentService {
         HudSyncService.syncToCityGroup(level, cityId, true);
     }
 
-    /** notifyPlayerIncome: 每日结算触发后立即通知玩家，不再使用延迟计时器。 */
+    /**
+     * notifyPlayerIncome: 每日结算触发后立即通知玩家，不再使用延迟计时器。
+     */
     private static void notifyPlayerIncome(ServerLevel level, Map<UUID, Double> rentByCity, Map<UUID, Double> taxByCity) {
         for (ServerPlayer player : level.players()) {
             UUID cityId = CityService.findPlayerCity(level, player.getUUID())
@@ -220,7 +216,9 @@ public final class ResidentialRentService {
         );
     }
 
-    /** rentDay: 使用原版 dayTime 推导自然日编号，日号变化才会触发收租。 */
+    /**
+     * rentDay: 使用原版 dayTime 推导自然日编号，日号变化才会触发收租。
+     */
     private static long rentDay(ServerLevel level) {
         return Math.max(1L, level.getDayTime() / TICKS_PER_DAY + 1L);
     }
@@ -229,7 +227,9 @@ public final class ResidentialRentService {
         return building != null && "residential".equalsIgnoreCase(building.category());
     }
 
-    /** rentForBuilding: 返回该住宅每日租金，供驱离扣费与界面展示。 */
+    /**
+     * rentForBuilding: 返回该住宅每日租金，供驱离扣费与界面展示。
+     */
     public static double rentForBuilding(PlacedBuildingRecord building) {
         return rentAmount(building);
     }

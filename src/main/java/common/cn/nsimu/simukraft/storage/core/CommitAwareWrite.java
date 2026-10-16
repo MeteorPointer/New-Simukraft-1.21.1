@@ -7,6 +7,8 @@ package common.cn.nsimu.simukraft.storage.core;
  * 由 {@link TransactionRunner} 在 commit 成功或最终回滚后回调。
  */
 public interface CommitAwareWrite extends SqlWrite {
-    /** afterCommit: 事务提交（true）或最终失败回滚（false）后在写线程上回调。 */
+    /**
+     * afterCommit: 事务提交（true）或最终失败回滚（false）后在写线程上回调。
+     */
     void afterCommit(boolean committed);
 }

@@ -22,17 +22,23 @@ public record LogisticsWarehouseGridInsertPacket(BlockPos pos) implements Custom
         return TYPE;
     }
 
-    /** encode: 写入仓库存入目标坐标。 */
+    /**
+     * encode: 写入仓库存入目标坐标。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, LogisticsWarehouseGridInsertPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode: 读取仓库存入目标坐标。 */
+    /**
+     * decode: 读取仓库存入目标坐标。
+     */
     public static LogisticsWarehouseGridInsertPacket decode(RegistryFriendlyByteBuf buffer) {
         return new LogisticsWarehouseGridInsertPacket(buffer.readBlockPos());
     }
 
-    /** handle: 服务端把鼠标手上的物品存入仓库。 */
+    /**
+     * handle: 服务端把鼠标手上的物品存入仓库。
+     */
     public static void handle(LogisticsWarehouseGridInsertPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;

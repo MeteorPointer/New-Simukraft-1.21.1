@@ -1,10 +1,10 @@
 package common.cn.nsimu.simukraft.commercial;
 
+import net.minecraft.core.BlockPos;
+
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-
-import net.minecraft.core.BlockPos;
 
 
 public record CommercialDefinition(String id,
@@ -23,7 +23,9 @@ public record CommercialDefinition(String id,
         offers = offers != null ? List.copyOf(offers) : List.of();
     }
 
-    /** offerById: 按报价 ID 查找交易项。 */
+    /**
+     * offerById: 按报价 ID 查找交易项。
+     */
     public CommercialOffer offerById(String offerId) {
         if (offerId == null || offerId.isBlank()) {
             return null;
@@ -36,12 +38,16 @@ public record CommercialDefinition(String id,
         return null;
     }
 
-    /** playerOffers: 获取玩家可见的交易项。 */
+    /**
+     * playerOffers: 获取玩家可见的交易项。
+     */
     public List<CommercialOffer> playerOffers() {
         return offers.stream().filter(CommercialOffer::visibleToPlayer).toList();
     }
 
-    /** npcOffers: 获取 NPC 可处理的交易项。 */
+    /**
+     * npcOffers: 获取 NPC 可处理的交易项。
+     */
     public List<CommercialOffer> npcOffers() {
         return offers.stream().filter(CommercialOffer::visibleToNpc).toList();
     }
@@ -65,12 +71,16 @@ public record CommercialDefinition(String id,
     }
 
     public record WorkTime(int start, int end) {
-        /** always: 创建全天营业时间。 */
+        /**
+         * always: 创建全天营业时间。
+         */
         public static WorkTime always() {
             return new WorkTime(0, 0);
         }
 
-        /** openAt: 判断指定 MC 日内时间是否处于营业时间。 */
+        /**
+         * openAt: 判断指定 MC 日内时间是否处于营业时间。
+         */
         public boolean openAt(long dayTime) {
             if (start == end) {
                 return true;

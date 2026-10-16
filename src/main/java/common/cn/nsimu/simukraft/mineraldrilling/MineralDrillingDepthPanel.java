@@ -18,7 +18,9 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
 
-/** MineralDrillingDepthPanel: 绘制双向深度滚动条与最多两个只读矿脉标记。 */
+/**
+ * MineralDrillingDepthPanel: 绘制双向深度滚动条与最多两个只读矿脉标记。
+ */
 
 public final class MineralDrillingDepthPanel {
     private static final int FRAME_INNER = 0xFF767A7A;
@@ -35,7 +37,9 @@ public final class MineralDrillingDepthPanel {
     private MineralDrillingDepthPanel() {
     }
 
-    /** create: 创建范围翻转后的纵向深度控制，使世界高处显示在轨道顶部。 */
+    /**
+     * create: 创建范围翻转后的纵向深度控制，使世界高处显示在轨道顶部。
+     */
     public static UIElement create(MineralDrillingMenuHolder holder,
                                    Player player,
                                    int x,
@@ -154,14 +158,14 @@ public final class MineralDrillingDepthPanel {
     }
 
     private static InteractiveDepthScroller scroller(int x,
-                                                      int y,
-                                                      int width,
-                                                      int height,
-                                                      float min,
-                                                      float max,
-                                                      int trackColor,
-                                                      int handleColor,
-                                                      boolean arrows) {
+                                                     int y,
+                                                     int width,
+                                                     int height,
+                                                     float min,
+                                                     float max,
+                                                     int trackColor,
+                                                     int handleColor,
+                                                     boolean arrows) {
         InteractiveDepthScroller scroller = new InteractiveDepthScroller();
         scroller.setRange(min, max);
         scroller.setScrollBarSize(arrows ? 8.0F : 4.0F);
@@ -184,9 +188,13 @@ public final class MineralDrillingDepthPanel {
         return scroller;
     }
 
-    /** InteractiveDepthScroller: 让独立阻尼手柄复用 LDLib2 原生纵向拖拽计算。 */
+    /**
+     * InteractiveDepthScroller: 让独立阻尼手柄复用 LDLib2 原生纵向拖拽计算。
+     */
     private static final class InteractiveDepthScroller extends Scroller.Vertical {
-        /** updateFromVisualDrag: 将绿色视觉手柄的拖拽事件转交给原生滚动器。 */
+        /**
+         * updateFromVisualDrag: 将绿色视觉手柄的拖拽事件转交给原生滚动器。
+         */
         private void updateFromVisualDrag(UIEvent event) {
             onDraggingScrollBar(event);
         }
@@ -202,17 +210,23 @@ public final class MineralDrillingDepthPanel {
         return Math.clamp((snapped - min) / range, 0.0F, 1.0F);
     }
 
-    /** selectedDepth: 将滚动器中的反向数值还原为经过边界限制的世界 Y 深度。 */
+    /**
+     * selectedDepth: 将滚动器中的反向数值还原为经过边界限制的世界 Y 深度。
+     */
     static int selectedDepth(float scrollerValue, int minDepth, int maxDepth) {
         return Math.clamp(Math.round(-scrollerValue), Math.min(minDepth, maxDepth), Math.max(minDepth, maxDepth));
     }
 
-    /** normalizedForValue: 将滚动器值映射到轨道比例并限制到安全范围。 */
+    /**
+     * normalizedForValue: 将滚动器值映射到轨道比例并限制到安全范围。
+     */
     private static float normalizedForValue(float value, float min, float max) {
         return Math.clamp((value - min) / Math.max(1.0F, max - min), 0.0F, 1.0F);
     }
 
-    /** normalizedForDepth: 将世界 Y 映射到顶部为高处、底部为低处的轨道比例。 */
+    /**
+     * normalizedForDepth: 将世界 Y 映射到顶部为高处、底部为低处的轨道比例。
+     */
     private static float normalizedForDepth(float depth, float rangeMin, float rangeMax) {
         return normalizedForValue(-depth, rangeMin, rangeMax);
     }

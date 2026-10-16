@@ -63,7 +63,9 @@ public record VirtualVeinDefinition(String id,
         }
     }
 
-    /** localizedName: 英文玩家显示矿脉英文名。 */
+    /**
+     * localizedName: 英文玩家显示矿脉英文名。
+     */
     public String localizedName() {
         if (BuildingLocale.preferEnglish() && !displayNameEn.isBlank()) {
             return displayNameEn;
@@ -71,7 +73,9 @@ public record VirtualVeinDefinition(String id,
         return displayName;
     }
 
-    /** matches: 按多重噪声参数点的六项范围判断矿脉资格。 */
+    /**
+     * matches: 按多重噪声参数点的六项范围判断矿脉资格。
+     */
     public boolean matches(Climate.ParameterPoint point) {
         return matches(continentalness, point.continentalness())
                 && matches(erosion, point.erosion())

@@ -19,7 +19,9 @@ final class SimuKraftMaterialConfigPage {
     private SimuKraftMaterialConfigPage() {
     }
 
-    /** createBlacklist: 打开全部模式黑名单方块独立页面。 */
+    /**
+     * createBlacklist: 打开全部模式黑名单方块独立页面。
+     */
     static Screen createBlacklist(Screen parent, SimuKraftServerConfigDraft draft) {
         return create(parent, draft, LIST_WIDTH,
                 Component.translatable("config.simukraft.materials.allModeBlockBlacklist"),
@@ -31,7 +33,9 @@ final class SimuKraftMaterialConfigPage {
                         draft::setAllModeBlockBlacklist));
     }
 
-    /** createBasic: 打开基础材料独立页面。 */
+    /**
+     * createBasic: 打开基础材料独立页面。
+     */
     static Screen createBasic(Screen parent, SimuKraftServerConfigDraft draft) {
         return create(parent, draft, LIST_WIDTH,
                 Component.translatable("config.simukraft.materials.basicMaterials"),
@@ -43,7 +47,9 @@ final class SimuKraftMaterialConfigPage {
                         draft::setBasicMaterials));
     }
 
-    /** createCategory: 打开三栏通类匹配独立页面。 */
+    /**
+     * createCategory: 打开三栏通类匹配独立页面。
+     */
     static Screen createCategory(Screen parent, SimuKraftServerConfigDraft draft) {
         return create(parent, draft, CATEGORY_WIDTH,
                 Component.translatable("config.simukraft.materials.materialCategoryGroups"),
@@ -54,7 +60,9 @@ final class SimuKraftMaterialConfigPage {
                         draft::setMaterialCategoryGroups));
     }
 
-    /** createExpert: 打开专家跳过黑名单独立页面。 */
+    /**
+     * createExpert: 打开专家跳过黑名单独立页面。
+     */
     static Screen createExpert(Screen parent, SimuKraftServerConfigDraft draft) {
         return create(parent, draft, LIST_WIDTH,
                 Component.translatable("config.simukraft.materials.expertModeSkipList"),

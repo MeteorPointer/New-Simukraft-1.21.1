@@ -2,12 +2,16 @@ package common.cn.nsimu.simukraft.time;
 
 import common.cn.nsimu.simukraft.citizen.CitizenData;
 
-/** CitizenCalendar：时间回退时平移居民身上的游戏日，避免怀孕、产后和住院吃饭停住。 */
+/**
+ * CitizenCalendar：时间回退时平移居民身上的游戏日，避免怀孕、产后和住院吃饭停住。
+ */
 public final class CitizenCalendar {
     private CitizenCalendar() {
     }
 
-    /** shiftDays：返回值表示档案是否被改过。 */
+    /**
+     * shiftDays：返回值表示档案是否被改过。
+     */
     public static boolean shiftDays(CitizenData citizen, long deltaDays) {
         if (citizen == null || deltaDays <= 0L) {
             return false;

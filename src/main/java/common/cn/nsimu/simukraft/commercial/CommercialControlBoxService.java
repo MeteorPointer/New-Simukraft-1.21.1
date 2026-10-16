@@ -12,6 +12,7 @@ import common.cn.nsimu.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
@@ -21,7 +22,9 @@ public final class CommercialControlBoxService {
     private CommercialControlBoxService() {
     }
 
-    /** buildView: 构建商业控制箱客户端视图。 */
+    /**
+     * buildView: 构建商业控制箱客户端视图。
+     */
     public static CommercialControlBoxView buildView(ServerLevel level, BlockPos boxPos) {
         CommercialBoxData data = CommercialBoxManager.get(level).getOrCreate(boxPos);
         PlacedBuildingRecord building = resolveBuilding(level, boxPos);
@@ -55,7 +58,9 @@ public final class CommercialControlBoxService {
         );
     }
 
-    /** buildTradeView: 构建 NPC 商业交易客户端视图，余额按付款城市计算。 */
+    /**
+     * buildTradeView: 构建 NPC 商业交易客户端视图，余额按付款城市计算。
+     */
     public static CommercialTradeView buildTradeView(ServerLevel level, BlockPos boxPos, UUID workerId, ServerPlayer player) {
         PlacedBuildingRecord building = resolveBuilding(level, boxPos);
         CommercialDefinitionLoader.LoadResult loadResult = CommercialDefinitionLoader.loadForBuilding(building);
@@ -77,7 +82,9 @@ public final class CommercialControlBoxService {
         );
     }
 
-    /** fireWorker: 解雇商业控制箱员工。 */
+    /**
+     * fireWorker: 解雇商业控制箱员工。
+     */
     public static void fireWorker(ServerLevel level, BlockPos boxPos) {
         CitizenEmploymentService.fireAssigned(level,
                 CitizenEmploymentService.workplaceId(CommercialConstants.HIRE_SOURCE_TYPE, CommercialConstants.HIRE_ROLE, boxPos),
@@ -92,7 +99,9 @@ public final class CommercialControlBoxService {
         CommercialBoxManager.get(level).persist(data);
     }
 
-    /** openForWorker: 玩家右键商业员工时打开其所属商业建筑交易界面。 */
+    /**
+     * openForWorker: 玩家右键商业员工时打开其所属商业建筑交易界面。
+     */
     public static boolean openForWorker(ServerLevel level, ServerPlayer player, CitizenData worker) {
         BlockPos boxPos = resolveWorkerBox(level, worker);
         if (level == null || player == null || boxPos == null) {
@@ -104,7 +113,9 @@ public final class CommercialControlBoxService {
         return CommercialTradeMenuProvider.open(player, buildTradeView(level, boxPos, worker.uuid(), player));
     }
 
-    /** interrupt: 当员工状态变化时中断对应商业箱。 */
+    /**
+     * interrupt: 当员工状态变化时中断对应商业箱。
+     */
     public static void interrupt(ServerLevel level, UUID citizenId, String reason) {
         if (level == null || citizenId == null) {
             return;
@@ -122,7 +133,9 @@ public final class CommercialControlBoxService {
         }
     }
 
-    /** onRemoved: 商业控制箱被破坏时清理状态、库存和雇佣。 */
+    /**
+     * onRemoved: 商业控制箱被破坏时清理状态、库存和雇佣。
+     */
     public static void onRemoved(ServerLevel level, BlockPos boxPos) {
         if (level == null || boxPos == null) {
             return;
@@ -136,18 +149,24 @@ public final class CommercialControlBoxService {
         }
     }
 
-    /** resolveBuilding: 解析商业控制箱所属商业建筑。 */
+    /**
+     * resolveBuilding: 解析商业控制箱所属商业建筑。
+     */
     public static PlacedBuildingRecord resolveBuilding(ServerLevel level, BlockPos boxPos) {
         return PlacedBuildingService.findByContainedPosAndCategory(level, boxPos, "commercial", "commerce");
     }
 
-    /** findAssignedWorker: 查找分配给商业控制箱的员工。 */
+    /**
+     * findAssignedWorker: 查找分配给商业控制箱的员工。
+     */
     public static CitizenData findAssignedWorker(ServerLevel level, BlockPos boxPos) {
         return CitizenEmploymentService.findAssigned(level, CommercialConstants.HIRE_SOURCE_TYPE, CommercialConstants.HIRE_ROLE, boxPos)
                 .orElse(null);
     }
 
-    /** resolveWorkerBox: 解析商业员工绑定的控制箱位置。 */
+    /**
+     * resolveWorkerBox: 解析商业员工绑定的控制箱位置。
+     */
     public static BlockPos resolveWorkerBox(ServerLevel level, CitizenData worker) {
         if (level == null || worker == null || worker.workplaceId() == null || worker.workplacePos() == null) {
             return null;
@@ -161,7 +180,9 @@ public final class CommercialControlBoxService {
         return assigned != null && worker.uuid().equals(assigned.uuid()) ? boxPos.immutable() : null;
     }
 
-    /** synchronizeAssignedWorkerMetadata: 同步被雇佣员工的商业职业 ID。 */
+    /**
+     * synchronizeAssignedWorkerMetadata: 同步被雇佣员工的商业职业 ID。
+     */
     public static void synchronizeAssignedWorkerMetadata(ServerLevel level, BlockPos boxPos) {
         PlacedBuildingRecord building = resolveBuilding(level, boxPos);
         CommercialDefinitionLoader.LoadResult loadResult = CommercialDefinitionLoader.loadForBuilding(building);
@@ -178,12 +199,16 @@ public final class CommercialControlBoxService {
         CommercialBoxManager.get(level).persist(data);
     }
 
-    /** isCommercialControlBox: 判断位置是否为商业控制箱。 */
+    /**
+     * isCommercialControlBox: 判断位置是否为商业控制箱。
+     */
     public static boolean isCommercialControlBox(ServerLevel level, BlockPos pos) {
         return level != null && pos != null && level.isLoaded(pos) && level.getBlockState(pos).is(ModBlocks.COMMERCIAL_CONTROL_BOX.get());
     }
 
-    /** synchronizeBoxMetadata：按已放置建筑和商业定义回写盒子缓存，界面和工作 tick 共用。 */
+    /**
+     * synchronizeBoxMetadata：按已放置建筑和商业定义回写盒子缓存，界面和工作 tick 共用。
+     */
     static void synchronizeBoxMetadata(ServerLevel level, CommercialBoxData data, PlacedBuildingRecord building, CommercialDefinition definition) {
         if (data == null) {
             return;
@@ -229,7 +254,9 @@ public final class CommercialControlBoxService {
         return data.running() ? "gui.simukraft.commercial.status.open" : "gui.simukraft.commercial.status.closed";
     }
 
-    /** tradeBalance: 成员显示建筑城市余额，访客显示自己城市余额，无城市为 0。 */
+    /**
+     * tradeBalance: 成员显示建筑城市余额，访客显示自己城市余额，无城市为 0。
+     */
     private static double tradeBalance(ServerLevel level, PlacedBuildingRecord building, ServerPlayer player) {
         if (building == null || building.cityId() == null) {
             return 0.0D;

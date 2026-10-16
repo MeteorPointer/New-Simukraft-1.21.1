@@ -2,12 +2,12 @@ package common.cn.nsimu.simukraft.citizen;
 
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.building.BuildingAbandonmentService;
+import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
+import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
+import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
 import common.cn.nsimu.simukraft.time.CitizenCalendar;
 import common.cn.nsimu.simukraft.time.MinecraftDay;
-import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
-import common.cn.nsimu.simukraft.config.ServerConfig;
-import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -15,11 +15,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.saveddata.SavedData;
 
-import java.util.Collection;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ConcurrentMap;
@@ -221,7 +217,9 @@ public final class CitizenManager extends SavedData {
         }
     }
 
-    /** backupEntityInventory：仅写入世界 SavedData NBT 灾备，不触发 SQLite 物品双写。 */
+    /**
+     * backupEntityInventory：仅写入世界 SavedData NBT 灾备，不触发 SQLite 物品双写。
+     */
     public synchronized void backupEntityInventory(CitizenEntity entity) {
         if (entity == null || !(entity.level() instanceof ServerLevel serverLevel)) {
             return;
@@ -230,7 +228,9 @@ public final class CitizenManager extends SavedData {
         setDirty();
     }
 
-    /** reconcileEntityInventory：实体无新版背包标签时从世界 NBT 灾备恢复一次。 */
+    /**
+     * reconcileEntityInventory：实体无新版背包标签时从世界 NBT 灾备恢复一次。
+     */
     private synchronized void reconcileEntityInventory(CitizenEntity entity) {
         if (entity == null || entity.inventoryReconciled() || !(entity.level() instanceof ServerLevel serverLevel)) {
             return;
@@ -367,7 +367,9 @@ public final class CitizenManager extends SavedData {
                 });
     }
 
-    /** discardCitizenEntities：删城时清掉所有已加载维度里的对应实体，避免只丢掉当前维度。 */
+    /**
+     * discardCitizenEntities：删城时清掉所有已加载维度里的对应实体，避免只丢掉当前维度。
+     */
     private static void discardCitizenEntities(ServerLevel level, UUID citizenId) {
         if (level == null || citizenId == null || level.getServer() == null) {
             return;
@@ -380,12 +382,16 @@ public final class CitizenManager extends SavedData {
         }
     }
 
-    /** wasRemoved：这个 UUID 已随删城或删除居民清掉，重新加载的旧实体不能再补档案。 */
+    /**
+     * wasRemoved：这个 UUID 已随删城或删除居民清掉，重新加载的旧实体不能再补档案。
+     */
     public boolean wasRemoved(UUID citizenId) {
         return citizenId != null && removedCitizenIds.contains(citizenId);
     }
 
-    /** rememberRemovedForTest：无世界环境下记录已删除居民。 */
+    /**
+     * rememberRemovedForTest：无世界环境下记录已删除居民。
+     */
     void rememberRemovedForTest(UUID citizenId) {
         if (citizenId != null) {
             removedCitizenIds.add(citizenId);
@@ -423,7 +429,9 @@ public final class CitizenManager extends SavedData {
         tickFamilySystemsIfNewDay(level);
     }
 
-    /** enqueueAiTick: 用 O(1) UUID 索引保持轮询队列中每位市民至多一项。 */
+    /**
+     * enqueueAiTick: 用 O(1) UUID 索引保持轮询队列中每位市民至多一项。
+     */
     private void enqueueAiTick(UUID citizenId) {
         if (citizenId != null && queuedAiCitizenIds.add(citizenId)) {
             aiQueue.offer(citizenId);
@@ -465,7 +473,9 @@ public final class CitizenManager extends SavedData {
         }
     }
 
-    /** freezeUnloadedCitizens：实体没在 tick 的市民只后移倒计时锚点，不发病、不治疗、不死亡。 */
+    /**
+     * freezeUnloadedCitizens：实体没在 tick 的市民只后移倒计时锚点，不发病、不治疗、不死亡。
+     */
     private void freezeUnloadedCitizens(ServerLevel level, long elapsedDays) {
         String dimensionId = level.dimension().location().toString();
         for (CitizenData citizen : citizens.values()) {
@@ -481,7 +491,9 @@ public final class CitizenManager extends SavedData {
         }
     }
 
-    /** rebaseCalendarsAfterTimeRollback：日号回退时平移居民、废弃度和企业税日期，当天不重复掷概率。 */
+    /**
+     * rebaseCalendarsAfterTimeRollback：日号回退时平移居民、废弃度和企业税日期，当天不重复掷概率。
+     */
     private void rebaseCalendarsAfterTimeRollback(ServerLevel level, long deltaDays, long currentDay) {
         int shifted = 0;
         for (CitizenData citizen : citizens.values()) {
@@ -513,7 +525,9 @@ public final class CitizenManager extends SavedData {
         return data;
     }
 
-    /** recordEntityChunk：仅在居民跨区块时持久化恢复定位信息。 */
+    /**
+     * recordEntityChunk：仅在居民跨区块时持久化恢复定位信息。
+     */
     private void recordEntityChunk(CitizenData data, CitizenEntity entity) {
         if (data == null || entity == null || !(entity.level() instanceof ServerLevel)) {
             return;

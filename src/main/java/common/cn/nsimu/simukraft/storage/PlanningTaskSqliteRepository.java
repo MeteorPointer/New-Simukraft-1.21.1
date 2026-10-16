@@ -7,16 +7,8 @@ import common.cn.nsimu.simukraft.planner.PlanOperation;
 import common.cn.nsimu.simukraft.planner.PlanningTaskData;
 import net.minecraft.core.BlockPos;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.sql.*;
+import java.util.*;
 
 /**
  * 规划任务的 SQLite 仓库。任务扁平存储（区域用 min/max 的 long 表示），按维度加载用于恢复，按市民删除。

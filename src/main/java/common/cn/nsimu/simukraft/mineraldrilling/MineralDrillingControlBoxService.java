@@ -1,22 +1,13 @@
 package common.cn.nsimu.simukraft.mineraldrilling;
 
-import common.cn.nsimu.simukraft.building.BuildingIntegrityService;
-import common.cn.nsimu.simukraft.building.BuildingBlockData;
-import common.cn.nsimu.simukraft.building.BuildingCatalog;
-import common.cn.nsimu.simukraft.building.PlacedBuildingDemolitionService;
-import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
+import common.cn.nsimu.simukraft.building.*;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
 import common.cn.nsimu.simukraft.city.CityService;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
 import common.cn.nsimu.simukraft.registry.ModItems;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinDefinitionLoader;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinLookupResult;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinService;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinSlot;
-import common.cn.nsimu.simukraft.virtualvein.VirtualVeinSlotState;
+import common.cn.nsimu.simukraft.virtualvein.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
@@ -29,7 +20,9 @@ import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
-/** MineralDrillingControlBoxService: 提供矿物钻井控制箱的服务端权威业务操作。 */
+/**
+ * MineralDrillingControlBoxService: 提供矿物钻井控制箱的服务端权威业务操作。
+ */
 
 public final class MineralDrillingControlBoxService {
     public static final int SHALLOW_DRILL_MIN_Y = 10;
@@ -37,7 +30,9 @@ public final class MineralDrillingControlBoxService {
     private MineralDrillingControlBoxService() {
     }
 
-    /** buildView: 生成供菜单绑定使用的有限不可变快照。 */
+    /**
+     * buildView: 生成供菜单绑定使用的有限不可变快照。
+     */
     public static MineralDrillingControlBoxView buildView(ServerLevel level, BlockPos boxPos) {
         MineralDrillingBoxData data = MineralDrillingBoxManager.get(level).getOrCreate(boxPos);
         int minDepth = level.getMinBuildHeight();
@@ -89,7 +84,9 @@ public final class MineralDrillingControlBoxService {
         );
     }
 
-    /** setDrillDepth: 校验并持久化纵向滑杆选择的钻井深度。 */
+    /**
+     * setDrillDepth: 校验并持久化纵向滑杆选择的钻井深度。
+     */
     public static boolean setDrillDepth(ServerLevel level, BlockPos boxPos, int requestedDepth) {
         if (!isControlBox(level, boxPos)) {
             return false;
@@ -135,12 +132,16 @@ public final class MineralDrillingControlBoxService {
         }
     }
 
-    /** setDepth: 为菜单事件回调提供简短的深度更新别名。 */
+    /**
+     * setDepth: 为菜单事件回调提供简短的深度更新别名。
+     */
     public static boolean setDepth(ServerLevel level, BlockPos boxPos, int requestedDepth) {
         return setDrillDepth(level, boxPos, requestedDepth);
     }
 
-    /** toggleRunning: 仅在服务端前置条件全部满足后启动钻井。 */
+    /**
+     * toggleRunning: 仅在服务端前置条件全部满足后启动钻井。
+     */
     public static boolean toggleRunning(ServerLevel level, BlockPos boxPos) {
         if (!isControlBox(level, boxPos)) {
             return false;
@@ -189,7 +190,9 @@ public final class MineralDrillingControlBoxService {
         return true;
     }
 
-    /** stop: 以幂等方式暂停指定钻井控制箱。 */
+    /**
+     * stop: 以幂等方式暂停指定钻井控制箱。
+     */
     public static void stop(ServerLevel level, BlockPos boxPos, String reason) {
         if (level == null || boxPos == null) {
             return;
@@ -203,7 +206,9 @@ public final class MineralDrillingControlBoxService {
                 "gui.simukraft.mineral_drilling.status.interrupted", reason);
     }
 
-    /** fireWorker: 释放稳定钻井岗位并暂停控制箱，供拆除和系统清理调用。 */
+    /**
+     * fireWorker: 释放稳定钻井岗位并暂停控制箱，供拆除和系统清理调用。
+     */
     public static void fireWorker(ServerLevel level, BlockPos boxPos) {
         if (level == null || boxPos == null) {
             return;
@@ -225,7 +230,9 @@ public final class MineralDrillingControlBoxService {
                 "gui.simukraft.mineral_drilling.status.worker_fired", "");
     }
 
-    /** fireWorker: 校验操作者权限和预期员工后执行界面解雇，避免陈旧菜单误解雇新员工。 */
+    /**
+     * fireWorker: 校验操作者权限和预期员工后执行界面解雇，避免陈旧菜单误解雇新员工。
+     */
     public static boolean fireWorker(
             ServerLevel level, ServerPlayer player, BlockPos boxPos, UUID expectedWorkerId) {
         if (!isControlBox(level, boxPos) || player == null || expectedWorkerId == null
@@ -246,7 +253,9 @@ public final class MineralDrillingControlBoxService {
         return true;
     }
 
-    /** interrupt: 暂停所有分配给指定市民的钻井控制箱。 */
+    /**
+     * interrupt: 暂停所有分配给指定市民的钻井控制箱。
+     */
     public static void interrupt(ServerLevel level, UUID citizenId, String reason) {
         if (level == null || citizenId == null) {
             return;
@@ -259,13 +268,17 @@ public final class MineralDrillingControlBoxService {
         }
     }
 
-    /** repairBuilding: 将建筑修复与费用结算委托给共享建筑服务。 */
+    /**
+     * repairBuilding: 将建筑修复与费用结算委托给共享建筑服务。
+     */
     public static BuildingIntegrityService.RepairResult repairBuilding(
             ServerLevel level, ServerPlayer player, BlockPos boxPos) {
         return BuildingIntegrityService.repair(level, player, resolveBuilding(level, boxPos));
     }
 
-    /** demolish: 校验城市管理权限后调用共享拆除流程。 */
+    /**
+     * demolish: 校验城市管理权限后调用共享拆除流程。
+     */
     public static boolean demolish(ServerLevel level, ServerPlayer player, BlockPos boxPos) {
         if (!isControlBox(level, boxPos) || player == null || !player.blockPosition().closerThan(boxPos, 8.0D)) {
             return false;
@@ -278,7 +291,9 @@ public final class MineralDrillingControlBoxService {
         return PlacedBuildingDemolitionService.demolish(level, building);
     }
 
-    /** onRemoved: 掉落真实工具库存，并清理雇佣关系与持久化状态。 */
+    /**
+     * onRemoved: 掉落真实工具库存，并清理雇佣关系与持久化状态。
+     */
     public static void onRemoved(ServerLevel level, BlockPos boxPos) {
         if (level == null || boxPos == null) {
             return;
@@ -297,7 +312,9 @@ public final class MineralDrillingControlBoxService {
         }
     }
 
-    /** resolveBuilding: 仅解析包含控制箱的工业建筑，避免误关联相交的其他分类建筑。 */
+    /**
+     * resolveBuilding: 仅解析包含控制箱的工业建筑，避免误关联相交的其他分类建筑。
+     */
     public static PlacedBuildingRecord resolveBuilding(ServerLevel level, BlockPos boxPos) {
         if (level == null || boxPos == null) {
             return null;
@@ -313,7 +330,9 @@ public final class MineralDrillingControlBoxService {
         return null;
     }
 
-    /** isDrillingPlatform: 只接受建筑 JSON 明确声明的钻井平台。 */
+    /**
+     * isDrillingPlatform: 只接受建筑 JSON 明确声明的钻井平台。
+     */
     private static boolean isDrillingPlatform(PlacedBuildingRecord record) {
         return record != null
                 && BuildingCatalog.findBuilding(record.category(), record.buildingFileName())
@@ -321,13 +340,17 @@ public final class MineralDrillingControlBoxService {
                 .orElse(false);
     }
 
-    /** isIndustrialCategory: 限制钻井控制箱只能绑定工业类建筑记录。 */
+    /**
+     * isIndustrialCategory: 限制钻井控制箱只能绑定工业类建筑记录。
+     */
     private static boolean isIndustrialCategory(String category) {
         String normalized = category == null ? "" : category.toLowerCase(Locale.ROOT);
         return "industry".equals(normalized) || "industrial".equals(normalized);
     }
 
-    /** inside: 检查坐标是否位于建筑记录的包围盒内。 */
+    /**
+     * inside: 检查坐标是否位于建筑记录的包围盒内。
+     */
     private static boolean inside(PlacedBuildingRecord record, BlockPos pos) {
         BlockPos min = record.minPos();
         BlockPos max = record.maxPos();
@@ -339,7 +362,9 @@ public final class MineralDrillingControlBoxService {
                 && pos.getZ() <= Math.max(min.getZ(), max.getZ());
     }
 
-    /** containsDrillingControlBox: 验证建筑结构记录确实声明了当前钻井控制箱。 */
+    /**
+     * containsDrillingControlBox: 验证建筑结构记录确实声明了当前钻井控制箱。
+     */
     private static boolean containsDrillingControlBox(PlacedBuildingRecord record, BlockPos boxPos) {
         if (record == null || boxPos == null || record.blocks() == null || record.worldOrigin() == null) {
             return false;
@@ -358,7 +383,9 @@ public final class MineralDrillingControlBoxService {
         return false;
     }
 
-    /** findAssignedWorker: 查询绑定到指定钻井控制箱的市民。 */
+    /**
+     * findAssignedWorker: 查询绑定到指定钻井控制箱的市民。
+     */
     public static CitizenData findAssignedWorker(ServerLevel level, BlockPos boxPos) {
         return CitizenEmploymentService.findAssigned(
                 level,
@@ -368,7 +395,9 @@ public final class MineralDrillingControlBoxService {
         ).orElse(null);
     }
 
-    /** isControlBox: 检查位置当前是否仍为矿物钻井控制箱。 */
+    /**
+     * isControlBox: 检查位置当前是否仍为矿物钻井控制箱。
+     */
     public static boolean isControlBox(ServerLevel level, BlockPos boxPos) {
         return level != null && boxPos != null && level.isLoaded(boxPos)
                 && level.getBlockState(boxPos).is(ModBlocks.MINERAL_DRILLING_CONTROL_BOX.get());

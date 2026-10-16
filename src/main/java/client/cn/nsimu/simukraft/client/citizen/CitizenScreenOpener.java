@@ -9,14 +9,18 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
-/** NPC 信息容器的客户端 LDLib 入口。 */
+/**
+ * NPC 信息容器的客户端 LDLib 入口。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class CitizenScreenOpener {
     private CitizenScreenOpener() {
     }
 
-    /** createContainerUi：为原版容器菜单创建完整 NPC 信息界面。 */
+    /**
+     * createContainerUi：为原版容器菜单创建完整 NPC 信息界面。
+     */
     public static ModularUI createContainerUi(CitizenInfoResponsePacket packet,
                                               CitizenInventory inventory,
                                               CitizenEntity owner,

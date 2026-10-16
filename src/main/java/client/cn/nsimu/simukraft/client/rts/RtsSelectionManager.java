@@ -7,15 +7,10 @@ import client.cn.nsimu.simukraft.client.input.SimuKraftKeyMappings;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import client.cn.nsimu.simukraft.mixin.MixinGameRenderer;
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.config.ClientConfig;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
-import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsRequestPacket;
-import common.cn.nsimu.simukraft.network.rts.RtsCitizenActionPacket;
-import common.cn.nsimu.simukraft.network.rts.RtsDemolishPacket;
-import common.cn.nsimu.simukraft.network.rts.RtsMovePacket;
-import common.cn.nsimu.simukraft.network.rts.RtsOpenTargetPacket;
-import common.cn.nsimu.simukraft.network.rts.RtsPlaceBlockPacket;
-import common.cn.nsimu.simukraft.config.ClientConfig;
+import common.cn.nsimu.simukraft.network.rts.*;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -28,11 +23,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.BlockHitResult;
-import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.HitResult;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.world.phys.*;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.event.InputEvent;
@@ -43,7 +34,9 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/** RTS 鼠标目标状态：只负责光标射线、选择状态和鼠标捕获状态。 */
+/**
+ * RTS 鼠标目标状态：只负责光标射线、选择状态和鼠标捕获状态。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class RtsSelectionManager {
@@ -77,12 +70,16 @@ public final class RtsSelectionManager {
     private RtsSelectionManager() {
     }
 
-    /** isActive: 返回 RTS 鼠标选择模式是否开启。 */
+    /**
+     * isActive: 返回 RTS 鼠标选择模式是否开启。
+     */
     public static boolean isActive() {
         return active;
     }
 
-    /** beginPreviewSession: 暂停 RTS 方块高亮，仅保留预览界面所需的城市边界。 */
+    /**
+     * beginPreviewSession: 暂停 RTS 方块高亮，仅保留预览界面所需的城市边界。
+     */
     public static void beginPreviewSession() {
         if (!active) {
             return;
@@ -106,7 +103,9 @@ public final class RtsSelectionManager {
         }
     }
 
-    /** endPreviewSession: 退出 RTS 预览界面后重新获取建筑边界快照。 */
+    /**
+     * endPreviewSession: 退出 RTS 预览界面后重新获取建筑边界快照。
+     */
     public static void endPreviewSession() {
         Minecraft minecraft = Minecraft.getInstance();
         if (!active || minecraft.player == null || minecraft.level == null) {
@@ -118,20 +117,26 @@ public final class RtsSelectionManager {
         }
     }
 
-    /** cursorPlacementPos: 返回 RTS 光标 X/Z 对应最高地表上方的默认落点。 */
+    /**
+     * cursorPlacementPos: 返回 RTS 光标 X/Z 对应最高地表上方的默认落点。
+     */
     public static BlockPos cursorPlacementPos() {
         Minecraft minecraft = Minecraft.getInstance();
         BlockHitResult hit = rayTraceCursor(minecraft);
         return surfacePlacementPos(minecraft, hit);
     }
 
-    /** cursorTargetPos: 返回 RTS 系统光标命中的原始方块坐标。 */
+    /**
+     * cursorTargetPos: 返回 RTS 系统光标命中的原始方块坐标。
+     */
     public static BlockPos cursorTargetPos() {
         BlockHitResult hit = rayTraceCursor(Minecraft.getInstance());
         return hit != null && hit.getType() == HitResult.Type.BLOCK ? hit.getBlockPos().immutable() : null;
     }
 
-    /** toggle: 切换 RTS 鼠标选择模式。 */
+    /**
+     * toggle: 切换 RTS 鼠标选择模式。
+     */
     public static void toggle() {
         if (active) {
             deactivate();
@@ -140,7 +145,9 @@ public final class RtsSelectionManager {
         }
     }
 
-    /** activate: 开启模式并释放鼠标，让系统光标保持可见。 */
+    /**
+     * activate: 开启模式并释放鼠标，让系统光标保持可见。
+     */
     public static void activate() {
         Minecraft minecraft = Minecraft.getInstance();
         if (active || minecraft.player == null || minecraft.level == null) {
@@ -159,7 +166,9 @@ public final class RtsSelectionManager {
         minecraft.mouseHandler.releaseMouse();
     }
 
-    /** deactivate: 关闭模式并清理客户端高亮状态。 */
+    /**
+     * deactivate: 关闭模式并清理客户端高亮状态。
+     */
     public static void deactivate() {
         if (!active) {
             return;
@@ -185,7 +194,9 @@ public final class RtsSelectionManager {
         }
     }
 
-    /** clear: 断线或世界切换时无条件清理状态。 */
+    /**
+     * clear: 断线或世界切换时无条件清理状态。
+     */
     public static void clear() {
         active = false;
         targetPos = null;
@@ -202,7 +213,9 @@ public final class RtsSelectionManager {
         BuildingBoundsRenderer.setRtsBuildingBounds(null);
     }
 
-    /** onClientTick: 处理可修改按键并按帧更新鼠标光标目标。 */
+    /**
+     * onClientTick: 处理可修改按键并按帧更新鼠标光标目标。
+     */
     public static void onClientTick() {
         Minecraft minecraft = Minecraft.getInstance();
         if (SimuKraftKeyMappings.RTS_TOGGLE.consumeClick() && minecraft.screen == null) {
@@ -236,7 +249,9 @@ public final class RtsSelectionManager {
         }
     }
 
-    /** onMouseButton: 拦截游戏世界中的原版攻击/使用，避免 RTS 光标操作误触发。 */
+    /**
+     * onMouseButton: 拦截游戏世界中的原版攻击/使用，避免 RTS 光标操作误触发。
+     */
     public static void onMouseButton(InputEvent.MouseButton.Pre event) {
         if (!active) {
             return;
@@ -282,14 +297,18 @@ public final class RtsSelectionManager {
         }
     }
 
-    /** onMouseScrolling: 按住 Alt 滚动时缩放 RTS 相机，阻止原版切换物品栏。 */
+    /**
+     * onMouseScrolling: 按住 Alt 滚动时缩放 RTS 相机，阻止原版切换物品栏。
+     */
     public static void onMouseScrolling(InputEvent.MouseScrollingEvent event) {
         if (handleRtsCameraScroll(event.getScrollDeltaY())) {
             event.setCanceled(true);
         }
     }
 
-    /** handleRtsCameraScroll: 在 RTS 世界或预览界面中处理 Alt 滚轮缩放。 */
+    /**
+     * handleRtsCameraScroll: 在 RTS 世界或预览界面中处理 Alt 滚轮缩放。
+     */
     public static boolean handleRtsCameraScroll(double scrollDelta) {
         if (!canUseRtsCameraControls() || !isAltDown()) {
             return false;
@@ -298,14 +317,18 @@ public final class RtsSelectionManager {
         return true;
     }
 
-    /** canUseRtsCameraControls: 判断当前是否为可接收 RTS 相机输入的世界或 RTS 预览界面。 */
+    /**
+     * canUseRtsCameraControls: 判断当前是否为可接收 RTS 相机输入的世界或 RTS 预览界面。
+     */
     public static boolean canUseRtsCameraControls() {
         Minecraft minecraft = Minecraft.getInstance();
         return active && FreeCameraManager.isRtsActive()
                 && (minecraft.screen == null || minecraft.screen instanceof FreeCameraScreen);
     }
 
-    /** isCameraRotationActive: 返回 Alt 与右键是否共同处于按下状态。 */
+    /**
+     * isCameraRotationActive: 返回 Alt 与右键是否共同处于按下状态。
+     */
     public static boolean isCameraRotationActive() {
         if (!canUseRtsCameraControls()) {
             return false;
@@ -315,7 +338,9 @@ public final class RtsSelectionManager {
         return GLFW.glfwGetMouseButton(window, GLFW.GLFW_MOUSE_BUTTON_RIGHT) == GLFW.GLFW_PRESS && isAltDown();
     }
 
-    /** handleEscapeKey: 无界面时按 ESC 退出 RTS 并恢复原版鼠标捕获。 */
+    /**
+     * handleEscapeKey: 无界面时按 ESC 退出 RTS 并恢复原版鼠标捕获。
+     */
     public static boolean handleEscapeKey(int keyCode, int action) {
         if (!active || keyCode != GLFW.GLFW_KEY_ESCAPE || action != GLFW.GLFW_PRESS
                 || Minecraft.getInstance().screen != null) {
@@ -325,7 +350,9 @@ public final class RtsSelectionManager {
         return true;
     }
 
-    /** handlePreviewMovementKey: 处理抓取预览复用的方向键与高度键。 */
+    /**
+     * handlePreviewMovementKey: 处理抓取预览复用的方向键与高度键。
+     */
     public static boolean handlePreviewMovementKey(int keyCode, int scanCode, int action) {
         if (!active || !RtsMovePreviewManager.isActive() || action != GLFW.GLFW_PRESS) {
             return false;
@@ -350,7 +377,9 @@ public final class RtsSelectionManager {
         return true;
     }
 
-    /** beginMove: 从右键菜单进入落点选择状态。 */
+    /**
+     * beginMove: 从右键菜单进入落点选择状态。
+     */
     public static void beginMove(BlockPos source) {
         if (!active || source == null) {
             return;
@@ -364,7 +393,9 @@ public final class RtsSelectionManager {
         }
     }
 
-    /** beginCitizenMove: 让右键菜单中的市民进入下一次左键指定落点的状态。 */
+    /**
+     * beginCitizenMove: 让右键菜单中的市民进入下一次左键指定落点的状态。
+     */
     public static void beginCitizenMove(UUID citizenId) {
         if (!active || citizenId == null) {
             return;
@@ -375,7 +406,9 @@ public final class RtsSelectionManager {
         selectCitizen(citizenId, false);
     }
 
-    /** renderHoldProgress: 在系统光标旁绘制长按移动的圆形进度。 */
+    /**
+     * renderHoldProgress: 在系统光标旁绘制长按移动的圆形进度。
+     */
     public static void renderHoldProgress(GuiGraphics graphics) {
         if (!active || !leftPressed || moveHoldCompleted || pressedPos == null || Minecraft.getInstance().screen != null) {
             return;
@@ -407,27 +440,37 @@ public final class RtsSelectionManager {
                 HOLD_RING_FRAME_SIZE * HOLD_RING_FRAME_COLUMNS);
     }
 
-    /** targetPos: 返回当前光标命中的方块，供操作层读取。 */
+    /**
+     * targetPos: 返回当前光标命中的方块，供操作层读取。
+     */
     public static BlockPos targetPos() {
         return targetPos;
     }
 
-    /** selectedPos: 返回当前左键选中的方块，供后续菜单/操作层读取。 */
+    /**
+     * selectedPos: 返回当前左键选中的方块，供后续菜单/操作层读取。
+     */
     public static BlockPos selectedPos() {
         return selectedPos;
     }
 
-    /** hasCitizenSelection: 返回当前是否有可供 RTS 市民标记渲染的选择。 */
+    /**
+     * hasCitizenSelection: 返回当前是否有可供 RTS 市民标记渲染的选择。
+     */
     static boolean hasCitizenSelection() {
         return !selectedCitizenIds.isEmpty();
     }
 
-    /** isCitizenSelected: 判断指定市民是否属于当前 RTS 多选集合。 */
+    /**
+     * isCitizenSelected: 判断指定市民是否属于当前 RTS 多选集合。
+     */
     static boolean isCitizenSelected(UUID citizenId) {
         return citizenId != null && selectedCitizenIds.contains(citizenId);
     }
 
-    /** citizenMoveTarget: 返回最近一次 RTS 市民移动命令的地表目标。 */
+    /**
+     * citizenMoveTarget: 返回最近一次 RTS 市民移动命令的地表目标。
+     */
     static BlockPos citizenMoveTarget() {
         return citizenMoveTarget;
     }
@@ -452,7 +495,9 @@ public final class RtsSelectionManager {
                 surfacePlacementPos(minecraft, hit));
     }
 
-    /** setPlacementTarget: 保存所有命中的方块面，独立于 RTS 高亮方块筛选。 */
+    /**
+     * setPlacementTarget: 保存所有命中的方块面，独立于 RTS 高亮方块筛选。
+     */
     private static void setPlacementTarget(BlockHitResult hit) {
         if (hit == null || hit.getType() != HitResult.Type.BLOCK) {
             clearPlacementTarget();
@@ -462,13 +507,17 @@ public final class RtsSelectionManager {
         placementFace = hit.getDirection();
     }
 
-    /** clearPlacementTarget: 清理已失效的远程方块放置目标。 */
+    /**
+     * clearPlacementTarget: 清理已失效的远程方块放置目标。
+     */
     private static void clearPlacementTarget() {
         placementClickedPos = null;
         placementFace = null;
     }
 
-    /** surfacePlacementPos: 将射线命中转换为同列最高可阻挡地表的上方落点。 */
+    /**
+     * surfacePlacementPos: 将射线命中转换为同列最高可阻挡地表的上方落点。
+     */
     private static BlockPos surfacePlacementPos(Minecraft minecraft, BlockHitResult hit) {
         if (hit == null || hit.getType() != HitResult.Type.BLOCK || !(minecraft.level instanceof ClientLevel level)) {
             return null;
@@ -478,12 +527,16 @@ public final class RtsSelectionManager {
         return new BlockPos(hitPos.getX(), surfaceY, hitPos.getZ());
     }
 
-    /** rayTraceCursor: 将系统光标转换为与当前投影一致的世界射线。 */
+    /**
+     * rayTraceCursor: 将系统光标转换为与当前投影一致的世界射线。
+     */
     private static BlockHitResult rayTraceCursor(Minecraft minecraft) {
         return rayTraceCursor(minecraft, cursorRay(minecraft));
     }
 
-    /** rayTraceCursor: 使用已经计算好的光标射线查找最先命中的方块。 */
+    /**
+     * rayTraceCursor: 使用已经计算好的光标射线查找最先命中的方块。
+     */
     private static BlockHitResult rayTraceCursor(Minecraft minecraft, CursorRay ray) {
         if (!(minecraft.level instanceof ClientLevel level) || ray == null) {
             return null;
@@ -492,7 +545,9 @@ public final class RtsSelectionManager {
                 minecraft.player));
     }
 
-    /** cursorRay: 将系统光标转换为与当前透视或正交投影一致的世界射线。 */
+    /**
+     * cursorRay: 将系统光标转换为与当前透视或正交投影一致的世界射线。
+     */
     private static CursorRay cursorRay(Minecraft minecraft) {
         Camera camera = minecraft.gameRenderer.getMainCamera();
         if (!camera.isInitialized() || !(minecraft.level instanceof ClientLevel)) {
@@ -527,7 +582,9 @@ public final class RtsSelectionManager {
         return new CursorRay(from, to);
     }
 
-    /** rayTraceCitizen: 命中市民且其命中点在方块命中点之前时才返回，避免隔墙选中。 */
+    /**
+     * rayTraceCitizen: 命中市民且其命中点在方块命中点之前时才返回，避免隔墙选中。
+     */
     private static CitizenEntity rayTraceCitizen(Minecraft minecraft, CursorRay ray, BlockHitResult blockHit) {
         if (ray == null || minecraft.player == null || !(minecraft.level instanceof ClientLevel)) {
             return null;
@@ -550,7 +607,9 @@ public final class RtsSelectionManager {
         setTarget(newTarget, null);
     }
 
-    /** cursorFovScale: 按实际渲染 FOV 校正 NearPlane 横纵偏移，避免边缘射线偏离光标。 */
+    /**
+     * cursorFovScale: 按实际渲染 FOV 校正 NearPlane 横纵偏移，避免边缘射线偏离光标。
+     */
     private static float cursorFovScale(Minecraft minecraft) {
         MixinGameRenderer renderer = (MixinGameRenderer) minecraft.gameRenderer;
         float modifier = renderer.simukraft$getFovModifier();
@@ -578,7 +637,9 @@ public final class RtsSelectionManager {
         BuildingBoundsRenderer.setRtsTarget(immutable);
     }
 
-    /** setTargetCitizen: 同步当前光标命中的市民，命中市民时不显示方块预选框。 */
+    /**
+     * setTargetCitizen: 同步当前光标命中的市民，命中市民时不显示方块预选框。
+     */
     private static void setTargetCitizen(CitizenEntity citizen) {
         targetCitizenId = citizen == null ? null : citizen.getUUID();
         targetCitizenName = citizen == null ? Component.empty() : citizen.getDisplayName().copy();
@@ -693,7 +754,9 @@ public final class RtsSelectionManager {
         return ClientConfig.rtsMoveHoldSeconds() * 1_000_000_000L;
     }
 
-    /** hasCompletedMoveHold: 根据真实按住时长判定本次点击是否应触发移动。 */
+    /**
+     * hasCompletedMoveHold: 根据真实按住时长判定本次点击是否应触发移动。
+     */
     private static boolean hasCompletedMoveHold() {
         return leftPressedAtNanos > 0L && System.nanoTime() - leftPressedAtNanos >= moveHoldNanos();
     }
@@ -711,7 +774,9 @@ public final class RtsSelectionManager {
         leftPressedAtNanos = 0L;
     }
 
-    /** finishCitizenClick: 处理单选、反选、多选，以及同一市民的双击打开操作。 */
+    /**
+     * finishCitizenClick: 处理单选、反选、多选，以及同一市民的双击打开操作。
+     */
     private static void finishCitizenClick(UUID citizenId) {
         if (citizenId == null) {
             return;
@@ -739,7 +804,9 @@ public final class RtsSelectionManager {
         lastCitizenClickNanos = now;
     }
 
-    /** selectCitizen: 普通点击替换选择，Ctrl 点击切换市民是否加入选择集合。 */
+    /**
+     * selectCitizen: 普通点击替换选择，Ctrl 点击切换市民是否加入选择集合。
+     */
     private static void selectCitizen(UUID citizenId, boolean toggleMembership) {
         if (citizenId == null) {
             return;
@@ -758,20 +825,26 @@ public final class RtsSelectionManager {
         BuildingBoundsRenderer.setRtsSelection(null);
     }
 
-    /** clearCitizenSelection: 退出 RTS 或切换回方块选择时释放市民选择集合。 */
+    /**
+     * clearCitizenSelection: 退出 RTS 或切换回方块选择时释放市民选择集合。
+     */
     private static void clearCitizenSelection() {
         selectedCitizenIds.clear();
         citizenMoveTarget = null;
         clearCitizenDoubleClick();
     }
 
-    /** clearCitizenDoubleClick: 重置市民双击计时，防止切换目标后误触发打开。 */
+    /**
+     * clearCitizenDoubleClick: 重置市民双击计时，防止切换目标后误触发打开。
+     */
     private static void clearCitizenDoubleClick() {
         lastCitizenClickId = null;
         lastCitizenClickNanos = 0L;
     }
 
-    /** sendCitizenMove: 将当前全部已选市民移动至光标命中的地表位置。 */
+    /**
+     * sendCitizenMove: 将当前全部已选市民移动至光标命中的地表位置。
+     */
     private static void sendCitizenMove(BlockPos destination) {
         if (destination != null && !selectedCitizenIds.isEmpty()) {
             citizenMoveTarget = destination.immutable();
@@ -787,21 +860,27 @@ public final class RtsSelectionManager {
                 || GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_ALT) == GLFW.GLFW_PRESS;
     }
 
-    /** isControlDown: 判断 Ctrl 是否按下以启用 RTS 快速缩放。 */
+    /**
+     * isControlDown: 判断 Ctrl 是否按下以启用 RTS 快速缩放。
+     */
     private static boolean isControlDown() {
         long window = Minecraft.getInstance().getWindow().getWindow();
         return GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_CONTROL) == GLFW.GLFW_PRESS
                 || GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_CONTROL) == GLFW.GLFW_PRESS;
     }
 
-    /** isShiftDown: 判断 Shift 是否按下以选择市民的商店打开动作。 */
+    /**
+     * isShiftDown: 判断 Shift 是否按下以选择市民的商店打开动作。
+     */
     private static boolean isShiftDown() {
         long window = Minecraft.getInstance().getWindow().getWindow();
         return GLFW.glfwGetKey(window, GLFW.GLFW_KEY_LEFT_SHIFT) == GLFW.GLFW_PRESS
                 || GLFW.glfwGetKey(window, GLFW.GLFW_KEY_RIGHT_SHIFT) == GLFW.GLFW_PRESS;
     }
 
-    /** CursorRay: 保存已按当前投影换算的光标世界射线端点。 */
+    /**
+     * CursorRay: 保存已按当前投影换算的光标世界射线端点。
+     */
     private record CursorRay(Vec3 from, Vec3 to) {
     }
 }

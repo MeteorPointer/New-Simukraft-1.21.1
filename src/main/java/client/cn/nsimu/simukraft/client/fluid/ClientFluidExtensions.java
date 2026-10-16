@@ -1,10 +1,10 @@
 package client.cn.nsimu.simukraft.client.fluid;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.registry.ModFluidTypes;
 import net.minecraft.resources.ResourceLocation;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.extensions.common.IClientFluidTypeExtensions;
 import net.neoforged.neoforge.client.extensions.common.RegisterClientExtensionsEvent;
 

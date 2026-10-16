@@ -1,30 +1,20 @@
 package common.cn.nsimu.simukraft.entity;
 
 import common.cn.nsimu.simukraft.building.BuilderConstructionService;
-import common.cn.nsimu.simukraft.citizen.CitizenBedSleepService;
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenHomeRestService;
-import common.cn.nsimu.simukraft.citizen.CitizenInventory;
-import common.cn.nsimu.simukraft.citizen.CitizenInfoMenuProvider;
-import common.cn.nsimu.simukraft.citizen.CitizenJobVisualService;
-import common.cn.nsimu.simukraft.citizen.CitizenManager;
-import common.cn.nsimu.simukraft.citizen.CitizenManualControlService;
-import common.cn.nsimu.simukraft.citizen.CitizenDroppedFoodService;
-import common.cn.nsimu.simukraft.citizen.CitizenFoodConsumptionService;
-import common.cn.nsimu.simukraft.citizen.CitizenPanicService;
-import common.cn.nsimu.simukraft.citizen.CitizenService;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
-import common.cn.nsimu.simukraft.citizen.CitizenVoiceService;
-import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
+import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
-import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import common.cn.nsimu.simukraft.medical.MedicalService;
+import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -32,21 +22,17 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.PathfinderMob;
-import net.minecraft.world.entity.ai.control.JumpControl;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.control.JumpControl;
 import net.minecraft.world.entity.ai.goal.FloatGoal;
 import net.minecraft.world.entity.ai.goal.LookAtPlayerGoal;
 import net.minecraft.world.entity.ai.goal.RandomLookAroundGoal;
 import net.minecraft.world.entity.monster.Zombie;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 
 import java.util.UUID;
 
@@ -97,7 +83,9 @@ public class CitizenEntity extends PathfinderMob {
         citizenInventory.addListener(ignored -> onCitizenInventoryChanged());
     }
 
-    /** Allows an explicit path JUMP waypoint through the thin-shape jump filter. */
+    /**
+     * Allows an explicit path JUMP waypoint through the thin-shape jump filter.
+     */
     public void triggerPathJump() {
         pathJumpRequested = true;
         try {
@@ -162,13 +150,17 @@ public class CitizenEntity extends PathfinderMob {
         return result;
     }
 
-    /** hurtArmor：让 NPC 盔甲沿用玩家的原版耐久消耗与 NeoForge 护甲受损事件。 */
+    /**
+     * hurtArmor：让 NPC 盔甲沿用玩家的原版耐久消耗与 NeoForge 护甲受损事件。
+     */
     @Override
     protected void hurtArmor(DamageSource source, float amount) {
         doHurtEquipment(source, amount, EquipmentSlot.FEET, EquipmentSlot.LEGS, EquipmentSlot.CHEST, EquipmentSlot.HEAD);
     }
 
-    /** hurtHelmet：处理铁砧等只损伤头盔的原版伤害来源。 */
+    /**
+     * hurtHelmet：处理铁砧等只损伤头盔的原版伤害来源。
+     */
     @Override
     protected void hurtHelmet(DamageSource source, float amount) {
         doHurtEquipment(source, amount, EquipmentSlot.HEAD);
@@ -435,27 +427,37 @@ public class CitizenEntity extends PathfinderMob {
         stayInPlace = compound.getBoolean(TAG_STAY_IN_PLACE);
     }
 
-    /** getFollowPlayerId：返回当前手动跟随的玩家 UUID。 */
+    /**
+     * getFollowPlayerId：返回当前手动跟随的玩家 UUID。
+     */
     public UUID getFollowPlayerId() {
         return followPlayerId;
     }
 
-    /** setFollowPlayerId：设置或取消手动跟随目标。 */
+    /**
+     * setFollowPlayerId：设置或取消手动跟随目标。
+     */
     public void setFollowPlayerId(UUID followPlayerId) {
         this.followPlayerId = followPlayerId;
     }
 
-    /** isStayInPlace：返回“待在原地”最高优先级开关状态。 */
+    /**
+     * isStayInPlace：返回“待在原地”最高优先级开关状态。
+     */
     public boolean isStayInPlace() {
         return stayInPlace;
     }
 
-    /** setStayInPlace：切换最高优先级原地停留状态。 */
+    /**
+     * setStayInPlace：切换最高优先级原地停留状态。
+     */
     public void setStayInPlace(boolean stayInPlace) {
         this.stayInPlace = stayInPlace;
     }
 
-    /** isPanicking：原版受击记忆窗口尚未结束。 */
+    /**
+     * isPanicking：原版受击记忆窗口尚未结束。
+     */
     public boolean isPanicking() {
         return !level().isClientSide()
                 && level() instanceof ServerLevel serverLevel
@@ -463,13 +465,17 @@ public class CitizenEntity extends PathfinderMob {
                 && serverLevel.getGameTime() <= panicUntilGameTime;
     }
 
-    /** startPanic：记录攻击者并刷新逃跑窗口，不写入实体 NBT。 */
+    /**
+     * startPanic：记录攻击者并刷新逃跑窗口，不写入实体 NBT。
+     */
     public void startPanic(UUID threatId, long untilGameTime) {
         this.panicThreatId = threatId;
         this.panicUntilGameTime = untilGameTime;
     }
 
-    /** clearPanic：结束逃跑窗口并关掉冲刺动画。 */
+    /**
+     * clearPanic：结束逃跑窗口并关掉冲刺动画。
+     */
     public void clearPanic() {
         this.panicUntilGameTime = 0L;
         this.panicThreatId = null;
@@ -478,27 +484,37 @@ public class CitizenEntity extends PathfinderMob {
         }
     }
 
-    /** getPanicThreatId：返回当前逃跑要远离的玩家 UUID。 */
+    /**
+     * getPanicThreatId：返回当前逃跑要远离的玩家 UUID。
+     */
     public UUID getPanicThreatId() {
         return panicThreatId;
     }
 
-    /** getCitizenInventory：返回由实体 NBT 持久化的 NPC 真实物品栏。 */
+    /**
+     * getCitizenInventory：返回由实体 NBT 持久化的 NPC 真实物品栏。
+     */
     public CitizenInventory getCitizenInventory() {
         return citizenInventory;
     }
 
-    /** hasNativeInventoryTag：判断本次实体加载是否带有新版背包 NBT。 */
+    /**
+     * hasNativeInventoryTag：判断本次实体加载是否带有新版背包 NBT。
+     */
     public boolean hasNativeInventoryTag() {
         return nativeInventoryTagPresent;
     }
 
-    /** inventoryReconciled：判断实体背包是否已与世界 NBT 灾备完成一次同步。 */
+    /**
+     * inventoryReconciled：判断实体背包是否已与世界 NBT 灾备完成一次同步。
+     */
     public boolean inventoryReconciled() {
         return inventoryReconciled;
     }
 
-    /** markInventoryReconciled：标记背包同步完成，避免每 tick 重复复制 NBT。 */
+    /**
+     * markInventoryReconciled：标记背包同步完成，避免每 tick 重复复制 NBT。
+     */
     public void markInventoryReconciled() {
         nativeInventoryTagPresent = true;
         inventoryReconciled = true;
@@ -652,12 +668,16 @@ public class CitizenEntity extends PathfinderMob {
         refreshDimensions(); // 幼儿/成人状态切换时同步刷新碰撞箱
     }
 
-    /** getPregnancyStage：返回同步到客户端的孕期阶段名。 */
+    /**
+     * getPregnancyStage：返回同步到客户端的孕期阶段名。
+     */
     public String getPregnancyStage() {
         return this.entityData.get(DATA_PREGNANCY_STAGE);
     }
 
-    /** setPregnancyStage：设置孕期阶段名，供客户端渲染肚子大小。 */
+    /**
+     * setPregnancyStage：设置孕期阶段名，供客户端渲染肚子大小。
+     */
     public void setPregnancyStage(String pregnancyStage) {
         this.entityData.set(DATA_PREGNANCY_STAGE,
                 pregnancyStage != null && !pregnancyStage.isBlank() ? pregnancyStage : "none");

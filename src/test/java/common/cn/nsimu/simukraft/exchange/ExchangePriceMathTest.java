@@ -1,10 +1,11 @@
 package common.cn.nsimu.simukraft.exchange;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ExchangePriceMathTest {
     private final ExchangeCompany industry = new ExchangeCompany("lapis_industry", "青金石工业", "industry", 1.10D, 0.022D);

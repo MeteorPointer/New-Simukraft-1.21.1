@@ -12,12 +12,16 @@ public enum CitizenNameStyle {
         this.translationKey = translationKey;
     }
 
-    /** translationKey: 返回配置界面展示用的翻译键。 */
+    /**
+     * translationKey: 返回配置界面展示用的翻译键。
+     */
     public String translationKey() {
         return translationKey;
     }
 
-    /** fromName: 从配置或网络包字符串解析名字风格，非法值保持中式默认。 */
+    /**
+     * fromName: 从配置或网络包字符串解析名字风格，非法值保持中式默认。
+     */
     public static CitizenNameStyle fromName(String name) {
         if (name == null || name.isBlank()) {
             return CHINESE;

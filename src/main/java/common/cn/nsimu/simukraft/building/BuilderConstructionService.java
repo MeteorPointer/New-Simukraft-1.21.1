@@ -1,61 +1,38 @@
 package common.cn.nsimu.simukraft.building;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenHomeRestService;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
-import common.cn.nsimu.simukraft.citizen.CitizenVoiceService;
-import common.cn.nsimu.simukraft.entity.CitizenEntity;
-import common.cn.nsimu.simukraft.citizen.CitizenLevelService;
-import common.cn.nsimu.simukraft.citizen.CitizenService;
-import common.cn.nsimu.simukraft.citizen.CitizenSelfFeedingService;
-import common.cn.nsimu.simukraft.citizen.CitizenWorkplaceMoveService;
-import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
+import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
-import common.cn.nsimu.simukraft.event.BuildingConstructionEvent;
-import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsRequestPacket;
 import common.cn.nsimu.simukraft.city.poi.CityPoiType;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.economy.EconomyService;
-import common.cn.nsimu.simukraft.network.hud.HudSyncService;
-import common.cn.nsimu.simukraft.job.CityJobAssignmentService;
+import common.cn.nsimu.simukraft.event.BuildingConstructionEvent;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
+import common.cn.nsimu.simukraft.job.CityJobAssignmentService;
 import common.cn.nsimu.simukraft.job.CityJobType;
-import common.cn.nsimu.simukraft.material.WorkContainerService;
-import common.cn.nsimu.simukraft.material.WorkMaterialCache;
-import common.cn.nsimu.simukraft.material.WorkMaterialNotificationService;
-import common.cn.nsimu.simukraft.material.WorkMaterialResult;
-import common.cn.nsimu.simukraft.material.NpcWorkMaterialService;
+import common.cn.nsimu.simukraft.material.*;
 import common.cn.nsimu.simukraft.medical.MedicalService;
+import common.cn.nsimu.simukraft.network.hud.HudSyncService;
+import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsRequestPacket;
 import common.cn.nsimu.simukraft.protection.NpcBlockProtectionPolicy;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
 import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
 import common.cn.nsimu.simukraft.util.NpcWorkChunkLoadService;
 import common.cn.nsimu.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.ChestBlock;
-import net.minecraft.world.level.block.Block;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.common.NeoForge;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -346,7 +323,9 @@ public final class BuilderConstructionService {
         }
     }
 
-    /** ensureWorkAreaTickets：按实际结构边界维持施工方块及其邻域的区块加载。 */
+    /**
+     * ensureWorkAreaTickets：按实际结构边界维持施工方块及其邻域的区块加载。
+     */
     private static void ensureWorkAreaTickets(ServerLevel level, TaskRuntime taskRuntime, CachedStructure cached) {
         if (taskRuntime.workAreaTicketsLoaded) {
             return;
@@ -387,9 +366,12 @@ public final class BuilderConstructionService {
         int maxX = minX, maxY = minY, maxZ = minZ;
         for (BuildingBlockData b : cached.blocks()) {
             BlockPos p = b.relativePos();
-            if (p.getX() < minX) minX = p.getX(); if (p.getX() > maxX) maxX = p.getX();
-            if (p.getY() < minY) minY = p.getY(); if (p.getY() > maxY) maxY = p.getY();
-            if (p.getZ() < minZ) minZ = p.getZ(); if (p.getZ() > maxZ) maxZ = p.getZ();
+            if (p.getX() < minX) minX = p.getX();
+            if (p.getX() > maxX) maxX = p.getX();
+            if (p.getY() < minY) minY = p.getY();
+            if (p.getY() > maxY) maxY = p.getY();
+            if (p.getZ() < minZ) minZ = p.getZ();
+            if (p.getZ() > maxZ) maxZ = p.getZ();
         }
         BlockPos minPos = new BlockPos(minX, minY, minZ);
         BlockPos maxPos = new BlockPos(maxX, maxY, maxZ);
@@ -742,7 +724,9 @@ public final class BuilderConstructionService {
         return Component.Serializer.toJson(Component.translatable(translationKey, args), level.registryAccess());
     }
 
-    /** 5 级以下在推进这一块之前扣这一块的钱。5 级及以上不在这里扣。 */
+    /**
+     * 5 级以下在推进这一块之前扣这一块的钱。5 级及以上不在这里扣。
+     */
     private static boolean payPlacedBlock(ServerLevel level, CitizenData citizen, TaskRuntime taskRuntime, boolean chargePerBlock, int processedBlocks) {
         if (!chargePerBlock) {
             return true;
@@ -912,7 +896,9 @@ public final class BuilderConstructionService {
                 || pois.stream().anyMatch(poi -> poi.poiType() == CityPoiType.RESIDENTIAL);
     }
 
-    /** pauseForMedicalLeave：医疗休假期间暂停任务但保留原岗位和任务进度。 */
+    /**
+     * pauseForMedicalLeave：医疗休假期间暂停任务但保留原岗位和任务进度。
+     */
     private static void pauseForMedicalLeave(ServerLevel level, CitizenData citizen, TaskRuntime taskRuntime) {
         BuildingTaskData task = taskRuntime.task;
         if (BuildingTaskStatus.from(task.status()) == BuildingTaskStatus.PAUSED_RESTING) {
@@ -926,8 +912,8 @@ public final class BuilderConstructionService {
     }
 
     private static boolean shouldRegisterMedicalBeds(String category,
-                                                      List<BuildingPoiDefinition> pois,
-                                                      List<BuildingBlockData> placedBlocks) {
+                                                     List<BuildingPoiDefinition> pois,
+                                                     List<BuildingBlockData> placedBlocks) {
         return "medical".equalsIgnoreCase(category)
                 || pois.stream().anyMatch(poi -> poi.poiType() == CityPoiType.MEDICAL)
                 || placedBlocks.stream().anyMatch(block -> block.state().is(ModBlocks.MEDICAL_CONTROL_BOX.get()));
@@ -955,7 +941,9 @@ public final class BuilderConstructionService {
         return resolveResidentialBedInstances(building.blocks(), building.dimensionId());
     }
 
-    /** resolveMedicalBedPois：从医疗建筑记录中重建白床医疗 POI。 */
+    /**
+     * resolveMedicalBedPois：从医疗建筑记录中重建白床医疗 POI。
+     */
     public static List<BuildingPoiInstance> resolveMedicalBedPois(PlacedBuildingRecord building) {
         if (!isMedicalBuildingRecord(building)) {
             return List.of();
@@ -963,7 +951,9 @@ public final class BuilderConstructionService {
         return resolveMedicalBedInstances(building.blocks(), building.dimensionId());
     }
 
-    /** isMedicalBuildingRecord：兼容旧医疗分类，并通过 POI 或控制箱识别公共医院。 */
+    /**
+     * isMedicalBuildingRecord：兼容旧医疗分类，并通过 POI 或控制箱识别公共医院。
+     */
     private static boolean isMedicalBuildingRecord(PlacedBuildingRecord building) {
         if (building == null) {
             return false;
@@ -1014,7 +1004,9 @@ public final class BuilderConstructionService {
         return BuildingMetadataReader.readUnitDefinitions(def);
     }
 
-    /** buildUnitInstances：将住宅床位 POI 按原始结构坐标归属到户型单元。 */
+    /**
+     * buildUnitInstances：将住宅床位 POI 按原始结构坐标归属到户型单元。
+     */
     static List<BuildingUnitInstance> buildUnitInstances(
             List<BuildingUnitDefinition> unitDefs,
             List<BuildingPoiInstance> poiInstances,

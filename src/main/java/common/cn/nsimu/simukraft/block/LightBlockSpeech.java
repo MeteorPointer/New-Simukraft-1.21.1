@@ -2,7 +2,9 @@ package common.cn.nsimu.simukraft.block;
 
 import java.util.Locale;
 
-/** LightBlockSpeech: 灯块右键台词，按玩家语言选中文或英文。 */
+/**
+ * LightBlockSpeech: 灯块右键台词，按玩家语言选中文或英文。
+ */
 public final class LightBlockSpeech {
     public static final String KEY = "message.simukraft.light_block.speech";
     public static final String KEY_EN = "message.simukraft.light_block.speech.en";

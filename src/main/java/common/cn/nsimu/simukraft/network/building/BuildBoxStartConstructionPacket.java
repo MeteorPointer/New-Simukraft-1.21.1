@@ -1,16 +1,7 @@
 package common.cn.nsimu.simukraft.network.building;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.building.BuildingBlockData;
-import common.cn.nsimu.simukraft.building.BuildingCatalog;
-import common.cn.nsimu.simukraft.building.BuildingStructure;
-import common.cn.nsimu.simukraft.event.BuildingConstructionEvent;
-import common.cn.nsimu.simukraft.building.BuildingTaskStatus;
-import common.cn.nsimu.simukraft.building.BuilderConstructionMobilityService;
-import common.cn.nsimu.simukraft.building.BuilderConstructionService;
-import common.cn.nsimu.simukraft.building.BuildingStructureService;
-import common.cn.nsimu.simukraft.building.BuildingTerritoryValidator;
-import common.cn.nsimu.simukraft.building.BuildingTaskData;
+import common.cn.nsimu.simukraft.building.*;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
 import common.cn.nsimu.simukraft.citizen.CitizenService;
 import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
@@ -18,19 +9,20 @@ import common.cn.nsimu.simukraft.city.CityService;
 import common.cn.nsimu.simukraft.city.DistrictService;
 import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
 import common.cn.nsimu.simukraft.config.ServerConfig;
+import common.cn.nsimu.simukraft.event.BuildingConstructionEvent;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
 import common.cn.nsimu.simukraft.job.CityJobType;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
@@ -153,7 +145,9 @@ public record BuildBoxStartConstructionPacket(BlockPos buildBoxPos,
         CityGroupMessageService.successToCity(level, cityId, Component.translatable("message.simukraft.build_box.construction_started", structure.displayName()));
     }
 
-    /** 城市官员覆盖全市；分区官员必须让建筑的每个区块都落在自己已启用的分区里。 */
+    /**
+     * 城市官员覆盖全市；分区官员必须让建筑的每个区块都落在自己已启用的分区里。
+     */
     private static boolean canConstruct(ServerLevel level, UUID cityId, UUID playerId, List<BuildingBlockData> placedBlocks) {
         if (placedBlocks == null || placedBlocks.isEmpty()) {
             return false;

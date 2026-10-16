@@ -9,13 +9,17 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 
-/** VirtualVeinChunkLoadHandler: 在区块首次服务端加载时建立矿区档案。 */
+/**
+ * VirtualVeinChunkLoadHandler: 在区块首次服务端加载时建立矿区档案。
+ */
 @EventBusSubscriber(modid = SimuKraft.MOD_ID)
 public final class VirtualVeinChunkLoadHandler {
     private VirtualVeinChunkLoadHandler() {
     }
 
-    /** onChunkLoad: 初始化当前区块所属的虚拟矿区。 */
+    /**
+     * onChunkLoad: 初始化当前区块所属的虚拟矿区。
+     */
     @SubscribeEvent
     public static void onChunkLoad(ChunkEvent.Load event) {
         if (!(event.getLevel() instanceof ServerLevel level) || !level.dimension().equals(Level.OVERWORLD)) {

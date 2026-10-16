@@ -24,7 +24,9 @@ public final class SaveScopedCacheKey {
         return SERVER_KEYS.computeIfAbsent(server, SaveScopedCacheKey::resolveServerKey);
     }
 
-    /** resolveServerKey: 仅在服务器实例首次使用时规范化存档根目录。 */
+    /**
+     * resolveServerKey: 仅在服务器实例首次使用时规范化存档根目录。
+     */
     private static String resolveServerKey(MinecraftServer server) {
         try {
             Path worldPath = server.getWorldPath(LevelResource.ROOT).toAbsolutePath().normalize();
@@ -34,7 +36,9 @@ public final class SaveScopedCacheKey {
         }
     }
 
-    /** clearServerCache: 关服后释放服务器实例到存档键的强引用。 */
+    /**
+     * clearServerCache: 关服后释放服务器实例到存档键的强引用。
+     */
     public static void clearServerCache(MinecraftServer server) {
         if (server != null) {
             SERVER_KEYS.remove(server);

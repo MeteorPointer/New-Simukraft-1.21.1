@@ -13,7 +13,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import java.util.List;
 import java.util.UUID;
 
-/** RTS 市民右键菜单：提供信息、商店和移动三项操作。 */
+/**
+ * RTS 市民右键菜单：提供信息、商店和移动三项操作。
+ */
 @OnlyIn(Dist.CLIENT)
 public final class RtsCitizenContextMenuScreen extends Screen {
     private static final int MENU_WIDTH = 76;
@@ -42,7 +44,9 @@ public final class RtsCitizenContextMenuScreen extends Screen {
         this.cursorY = cursorY;
     }
 
-    /** open: 在系统光标旁打开指定市民的紧凑 RTS 操作菜单。 */
+    /**
+     * open: 在系统光标旁打开指定市民的紧凑 RTS 操作菜单。
+     */
     public static void open(UUID citizenId, Component citizenName) {
         Minecraft minecraft = Minecraft.getInstance();
         if (citizenId == null || minecraft.screen != null) {
@@ -63,30 +67,38 @@ public final class RtsCitizenContextMenuScreen extends Screen {
         menuY = Math.max(4, Math.min(cursorY, height - MENU_HEIGHT - 4));
     }
 
-    /** openInfo: 请求服务端以 RTS 远程会话打开市民信息界面。 */
+    /**
+     * openInfo: 请求服务端以 RTS 远程会话打开市民信息界面。
+     */
     private void openInfo() {
         sendAction(RtsCitizenActionPacket.Action.OPEN_INFO);
     }
 
-    /** openShop: 请求服务端打开商店，非商业员工由服务端回退到信息界面。 */
+    /**
+     * openShop: 请求服务端打开商店，非商业员工由服务端回退到信息界面。
+     */
     private void openShop() {
         sendAction(RtsCitizenActionPacket.Action.OPEN_SHOP);
     }
 
-    /** beginMove: 将指定市民设为下一次地表点击的移动对象。 */
+    /**
+     * beginMove: 将指定市民设为下一次地表点击的移动对象。
+     */
     private void beginMove() {
         RtsSelectionManager.beginCitizenMove(citizenId);
         onClose();
     }
 
-    /** sendAction: 发送单一市民的界面打开操作并关闭当前下拉菜单。 */
+    /**
+     * sendAction: 发送单一市民的界面打开操作并关闭当前下拉菜单。
+     */
     private void sendAction(RtsCitizenActionPacket.Action action) {
         PacketDistributor.sendToServer(new RtsCitizenActionPacket(action, List.of(citizenId), BlockPos.ZERO));
         onClose();
     }
 
     @Override
-    public void render( GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+    public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(menuX, menuY, menuX + MENU_WIDTH, menuY + 1, COLOR_BORDER);
         graphics.fill(menuX, menuY + 1, menuX + MENU_WIDTH, menuY + MENU_HEIGHT, COLOR_BACKGROUND);
         graphics.drawString(font, fitTitle(citizenName.getString()), menuX + 6, menuY + 6, COLOR_TITLE, false);
@@ -130,7 +142,9 @@ public final class RtsCitizenContextMenuScreen extends Screen {
         return false;
     }
 
-    /** renderActionRow: 绘制一项带悬停色的紧凑下拉菜单操作。 */
+    /**
+     * renderActionRow: 绘制一项带悬停色的紧凑下拉菜单操作。
+     */
     private void renderActionRow(GuiGraphics graphics, int mouseX, int mouseY, int rowY, int action, String key) {
         boolean hovered = actionAt(mouseX, mouseY) == action;
         if (hovered) {
@@ -140,7 +154,9 @@ public final class RtsCitizenContextMenuScreen extends Screen {
                 hovered ? COLOR_TITLE : COLOR_ACTION, false);
     }
 
-    /** actionAt: 解析鼠标坐标对应的菜单操作索引。 */
+    /**
+     * actionAt: 解析鼠标坐标对应的菜单操作索引。
+     */
     private int actionAt(double mouseX, double mouseY) {
         if (mouseX < menuX || mouseX >= menuX + MENU_WIDTH) {
             return -1;
@@ -155,7 +171,9 @@ public final class RtsCitizenContextMenuScreen extends Screen {
         return -1;
     }
 
-    /** fitTitle: 将市民名称裁剪到现有菜单宽度，避免文本越界。 */
+    /**
+     * fitTitle: 将市民名称裁剪到现有菜单宽度，避免文本越界。
+     */
     private String fitTitle(String title) {
         int maxWidth = MENU_WIDTH - 12;
         if (font.width(title) <= maxWidth) {

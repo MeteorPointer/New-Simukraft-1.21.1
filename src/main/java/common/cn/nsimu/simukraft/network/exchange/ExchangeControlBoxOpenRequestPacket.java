@@ -26,8 +26,11 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
 
-/** ExchangeControlBoxOpenRequestPacket: 打开交易所。 */
-public record ExchangeControlBoxOpenRequestPacket(BlockPos pos, String selectedCompanyId) implements CustomPacketPayload {
+/**
+ * ExchangeControlBoxOpenRequestPacket: 打开交易所。
+ */
+public record ExchangeControlBoxOpenRequestPacket(BlockPos pos,
+                                                  String selectedCompanyId) implements CustomPacketPayload {
     public static final Type<ExchangeControlBoxOpenRequestPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "exchange_control_box_open_request"));
     public static final StreamCodec<RegistryFriendlyByteBuf, ExchangeControlBoxOpenRequestPacket> STREAM_CODEC =
@@ -38,25 +41,33 @@ public record ExchangeControlBoxOpenRequestPacket(BlockPos pos, String selectedC
         return TYPE;
     }
 
-    /** encode: 写入坐标和选中公司。 */
+    /**
+     * encode: 写入坐标和选中公司。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, ExchangeControlBoxOpenRequestPacket packet) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeUtf(packet.selectedCompanyId() != null ? packet.selectedCompanyId() : "", 64);
     }
 
-    /** decode: 读取坐标和选中公司。 */
+    /**
+     * decode: 读取坐标和选中公司。
+     */
     public static ExchangeControlBoxOpenRequestPacket decode(RegistryFriendlyByteBuf buffer) {
         return new ExchangeControlBoxOpenRequestPacket(buffer.readBlockPos(), buffer.readUtf(64));
     }
 
-    /** handle: 下发行情快照。 */
+    /**
+     * handle: 下发行情快照。
+     */
     public static void handle(ExchangeControlBoxOpenRequestPacket packet, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             openFor(level, player, packet.pos(), packet.selectedCompanyId());
         }
     }
 
-    /** openFor: 校验后发送股市界面。 */
+    /**
+     * openFor: 校验后发送股市界面。
+     */
     public static void openFor(ServerLevel level, ServerPlayer player, BlockPos pos) {
         openFor(level, player, pos, "");
     }
@@ -73,7 +84,9 @@ public record ExchangeControlBoxOpenRequestPacket(BlockPos pos, String selectedC
         PacketDistributor.sendToPlayer(player, snapshot(level, player, pos, selectedCompanyId));
     }
 
-    /** snapshot: 组装股市数据包。 */
+    /**
+     * snapshot: 组装股市数据包。
+     */
     public static ExchangeControlBoxOpenResponsePacket snapshot(ServerLevel level, ServerPlayer player, BlockPos pos, String selectedCompanyId) {
         PlacedBuildingRecord building = ExchangeControlBoxService.resolveBuilding(level, pos);
         BuildingIntegrityService.IntegrityPreview integrity = BuildingIntegrityService.preview(level, building);

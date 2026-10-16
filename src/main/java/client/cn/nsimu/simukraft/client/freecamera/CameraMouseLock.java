@@ -1,8 +1,8 @@
 package client.cn.nsimu.simukraft.client.freecamera;
 
+import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.minecraft.client.Minecraft;
 import org.lwjgl.glfw.GLFW;
 
 @OnlyIn(Dist.CLIENT)

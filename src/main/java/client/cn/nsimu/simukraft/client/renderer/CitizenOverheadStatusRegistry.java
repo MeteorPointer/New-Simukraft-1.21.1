@@ -29,7 +29,9 @@ public final class CitizenOverheadStatusRegistry {
     private CitizenOverheadStatusRegistry() {
     }
 
-    /** register: 注册 NPC 头顶状态提供器，同 ID 会被新注册覆盖。 */
+    /**
+     * register: 注册 NPC 头顶状态提供器，同 ID 会被新注册覆盖。
+     */
     public static void register(String id, int priority, StatusProvider provider) {
         if (id == null || id.isBlank() || provider == null) {
             return;
@@ -38,14 +40,18 @@ public final class CitizenOverheadStatusRegistry {
         ENTRIES.add(new Entry(id, priority, provider));
     }
 
-    /** unregister: 移除指定 ID 的 NPC 头顶状态提供器。 */
+    /**
+     * unregister: 移除指定 ID 的 NPC 头顶状态提供器。
+     */
     public static void unregister(String id) {
         if (id != null && !id.isBlank()) {
             ENTRIES.removeIf(entry -> entry.id().equals(id));
         }
     }
 
-    /** resolve: 按优先级解析当前 NPC 应显示的所有头顶状态行。 */
+    /**
+     * resolve: 按优先级解析当前 NPC 应显示的所有头顶状态行。
+     */
     public static List<StatusLine> resolve(CitizenEntity entity) {
         if (entity == null) {
             return List.of();
@@ -61,15 +67,21 @@ public final class CitizenOverheadStatusRegistry {
         return List.copyOf(lines);
     }
 
-    /** StatusProvider: 提供一行 NPC 头顶显示内容。 */
+    /**
+     * StatusProvider: 提供一行 NPC 头顶显示内容。
+     */
     @FunctionalInterface
     public interface StatusProvider {
-        /** resolve: 根据 NPC 实体解析一行可选头顶状态。 */
+        /**
+         * resolve: 根据 NPC 实体解析一行可选头顶状态。
+         */
         Optional<StatusLine> resolve(CitizenEntity entity);
     }
 
     public record StatusLine(Component text, int color, float scale) {
-        /** isVisible: 空文本不参与头顶渲染。 */
+        /**
+         * isVisible: 空文本不参与头顶渲染。
+         */
         private boolean isVisible() {
             return text != null && !text.getString().isBlank();
         }

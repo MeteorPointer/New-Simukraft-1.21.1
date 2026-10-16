@@ -4,11 +4,7 @@ import common.cn.nsimu.simukraft.guidebook.markdown.GuideBookMarkdownDocument.Bl
 import common.cn.nsimu.simukraft.guidebook.markdown.GuideBookMarkdownDocument.Spread;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -38,7 +34,7 @@ import java.util.regex.Pattern;
  *
  * ![图](routan.png){width=128 height=74}
  * </pre>
- *
+ * <p>
  * {@code #} 开启新的左右跨页；{@code :::right}/{@code :::left} 切换栏；
  * 引用是 hint；{@code ##} 是 title 元素。默认 spacing 为 4。
  */

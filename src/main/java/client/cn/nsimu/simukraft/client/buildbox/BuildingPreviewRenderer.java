@@ -1,6 +1,5 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.OnlyIn;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import common.cn.nsimu.simukraft.SimuKraft;
@@ -11,6 +10,7 @@ import net.minecraft.client.renderer.ShaderInstance;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
@@ -48,7 +48,9 @@ public final class BuildingPreviewRenderer {
         renderPreviewMesh(mesh, event);
     }
 
-    /** renderPreviewMesh: 按世界渲染阶段绘制一个已构建的预览网格。 */
+    /**
+     * renderPreviewMesh: 按世界渲染阶段绘制一个已构建的预览网格。
+     */
     public static void renderPreviewMesh(PreviewMesh mesh, RenderLevelStageEvent event) {
         if (mesh == null || mesh.isEmpty()
                 || (!isPreviewRenderStage(event.getStage()) && event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES)) {

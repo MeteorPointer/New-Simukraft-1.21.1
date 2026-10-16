@@ -6,8 +6,8 @@ import client.cn.nsimu.simukraft.client.buildbox.PreviewMesh;
 import client.cn.nsimu.simukraft.client.buildbox.PreviewMeshBuilder;
 import client.cn.nsimu.simukraft.client.city.ClientCityChunkCache;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraManager;
-import common.cn.nsimu.simukraft.building.BuildingTransform;
 import common.cn.nsimu.simukraft.building.BuildingTerritoryValidator;
+import common.cn.nsimu.simukraft.building.BuildingTransform;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.BlockPos;
@@ -20,7 +20,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 import java.util.ArrayList;
 import java.util.List;
 
-/** RTS 抓取预览状态：抓取时构建一次网格，鼠标移动时只平移网格。 */
+/**
+ * RTS 抓取预览状态：抓取时构建一次网格，鼠标移动时只平移网格。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class RtsMovePreviewManager {
@@ -44,7 +46,9 @@ public final class RtsMovePreviewManager {
     private RtsMovePreviewManager() {
     }
 
-    /** start: 抓取光标目标，并基于当前客户端已加载方块构建移动预览。 */
+    /**
+     * start: 抓取光标目标，并基于当前客户端已加载方块构建移动预览。
+     */
     public static boolean start(BlockPos source, BlockPos referencePlacement) {
         clear();
         Minecraft minecraft = Minecraft.getInstance();
@@ -72,7 +76,9 @@ public final class RtsMovePreviewManager {
         return true;
     }
 
-    /** update: 将预览相对抓取时光标位置平移到当前鼠标落点。 */
+    /**
+     * update: 将预览相对抓取时光标位置平移到当前鼠标落点。
+     */
     public static void update(BlockPos placement) {
         if (!active || sourcePos == null || referencePlacementPos == null || placement == null) {
             return;
@@ -81,7 +87,9 @@ public final class RtsMovePreviewManager {
         moveTo(destinationForCurrentPlacement());
     }
 
-    /** moveRelativeToCamera: 按建筑预览的方向键规则相对相机平移预览。 */
+    /**
+     * moveRelativeToCamera: 按建筑预览的方向键规则相对相机平移预览。
+     */
     public static void moveRelativeToCamera(int right, int forward) {
         if (!active) {
             return;
@@ -92,12 +100,16 @@ public final class RtsMovePreviewManager {
         moveRelative(dx, 0, dz);
     }
 
-    /** moveVertical: 按建筑预览的高度键规则垂直平移预览。 */
+    /**
+     * moveVertical: 按建筑预览的高度键规则垂直平移预览。
+     */
     public static void moveVertical(int dy) {
         moveRelative(0, dy, 0);
     }
 
-    /** rotatePreview: 围绕抓取方块顺时针旋转预览，并重建旋转后的方块网格。 */
+    /**
+     * rotatePreview: 围绕抓取方块顺时针旋转预览，并重建旋转后的方块网格。
+     */
     public static void rotatePreview() {
         if (!active) {
             return;
@@ -115,7 +127,9 @@ public final class RtsMovePreviewManager {
         moveTo(destinationForCurrentPlacement());
     }
 
-    /** destinationForCurrentPlacement: 保持建筑投影范围的最低层贴合最高地表，并叠加手动微调。 */
+    /**
+     * destinationForCurrentPlacement: 保持建筑投影范围的最低层贴合最高地表，并叠加手动微调。
+     */
     private static BlockPos destinationForCurrentPlacement() {
         int deltaX = currentPlacementPos.getX() - referencePlacementPos.getX() + manualOffset.getX();
         int deltaZ = currentPlacementPos.getZ() - referencePlacementPos.getZ() + manualOffset.getZ();
@@ -144,37 +158,51 @@ public final class RtsMovePreviewManager {
         updatePreviewBounds();
     }
 
-    /** isActive: 返回是否已经抓取目标并显示移动预览。 */
+    /**
+     * isActive: 返回是否已经抓取目标并显示移动预览。
+     */
     public static boolean isActive() {
         return active;
     }
 
-    /** sourcePos: 返回服务端移动请求的源位置。 */
+    /**
+     * sourcePos: 返回服务端移动请求的源位置。
+     */
     public static BlockPos sourcePos() {
         return sourcePos;
     }
 
-    /** destinationPos: 返回服务端移动请求的预览落点。 */
+    /**
+     * destinationPos: 返回服务端移动请求的预览落点。
+     */
     public static BlockPos destinationPos() {
         return destinationPos;
     }
 
-    /** manualVerticalOffset: 返回预览高度键产生的纵向微调值，供服务端最终贴地时保留。 */
+    /**
+     * manualVerticalOffset: 返回预览高度键产生的纵向微调值，供服务端最终贴地时保留。
+     */
     public static int manualVerticalOffset() {
         return manualOffset.getY();
     }
 
-    /** rotationDegrees: 返回本次抓取预览相对原建筑的顺时针旋转角度。 */
+    /**
+     * rotationDegrees: 返回本次抓取预览相对原建筑的顺时针旋转角度。
+     */
     public static int rotationDegrees() {
         return rotationDegrees;
     }
 
-    /** isSurfaceReady：返回当前预览投影是否已获得完整的地表高度。 */
+    /**
+     * isSurfaceReady：返回当前预览投影是否已获得完整的地表高度。
+     */
     public static boolean isSurfaceReady() {
         return surfaceReady;
     }
 
-    /** isDestinationInCurrentCityTerritory：校验当前预览整体边界是否仍在客户端同步的城市领地内。 */
+    /**
+     * isDestinationInCurrentCityTerritory：校验当前预览整体边界是否仍在客户端同步的城市领地内。
+     */
     public static boolean isDestinationInCurrentCityTerritory() {
         if (!active || sourceBounds == null || sourcePos == null || destinationPos == null) {
             return false;
@@ -189,12 +217,16 @@ public final class RtsMovePreviewManager {
                 ClientCityChunkCache.getInstance().getCurrentCityChunks());
     }
 
-    /** mesh: 返回当前预览网格，只供客户端渲染器读取。 */
+    /**
+     * mesh: 返回当前预览网格，只供客户端渲染器读取。
+     */
     public static PreviewMesh mesh() {
         return mesh;
     }
 
-    /** clear: 释放预览网格和边界，防止重复抓取积累显存。 */
+    /**
+     * clear: 释放预览网格和边界，防止重复抓取积累显存。
+     */
     public static void clear() {
         if (mesh != PreviewMesh.EMPTY) {
             mesh.close();
@@ -254,7 +286,9 @@ public final class RtsMovePreviewManager {
         return state.isAir() ? List.of() : List.of(new PreviewBlockData(source, state, 15728880));
     }
 
-    /** rebuildRotatedPreview: 基于抓取快照重建旋转状态，保证预览不累积旋转误差。 */
+    /**
+     * rebuildRotatedPreview: 基于抓取快照重建旋转状态，保证预览不累积旋转误差。
+     */
     private static boolean rebuildRotatedPreview() {
         if (sourcePos == null || currentPlacementPos == null || capturedBlocks.isEmpty()) {
             return false;
@@ -287,7 +321,9 @@ public final class RtsMovePreviewManager {
         return true;
     }
 
-    /** boundsOf: 计算非空气预览方块的闭合渲染边界。 */
+    /**
+     * boundsOf: 计算非空气预览方块的闭合渲染边界。
+     */
     private static AABB boundsOf(List<PreviewBlockData> blocks) {
         if (blocks.isEmpty()) {
             return null;
@@ -310,7 +346,9 @@ public final class RtsMovePreviewManager {
         return new AABB(minX, minY, minZ, maxX + 1, maxY + 1, maxZ + 1);
     }
 
-    /** updatePreviewBounds: 将旋转后的源边界平移至当前预览落点。 */
+    /**
+     * updatePreviewBounds: 将旋转后的源边界平移至当前预览落点。
+     */
     private static void updatePreviewBounds() {
         if (sourceBounds == null || sourcePos == null || destinationPos == null) {
             return;

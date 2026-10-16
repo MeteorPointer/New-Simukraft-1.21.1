@@ -14,7 +14,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.event.InputEvent;
 import org.lwjgl.glfw.GLFW;
 
-/** RTS 小地图：复用本地地图缓存，绘制相机视口并处理相机跳转。 */
+/**
+ * RTS 小地图：复用本地地图缓存，绘制相机视口并处理相机跳转。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class RtsMiniMapRenderer {
@@ -43,7 +45,9 @@ public final class RtsMiniMapRenderer {
     private RtsMiniMapRenderer() {
     }
 
-    /** onClientTick: 切换地图尺寸并维持已有地图缓存的活跃扫描。 */
+    /**
+     * onClientTick: 切换地图尺寸并维持已有地图缓存的活跃扫描。
+     */
     public static void onClientTick() {
         Minecraft minecraft = Minecraft.getInstance();
         boolean togglePressed = SimuKraftKeyMappings.RTS_MINIMAP_TOGGLE.consumeClick();
@@ -72,7 +76,9 @@ public final class RtsMiniMapRenderer {
         }
     }
 
-    /** render: 在 RTS HUD 中绘制地图和当前相机可见范围。 */
+    /**
+     * render: 在 RTS HUD 中绘制地图和当前相机可见范围。
+     */
     public static void render(GuiGraphics graphics) {
         Minecraft minecraft = Minecraft.getInstance();
         if (!isVisible() || !RtsSelectionManager.canUseRtsCameraControls()) {
@@ -96,7 +102,9 @@ public final class RtsMiniMapRenderer {
         drawViewport(graphics, layout);
     }
 
-    /** handleMouseButton: 捕获地图区域的左键，防止同时触发 RTS 方块操作。 */
+    /**
+     * handleMouseButton: 捕获地图区域的左键，防止同时触发 RTS 方块操作。
+     */
     public static boolean handleMouseButton(InputEvent.MouseButton.Pre event) {
         if (!isVisible() || event.getButton() != GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             return false;
@@ -120,7 +128,9 @@ public final class RtsMiniMapRenderer {
         return true;
     }
 
-    /** clear: 断开连接时释放动态纹理和地图消费者引用。 */
+    /**
+     * clear: 断开连接时释放动态纹理和地图消费者引用。
+     */
     public static void clear() {
         RtsMiniMapTexture.clear();
         expanded = false;
@@ -144,7 +154,9 @@ public final class RtsMiniMapRenderer {
         textureRefreshRequested = true;
     }
 
-    /** beginMapInteraction: 记录小地图按下点，以便区分单击跳转与视图框拖拽。 */
+    /**
+     * beginMapInteraction: 记录小地图按下点，以便区分单击跳转与视图框拖拽。
+     */
     private static void beginMapInteraction(int mouseX, int mouseY) {
         mapClickCaptured = true;
         mapDragActive = false;
@@ -154,7 +166,9 @@ public final class RtsMiniMapRenderer {
         mapDragLastY = mouseY;
     }
 
-    /** updateMapDrag: 按当前鼠标位移平移 RTS 摄像机，鼠标移出小地图时限制在边界。 */
+    /**
+     * updateMapDrag: 按当前鼠标位移平移 RTS 摄像机，鼠标移出小地图时限制在边界。
+     */
     private static void updateMapDrag(Minecraft minecraft) {
         if (!mapClickCaptured) {
             return;
@@ -191,7 +205,9 @@ public final class RtsMiniMapRenderer {
         textureRefreshRequested = true;
     }
 
-    /** finishMapInteraction: 拖拽未开始时执行既有单击跳转，并清理小地图输入状态。 */
+    /**
+     * finishMapInteraction: 拖拽未开始时执行既有单击跳转，并清理小地图输入状态。
+     */
     private static void finishMapInteraction(Minecraft minecraft) {
         if (mapClickCaptured && !mapDragActive && RtsSelectionManager.canUseRtsCameraControls()) {
             MapLayout layout = layout(minecraft);
@@ -202,7 +218,9 @@ public final class RtsMiniMapRenderer {
         resetMapInteraction();
     }
 
-    /** resetMapInteraction: 重置小地图单击和拖拽的临时输入状态。 */
+    /**
+     * resetMapInteraction: 重置小地图单击和拖拽的临时输入状态。
+     */
     private static void resetMapInteraction() {
         mapClickCaptured = false;
         mapDragActive = false;
@@ -304,7 +322,9 @@ public final class RtsMiniMapRenderer {
         return screenHeight <= 0 ? 0 : (int) (minecraft.mouseHandler.ypos() * minecraft.getWindow().getGuiScaledHeight() / screenHeight);
     }
 
-    /** isMouseOverMap: 判断当前系统鼠标是否位于小地图区域。 */
+    /**
+     * isMouseOverMap: 判断当前系统鼠标是否位于小地图区域。
+     */
     private static boolean isMouseOverMap(Minecraft minecraft) {
         MapLayout layout = layout(minecraft);
         return layout.contains(guiMouseX(minecraft), guiMouseY(minecraft));

@@ -14,7 +14,9 @@ public final class ExchangeFundamentals {
     private ExchangeFundamentals() {
     }
 
-    /** marketScore: 资金流、人均财政、人口，范围 -1 到 1。没有城市时为 0。 */
+    /**
+     * marketScore: 资金流、人均财政、人口，范围 -1 到 1。没有城市时为 0。
+     */
     public static double marketScore(ExchangeEconomySnapshot snapshot) {
         if (snapshot == null || !snapshot.live()) {
             return 0.0D;
@@ -27,7 +29,9 @@ public final class ExchangeFundamentals {
         return clamp(0.40D * cash + 0.35D * treasury + 0.25D * people, -1.0D, 1.0D);
     }
 
-    /** regime: 大盘分决定当日市况牌。 */
+    /**
+     * regime: 大盘分决定当日市况牌。
+     */
     public static ExchangeMarketRegime regime(ExchangeEconomySnapshot snapshot) {
         return ExchangeMarketRegime.fromScore(marketScore(snapshot));
     }
@@ -74,7 +78,9 @@ public final class ExchangeFundamentals {
         return clamp(local * 0.82D + market * 0.18D, -1.0D, 1.0D);
     }
 
-    /** fairPrice: 发行价乘上大盘和行业。一天之内价格往这个价靠，不会一步到位。 */
+    /**
+     * fairPrice: 发行价乘上大盘和行业。一天之内价格往这个价靠，不会一步到位。
+     */
     public static double fairPrice(ExchangeCompany company, ExchangeEconomySnapshot snapshot) {
         double base = company != null ? company.basePrice() : 1.0D;
         double market = marketScore(snapshot);
@@ -83,7 +89,9 @@ public final class ExchangeFundamentals {
         return EconomyService.normalizeAmount(Math.max(0.01D, base * multiplier));
     }
 
-    /** shock: 同一公司、同一小时永远得到同一个 -1 到 1 的扰动，用来做买卖价差，不决定方向。 */
+    /**
+     * shock: 同一公司、同一小时永远得到同一个 -1 到 1 的扰动，用来做买卖价差，不决定方向。
+     */
     public static double shock(String companyId, long day, int hour) {
         long mixed = day * 0x9E3779B97F4A7C15L ^ (long) hour * 0xBF58476D1CE4E5B9L;
         if (companyId != null) {

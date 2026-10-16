@@ -33,7 +33,9 @@ public final class CommercialStockData {
         return currentStock;
     }
 
-    /** setCurrentStock: 设置当前库存并限制在库存上限内。 */
+    /**
+     * setCurrentStock: 设置当前库存并限制在库存上限内。
+     */
     public void setCurrentStock(int currentStock) {
         this.currentStock = Math.max(0, currentStock);
         clampCurrent();
@@ -43,7 +45,9 @@ public final class CommercialStockData {
         return maxStock;
     }
 
-    /** setMaxStock: 更新库存上限并修正当前库存。 */
+    /**
+     * setMaxStock: 更新库存上限并修正当前库存。
+     */
     public void setMaxStock(int maxStock) {
         this.maxStock = Math.max(0, maxStock);
         clampCurrent();
@@ -53,7 +57,9 @@ public final class CommercialStockData {
         return lastRestockGameTime;
     }
 
-    /** setLastRestockGameTime: 更新最近补货运行 tick。 */
+    /**
+     * setLastRestockGameTime: 更新最近补货运行 tick。
+     */
     public void setLastRestockGameTime(long lastRestockGameTime) {
         this.lastRestockGameTime = Math.max(0L, lastRestockGameTime);
     }
@@ -62,7 +68,9 @@ public final class CommercialStockData {
         return updatedAt;
     }
 
-    /** add: 增加库存并返回实际增加数量。 */
+    /**
+     * add: 增加库存并返回实际增加数量。
+     */
     public int add(int amount) {
         if (amount <= 0 || maxStock <= 0) {
             return 0;
@@ -72,7 +80,9 @@ public final class CommercialStockData {
         return added;
     }
 
-    /** remove: 扣减库存，库存不足时返回 false。 */
+    /**
+     * remove: 扣减库存，库存不足时返回 false。
+     */
     public boolean remove(int amount) {
         if (amount <= 0) {
             return true;
@@ -84,12 +94,16 @@ public final class CommercialStockData {
         return true;
     }
 
-    /** touch: 记录库存更新时间。 */
+    /**
+     * touch: 记录库存更新时间。
+     */
     public void touch() {
         this.updatedAt = System.currentTimeMillis();
     }
 
-    /** toTag: 将库存条目写入 NBT。 */
+    /**
+     * toTag: 将库存条目写入 NBT。
+     */
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         tag.putLong("BoxPos", boxPos.asLong());
@@ -101,7 +115,9 @@ public final class CommercialStockData {
         return tag;
     }
 
-    /** fromTag: 从 NBT 读取库存条目。 */
+    /**
+     * fromTag: 从 NBT 读取库存条目。
+     */
     public static CommercialStockData fromTag(CompoundTag tag) {
         CommercialStockData data = new CommercialStockData(
                 BlockPos.of(tag.getLong("BoxPos")),

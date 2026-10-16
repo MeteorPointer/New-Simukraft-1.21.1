@@ -16,7 +16,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** BankControlBoxActionPacket: 存钱、取钱、转账。 */
+/**
+ * BankControlBoxActionPacket: 存钱、取钱、转账。
+ */
 public record BankControlBoxActionPacket(BlockPos pos, BankService.Action action, double amount, String targetCity)
         implements CustomPacketPayload {
     public static final Type<BankControlBoxActionPacket> TYPE =
@@ -29,7 +31,9 @@ public record BankControlBoxActionPacket(BlockPos pos, BankService.Action action
         return TYPE;
     }
 
-    /** encode: 写入柜面操作。 */
+    /**
+     * encode: 写入柜面操作。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, BankControlBoxActionPacket packet) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeEnum(packet.action());
@@ -37,13 +41,17 @@ public record BankControlBoxActionPacket(BlockPos pos, BankService.Action action
         buffer.writeUtf(packet.targetCity() != null ? packet.targetCity() : "", 64);
     }
 
-    /** decode: 读取柜面操作。 */
+    /**
+     * decode: 读取柜面操作。
+     */
     public static BankControlBoxActionPacket decode(RegistryFriendlyByteBuf buffer) {
         return new BankControlBoxActionPacket(buffer.readBlockPos(), buffer.readEnum(BankService.Action.class),
                 buffer.readDouble(), buffer.readUtf(64));
     }
 
-    /** handle: 服务端执行柜面操作并刷新界面。 */
+    /**
+     * handle: 服务端执行柜面操作并刷新界面。
+     */
     public static void handle(BankControlBoxActionPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;

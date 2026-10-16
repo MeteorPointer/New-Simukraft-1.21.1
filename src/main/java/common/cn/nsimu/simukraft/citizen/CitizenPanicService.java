@@ -16,7 +16,9 @@ import javax.annotation.Nullable;
 import java.util.UUID;
 
 
-/** 被玩家攻击后复刻原版 PanicGoal：短时冲刺远离攻击者，不传送、不打断后续职业恢复。 */
+/**
+ * 被玩家攻击后复刻原版 PanicGoal：短时冲刺远离攻击者，不传送、不打断后续职业恢复。
+ */
 public final class CitizenPanicService {
     // 原版 LivingEntity.getLastDamageSource 在 40 tick 后清空，PanicGoal.shouldPanic 随之结束。
     static final int PANIC_MEMORY_TICKS = 40;
@@ -29,7 +31,9 @@ public final class CitizenPanicService {
     private CitizenPanicService() {
     }
 
-    /** onPlayerAttack：伤害真正生效且攻击者是玩家时开始/刷新逃跑窗口。 */
+    /**
+     * onPlayerAttack：伤害真正生效且攻击者是玩家时开始/刷新逃跑窗口。
+     */
     public static void onPlayerAttack(ServerLevel level, CitizenEntity citizen, DamageSource source) {
         if (level == null || citizen == null || citizen.isRemoved() || !citizen.isAlive()) {
             return;
@@ -48,7 +52,9 @@ public final class CitizenPanicService {
         }
     }
 
-    /** tick：窗口内路径跑完就再冲一段；窗口结束后等当前 FLEE 跑完再停冲刺。 */
+    /**
+     * tick：窗口内路径跑完就再冲一段；窗口结束后等当前 FLEE 跑完再停冲刺。
+     */
     public static void tick(ServerLevel level, CitizenEntity citizen) {
         if (level == null || citizen == null || citizen.isRemoved()) {
             return;
@@ -75,7 +81,9 @@ public final class CitizenPanicService {
         }
     }
 
-    /** isFleeing：逃跑窗口或正在执行 FLEE 路径，供工作和睡觉逻辑让路。 */
+    /**
+     * isFleeing：逃跑窗口或正在执行 FLEE 路径，供工作和睡觉逻辑让路。
+     */
     public static boolean isFleeing(ServerLevel level, UUID citizenId) {
         if (level == null || citizenId == null) {
             return false;
@@ -94,7 +102,9 @@ public final class CitizenPanicService {
         return citizen.isPanicking() || CitizenNavigationService.hasIntent(level, citizen.getUUID(), MovementIntent.FLEE);
     }
 
-    /** clear：玩家 RTS 调遣等显式指令打断逃跑。 */
+    /**
+     * clear：玩家 RTS 调遣等显式指令打断逃跑。
+     */
     public static void clear(ServerLevel level, CitizenEntity citizen) {
         if (citizen == null) {
             return;
@@ -109,7 +119,9 @@ public final class CitizenPanicService {
         return attackerPlayer(source) != null;
     }
 
-    /** fleeScore：更远离威胁的落点得分更高；没有威胁时偏向跑开当前坐标。 */
+    /**
+     * fleeScore：更远离威胁的落点得分更高；没有威胁时偏向跑开当前坐标。
+     */
     static double fleeScore(Vec3 origin, @Nullable Vec3 threat, Vec3 candidate) {
         if (origin == null || candidate == null) {
             return Double.NEGATIVE_INFINITY;

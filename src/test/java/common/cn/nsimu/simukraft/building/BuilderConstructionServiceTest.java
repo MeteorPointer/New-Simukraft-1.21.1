@@ -9,8 +9,10 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class BuilderConstructionServiceTest {
-    /** rotatedResidentialBedStillBelongsToItsSourceUnit：验证所有朝向下床位均能归属原始户型单元。 */
-    
+    /**
+     * rotatedResidentialBedStillBelongsToItsSourceUnit：验证所有朝向下床位均能归属原始户型单元。
+     */
+
     @Test
     void rotatedResidentialBedStillBelongsToItsSourceUnit() {
         BlockPos origin = new BlockPos(120, 64, -48);

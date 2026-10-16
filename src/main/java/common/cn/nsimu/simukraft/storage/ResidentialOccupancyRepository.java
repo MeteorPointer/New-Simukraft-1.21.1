@@ -10,7 +10,9 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-/** ResidentialOccupancyRepository: 持久化住宅建筑是否允许被分配入住。 */
+/**
+ * ResidentialOccupancyRepository: 持久化住宅建筑是否允许被分配入住。
+ */
 public final class ResidentialOccupancyRepository {
     private final SimuSqliteDatabase database;
 
@@ -18,7 +20,9 @@ public final class ResidentialOccupancyRepository {
         this.database = database;
     }
 
-    /** loadClosedBuildingIds: 读取禁止分配入住的建筑 ID。 */
+    /**
+     * loadClosedBuildingIds: 读取禁止分配入住的建筑 ID。
+     */
     public synchronized Set<UUID> loadClosedBuildingIds() {
         Set<UUID> closed = new HashSet<>();
         try (Connection connection = database.borrowConnection();
@@ -51,7 +55,9 @@ public final class ResidentialOccupancyRepository {
         return false;
     }
 
-    /** upsert: 写入一座住宅的入住开关。 */
+    /**
+     * upsert: 写入一座住宅的入住开关。
+     */
     public void upsert(Connection connection, UUID buildingId, boolean occupancyAllowed) throws SQLException {
         if (buildingId == null) {
             return;
@@ -67,7 +73,9 @@ public final class ResidentialOccupancyRepository {
         }
     }
 
-    /** delete: 拆除建筑后删除入住开关。 */
+    /**
+     * delete: 拆除建筑后删除入住开关。
+     */
     public void delete(Connection connection, UUID buildingId) throws SQLException {
         if (buildingId == null) {
             return;

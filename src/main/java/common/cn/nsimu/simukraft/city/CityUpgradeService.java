@@ -1,10 +1,10 @@
 package common.cn.nsimu.simukraft.city;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.economy.FinanceLedgerService;
-import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
 import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
+import common.cn.nsimu.simukraft.economy.FinanceLedgerService;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
+import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -14,19 +14,25 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-/** CityUpgradeService: 在服务端校验并提交一次城市升级。 */
+/**
+ * CityUpgradeService: 在服务端校验并提交一次城市升级。
+ */
 
 public final class CityUpgradeService {
     private CityUpgradeService() {
     }
 
-    /** nextDefinition: 返回城市当前可进入的下一个数据包等级。 */
+    /**
+     * nextDefinition: 返回城市当前可进入的下一个数据包等级。
+     */
     public static CityLevelDefinition nextDefinition(CityData city) {
         return city == null ? null : CityLevelDefinitionLoader.INSTANCE.nextLevel(city.cityLevel());
     }
 
     /** tick: 在服务端主线程完成已到期的城市升级任务并同步解锁结果。 */
-    /** debugSetLevel: 供管理员调试命令直接设置城市等级，不扣除资源也不等待升级耗时。 */
+    /**
+     * debugSetLevel: 供管理员调试命令直接设置城市等级，不扣除资源也不等待升级耗时。
+     */
     public static boolean debugSetLevel(ServerLevel level, CityData city, int targetLevel) {
         if (level == null || city == null
                 || targetLevel < CityLevelDefinition.MIN_LEVEL
@@ -94,7 +100,9 @@ public final class CityUpgradeService {
         }
     }
 
-    /** upgrade: 原子预检资金、人口和背包物品后提交升级。 */
+    /**
+     * upgrade: 原子预检资金、人口和背包物品后提交升级。
+     */
     public static UpgradeResult upgrade(ServerLevel level,
                                         ServerPlayer player,
                                         CityData city,
@@ -186,7 +194,9 @@ public final class CityUpgradeService {
         }
     }
 
-    /** countPlayerItems: 按精确物品或物品标签统计玩家背包数量。 */
+    /**
+     * countPlayerItems: 按精确物品或物品标签统计玩家背包数量。
+     */
     private static int countPlayerItems(ServerPlayer player, CityLevelDefinition.ItemRequirement requirement) {
         long count = 0L;
         for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
@@ -198,7 +208,9 @@ public final class CityUpgradeService {
         return (int) Math.min(Integer.MAX_VALUE, count);
     }
 
-    /** planPlayerItems: 为多条可能重叠的物品/标签条件预留背包槽位。 */
+    /**
+     * planPlayerItems: 为多条可能重叠的物品/标签条件预留背包槽位。
+     */
     private static List<ConsumedItem> planPlayerItems(ServerPlayer player,
                                                       List<CityLevelDefinition.ItemRequirement> requirements) {
         int[] available = new int[player.getInventory().getContainerSize()];
@@ -225,7 +237,9 @@ public final class CityUpgradeService {
         return List.copyOf(consumedItems);
     }
 
-    /** applyConsumedItems: 将已验证的扣除计划应用到玩家库存。 */
+    /**
+     * applyConsumedItems: 将已验证的扣除计划应用到玩家库存。
+     */
     private static void applyConsumedItems(ServerPlayer player, List<ConsumedItem> consumedItems) {
         for (ConsumedItem consumed : consumedItems) {
             player.getInventory().getItem(consumed.slot()).shrink(consumed.stack().getCount());
@@ -264,13 +278,17 @@ public final class CityUpgradeService {
         UPGRADE_IN_PROGRESS
     }
 
-    /** UpgradeResult: 返回升级状态以及客户端提示所需的目标定义。 */
+    /**
+     * UpgradeResult: 返回升级状态以及客户端提示所需的目标定义。
+     */
     public record UpgradeResult(Status status, CityLevelDefinition definition, ResourceLocation missingItemId) {
         public boolean success() {
             return status == Status.STARTED;
         }
 
-        /** started: 判断本次请求是否成功创建了升级任务。 */
+        /**
+         * started: 判断本次请求是否成功创建了升级任务。
+         */
         public boolean started() {
             return status == Status.STARTED;
         }

@@ -32,7 +32,7 @@ public final class BuildingAbandonmentService {
         CACHE.compute(k, (ignored, existing) -> {
             int cur = existing != null ? existing[0] : 0;
             long day = existing != null ? existing[1] : 0L;
-            return new int[]{ Math.clamp(cur + delta, 0, 100), (int) day };
+            return new int[]{Math.clamp(cur + delta, 0, 100), (int) day};
         });
         persist(level, buildingId, cityId);
     }
@@ -41,11 +41,13 @@ public final class BuildingAbandonmentService {
     public static void reset(ServerLevel level, UUID buildingId, UUID cityId) {
         if (buildingId == null) return;
         ensureLoaded(level);
-        CACHE.put(key(level, buildingId), new int[]{ 0, 0 });
+        CACHE.put(key(level, buildingId), new int[]{0, 0});
         persist(level, buildingId, cityId);
     }
 
-    /** noteTimeRollback：日号回退后把废弃度游标拉回当天，否则会一直跳过每日结算。 */
+    /**
+     * noteTimeRollback：日号回退后把废弃度游标拉回当天，否则会一直跳过每日结算。
+     */
     public static void noteTimeRollback(ServerLevel level, long currentDay) {
         if (level == null) {
             return;
@@ -83,7 +85,7 @@ public final class BuildingAbandonmentService {
             // 城市休眠时跳过废弃度更新
             if (!CityRuntimeService.isCityActive(level, building.cityId())) continue;
             String k = key(level, building.buildingId());
-            int[] entry = CACHE.getOrDefault(k, new int[]{ 0, 0 });
+            int[] entry = CACHE.getOrDefault(k, new int[]{0, 0});
             long lastDay = entry[1];
             if (lastDay >= currentDay) continue; // 今日已处理
 
@@ -92,12 +94,14 @@ public final class BuildingAbandonmentService {
             if (building.buildingId().equals(smallestId)) {
                 cur = Math.min(100, cur + 5); // 全城最小惩罚
             }
-            CACHE.put(k, new int[]{ cur, (int) currentDay });
+            CACHE.put(k, new int[]{cur, (int) currentDay});
             SimuSqliteStorage.saveBuildingAbandonment(level, building.buildingId(), building.cityId(), cur, currentDay);
         }
     }
 
-    /** forget: 建筑被拆除后清掉它的废弃度（内存与数据库）。 */
+    /**
+     * forget: 建筑被拆除后清掉它的废弃度（内存与数据库）。
+     */
     public static void forget(ServerLevel level, UUID buildingId) {
         if (level == null || buildingId == null) return;
         CACHE.remove(key(level, buildingId));

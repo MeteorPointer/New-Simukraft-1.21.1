@@ -22,7 +22,9 @@ public final class XaeroWorldMapIntegration {
     private XaeroWorldMapIntegration() {
     }
 
-    /** registerHighlighter: 向 Xaero World Map 注册城市区块高亮器。 */
+    /**
+     * registerHighlighter: 向 Xaero World Map 注册城市区块高亮器。
+     */
     public static void registerHighlighter(List<AbstractHighlighter> highlighters) {
         if (highlighters == null) {
             return;
@@ -39,7 +41,9 @@ public final class XaeroWorldMapIntegration {
         refreshCityHighlights();
     }
 
-    /** refreshCityHighlights: 城市区块同步后刷新 Xaero 已缓存的高亮区域。 */
+    /**
+     * refreshCityHighlights: 城市区块同步后刷新 Xaero 已缓存的高亮区域。
+     */
     public static void refreshCityHighlights() {
         Minecraft minecraft = Minecraft.getInstance();
         if (!minecraft.isSameThread()) {
@@ -65,7 +69,9 @@ public final class XaeroWorldMapIntegration {
         }
     }
 
-    /** refreshLoadedRegions: 将 Xaero 已加载的叶子地图区域重新加入刷新队列。 */
+    /**
+     * refreshLoadedRegions: 将 Xaero 已加载的叶子地图区域重新加入刷新队列。
+     */
     private static void refreshLoadedRegions(MapProcessor processor, MapDimension dimension) {
         if (processor == null || dimension == null) {
             return;
@@ -84,7 +90,9 @@ public final class XaeroWorldMapIntegration {
         }
     }
 
-    /** containsSimuKraftHighlighter: 防止 Xaero 会话重复初始化时重复添加高亮器。 */
+    /**
+     * containsSimuKraftHighlighter: 防止 Xaero 会话重复初始化时重复添加高亮器。
+     */
     private static boolean containsSimuKraftHighlighter(List<AbstractHighlighter> highlighters) {
         for (AbstractHighlighter highlighter : highlighters) {
             if (highlighter instanceof SimuKraftCityHighlighter) {

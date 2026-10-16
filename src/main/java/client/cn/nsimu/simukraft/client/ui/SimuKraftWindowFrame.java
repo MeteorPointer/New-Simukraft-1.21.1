@@ -1,7 +1,5 @@
 package client.cn.nsimu.simukraft.client.ui;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import com.lowdragmc.lowdraglib2.gui.ColorPattern;
 import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.Icons;
@@ -12,6 +10,8 @@ import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
 import net.minecraft.network.chat.Component;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
 
 @OnlyIn(Dist.CLIENT)
@@ -70,11 +70,11 @@ public final class SimuKraftWindowFrame {
     private static Button closeButton(Runnable closeAction) {
         Button button = new Button();
         button.setOnClick(event -> {
-                    if (event.button == 0) {
-                        closeAction.run();
-                        event.stopPropagation();
-                    }
-                });
+            if (event.button == 0) {
+                closeAction.run();
+                event.stopPropagation();
+            }
+        });
         button.noText().buttonStyle(style -> style.baseTexture(Icons.CLOSE)
                 .hoverTexture(Icons.CLOSE.copy().setColor(ColorPattern.LIGHT_GRAY.color))
                 .pressedTexture(Icons.CLOSE.copy().setColor(ColorPattern.GRAY.color)));

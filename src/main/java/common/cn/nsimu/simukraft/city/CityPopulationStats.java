@@ -21,7 +21,9 @@ public final class CityPopulationStats {
     private CityPopulationStats() {
     }
 
-    /** snapshot：生成城市核心和 HUD 共用的人口/住房容量快照。 */
+    /**
+     * snapshot：生成城市核心和 HUD 共用的人口/住房容量快照。
+     */
     public static Snapshot snapshot(ServerLevel level, UUID cityId) {
         if (level == null || cityId == null) {
             return Snapshot.EMPTY;
@@ -30,7 +32,9 @@ public final class CityPopulationStats {
         return new Snapshot(population(level, cityId, poiManager), housingCapacity(level, cityId, poiManager));
     }
 
-    /** population：统计存活且归属该城市的市民，兼容只有住房绑定的旧数据。 */
+    /**
+     * population：统计存活且归属该城市的市民，兼容只有住房绑定的旧数据。
+     */
     public static int population(ServerLevel level, UUID cityId) {
         if (level == null || cityId == null) {
             return 0;
@@ -66,7 +70,9 @@ public final class CityPopulationStats {
         return Math.toIntExact(Math.min(Integer.MAX_VALUE, count));
     }
 
-    /** housingCapacity：优先使用运行时 POI，缺失时从已完成建筑记录恢复住宅床位容量。 */
+    /**
+     * housingCapacity：优先使用运行时 POI，缺失时从已完成建筑记录恢复住宅床位容量。
+     */
     public static int housingCapacity(ServerLevel level, UUID cityId) {
         if (level == null || cityId == null) {
             return 0;

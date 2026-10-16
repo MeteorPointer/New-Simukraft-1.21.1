@@ -7,7 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MineralDrillingDefinitionLoaderTest {
-    /** parsesOutputContainerPositions: 解析钻井 JSON 的结构坐标输出容器声明。 */
+    /**
+     * parsesOutputContainerPositions: 解析钻井 JSON 的结构坐标输出容器声明。
+     */
     @Test
     void parsesOutputContainerPositions() {
         String json = """
@@ -33,7 +35,9 @@ class MineralDrillingDefinitionLoaderTest {
                 definition.outputContainers().getFirst().positions());
     }
 
-    /** rejectsNonDrillingJson: 专用解析器不得接收普通工业 JSON。 */
+    /**
+     * rejectsNonDrillingJson: 专用解析器不得接收普通工业 JSON。
+     */
     @Test
     void rejectsNonDrillingJson() {
         assertTrue(MineralDrillingDefinitionLoader.parse("{\"type\":\"industrial\"}", "fallback").isEmpty());

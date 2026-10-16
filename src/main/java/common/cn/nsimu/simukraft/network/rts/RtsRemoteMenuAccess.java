@@ -3,8 +3,8 @@ package common.cn.nsimu.simukraft.network.rts;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundBlockEventPacket;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.CompoundContainer;
 import net.minecraft.world.Container;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -21,7 +21,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/** RTS 远程菜单会话：仅维持当前双击目标，放行其对应的原版容器距离校验。 */
+/**
+ * RTS 远程菜单会话：仅维持当前双击目标，放行其对应的原版容器距离校验。
+ */
 public final class RtsRemoteMenuAccess {
     private static final int NO_MENU = -1;
     private static final ConcurrentMap<UUID, RemoteTarget> TARGETS = new ConcurrentHashMap<>();
@@ -29,7 +31,9 @@ public final class RtsRemoteMenuAccess {
     private RtsRemoteMenuAccess() {
     }
 
-    /** authorize: 记录玩家当前 RTS 远程交互目标。 */
+    /**
+     * authorize: 记录玩家当前 RTS 远程交互目标。
+     */
     public static void authorize(ServerPlayer player, BlockPos pos) {
         if (player == null || pos == null) {
             return;
@@ -37,7 +41,9 @@ public final class RtsRemoteMenuAccess {
         TARGETS.put(player.getUUID(), new RemoteTarget(player.level().dimension(), pos.immutable(), NO_MENU));
     }
 
-    /** bindOpenedMenu: 将刚由 RTS 打开的原版容器绑定到当前会话。 */
+    /**
+     * bindOpenedMenu: 将刚由 RTS 打开的原版容器绑定到当前会话。
+     */
     public static void bindOpenedMenu(ServerPlayer player) {
         if (player == null || player.containerMenu == player.inventoryMenu) {
             return;
@@ -46,7 +52,9 @@ public final class RtsRemoteMenuAccess {
                 ? target.withMenuId(player.containerMenu.containerId) : null);
     }
 
-    /** hasAccess: 判断请求是否对应玩家当前 RTS 远程目标。 */
+    /**
+     * hasAccess: 判断请求是否对应玩家当前 RTS 远程目标。
+     */
     public static boolean hasAccess(ServerPlayer player, BlockPos pos) {
         if (player == null || pos == null) {
             return false;
@@ -55,7 +63,9 @@ public final class RtsRemoteMenuAccess {
         return target != null && target.inDimension(player.level()) && target.pos().equals(pos);
     }
 
-    /** keepsMenuOpen: 仅让当前会话创建的同一个 Menu 忽略本体距离关闭。 */
+    /**
+     * keepsMenuOpen: 仅让当前会话创建的同一个 Menu 忽略本体距离关闭。
+     */
     public static boolean keepsMenuOpen(ServerPlayer player, AbstractContainerMenu menu) {
         if (player == null || menu == null) {
             return false;
@@ -71,7 +81,9 @@ public final class RtsRemoteMenuAccess {
         return true;
     }
 
-    /** keepsChestOpen: 判断箱子是否仍由 RTS 远程菜单持有，避免原版按距离错误重置开盖计数。 */
+    /**
+     * keepsChestOpen: 判断箱子是否仍由 RTS 远程菜单持有，避免原版按距离错误重置开盖计数。
+     */
     public static boolean keepsChestOpen(ServerLevel level, ChestBlockEntity chest) {
         if (level == null || chest == null) {
             return false;
@@ -94,7 +106,9 @@ public final class RtsRemoteMenuAccess {
         return false;
     }
 
-    /** keepsEnderChestOpen: 判断当前远程会话是否仍持有对应的玩家末影箱菜单。 */
+    /**
+     * keepsEnderChestOpen: 判断当前远程会话是否仍持有对应的玩家末影箱菜单。
+     */
     public static boolean keepsEnderChestOpen(ServerLevel level, EnderChestBlockEntity chest) {
         if (level == null || chest == null) {
             return false;
@@ -117,7 +131,9 @@ public final class RtsRemoteMenuAccess {
         return false;
     }
 
-    /** syncChestClose: 向远程操作者同步箱子合盖事件，补足非跟踪区块的客户端动画。 */
+    /**
+     * syncChestClose: 向远程操作者同步箱子合盖事件，补足非跟踪区块的客户端动画。
+     */
     private static void syncChestClose(ServerPlayer player, AbstractContainerMenu menu) {
         if (!keepsMenuOpen(player, menu)) {
             return;
@@ -140,7 +156,9 @@ public final class RtsRemoteMenuAccess {
         }
     }
 
-    /** finishMenu: 在远程箱子菜单关闭后同步合盖并回收会话。 */
+    /**
+     * finishMenu: 在远程箱子菜单关闭后同步合盖并回收会话。
+     */
     public static void finishMenu(ServerPlayer player, AbstractContainerMenu menu) {
         if (keepsMenuOpen(player, menu)) {
             syncChestClose(player, menu);
@@ -148,14 +166,18 @@ public final class RtsRemoteMenuAccess {
         }
     }
 
-    /** clear: 玩家断开时释放会话，避免静态缓存积累。 */
+    /**
+     * clear: 玩家断开时释放会话，避免静态缓存积累。
+     */
     public static void clear(ServerPlayer player) {
         if (player != null) {
             TARGETS.remove(player.getUUID());
         }
     }
 
-    /** sendChestCloseEvent: 仅向当前远程操作者发送原版箱子合盖事件。 */
+    /**
+     * sendChestCloseEvent: 仅向当前远程操作者发送原版箱子合盖事件。
+     */
     private static void sendChestCloseEvent(ServerPlayer player, BlockPos pos, BlockState state) {
         player.connection.send(new ClientboundBlockEventPacket(pos, state.getBlock(), 1, 0));
     }

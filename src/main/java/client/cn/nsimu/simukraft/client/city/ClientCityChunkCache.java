@@ -1,20 +1,15 @@
 package client.cn.nsimu.simukraft.client.city;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import client.cn.nsimu.simukraft.client.city.map.SimuMapStorage;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @OnlyIn(Dist.CLIENT)
@@ -86,7 +81,9 @@ public final class ClientCityChunkCache {
         return currentScopeCache().chunkOwnerIndex.get(chunkLong);
     }
 
-    /** getChunkOwners: 返回当前世界和维度领地权属的不可变快照，供客户端渲染批量读取。 */
+    /**
+     * getChunkOwners: 返回当前世界和维度领地权属的不可变快照，供客户端渲染批量读取。
+     */
     public Map<Long, UUID> getChunkOwners() {
         return Map.copyOf(currentScopeCache().chunkOwnerIndex);
     }
@@ -146,7 +143,7 @@ public final class ClientCityChunkCache {
             allCityChunks.forEach((cityId, chunks) -> chunks.forEach(chunk -> chunkOwnerIndex.put(chunk, cityId)));
             Set<Long> regions = new HashSet<>();
             chunkOwnerIndex.keySet().forEach(chunk -> regions.add(
-                    (long)(ChunkPos.getX(chunk) >> 5) << 32 | Integer.toUnsignedLong(ChunkPos.getZ(chunk) >> 5)));
+                    (long) (ChunkPos.getX(chunk) >> 5) << 32 | Integer.toUnsignedLong(ChunkPos.getZ(chunk) >> 5)));
             regionWithChunks = Set.copyOf(regions);
             dataVersion++;
         }

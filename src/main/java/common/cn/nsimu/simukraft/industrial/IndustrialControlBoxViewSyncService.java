@@ -21,7 +21,9 @@ public final class IndustrialControlBoxViewSyncService {
     private IndustrialControlBoxViewSyncService() {
     }
 
-    /** syncStatusIfChanged: 工业状态变化时向附近打开控制箱的客户端推送视图。 */
+    /**
+     * syncStatusIfChanged: 工业状态变化时向附近打开控制箱的客户端推送视图。
+     */
     public static void syncStatusIfChanged(ServerLevel level, IndustrialBoxData data) {
         if (level == null || data == null || data.boxPos() == null) {
             return;
@@ -55,7 +57,9 @@ public final class IndustrialControlBoxViewSyncService {
         );
     }
 
-    /** isUrgent: 阻塞和缺失类状态立即推送，便于玩家看到故障原因。 */
+    /**
+     * isUrgent: 阻塞和缺失类状态立即推送，便于玩家看到故障原因。
+     */
     private static boolean isUrgent(StatusSnapshot snapshot) {
         String key = snapshot.statusKey();
         return key.contains("blocked")
@@ -65,7 +69,9 @@ public final class IndustrialControlBoxViewSyncService {
                 || key.contains("carry_full");
     }
 
-    /** clearServerCaches: 清理视图同步快照，避免跨存档复用。 */
+    /**
+     * clearServerCaches: 清理视图同步快照，避免跨存档复用。
+     */
     public static void clearServerCaches(MinecraftServer server) {
         String serverKey = SaveScopedCacheKey.serverKey(server).toLowerCase(Locale.ROOT);
         LAST_SYNC_STATES.keySet().removeIf(key -> key.startsWith(serverKey + "|"));

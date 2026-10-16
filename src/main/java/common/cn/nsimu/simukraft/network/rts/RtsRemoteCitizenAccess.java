@@ -10,7 +10,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/** RTS 远程市民菜单会话：维持已授权的信息或商店容器。 */
+/**
+ * RTS 远程市民菜单会话：维持已授权的信息或商店容器。
+ */
 public final class RtsRemoteCitizenAccess {
     private static final int NO_MENU = -1;
     private static final ConcurrentMap<UUID, RemoteCitizenTarget> TARGETS = new ConcurrentHashMap<>();
@@ -18,7 +20,9 @@ public final class RtsRemoteCitizenAccess {
     private RtsRemoteCitizenAccess() {
     }
 
-    /** authorize: 记录即将由 RTS 打开的市民菜单目标。 */
+    /**
+     * authorize: 记录即将由 RTS 打开的市民菜单目标。
+     */
     public static void authorize(ServerPlayer player, UUID citizenId, Mode mode, BlockPos shopPos) {
         if (player == null || citizenId == null || mode == null) {
             return;
@@ -27,7 +31,9 @@ public final class RtsRemoteCitizenAccess {
                 shopPos == null ? null : shopPos.immutable(), NO_MENU));
     }
 
-    /** bindOpenedMenu: 将刚打开的原版容器与当前 RTS 市民会话绑定。 */
+    /**
+     * bindOpenedMenu: 将刚打开的原版容器与当前 RTS 市民会话绑定。
+     */
     public static void bindOpenedMenu(ServerPlayer player) {
         if (player == null || player.containerMenu == player.inventoryMenu) {
             return;
@@ -36,7 +42,9 @@ public final class RtsRemoteCitizenAccess {
                 ? target.withMenuId(player.containerMenu.containerId) : null);
     }
 
-    /** keepsMenuOpen: 判断菜单是否为当前 RTS 已授权的市民容器。 */
+    /**
+     * keepsMenuOpen: 判断菜单是否为当前 RTS 已授权的市民容器。
+     */
     public static boolean keepsMenuOpen(ServerPlayer player, AbstractContainerMenu menu) {
         if (player == null || menu == null) {
             return false;
@@ -51,27 +59,35 @@ public final class RtsRemoteCitizenAccess {
         return true;
     }
 
-    /** hasInfoAccess: 验证当前信息界面仍对应指定远程市民。 */
+    /**
+     * hasInfoAccess: 验证当前信息界面仍对应指定远程市民。
+     */
     public static boolean hasInfoAccess(ServerPlayer player, UUID citizenId) {
         RemoteCitizenTarget target = targetForCurrentMenu(player);
         return target != null && target.mode() == Mode.INFO && target.citizenId().equals(citizenId);
     }
 
-    /** hasTradeAccess: 验证当前商店界面仍对应指定远程员工与商店。 */
+    /**
+     * hasTradeAccess: 验证当前商店界面仍对应指定远程员工与商店。
+     */
     public static boolean hasTradeAccess(ServerPlayer player, BlockPos shopPos, UUID citizenId) {
         RemoteCitizenTarget target = targetForCurrentMenu(player);
         return target != null && target.mode() == Mode.SHOP && target.citizenId().equals(citizenId)
                 && target.shopPos() != null && target.shopPos().equals(shopPos);
     }
 
-    /** finishMenu: 容器关闭时释放匹配的 RTS 市民会话。 */
+    /**
+     * finishMenu: 容器关闭时释放匹配的 RTS 市民会话。
+     */
     public static void finishMenu(ServerPlayer player, AbstractContainerMenu menu) {
         if (player != null && menu != null) {
             TARGETS.computeIfPresent(player.getUUID(), (ignored, target) -> matches(player, menu, target) ? null : target);
         }
     }
 
-    /** clear: 断线或打开失败时释放当前玩家的 RTS 市民会话。 */
+    /**
+     * clear: 断线或打开失败时释放当前玩家的 RTS 市民会话。
+     */
     public static void clear(ServerPlayer player) {
         if (player != null) {
             TARGETS.remove(player.getUUID());

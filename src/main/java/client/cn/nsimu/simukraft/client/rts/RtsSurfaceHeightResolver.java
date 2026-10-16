@@ -22,7 +22,9 @@ public final class RtsSurfaceHeightResolver {
     private RtsSurfaceHeightResolver() {
     }
 
-    /** resolveHighestSurfaceY：扫描已加载方块列，避免客户端高度图在 Sodium 下返回错误高度。 */
+    /**
+     * resolveHighestSurfaceY：扫描已加载方块列，避免客户端高度图在 Sodium 下返回错误高度。
+     */
     private static int resolveHighestSurfaceY(ClientLevel level, int minX, int maxX, int minZ, int maxZ, int fallbackY,
                                               ConcurrentMap<Long, Integer> columnHeights) {
         if (level == null || minX > maxX || minZ > maxZ) {
@@ -58,7 +60,9 @@ public final class RtsSurfaceHeightResolver {
         return highestY != Integer.MIN_VALUE ? highestY : fallbackY;
     }
 
-    /** resolveSurfaceY: 返回单列已加载方块的地表上方坐标，供 RTS 光标落点使用。 */
+    /**
+     * resolveSurfaceY: 返回单列已加载方块的地表上方坐标，供 RTS 光标落点使用。
+     */
     public static int resolveSurfaceY(ClientLevel level, int x, int z) {
         if (level == null || !level.getChunkSource().hasChunk(SectionPos.blockToSectionCoord(x),
                 SectionPos.blockToSectionCoord(z))) {
@@ -67,7 +71,9 @@ public final class RtsSurfaceHeightResolver {
         return resolveColumnSurfaceY(level, x, z);
     }
 
-    /** resolveColumnSurfaceY: 从世界顶端扫描到首个阻挡移动的非树叶方块。 */
+    /**
+     * resolveColumnSurfaceY: 从世界顶端扫描到首个阻挡移动的非树叶方块。
+     */
     private static int resolveColumnSurfaceY(ClientLevel level, int x, int z) {
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(x, level.getMaxBuildHeight() - 1, z);
         for (int y = level.getMaxBuildHeight() - 1; y >= level.getMinBuildHeight(); y--) {
@@ -80,7 +86,9 @@ public final class RtsSurfaceHeightResolver {
         return level.getMinBuildHeight();
     }
 
-    /** areAllChunksLoaded：仅在可精确扫描的范围内检查是否已完整加载。 */
+    /**
+     * areAllChunksLoaded：仅在可精确扫描的范围内检查是否已完整加载。
+     */
     private static boolean areAllChunksLoaded(ClientLevel level, int minX, int maxX, int minZ, int maxZ) {
         long width = (long) maxX - minX + 1L;
         long depth = (long) maxZ - minZ + 1L;
@@ -97,7 +105,9 @@ public final class RtsSurfaceHeightResolver {
         return true;
     }
 
-    /** SurfaceHeightCache：缓存同一投影范围的最高地表，避免鼠标静止时重复扫描。 */
+    /**
+     * SurfaceHeightCache：缓存同一投影范围的最高地表，避免鼠标静止时重复扫描。
+     */
     public static final class SurfaceHeightCache {
         private ClientLevel level;
         private int minX = Integer.MIN_VALUE;
@@ -107,7 +117,9 @@ public final class RtsSurfaceHeightResolver {
         private int highestY;
         private final ConcurrentMap<Long, Integer> columnHeights = new ConcurrentHashMap<>();
 
-        /** resolve：仅在投影范围区块齐全时返回地表高度，防止部分高度图导致建筑下沉。 */
+        /**
+         * resolve：仅在投影范围区块齐全时返回地表高度，防止部分高度图导致建筑下沉。
+         */
         public SurfaceHeight resolve(ClientLevel currentLevel, int currentMinX, int currentMaxX,
                                      int currentMinZ, int currentMaxZ, int fallbackY) {
             if (currentLevel == null || !areAllChunksLoaded(currentLevel, currentMinX, currentMaxX, currentMinZ, currentMaxZ)) {
@@ -130,7 +142,9 @@ public final class RtsSurfaceHeightResolver {
             return new SurfaceHeight(highestY, true);
         }
 
-        /** clear：世界或预览结束时释放上一次投影范围缓存。 */
+        /**
+         * clear：世界或预览结束时释放上一次投影范围缓存。
+         */
         public void clear() {
             level = null;
             minX = Integer.MIN_VALUE;
@@ -138,7 +152,9 @@ public final class RtsSurfaceHeightResolver {
         }
     }
 
-    /** SurfaceHeight：封装地表高度及其投影范围是否完整加载。 */
+    /**
+     * SurfaceHeight：封装地表高度及其投影范围是否完整加载。
+     */
     public record SurfaceHeight(int y, boolean complete) {
     }
 }

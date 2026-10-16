@@ -1,16 +1,12 @@
 package common.cn.nsimu.simukraft.network.rts;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenInfoMenuProvider;
-import common.cn.nsimu.simukraft.citizen.CitizenPanicService;
-import common.cn.nsimu.simukraft.citizen.CitizenService;
+import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.city.CityService;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
 import common.cn.nsimu.simukraft.commercial.CommercialTradeMenuProvider;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import common.cn.nsimu.simukraft.path.MovementIntent;
 import net.minecraft.core.BlockPos;
@@ -30,9 +26,12 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
-/** RTS 市民操作请求：打开市民界面或向已选市民下达移动命令。 */
+/**
+ * RTS 市民操作请求：打开市民界面或向已选市民下达移动命令。
+ */
 
-public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, BlockPos destination) implements CustomPacketPayload {
+public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds,
+                                     BlockPos destination) implements CustomPacketPayload {
     private static final int MAX_CITIZENS = 32;
     public static final Type<RtsCitizenActionPacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "rts_citizen_action"));
@@ -57,7 +56,9 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, Block
         return TYPE;
     }
 
-    /** encode: 写入有限数量的市民 UUID、操作类型和目标位置。 */
+    /**
+     * encode: 写入有限数量的市民 UUID、操作类型和目标位置。
+     */
     private static void encode(RegistryFriendlyByteBuf buffer, RtsCitizenActionPacket packet) {
         buffer.writeEnum(packet.action());
         buffer.writeVarInt(packet.citizenIds().size());
@@ -65,7 +66,9 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, Block
         buffer.writeBlockPos(packet.destination());
     }
 
-    /** decode: 读取并限制客户端提交的市民数量。 */
+    /**
+     * decode: 读取并限制客户端提交的市民数量。
+     */
     private static RtsCitizenActionPacket decode(RegistryFriendlyByteBuf buffer) {
         Action action = buffer.readEnum(Action.class);
         int count = buffer.readVarInt();
@@ -79,14 +82,18 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, Block
         return new RtsCitizenActionPacket(action, citizenIds, buffer.readBlockPos());
     }
 
-    /** handle: 在服务端主线程执行经城市权限验证的市民操作。 */
+    /**
+     * handle: 在服务端主线程执行经城市权限验证的市民操作。
+     */
     public static void handle(RtsCitizenActionPacket packet, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             context.enqueueWork(() -> perform(level, player, packet));
         }
     }
 
-    /** perform: 分派打开信息、打开商店和群体移动操作。 */
+    /**
+     * perform: 分派打开信息、打开商店和群体移动操作。
+     */
     private static void perform(ServerLevel level, ServerPlayer player, RtsCitizenActionPacket packet) {
         if (packet.citizenIds().isEmpty()) {
             return;
@@ -98,7 +105,9 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, Block
         }
     }
 
-    /** openInfo: 以 RTS 远程会话方式打开市民信息容器。 */
+    /**
+     * openInfo: 以 RTS 远程会话方式打开市民信息容器。
+     */
     private static void openInfo(ServerLevel level, ServerPlayer player, UUID citizenId) {
         CitizenTarget target = resolveTarget(level, player, citizenId);
         if (target == null) {
@@ -112,7 +121,9 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, Block
         }
     }
 
-    /** openShopOrInfo: 商业员工打开商店，其余市民自动回退到信息界面。 */
+    /**
+     * openShopOrInfo: 商业员工打开商店，其余市民自动回退到信息界面。
+     */
     private static void openShopOrInfo(ServerLevel level, ServerPlayer player, UUID citizenId) {
         CitizenTarget target = resolveTarget(level, player, citizenId);
         if (target == null) {
@@ -133,7 +144,9 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, Block
         }
     }
 
-    /** moveCitizens: 将已授权的单个或多个市民移动至目标列的最高地表。 */
+    /**
+     * moveCitizens: 将已授权的单个或多个市民移动至目标列的最高地表。
+     */
     private static void moveCitizens(ServerLevel level, ServerPlayer player, List<UUID> citizenIds, BlockPos destination) {
         if (!level.getChunkSource().hasChunk(destination.getX() >> 4, destination.getZ() >> 4)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.rts.surface_loading"));
@@ -159,7 +172,9 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, Block
         }
     }
 
-    /** resolveTarget: 验证目标实体、存档和当前操作者的城市管理权限。 */
+    /**
+     * resolveTarget: 验证目标实体、存档和当前操作者的城市管理权限。
+     */
     private static CitizenTarget resolveTarget(ServerLevel level, ServerPlayer player, UUID citizenId) {
         CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, citizenId);
         CitizenData data = CitizenService.findCitizen(level, citizenId).orElse(null);
@@ -174,7 +189,9 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds, Block
         return new CitizenTarget(entity, data);
     }
 
-    /** canOperate: 仅允许管理员操作本城市民，管理员可用于无归属市民。 */
+    /**
+     * canOperate: 仅允许管理员操作本城市民，管理员可用于无归属市民。
+     */
     private static boolean canOperate(ServerLevel level, ServerPlayer player, CitizenData citizen) {
         return player.hasPermissions(2) || citizen.cityId() != null
                 && CityService.canManageCity(level, citizen.cityId(), player.getUUID());

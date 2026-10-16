@@ -14,7 +14,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/** NPC 工作区块加载：任务锚点维持实体 tick，工作范围仅维持区块加载。 */
+/**
+ * NPC 工作区块加载：任务锚点维持实体 tick，工作范围仅维持区块加载。
+ */
 
 public final class NpcWorkChunkLoadService {
     private static final int ANCHOR_TICKET_DISTANCE = 2;
@@ -29,7 +31,9 @@ public final class NpcWorkChunkLoadService {
     private NpcWorkChunkLoadService() {
     }
 
-    /** acquire：为一个 NPC 工作任务申请建筑盒锚点的实体 tick ticket。 */
+    /**
+     * acquire：为一个 NPC 工作任务申请建筑盒锚点的实体 tick ticket。
+     */
     public static void acquire(ServerLevel level, UUID taskId, BlockPos workPos) {
         if (level == null || taskId == null || workPos == null) {
             return;
@@ -41,9 +45,11 @@ public final class NpcWorkChunkLoadService {
         }
     }
 
-    /** loadWorkArea：为任务边界覆盖的区块申请不强制 tick 的加载 ticket。 */
+    /**
+     * loadWorkArea：为任务边界覆盖的区块申请不强制 tick 的加载 ticket。
+     */
     public static void loadWorkArea(ServerLevel level, UUID taskId, BlockPos minPos, BlockPos maxPos,
-            int horizontalPadding) {
+                                    int horizontalPadding) {
         if (level == null || taskId == null || minPos == null || maxPos == null || horizontalPadding < 0) {
             return;
         }
@@ -59,7 +65,9 @@ public final class NpcWorkChunkLoadService {
         }
     }
 
-    /** release：释放一个任务持有的锚点与全部工作范围 ticket。 */
+    /**
+     * release：释放一个任务持有的锚点与全部工作范围 ticket。
+     */
     public static void release(ServerLevel level, UUID taskId) {
         if (level == null || taskId == null) {
             return;
@@ -72,7 +80,9 @@ public final class NpcWorkChunkLoadService {
         lease.workAreaChunks().forEach(chunkLong -> releaseWorkAreaTicket(level, new ChunkPos(chunkLong)));
     }
 
-    /** clearServerCaches：关服时释放残留 ticket，避免静态运行时状态跨存档保留。 */
+    /**
+     * clearServerCaches：关服时释放残留 ticket，避免静态运行时状态跨存档保留。
+     */
     public static void clearServerCaches(MinecraftServer server) {
         if (server == null) {
             return;
@@ -82,7 +92,9 @@ public final class NpcWorkChunkLoadService {
         }
     }
 
-    /** collectWorkAreaChunks：将方块边界和水平缓冲区转换为需要加载的区块集合。 */
+    /**
+     * collectWorkAreaChunks：将方块边界和水平缓冲区转换为需要加载的区块集合。
+     */
     static Set<Long> collectWorkAreaChunks(BlockPos firstPos, BlockPos secondPos, int horizontalPadding) {
         int minBlockX = Math.min(firstPos.getX(), secondPos.getX()) - horizontalPadding;
         int minBlockZ = Math.min(firstPos.getZ(), secondPos.getZ()) - horizontalPadding;
@@ -101,7 +113,9 @@ public final class NpcWorkChunkLoadService {
         return Set.copyOf(chunks);
     }
 
-    /** retainAnchorTicket：增加建筑盒锚点的实体 tick ticket 引用。 */
+    /**
+     * retainAnchorTicket：增加建筑盒锚点的实体 tick ticket 引用。
+     */
     private static void retainAnchorTicket(ServerLevel level, ChunkPos chunkPos) {
         TicketKey ticketKey = ticketKey(level, chunkPos);
         ANCHOR_TICKET_REFS.compute(ticketKey, (ignored, counter) -> {
@@ -115,7 +129,9 @@ public final class NpcWorkChunkLoadService {
         });
     }
 
-    /** releaseAnchorTicket：减少建筑盒锚点的实体 tick ticket 引用。 */
+    /**
+     * releaseAnchorTicket：减少建筑盒锚点的实体 tick ticket 引用。
+     */
     private static void releaseAnchorTicket(ServerLevel level, ChunkPos chunkPos) {
         TicketKey ticketKey = ticketKey(level, chunkPos);
         ANCHOR_TICKET_REFS.computeIfPresent(ticketKey, (ignored, counter) -> {
@@ -128,7 +144,9 @@ public final class NpcWorkChunkLoadService {
         });
     }
 
-    /** retainWorkAreaTicket：增加任务区块的非 tick 加载 ticket 引用。 */
+    /**
+     * retainWorkAreaTicket：增加任务区块的非 tick 加载 ticket 引用。
+     */
     private static void retainWorkAreaTicket(ServerLevel level, ChunkPos chunkPos) {
         TicketKey ticketKey = ticketKey(level, chunkPos);
         WORK_AREA_TICKET_REFS.compute(ticketKey, (ignored, counter) -> {
@@ -142,7 +160,9 @@ public final class NpcWorkChunkLoadService {
         });
     }
 
-    /** releaseWorkAreaTicket：减少任务区块的非 tick 加载 ticket 引用。 */
+    /**
+     * releaseWorkAreaTicket：减少任务区块的非 tick 加载 ticket 引用。
+     */
     private static void releaseWorkAreaTicket(ServerLevel level, ChunkPos chunkPos) {
         TicketKey ticketKey = ticketKey(level, chunkPos);
         WORK_AREA_TICKET_REFS.computeIfPresent(ticketKey, (ignored, counter) -> {
@@ -155,7 +175,9 @@ public final class NpcWorkChunkLoadService {
         });
     }
 
-    /** clearLevelTickets：释放一个维度中全部未归还的 NPC 工作 ticket。 */
+    /**
+     * clearLevelTickets：释放一个维度中全部未归还的 NPC 工作 ticket。
+     */
     private static void clearLevelTickets(ServerLevel level) {
         String levelKey = SaveScopedCacheKey.levelKey(level);
         WORK_LEASES.entrySet().stream()
@@ -167,9 +189,11 @@ public final class NpcWorkChunkLoadService {
         removeRemainingTickets(level, WORK_AREA_TICKET_REFS, false);
     }
 
-    /** removeRemainingTickets：清除 lease 账目之外的异常残留 ticket。 */
+    /**
+     * removeRemainingTickets：清除 lease 账目之外的异常残留 ticket。
+     */
     private static void removeRemainingTickets(ServerLevel level,
-            ConcurrentMap<TicketKey, AtomicInteger> ticketRefs, boolean forceTicks) {
+                                               ConcurrentMap<TicketKey, AtomicInteger> ticketRefs, boolean forceTicks) {
         String levelKey = SaveScopedCacheKey.levelKey(level);
         ticketRefs.keySet().stream()
                 .filter(ticketKey -> ticketKey.levelKey().equals(levelKey))
@@ -189,12 +213,16 @@ public final class NpcWorkChunkLoadService {
                 });
     }
 
-    /** leaseKey：生成任务在指定存档维度内的唯一 lease 键。 */
+    /**
+     * leaseKey：生成任务在指定存档维度内的唯一 lease 键。
+     */
     private static String leaseKey(ServerLevel level, UUID taskId) {
         return SaveScopedCacheKey.levelKey(level) + "|" + taskId;
     }
 
-    /** ticketKey：生成指定维度区块的 ticket 引用键。 */
+    /**
+     * ticketKey：生成指定维度区块的 ticket 引用键。
+     */
     private static TicketKey ticketKey(ServerLevel level, ChunkPos chunkPos) {
         return new TicketKey(SaveScopedCacheKey.levelKey(level), chunkPos.toLong());
     }

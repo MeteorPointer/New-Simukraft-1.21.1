@@ -25,7 +25,7 @@ public final class BuildingAbandonmentRepository {
              ResultSet rs = stmt.executeQuery()) {
             while (rs.next()) {
                 UUID id = UUID.fromString(rs.getString("building_id"));
-                result.put(id, new int[]{ rs.getInt("abandonment_index"), rs.getInt("last_tick_day") });
+                result.put(id, new int[]{rs.getInt("abandonment_index"), rs.getInt("last_tick_day")});
             }
         } catch (SQLException | IllegalArgumentException e) {
             database.markDegraded("loadAll(buildingAbandonment)", e);
@@ -39,8 +39,8 @@ public final class BuildingAbandonmentRepository {
         if (buildingId == null) return;
         try (PreparedStatement stmt = connection.prepareStatement(
                 "INSERT INTO building_abandonment(building_id, city_id, abandonment_index, last_tick_day) " +
-                "VALUES(?, ?, ?, ?) ON CONFLICT(building_id) DO UPDATE SET " +
-                "city_id = excluded.city_id, abandonment_index = excluded.abandonment_index, last_tick_day = excluded.last_tick_day")) {
+                        "VALUES(?, ?, ?, ?) ON CONFLICT(building_id) DO UPDATE SET " +
+                        "city_id = excluded.city_id, abandonment_index = excluded.abandonment_index, last_tick_day = excluded.last_tick_day")) {
             stmt.setString(1, buildingId.toString());
             stmt.setString(2, cityId != null ? cityId.toString() : "");
             stmt.setInt(3, abandonmentIndex);

@@ -43,7 +43,9 @@ public final class PopulationGrowthService {
         return totalSpawned;
     }
 
-    /** noteTimeRollback：日号回退后把人口游标对齐到当天，下一天再引进居民。 */
+    /**
+     * noteTimeRollback：日号回退后把人口游标对齐到当天，下一天再引进居民。
+     */
     public static void noteTimeRollback(ServerLevel level, long currentDay) {
         if (level == null) {
             return;
@@ -51,7 +53,9 @@ public final class PopulationGrowthService {
         LAST_GROWTH_DAY_BY_LEVEL.put(SaveScopedCacheKey.levelKey(level), currentDay);
     }
 
-    /** shouldRunGrowth：判断当天是否首次达到每日人口增长时刻。 */
+    /**
+     * shouldRunGrowth：判断当天是否首次达到每日人口增长时刻。
+     */
     static boolean shouldRunGrowth(long dayTime, long lastGrowthDay) {
         long currentDay = Math.floorDiv(dayTime, TICKS_PER_DAY);
         return currentDay != lastGrowthDay && Math.floorMod(dayTime, TICKS_PER_DAY) >= GROWTH_CHECK_TIME;

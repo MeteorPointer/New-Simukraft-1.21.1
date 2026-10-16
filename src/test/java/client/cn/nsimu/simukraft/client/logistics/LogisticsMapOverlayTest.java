@@ -1,11 +1,8 @@
 package client.cn.nsimu.simukraft.client.logistics;
 
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 class LogisticsMapOverlayTest {
     @Test
@@ -19,7 +16,7 @@ class LogisticsMapOverlayTest {
     @Test
     void offsetAlongNormal_movesHorizontalLineVertically() {
         float[] offset = LogisticsMapOverlay.offsetAlongNormal(0, 0, 10, 0, 4);
-        assertArrayEquals(new float[] {0, 4, 10, 4}, offset, 0.001F);
+        assertArrayEquals(new float[]{0, 4, 10, 4}, offset, 0.001F);
     }
 
     @Test

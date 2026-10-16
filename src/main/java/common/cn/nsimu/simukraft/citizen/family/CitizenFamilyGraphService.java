@@ -2,16 +2,12 @@ package common.cn.nsimu.simukraft.citizen.family;
 
 import common.cn.nsimu.simukraft.citizen.CitizenData;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
-/** 从家庭档案收集自己上下各两代，共五代直系亲属（含已故）。 */
+/**
+ * 从家庭档案收集自己上下各两代，共五代直系亲属（含已故）。
+ */
 public final class CitizenFamilyGraphService {
     public static final int ANCESTOR_GENERATIONS = 2;
     public static final int DESCENDANT_GENERATIONS = 2;
@@ -20,11 +16,13 @@ public final class CitizenFamilyGraphService {
     private CitizenFamilyGraphService() {
     }
 
-    /** build：以 focus 为中心生成五代快照。 */
+    /**
+     * build：以 focus 为中心生成五代快照。
+     */
     public static CitizenFamilyGraphSnapshot build(UUID focusId,
-            Function<UUID, Optional<CitizenData>> citizenById,
-            Function<UUID, Optional<FamilyData>> familyById,
-            Collection<CitizenData> allCitizens) {
+                                                   Function<UUID, Optional<CitizenData>> citizenById,
+                                                   Function<UUID, Optional<FamilyData>> familyById,
+                                                   Collection<CitizenData> allCitizens) {
         if (focusId == null || citizenById == null || familyById == null || allCitizens == null) {
             return CitizenFamilyGraphSnapshot.empty();
         }
@@ -66,10 +64,10 @@ public final class CitizenFamilyGraphService {
     }
 
     private static void addGrandparents(Map<UUID, CitizenFamilyGraphSnapshot.Node> nodes,
-            List<CitizenFamilyGraphSnapshot.Link> links,
-            Function<UUID, Optional<CitizenData>> citizenById,
-            Function<UUID, Optional<FamilyData>> familyById,
-            UUID grandFamilyId, UUID parentId, String grandfatherKey, String grandmotherKey) {
+                                        List<CitizenFamilyGraphSnapshot.Link> links,
+                                        Function<UUID, Optional<CitizenData>> citizenById,
+                                        Function<UUID, Optional<FamilyData>> familyById,
+                                        UUID grandFamilyId, UUID parentId, String grandfatherKey, String grandmotherKey) {
         FamilyData grand = lookupFamily(familyById, grandFamilyId);
         if (grand == null) {
             return;
@@ -80,11 +78,11 @@ public final class CitizenFamilyGraphService {
     }
 
     private static void addDescendants(Map<UUID, CitizenFamilyGraphSnapshot.Node> nodes,
-            List<CitizenFamilyGraphSnapshot.Link> links,
-            Function<UUID, Optional<CitizenData>> citizenById,
-            Function<UUID, Optional<FamilyData>> familyById,
-            Collection<CitizenData> allCitizens,
-            UUID originFamilyId, UUID parentId, UUID parentSpouseId) {
+                                       List<CitizenFamilyGraphSnapshot.Link> links,
+                                       Function<UUID, Optional<CitizenData>> citizenById,
+                                       Function<UUID, Optional<FamilyData>> familyById,
+                                       Collection<CitizenData> allCitizens,
+                                       UUID originFamilyId, UUID parentId, UUID parentSpouseId) {
         for (CitizenData child : childrenOf(allCitizens, originFamilyId, parentId, parentSpouseId)) {
             if (nodes.size() >= MAX_NODES) {
                 return;
@@ -115,7 +113,7 @@ public final class CitizenFamilyGraphService {
     }
 
     private static List<CitizenData> childrenOf(Collection<CitizenData> allCitizens, UUID originFamilyId,
-            UUID parentId, UUID parentSpouseId) {
+                                                UUID parentId, UUID parentSpouseId) {
         if (originFamilyId == null) {
             return List.of();
         }
@@ -133,9 +131,9 @@ public final class CitizenFamilyGraphService {
     }
 
     private static void addAncestor(Map<UUID, CitizenFamilyGraphSnapshot.Node> nodes,
-            List<CitizenFamilyGraphSnapshot.Link> links,
-            Function<UUID, Optional<CitizenData>> citizenById,
-            UUID ancestorId, int generation, String relationKey, UUID childId) {
+                                    List<CitizenFamilyGraphSnapshot.Link> links,
+                                    Function<UUID, Optional<CitizenData>> citizenById,
+                                    UUID ancestorId, int generation, String relationKey, UUID childId) {
         CitizenData ancestor = get(citizenById, ancestorId);
         if (ancestor == null || nodes.size() >= MAX_NODES) {
             return;
@@ -201,7 +199,7 @@ public final class CitizenFamilyGraphService {
     }
 
     private static void put(Map<UUID, CitizenFamilyGraphSnapshot.Node> nodes, CitizenData data,
-            int generation, String relationKey, boolean focus, UUID spouseId) {
+                            int generation, String relationKey, boolean focus, UUID spouseId) {
         if (data == null || nodes.containsKey(data.uuid()) || nodes.size() >= MAX_NODES) {
             return;
         }

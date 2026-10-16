@@ -9,7 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MineralDrillingUiCleanupTest {
-    /** clearsBoundsWhenDemolitionIsRequested: 拆除请求清除当前控制箱的边界映射。 */
+    /**
+     * clearsBoundsWhenDemolitionIsRequested: 拆除请求清除当前控制箱的边界映射。
+     */
     @Test
     void clearsBoundsWhenDemolitionIsRequested() {
         BlockPos boxPos = new BlockPos(7, 64, -4);

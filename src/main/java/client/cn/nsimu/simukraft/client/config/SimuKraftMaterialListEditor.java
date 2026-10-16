@@ -1,10 +1,6 @@
 package client.cn.nsimu.simukraft.client.config;
 
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ItemStackTexture;
+import com.lowdragmc.lowdraglib2.gui.texture.*;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
 import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
@@ -48,13 +44,17 @@ final class SimuKraftMaterialListEditor {
         this.onChanged = onChanged;
     }
 
-    /** create: 创建旧版材料物品列表编辑器。 */
+    /**
+     * create: 创建旧版材料物品列表编辑器。
+     */
     static UIElement create(Component title, Component hint, List<String> values, Supplier<List<String>> availableItems, Consumer<List<String>> onChanged) {
         SimuKraftMaterialListEditor editor = new SimuKraftMaterialListEditor(values, availableItems, onChanged);
         return editor.build(title, hint);
     }
 
-    /** build: 组装搜索、添加和可滚动材料列表。 */
+    /**
+     * build: 组装搜索、添加和可滚动材料列表。
+     */
     private UIElement build(Component title, Component hint) {
         UIElement root = SimuKraftConfigWidgets.column(6, 4);
         root.addChild(SimuKraftConfigWidgets.compactSection(title));
@@ -97,7 +97,9 @@ final class SimuKraftMaterialListEditor {
         return row;
     }
 
-    /** filterBox: 旧版搜索逻辑，过滤当前已配置列表。 */
+    /**
+     * filterBox: 旧版搜索逻辑，过滤当前已配置列表。
+     */
     private UIElement filterBox() {
         UIElement row = new UIElement().layout(layout -> {
             layout.flex(1);
@@ -124,7 +126,9 @@ final class SimuKraftMaterialListEditor {
         return row;
     }
 
-    /** addSearch: 使用 SearchComponent 从注册表搜索并添加材料。 */
+    /**
+     * addSearch: 使用 SearchComponent 从注册表搜索并添加材料。
+     */
     private SearchComponent<String> addSearch() {
         SearchComponent<String> search = new SearchComponent<>(new SearchComponent.ISearchUI<>() {
             @Override

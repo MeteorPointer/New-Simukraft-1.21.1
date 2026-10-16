@@ -15,21 +15,8 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
 
@@ -136,7 +123,9 @@ public final class CitizenNavigationService {
         return true;
     }
 
-    /** hasSelfFeedingNavigation: 判断买饭导航是否正在占用该 NPC，避免普通工作移动抢占。 */
+    /**
+     * hasSelfFeedingNavigation: 判断买饭导航是否正在占用该 NPC，避免普通工作移动抢占。
+     */
     private static boolean hasSelfFeedingNavigation(LevelRuntime runtime, UUID citizenId) {
         ActiveNavigation active = runtime.active.get(citizenId);
         if (active != null && active.intent == MovementIntent.SELF_FEEDING) {
@@ -150,7 +139,9 @@ public final class CitizenNavigationService {
         return queued != null && queued.intent() == MovementIntent.SELF_FEEDING;
     }
 
-    /** hasIntent: 判断该市民是否已有指定意图的排队、计算中或执行中导航。 */
+    /**
+     * hasIntent: 判断该市民是否已有指定意图的排队、计算中或执行中导航。
+     */
     public static boolean hasIntent(ServerLevel level, UUID citizenId, MovementIntent intent) {
         if (level == null || citizenId == null || intent == null) {
             return false;
@@ -171,9 +162,11 @@ public final class CitizenNavigationService {
         return queued != null && queued.intent() == intent;
     }
 
-    /** clearNonMatchingNavigation: 高优先级意图开始时清掉其它意图，避免两套路径抢控制。 */
+    /**
+     * clearNonMatchingNavigation: 高优先级意图开始时清掉其它意图，避免两套路径抢控制。
+     */
     private static void clearNonMatchingNavigation(ServerLevel level, LevelRuntime runtime, UUID citizenId,
-            CitizenEntity citizen, MovementIntent keep) {
+                                                   CitizenEntity citizen, MovementIntent keep) {
         ActiveNavigation active = runtime.active.get(citizenId);
         if (active != null && active.intent != keep) {
             runtime.active.remove(citizenId);
@@ -192,7 +185,9 @@ public final class CitizenNavigationService {
         }
     }
 
-    /** clearLowerPriorityNavigation: 买饭开始时清掉旧的普通工作导航，防止两套状态轮流改目标。 */
+    /**
+     * clearLowerPriorityNavigation: 买饭开始时清掉旧的普通工作导航，防止两套状态轮流改目标。
+     */
     private static void clearLowerPriorityNavigation(ServerLevel level, LevelRuntime runtime, UUID citizenId, CitizenEntity citizen) {
         ActiveNavigation active = runtime.active.get(citizenId);
         if (active != null && active.intent != MovementIntent.SELF_FEEDING) {
@@ -215,7 +210,9 @@ public final class CitizenNavigationService {
         stopInternal(level, citizenId, false);
     }
 
-    /** stopForced：死亡、卡墙救援或玩家强制调遣时连逃跑路径一起取消。 */
+    /**
+     * stopForced：死亡、卡墙救援或玩家强制调遣时连逃跑路径一起取消。
+     */
     public static void stopForced(ServerLevel level, UUID citizenId) {
         stopInternal(level, citizenId, true);
     }
@@ -241,7 +238,9 @@ public final class CitizenNavigationService {
         PathCrowdCoordinator.clear(level, citizenId);
     }
 
-    /** stopReturnHome：仅取消指定居民已排队、计算中或执行中的回家导航。 */
+    /**
+     * stopReturnHome：仅取消指定居民已排队、计算中或执行中的回家导航。
+     */
     public static void stopReturnHome(ServerLevel level, UUID citizenId) {
         if (level == null || citizenId == null) {
             return;
@@ -489,7 +488,7 @@ public final class CitizenNavigationService {
     }
 
     private static void applyCompletedPaths(ServerLevel level, LevelRuntime runtime) {
-        for (Iterator<Map.Entry<UUID, RunningRequest>> iterator = runtime.pending.entrySet().iterator(); iterator.hasNext();) {
+        for (Iterator<Map.Entry<UUID, RunningRequest>> iterator = runtime.pending.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<UUID, RunningRequest> entry = iterator.next();
             RunningRequest running = entry.getValue();
             if (!running.future().isDone()) {
@@ -537,7 +536,7 @@ public final class CitizenNavigationService {
     }
 
     private static void tickActivePaths(ServerLevel level, LevelRuntime runtime) {
-        for (Iterator<Map.Entry<UUID, ActiveNavigation>> iterator = runtime.active.entrySet().iterator(); iterator.hasNext();) {
+        for (Iterator<Map.Entry<UUID, ActiveNavigation>> iterator = runtime.active.entrySet().iterator(); iterator.hasNext(); ) {
             Map.Entry<UUID, ActiveNavigation> entry = iterator.next();
             CitizenEntity citizen = CitizenTeleportService.findCitizenEntity(level, entry.getKey());
             if (citizen == null) {
@@ -721,6 +720,7 @@ public final class CitizenNavigationService {
 
     private static final class SaveKey {
         private static final java.util.WeakHashMap<net.minecraft.server.MinecraftServer, String> CACHE = new java.util.WeakHashMap<>();
+
         private static String serverKey(net.minecraft.server.MinecraftServer server) {
             if (server == null) return "unknown";
             return CACHE.computeIfAbsent(server, s ->

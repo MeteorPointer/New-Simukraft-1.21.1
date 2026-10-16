@@ -18,7 +18,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 import java.util.Map;
 import java.util.UUID;
 
-/** RTS 小地图纹理：从已有地图缓存采样并管理动态纹理生命周期。 */
+/**
+ * RTS 小地图纹理：从已有地图缓存采样并管理动态纹理生命周期。
+ */
 
 @OnlyIn(Dist.CLIENT)
 final class RtsMiniMapTexture {
@@ -35,7 +37,9 @@ final class RtsMiniMapTexture {
     private RtsMiniMapTexture() {
     }
 
-    /** acquireConsumer: 请求地图缓存提高扫描频率。 */
+    /**
+     * acquireConsumer: 请求地图缓存提高扫描频率。
+     */
     static void acquireConsumer() {
         if (!mapConsumerAcquired && SimuMapManager.isAvailable()) {
             SimuMapManager.getInstance().acquireConsumer();
@@ -43,7 +47,9 @@ final class RtsMiniMapTexture {
         }
     }
 
-    /** releaseConsumer: 释放 RTS 小地图的缓存扫描引用。 */
+    /**
+     * releaseConsumer: 释放 RTS 小地图的缓存扫描引用。
+     */
     static void releaseConsumer() {
         if (mapConsumerAcquired && SimuMapManager.isAvailable()) {
             SimuMapManager.getInstance().releaseConsumer();
@@ -51,7 +57,9 @@ final class RtsMiniMapTexture {
         mapConsumerAcquired = false;
     }
 
-    /** refresh: 按 RTS 相机中心和显示范围刷新动态纹理。 */
+    /**
+     * refresh: 按 RTS 相机中心和显示范围刷新动态纹理。
+     */
     static ResourceLocation refresh(Vec3 focus, int worldSpan) {
         ensureTexture();
         if (texture == null) {
@@ -81,17 +89,23 @@ final class RtsMiniMapTexture {
         return textureLocation;
     }
 
-    /** location: 返回当前动态纹理资源位置。 */
+    /**
+     * location: 返回当前动态纹理资源位置。
+     */
     static ResourceLocation location() {
         return textureLocation;
     }
 
-    /** size: 返回动态纹理边长。 */
+    /**
+     * size: 返回动态纹理边长。
+     */
     static int size() {
         return SIZE;
     }
 
-    /** clear: 断开连接时释放动态纹理。 */
+    /**
+     * clear: 断开连接时释放动态纹理。
+     */
     static void clear() {
         releaseConsumer();
         if (textureLocation != null) {
@@ -122,9 +136,11 @@ final class RtsMiniMapTexture {
         return (color >>> 24) == 0 ? COLOR_UNKNOWN : color;
     }
 
-    /** applyTerritoryOverlay: 按领地权属为地形采样色叠加填充和相邻城市边界。 */
+    /**
+     * applyTerritoryOverlay: 按领地权属为地形采样色叠加填充和相邻城市边界。
+     */
     private static int applyTerritoryOverlay(int terrainColor, int worldX, int worldZ, int pixelWorldSpan,
-                                              UUID currentCityId, Map<Long, UUID> chunkOwners) {
+                                             UUID currentCityId, Map<Long, UUID> chunkOwners) {
         int chunkX = worldX >> 4;
         int chunkZ = worldZ >> 4;
         UUID owner = chunkOwners.get(ChunkPos.asLong(chunkX, chunkZ));
@@ -138,7 +154,9 @@ final class RtsMiniMapTexture {
         return SimuBlockColors.blendColors(terrainColor, overlayColor);
     }
 
-    /** isTerritoryBorder: 判断当前采样像素是否覆盖领地外侧或不同城市相邻的区块边界。 */
+    /**
+     * isTerritoryBorder: 判断当前采样像素是否覆盖领地外侧或不同城市相邻的区块边界。
+     */
     private static boolean isTerritoryBorder(UUID owner, Map<Long, UUID> chunkOwners, int chunkX, int chunkZ,
                                              int worldX, int worldZ, int pixelWorldSpan) {
         int localX = worldX & 15;
@@ -149,7 +167,9 @@ final class RtsMiniMapTexture {
                 || localZ + pixelWorldSpan >= 16 && hasDifferentOwner(owner, chunkOwners, chunkX, chunkZ + 1);
     }
 
-    /** hasDifferentOwner: 判断相邻区块是否未认领或归属另一座城市。 */
+    /**
+     * hasDifferentOwner: 判断相邻区块是否未认领或归属另一座城市。
+     */
     private static boolean hasDifferentOwner(UUID owner, Map<Long, UUID> chunkOwners, int chunkX, int chunkZ) {
         return !owner.equals(chunkOwners.get(ChunkPos.asLong(chunkX, chunkZ)));
     }

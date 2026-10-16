@@ -12,7 +12,9 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.UUID;
 
-/** BankControlBoxOpenResponsePacket: 银行控制箱视图。 */
+/**
+ * BankControlBoxOpenResponsePacket: 银行控制箱视图。
+ */
 public record BankControlBoxOpenResponsePacket(BlockPos boxPos,
                                                boolean hasBuilding,
                                                String buildingName,
@@ -28,7 +30,9 @@ public record BankControlBoxOpenResponsePacket(BlockPos boxPos,
     public static final StreamCodec<RegistryFriendlyByteBuf, BankControlBoxOpenResponsePacket> STREAM_CODEC =
             StreamCodec.of(BankControlBoxOpenResponsePacket::encode, BankControlBoxOpenResponsePacket::decode);
 
-    /** from: 视图转网络包。 */
+    /**
+     * from: 视图转网络包。
+     */
     public static BankControlBoxOpenResponsePacket from(BankControlBoxView view) {
         return new BankControlBoxOpenResponsePacket(view.boxPos(), view.hasBuilding(), view.buildingName(),
                 view.cityId(), view.statusKey(), view.hasTeller(), view.tellerId(), view.tellerName(),
@@ -40,7 +44,9 @@ public record BankControlBoxOpenResponsePacket(BlockPos boxPos,
         return TYPE;
     }
 
-    /** encode: 写入银行视图。 */
+    /**
+     * encode: 写入银行视图。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, BankControlBoxOpenResponsePacket packet) {
         buffer.writeBlockPos(packet.boxPos());
         buffer.writeBoolean(packet.hasBuilding());
@@ -60,7 +66,9 @@ public record BankControlBoxOpenResponsePacket(BlockPos boxPos,
         buffer.writeDouble(packet.playerCash());
     }
 
-    /** decode: 读取银行视图。 */
+    /**
+     * decode: 读取银行视图。
+     */
     public static BankControlBoxOpenResponsePacket decode(RegistryFriendlyByteBuf buffer) {
         BlockPos boxPos = buffer.readBlockPos();
         boolean hasBuilding = buffer.readBoolean();
@@ -76,7 +84,9 @@ public record BankControlBoxOpenResponsePacket(BlockPos boxPos,
                 hasTeller, tellerId, tellerName, cityFunds, playerCash);
     }
 
-    /** handle: 分发到客户端界面。 */
+    /**
+     * handle: 分发到客户端界面。
+     */
     public static void handle(BankControlBoxOpenResponsePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> ClientboundNetworkBridge.handleBankControlBoxOpenResponse(packet));
     }

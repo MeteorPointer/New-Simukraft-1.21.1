@@ -8,12 +8,7 @@ import net.neoforged.fml.loading.FMLPaths;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -32,13 +27,17 @@ public final class BuildingFavoriteStore {
     private BuildingFavoriteStore() {
     }
 
-    /** isFavorite: 判断建筑是否已被客户端收藏。 */
+    /**
+     * isFavorite: 判断建筑是否已被客户端收藏。
+     */
     public static boolean isFavorite(BuildingCacheService.BuildingMeta building) {
         ensureLoaded();
         return FAVORITES.contains(key(building));
     }
 
-    /** toggleFavorite: 切换收藏状态并立即保存到客户端 SQLite。 */
+    /**
+     * toggleFavorite: 切换收藏状态并立即保存到客户端 SQLite。
+     */
     public static synchronized boolean toggleFavorite(BuildingCacheService.BuildingMeta building) {
         ensureLoaded();
         String key = key(building);
@@ -53,7 +52,9 @@ public final class BuildingFavoriteStore {
         return favorite;
     }
 
-    /** ensureLoaded: 延迟加载客户端收藏表，避免界面打开前做无用 IO。 */
+    /**
+     * ensureLoaded: 延迟加载客户端收藏表，避免界面打开前做无用 IO。
+     */
     private static void ensureLoaded() {
         if (loaded) {
             return;
@@ -67,7 +68,9 @@ public final class BuildingFavoriteStore {
         }
     }
 
-    /** loadFavorites: 从客户端 SQLite 读取收藏键集合。 */
+    /**
+     * loadFavorites: 从客户端 SQLite 读取收藏键集合。
+     */
     private static void loadFavorites() {
         try {
             ensureSchema();
@@ -86,7 +89,9 @@ public final class BuildingFavoriteStore {
         }
     }
 
-    /** saveFavorite: 将单个收藏状态写入客户端 SQLite。 */
+    /**
+     * saveFavorite: 将单个收藏状态写入客户端 SQLite。
+     */
     private static void saveFavorite(String key, boolean favorite) {
         try {
             ensureSchema();
@@ -109,7 +114,9 @@ public final class BuildingFavoriteStore {
         }
     }
 
-    /** ensureSchema: 初始化客户端收藏数据库和表结构。 */
+    /**
+     * ensureSchema: 初始化客户端收藏数据库和表结构。
+     */
     private static void ensureSchema() throws IOException, SQLException {
         if (schemaReady) {
             return;
@@ -128,7 +135,9 @@ public final class BuildingFavoriteStore {
         }
     }
 
-    /** openConnection: 打开客户端 SQLite 连接并应用轻量 PRAGMA。 */
+    /**
+     * openConnection: 打开客户端 SQLite 连接并应用轻量 PRAGMA。
+     */
     private static Connection openConnection() throws SQLException {
         Connection connection = DriverManager.getConnection(JDBC_PREFIX + databasePath().toAbsolutePath().normalize());
         try (Statement statement = connection.createStatement()) {
@@ -144,7 +153,9 @@ public final class BuildingFavoriteStore {
         return connection;
     }
 
-    /** loadDriver: 懒加载 SQLite JDBC 驱动。 */
+    /**
+     * loadDriver: 懒加载 SQLite JDBC 驱动。
+     */
     private static void loadDriver() {
         if (DRIVER_LOADED.get()) {
             return;
@@ -162,12 +173,16 @@ public final class BuildingFavoriteStore {
         }
     }
 
-    /** databasePath: 返回客户端收藏数据库路径。 */
+    /**
+     * databasePath: 返回客户端收藏数据库路径。
+     */
     private static Path databasePath() {
         return FMLPaths.CONFIGDIR.get().resolve(DATABASE_FILE);
     }
 
-    /** key: 生成跨重启稳定的建筑收藏键。 */
+    /**
+     * key: 生成跨重启稳定的建筑收藏键。
+     */
     private static String key(BuildingCacheService.BuildingMeta building) {
         if (building == null) {
             return "";
@@ -179,12 +194,16 @@ public final class BuildingFavoriteStore {
                 normalizePart(building.structureFileName()));
     }
 
-    /** normalizeKey: 规范化从数据库读取的收藏键。 */
+    /**
+     * normalizeKey: 规范化从数据库读取的收藏键。
+     */
     private static String normalizeKey(String key) {
         return key == null ? "" : key.trim().toLowerCase(Locale.ROOT);
     }
 
-    /** normalizePart: 规范化收藏键的单个组成部分。 */
+    /**
+     * normalizePart: 规范化收藏键的单个组成部分。
+     */
     private static String normalizePart(String value) {
         return value == null ? "" : value.trim().toLowerCase(Locale.ROOT);
     }

@@ -24,7 +24,9 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.Optional;
 import java.util.UUID;
 
-/** 建筑盒雇佣状态响应：支持原版近距离请求和 RTS 已授权的远程请求。 */
+/**
+ * 建筑盒雇佣状态响应：支持原版近距离请求和 RTS 已授权的远程请求。
+ */
 
 public record EmploymentStateResponsePacket(BlockPos sourcePos, String sourceType, UUID builderCitizenId,
                                             UUID plannerCitizenId, String statusKey, int cityLevel)
@@ -65,7 +67,9 @@ public record EmploymentStateResponsePacket(BlockPos sourcePos, String sourceTyp
         return new EmploymentStateResponsePacket(sourcePos, sourceType, builderCitizenId, plannerCitizenId, statusKey, cityLevel);
     }
 
-    /** handleRequest: 服务端验证建筑盒请求，并向客户端回传当前雇员快照。 */
+    /**
+     * handleRequest: 服务端验证建筑盒请求，并向客户端回传当前雇员快照。
+     */
     public static void handleRequest(EmploymentStateRequestPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)
                 || !isBuildBox(level, packet.sourcePos(), packet.sourceType())) {
@@ -79,7 +83,9 @@ public record EmploymentStateResponsePacket(BlockPos sourcePos, String sourceTyp
         sendState(level, player, packet.sourcePos());
     }
 
-    /** openBuildBoxFromRts: RTS 双击建筑盒时直接回传现有建筑盒界面数据。 */
+    /**
+     * openBuildBoxFromRts: RTS 双击建筑盒时直接回传现有建筑盒界面数据。
+     */
     public static void openBuildBoxFromRts(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (level == null || player == null || !isBuildBox(level, pos, BUILD_BOX_SOURCE_TYPE)) {
             return;
@@ -88,7 +94,9 @@ public record EmploymentStateResponsePacket(BlockPos sourcePos, String sourceTyp
         sendState(level, player, pos);
     }
 
-    /** handle: 客户端接收建筑盒雇佣状态。 */
+    /**
+     * handle: 客户端接收建筑盒雇佣状态。
+     */
     public static void handle(EmploymentStateResponsePacket packet, IPayloadContext context) {
         context.enqueueWork(() -> ClientboundNetworkBridge.handleEmploymentStateResponse(packet));
     }

@@ -53,12 +53,14 @@ public final class SimuBlockTextureColors {
         return sampled;
     }
 
-    /** clear: 资源包重载后丢弃贴图颜色缓存。 */
+    /**
+     * clear: 资源包重载后丢弃贴图颜色缓存。
+     */
     public static void clear() {
         CACHE.clear();
     }
 
-    
+
     @Nullable
     private static SampledTexture sampleUncached(BlockState state) {
         Minecraft minecraft = Minecraft.getInstance();

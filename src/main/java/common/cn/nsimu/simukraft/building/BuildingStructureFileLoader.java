@@ -2,17 +2,9 @@ package common.cn.nsimu.simukraft.building;
 
 import common.cn.nsimu.simukraft.SimuKraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.NbtAccounter;
-import net.minecraft.nbt.NbtIo;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.*;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.util.Locale;
 import java.util.Optional;
 
@@ -21,7 +13,9 @@ public final class BuildingStructureFileLoader {
     private BuildingStructureFileLoader() {
     }
 
-    /** load: 从建筑 zip 包读取结构 NBT，不解压到磁盘。 */
+    /**
+     * load: 从建筑 zip 包读取结构 NBT，不解压到磁盘。
+     */
     public static Optional<LoadedStructure> load(BuildingCatalog.BuildingDefinition definition) {
         if (definition == null) {
             return Optional.empty();
@@ -189,6 +183,7 @@ public final class BuildingStructureFileLoader {
     private record ParsedStructureInfo(StructureFormat format, int blockCount, BlockPos size) {
     }
 
-    public record LoadedStructure(String source, StructureFormat format, CompoundTag rootTag, int blockCount, BlockPos size) {
+    public record LoadedStructure(String source, StructureFormat format, CompoundTag rootTag, int blockCount,
+                                  BlockPos size) {
     }
 }

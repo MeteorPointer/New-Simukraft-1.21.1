@@ -26,7 +26,9 @@ public final class BuildingStructurePort {
     private BuildingStructurePort() {
     }
 
-    /** structureId: 这座已建成建筑对应的结构 ID，文件名无法编码时返回 null。 */
+    /**
+     * structureId: 这座已建成建筑对应的结构 ID，文件名无法编码时返回 null。
+     */
     public static ResourceLocation structureId(PlacedBuildingRecord record) {
         if (record == null) {
             return null;
@@ -104,7 +106,9 @@ public final class BuildingStructurePort {
         return new StructureStart(structure, new ChunkPos(anchor), 0, new PiecesContainer(List.of(new PlacedBuildingPiece(box))));
     }
 
-    /** 建筑占地再向外扩 1 格。贴着外墙、门口或屋顶时，玩家脚所在的格子仍算进入该建筑。 */
+    /**
+     * 建筑占地再向外扩 1 格。贴着外墙、门口或屋顶时，玩家脚所在的格子仍算进入该建筑。
+     */
     private static boolean nearBuilding(PlacedBuildingRecord record, BlockPos pos) {
         BoundingBox box = detectionBounds(record);
         return box != null && box.isInside(pos);

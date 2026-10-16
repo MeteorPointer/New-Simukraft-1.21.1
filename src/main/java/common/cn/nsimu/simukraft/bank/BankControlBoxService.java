@@ -10,7 +10,9 @@ import common.cn.nsimu.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
-/** BankControlBoxService: 银行控制箱绑定、柜员岗位和视图。 */
+/**
+ * BankControlBoxService: 银行控制箱绑定、柜员岗位和视图。
+ */
 public final class BankControlBoxService {
     public static final String HIRE_SOURCE_TYPE = "bank_control_box";
     public static final String HIRE_ROLE = "teller";
@@ -18,7 +20,9 @@ public final class BankControlBoxService {
     private BankControlBoxService() {
     }
 
-    /** buildView: 构建银行控制箱只读快照。 */
+    /**
+     * buildView: 构建银行控制箱只读快照。
+     */
     public static BankControlBoxView buildView(ServerLevel level, BlockPos boxPos, double cityFunds, double playerCash) {
         PlacedBuildingRecord building = resolveBuilding(level, boxPos);
         CitizenData teller = findAssignedTeller(level, boxPos);
@@ -39,7 +43,9 @@ public final class BankControlBoxService {
                 playerCash);
     }
 
-    /** resolveBuilding: 解析包含该控制箱且 JSON type 为银行的已完成公共建筑。 */
+    /**
+     * resolveBuilding: 解析包含该控制箱且 JSON type 为银行的已完成公共建筑。
+     */
     public static PlacedBuildingRecord resolveBuilding(ServerLevel level, BlockPos boxPos) {
         if (!isBankControlBox(level, boxPos)) {
             return null;
@@ -48,17 +54,23 @@ public final class BankControlBoxService {
         return PublicBuildingTypes.isBank(building) ? building : null;
     }
 
-    /** findAssignedTeller: 查询绑定柜员。 */
+    /**
+     * findAssignedTeller: 查询绑定柜员。
+     */
     public static CitizenData findAssignedTeller(ServerLevel level, BlockPos boxPos) {
         return CitizenEmploymentService.findAssigned(level, HIRE_SOURCE_TYPE, HIRE_ROLE, boxPos).orElse(null);
     }
 
-    /** isOperational: 银行可办理业务。 */
+    /**
+     * isOperational: 银行可办理业务。
+     */
     public static boolean isOperational(ServerLevel level, BlockPos boxPos) {
         return resolveBuilding(level, boxPos) != null && findAssignedTeller(level, boxPos) != null;
     }
 
-    /** onRemoved: 拆除时解雇柜员并注销建筑。 */
+    /**
+     * onRemoved: 拆除时解雇柜员并注销建筑。
+     */
     public static void onRemoved(ServerLevel level, BlockPos boxPos) {
         if (level == null || boxPos == null) {
             return;
@@ -72,7 +84,9 @@ public final class BankControlBoxService {
         }
     }
 
-    /** isBankControlBox: 坐标处是否为银行控制箱。 */
+    /**
+     * isBankControlBox: 坐标处是否为银行控制箱。
+     */
     public static boolean isBankControlBox(ServerLevel level, BlockPos pos) {
         return level != null && pos != null && level.isLoaded(pos)
                 && level.getBlockState(pos).is(ModBlocks.BANK_CONTROL_BOX.get());

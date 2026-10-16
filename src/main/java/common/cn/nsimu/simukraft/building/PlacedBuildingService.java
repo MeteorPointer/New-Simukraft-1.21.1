@@ -1,10 +1,10 @@
 package common.cn.nsimu.simukraft.building;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.storage.BuildingStructureRepository;
-import common.cn.nsimu.simukraft.storage.BuildingStructureSqliteDatabase;
 import common.cn.nsimu.simukraft.citizen.CitizenHousingService;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
+import common.cn.nsimu.simukraft.storage.BuildingStructureRepository;
+import common.cn.nsimu.simukraft.storage.BuildingStructureSqliteDatabase;
 import common.cn.nsimu.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;

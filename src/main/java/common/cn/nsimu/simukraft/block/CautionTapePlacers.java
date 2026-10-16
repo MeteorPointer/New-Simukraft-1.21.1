@@ -14,7 +14,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/** CautionTapePlacers: 每格警戒线记住放置者，用来反查他所属的城市。 */
+/**
+ * CautionTapePlacers: 每格警戒线记住放置者，用来反查他所属的城市。
+ */
 public final class CautionTapePlacers extends SavedData {
     private static final String DATA_NAME = SimuKraft.MOD_ID + "_caution_tape_placers";
     private static final Factory<CautionTapePlacers> FACTORY = new Factory<>(

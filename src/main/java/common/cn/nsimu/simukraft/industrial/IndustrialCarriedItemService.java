@@ -21,7 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-/** 工业携带物品服务；新数据直接使用受雇 NPC 的实体 NBT 背包。 */
+/**
+ * 工业携带物品服务；新数据直接使用受雇 NPC 的实体 NBT 背包。
+ */
 
 public final class IndustrialCarriedItemService {
     private static final String LEGACY_ITEMS_KEY = "items";
@@ -29,13 +31,17 @@ public final class IndustrialCarriedItemService {
     private IndustrialCarriedItemService() {
     }
 
-    /** hasItems：判断 NPC 普通背包或尚未迁移的旧虚拟库存是否有物品。 */
+    /**
+     * hasItems：判断 NPC 普通背包或尚未迁移的旧虚拟库存是否有物品。
+     */
     public static boolean hasItems(ServerLevel level, IndustrialBoxManager manager, IndustrialBoxData data) {
         CitizenInventory inventory = resolveInventory(level, manager, data);
         return inventory != null ? inventory.hasBackpackItems() : data != null && !data.workState().isBlank();
     }
 
-    /** items：返回 NPC 普通背包物品快照。 */
+    /**
+     * items：返回 NPC 普通背包物品快照。
+     */
     public static List<ItemStack> items(ServerLevel level, IndustrialBoxManager manager, IndustrialBoxData data) {
         CitizenInventory inventory = resolveInventory(level, manager, data);
         if (inventory == null) {
@@ -44,13 +50,17 @@ public final class IndustrialCarriedItemService {
         return inventory.backpackSnapshot().stream().filter(stack -> !stack.isEmpty()).map(ItemStack::copy).toList();
     }
 
-    /** stackCount：统计 NPC 普通背包已占用的堆栈槽位。 */
+    /**
+     * stackCount：统计 NPC 普通背包已占用的堆栈槽位。
+     */
     public static int stackCount(ServerLevel level, IndustrialBoxManager manager, IndustrialBoxData data) {
         CitizenInventory inventory = resolveInventory(level, manager, data);
         return inventory != null ? inventory.occupiedBackpackSlots() : 0;
     }
 
-    /** addItems：仅在全部产物都能放入真实背包时原子插入。 */
+    /**
+     * addItems：仅在全部产物都能放入真实背包时原子插入。
+     */
     public static boolean addItems(ServerLevel level,
                                    IndustrialBoxManager manager,
                                    IndustrialBoxData data,
@@ -59,7 +69,9 @@ public final class IndustrialCarriedItemService {
         return inventory != null && inventory.insertBackpackAll(additions);
     }
 
-    /** consumeFirstMatching：消耗 NPC 背包中的首个匹配物品。 */
+    /**
+     * consumeFirstMatching：消耗 NPC 背包中的首个匹配物品。
+     */
     public static boolean consumeFirstMatching(ServerLevel level,
                                                IndustrialBoxManager manager,
                                                IndustrialBoxData data,
@@ -67,7 +79,9 @@ public final class IndustrialCarriedItemService {
         return extractFirstMatching(level, manager, data, spec).isPresent();
     }
 
-    /** extractFirstMatching：从 NPC 背包提取一个匹配物品。 */
+    /**
+     * extractFirstMatching：从 NPC 背包提取一个匹配物品。
+     */
     public static Optional<ItemStack> extractFirstMatching(ServerLevel level,
                                                            IndustrialBoxManager manager,
                                                            IndustrialBoxData data,
@@ -81,13 +95,15 @@ public final class IndustrialCarriedItemService {
                 : Optional.empty();
     }
 
-    /** depositToContainers：把 NPC 背包逐槽放入真实容器，未放下的部分保留在原槽。
-     *  filter 非空时只处理匹配列表中任意 spec 的槽，其余槽原封不动保留在背包。 */
+    /**
+     * depositToContainers：把 NPC 背包逐槽放入真实容器，未放下的部分保留在原槽。
+     * filter 非空时只处理匹配列表中任意 spec 的槽，其余槽原封不动保留在背包。
+     */
     public static DepositResult depositToContainers(ServerLevel level,
-                                                     IndustrialBoxManager manager,
-                                                     IndustrialBoxData data,
-                                                     List<BlockPos> containers,
-                                                     List<IndustrialItemStackSpec> filter) {
+                                                    IndustrialBoxManager manager,
+                                                    IndustrialBoxData data,
+                                                    List<BlockPos> containers,
+                                                    List<IndustrialItemStackSpec> filter) {
         if (level == null || data == null) {
             return DepositResult.MISSING_CONTAINER;
         }
@@ -128,15 +144,19 @@ public final class IndustrialCarriedItemService {
         return remainingFound ? DepositResult.OUTPUT_FULL : DepositResult.SUCCESS;
     }
 
-    /** depositToContainers：无过滤器版本，保持旧调用点兼容。 */
+    /**
+     * depositToContainers：无过滤器版本，保持旧调用点兼容。
+     */
     public static DepositResult depositToContainers(ServerLevel level,
-                                                     IndustrialBoxManager manager,
-                                                     IndustrialBoxData data,
-                                                     List<BlockPos> containers) {
+                                                    IndustrialBoxManager manager,
+                                                    IndustrialBoxData data,
+                                                    List<BlockPos> containers) {
         return depositToContainers(level, manager, data, containers, List.of());
     }
 
-    /** dropAndClear：在控制箱失效时掉落 NPC 普通背包与旧虚拟库存。 */
+    /**
+     * dropAndClear：在控制箱失效时掉落 NPC 普通背包与旧虚拟库存。
+     */
     public static void dropAndClear(ServerLevel level,
                                     IndustrialBoxManager manager,
                                     IndustrialBoxData data,
@@ -165,14 +185,16 @@ public final class IndustrialCarriedItemService {
         clearLegacy(manager, data);
     }
 
-    /** clear：兼容旧调用，仅清理已经废弃的虚拟库存字段。 */
+    /**
+     * clear：兼容旧调用，仅清理已经废弃的虚拟库存字段。
+     */
     public static void clear(IndustrialBoxManager manager, IndustrialBoxData data) {
         clearLegacy(manager, data);
     }
 
     private static CitizenInventory resolveInventory(ServerLevel level,
-                                                      IndustrialBoxManager manager,
-                                                      IndustrialBoxData data) {
+                                                     IndustrialBoxManager manager,
+                                                     IndustrialBoxData data) {
         if (level == null || data == null) {
             return null;
         }
@@ -209,9 +231,9 @@ public final class IndustrialCarriedItemService {
     }
 
     private static DepositResult depositLegacyToContainers(ServerLevel level,
-                                                            IndustrialBoxManager manager,
-                                                            IndustrialBoxData data,
-                                                            List<BlockPos> containers) {
+                                                           IndustrialBoxManager manager,
+                                                           IndustrialBoxData data,
+                                                           List<BlockPos> containers) {
         List<ItemStack> legacy = legacyItems(data, level.registryAccess());
         if (legacy.isEmpty()) {
             clearLegacy(manager, data);

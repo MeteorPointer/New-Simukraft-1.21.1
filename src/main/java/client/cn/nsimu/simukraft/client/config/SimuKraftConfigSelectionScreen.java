@@ -24,12 +24,16 @@ public final class SimuKraftConfigSelectionScreen {
     private SimuKraftConfigSelectionScreen() {
     }
 
-    /** create: 创建配置选择菜单。 */
+    /**
+     * create: 创建配置选择菜单。
+     */
     public static Screen create(Screen parent) {
         return new ModularUIScreen(SimuKraftConfigWidgets.screenUi(createUi(parent)), Component.translatable("gui.simukraft.config.title"));
     }
 
-    /** createUi: 组装旧版配置选择布局。 */
+    /**
+     * createUi: 组装旧版配置选择布局。
+     */
     private static UIElement createUi(Screen parent) {
         int windowWidth = SimuKraftConfigWidgets.windowWidth(WINDOW_WIDTH, MIN_WINDOW_WIDTH);
         int windowHeight = SimuKraftConfigWidgets.windowHeight(WINDOW_HEIGHT, MIN_WINDOW_HEIGHT);
@@ -101,7 +105,9 @@ public final class SimuKraftConfigSelectionScreen {
         return Math.max(minWidth, Math.min(BUTTON_WIDTH, availableWidth));
     }
 
-    /** canEditServerConfig: 判断当前客户端是否有服务端配置权限。 */
+    /**
+     * canEditServerConfig: 判断当前客户端是否有服务端配置权限。
+     */
     private static boolean canEditServerConfig() {
         Minecraft minecraft = Minecraft.getInstance();
         return minecraft.getSingleplayerServer() != null

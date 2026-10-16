@@ -7,13 +7,17 @@ import dev.vfyjxf.taffy.style.TaffyPosition;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 
-/** MineralDrillingSlotLayout: 以固定顺序创建钻井工具槽与玩家背包槽。 */
+/**
+ * MineralDrillingSlotLayout: 以固定顺序创建钻井工具槽与玩家背包槽。
+ */
 
 public final class MineralDrillingSlotLayout {
     private MineralDrillingSlotLayout() {
     }
 
-    /** create: 创建两格机器库存和原版 9x3 加快捷栏槽位。 */
+    /**
+     * create: 创建两格机器库存和原版 9x3 加快捷栏槽位。
+     */
     public static UIElement create(MineralDrillingInventory inventory, MineralDrillingUiMetrics metrics) {
         UIElement layer = absolute(0, 0, metrics.width(), metrics.height());
         // 槽位层只命中子槽位，避免透明空白区遮挡下层按钮和深度滑块。
@@ -71,7 +75,9 @@ public final class MineralDrillingSlotLayout {
         return itemSlot;
     }
 
-    /** styleSlot: 与 NPC 信息界面相同，仅保留提示开关，让 ORE 样式表负责槽位背景。 */
+    /**
+     * styleSlot: 与 NPC 信息界面相同，仅保留提示开关，让 ORE 样式表负责槽位背景。
+     */
     private static void styleSlot(ItemSlot itemSlot) {
         itemSlot.slotStyle(style -> style.showItemTooltips(true));
     }

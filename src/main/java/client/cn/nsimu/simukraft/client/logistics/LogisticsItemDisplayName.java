@@ -14,7 +14,9 @@ final class LogisticsItemDisplayName {
     private LogisticsItemDisplayName() {
     }
 
-    /** itemName: 按客户端语言把物品 ID 转成可读名称。 */
+    /**
+     * itemName: 按客户端语言把物品 ID 转成可读名称。
+     */
     static String itemName(String itemId) {
         ResourceLocation id = ResourceLocation.tryParse(itemId);
         if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
@@ -24,7 +26,9 @@ final class LogisticsItemDisplayName {
         return item == Items.AIR ? safeItemId(itemId) : new ItemStack(item).getHoverName().getString();
     }
 
-    /** filterText: 把路线过滤物品列表格式化为客户端翻译名。 */
+    /**
+     * filterText: 把路线过滤物品列表格式化为客户端翻译名。
+     */
     static String filterText(List<String> filters) {
         if (filters == null || filters.isEmpty()) {
             return Component.translatable("gui.simukraft.logistics.channel.all_items").getString();
@@ -35,7 +39,9 @@ final class LogisticsItemDisplayName {
         return itemName(filters.get(0)) + ", " + itemName(filters.get(1)) + "...";
     }
 
-    /** channelName: 默认线路名显示为过滤物品的客户端翻译名。 */
+    /**
+     * channelName: 默认线路名显示为过滤物品的客户端翻译名。
+     */
     static String channelName(String storedName, List<String> filters) {
         String defaultName = Component.translatable("gui.simukraft.logistics.channel.default_name").getString();
         if (storedName == null || storedName.isBlank() || storedName.equals(defaultName)
@@ -45,7 +51,9 @@ final class LogisticsItemDisplayName {
         return storedName;
     }
 
-    /** stackFor: 根据物品 ID 创建只读展示用 ItemStack。 */
+    /**
+     * stackFor: 根据物品 ID 创建只读展示用 ItemStack。
+     */
     static ItemStack stackFor(String itemId) {
         ResourceLocation id = ResourceLocation.tryParse(itemId);
         if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
@@ -55,7 +63,9 @@ final class LogisticsItemDisplayName {
         return item == Items.AIR ? new ItemStack(Items.BARRIER) : new ItemStack(item);
     }
 
-    /** safeItemId: 物品 ID 无效时提供稳定回退文本。 */
+    /**
+     * safeItemId: 物品 ID 无效时提供稳定回退文本。
+     */
     private static String safeItemId(String itemId) {
         return itemId == null || itemId.isBlank() ? "-" : itemId;
     }

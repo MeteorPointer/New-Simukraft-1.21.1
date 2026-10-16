@@ -24,7 +24,9 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.Optional;
 import java.util.UUID;
 
-/** 请求指定市民的五代直系关系图。 */
+/**
+ * 请求指定市民的五代直系关系图。
+ */
 public record CityCitizenFamilyGraphRequestPacket(BlockPos pos, UUID citizenId) implements CustomPacketPayload {
     public static final Type<CityCitizenFamilyGraphRequestPacket> TYPE =
             new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_citizen_family_graph_request"));

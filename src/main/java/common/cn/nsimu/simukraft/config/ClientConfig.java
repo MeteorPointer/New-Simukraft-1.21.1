@@ -1,9 +1,9 @@
 package common.cn.nsimu.simukraft.config;
 
-import net.neoforged.neoforge.common.ModConfigSpec;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.neoforged.neoforge.common.ModConfigSpec;
 
 import java.util.Locale;
 
@@ -113,33 +113,45 @@ public final class ClientConfig {
     private ClientConfig() {
     }
 
-    /** hudEnabled: 判断 HUD 是否启用。 */
+    /**
+     * hudEnabled: 判断 HUD 是否启用。
+     */
     public static boolean hudEnabled() {
         return HUD_ENABLED.get();
     }
 
-    /** hudAnchorName: 获取规范化 HUD 锚点名。 */
+    /**
+     * hudAnchorName: 获取规范化 HUD 锚点名。
+     */
     public static String hudAnchorName() {
         String value = HUD_ANCHOR.get();
         return isHudAnchor(value) ? value.toUpperCase(Locale.ROOT) : DEFAULT_HUD_ANCHOR;
     }
 
-    /** hudPosX: 获取 HUD X 偏移。 */
+    /**
+     * hudPosX: 获取 HUD X 偏移。
+     */
     public static int hudPosX() {
         return HUD_POS_X.get();
     }
 
-    /** hudPosY: 获取 HUD Y 偏移。 */
+    /**
+     * hudPosY: 获取 HUD Y 偏移。
+     */
     public static int hudPosY() {
         return HUD_POS_Y.get();
     }
 
-    /** pathDebugRequestOnToggle: 判断显示寻路调试时是否请求服务端刷新。 */
+    /**
+     * pathDebugRequestOnToggle: 判断显示寻路调试时是否请求服务端刷新。
+     */
     public static boolean pathDebugRequestOnToggle() {
         return PATH_DEBUG_REQUEST_ON_TOGGLE.get();
     }
 
-    /** isRtsTargetBlockEnabled: 按命名空间判断 RTS 光标是否允许命中方块。 */
+    /**
+     * isRtsTargetBlockEnabled: 按命名空间判断 RTS 光标是否允许命中方块。
+     */
     public static boolean isRtsTargetBlockEnabled(BlockState state) {
         if (state == null) {
             return false;
@@ -154,43 +166,59 @@ public final class ClientConfig {
         return RTS_TARGET_OTHER_MOD_BLOCKS.get();
     }
 
-    /** rtsMoveHoldSeconds: 返回 RTS 长按移动所需秒数。 */
+    /**
+     * rtsMoveHoldSeconds: 返回 RTS 长按移动所需秒数。
+     */
     public static int rtsMoveHoldSeconds() {
         return Math.max(1, Math.min(10, RTS_MOVE_HOLD_SECONDS.get()));
     }
 
-    /** hudMaxWidth: 获取 HUD 最大行宽（0=不限制）。 */
+    /**
+     * hudMaxWidth: 获取 HUD 最大行宽（0=不限制）。
+     */
     public static int hudMaxWidth() {
         return HUD_MAX_WIDTH.get();
     }
 
-    /** toastAnchorName: 获取规范化通知锚点名称。 */
+    /**
+     * toastAnchorName: 获取规范化通知锚点名称。
+     */
     public static String toastAnchorName() {
         String value = TOAST_ANCHOR.get();
         return isHudAnchor(value) ? value.toUpperCase(Locale.ROOT) : DEFAULT_TOAST_ANCHOR;
     }
 
-    /** toastPosX: 获取通知 X 偏移。 */
+    /**
+     * toastPosX: 获取通知 X 偏移。
+     */
     public static int toastPosX() {
         return TOAST_POS_X.get();
     }
 
-    /** toastPosY: 获取通知 Y 偏移。 */
+    /**
+     * toastPosY: 获取通知 Y 偏移。
+     */
     public static int toastPosY() {
         return TOAST_POS_Y.get();
     }
 
-    /** toastWidth: 获取通知宽度。 */
+    /**
+     * toastWidth: 获取通知宽度。
+     */
     public static int toastWidth() {
         return TOAST_WIDTH.get();
     }
 
-    /** toastHeight: 获取通知高度。 */
+    /**
+     * toastHeight: 获取通知高度。
+     */
     public static int toastHeight() {
         return TOAST_HEIGHT.get();
     }
 
-    /** resetHudDefaults: 重置 HUD 位置到默认值。 */
+    /**
+     * resetHudDefaults: 重置 HUD 位置到默认值。
+     */
     public static void resetHudDefaults() {
         HUD_ANCHOR.set(DEFAULT_HUD_ANCHOR);
         HUD_POS_X.set(DEFAULT_HUD_POS_X);
@@ -199,7 +227,9 @@ public final class ClientConfig {
         SPEC.save();
     }
 
-    /** resetToastDefaults: 重置通知布局为默认值。 */
+    /**
+     * resetToastDefaults: 重置通知布局为默认值。
+     */
     public static void resetToastDefaults() {
         TOAST_ANCHOR.set(DEFAULT_TOAST_ANCHOR);
         TOAST_POS_X.set(DEFAULT_TOAST_POS_X);
@@ -209,7 +239,9 @@ public final class ClientConfig {
         SPEC.save();
     }
 
-    /** isHudAnchor: 校验 HUD 锚点配置值。 */
+    /**
+     * isHudAnchor: 校验 HUD 锚点配置值。
+     */
     private static boolean isHudAnchor(Object value) {
         if (!(value instanceof String string) || string.isBlank()) {
             return false;

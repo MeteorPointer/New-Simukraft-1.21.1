@@ -1,12 +1,6 @@
 package common.cn.nsimu.simukraft.path;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-
 import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
-import java.util.OptionalDouble;
-import java.util.UUID;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.ResourceLocation;
@@ -19,6 +13,11 @@ import net.minecraft.world.level.block.state.properties.SlabType;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.junit.jupiter.api.Test;
+
+import java.util.OptionalDouble;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * A citizen standing on a bottom slab has feet half a block above the block underneath.
@@ -198,7 +197,9 @@ class BottomSlabHeadroomTest {
                 && waypoint.blockPos().getZ() == z);
     }
 
-    /** Floor stone at y=62, {@code floor} at y=63, solid ceiling at {@code ceilingY}. */
+    /**
+     * Floor stone at y=62, {@code floor} at y=63, solid ceiling at {@code ceilingY}.
+     */
     private static PathSnapshot column(BlockState floor, int ceilingY) {
         Long2ObjectOpenHashMap<BlockState> states = new Long2ObjectOpenHashMap<>();
         Long2ObjectOpenHashMap<VoxelShape> shapes = new Long2ObjectOpenHashMap<>();

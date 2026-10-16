@@ -1,15 +1,9 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.OnlyIn;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
-import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
-import com.lowdragmc.lowdraglib2.gui.texture.ItemStackTexture;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftFlexLayout;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.TextTexture;
+import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
+import com.lowdragmc.lowdraglib2.gui.texture.*;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
@@ -17,27 +11,19 @@ import common.cn.nsimu.simukraft.building.BuildingPackageCatalog;
 import common.cn.nsimu.simukraft.building.BuildingStructure;
 import common.cn.nsimu.simukraft.building.BuildingStructureService;
 import common.cn.nsimu.simukraft.ui.RecipeBookSearchUi;
-import dev.vfyjxf.taffy.style.AlignContent;
-import dev.vfyjxf.taffy.style.AlignItems;
-import dev.vfyjxf.taffy.style.FlexDirection;
-import dev.vfyjxf.taffy.style.FlexWrap;
-import dev.vfyjxf.taffy.style.TaffyPosition;
+import dev.vfyjxf.taffy.style.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 
 @EventBusSubscriber(value = Dist.CLIENT)
@@ -73,8 +59,8 @@ public final class BuildingListScreenOpener {
     private static final int FAVORITE_BUTTON_SIZE = 18;
     private static final int FAVORITE_BUTTON_TOP = 8;
     private static final int FAVORITE_BUTTON_RIGHT_INSET = 4;
-    private static final int FAVORITE_STAR_COLOR  = 0xFFFFD700;
-    private static final int ITEM_ICON_SIZE        = 10; // 来源图标尺寸（书/书架）
+    private static final int FAVORITE_STAR_COLOR = 0xFFFFD700;
+    private static final int ITEM_ICON_SIZE = 10; // 来源图标尺寸（书/书架）
     private static final int LOCK_OVERLAY_COLOR = 0x920C1118;
     private static final int LOCK_BODY_WIDTH = 18;
     private static final int LOCK_BODY_HEIGHT = 12;
@@ -268,7 +254,7 @@ public final class BuildingListScreenOpener {
                 BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME.equals(building.packageName())
                         ? Items.BOOK : Items.BOOKSHELF);
         int srcIconLeft = Math.max(4, buttonWidth - FAVORITE_BUTTON_SIZE - FAVORITE_BUTTON_RIGHT_INSET) - ITEM_ICON_SIZE - 1;
-        int srcIconTop  = FAVORITE_BUTTON_TOP + (FAVORITE_BUTTON_SIZE - ITEM_ICON_SIZE) / 2 - 2;
+        int srcIconTop = FAVORITE_BUTTON_TOP + (FAVORITE_BUTTON_SIZE - ITEM_ICON_SIZE) / 2 - 2;
         card.addChild(new UIElement().layout(layout -> {
             layout.positionType(TaffyPosition.ABSOLUTE);
             layout.left(srcIconLeft);
@@ -335,7 +321,9 @@ public final class BuildingListScreenOpener {
         return wrapper;
     }
 
-    /** favoriteButton: 在建筑卡片右上角绘制独立收藏按钮。 */
+    /**
+     * favoriteButton: 在建筑卡片右上角绘制独立收藏按钮。
+     */
     private static UIElement favoriteButton(BuildingCacheService.BuildingMeta building, Runnable refreshAction) {
         boolean favorite = isFavorite(building);
         UIElement root = new UIElement();
@@ -370,7 +358,9 @@ public final class BuildingListScreenOpener {
         return root;
     }
 
-    /** lockedCardOverlay: 为等级不足的建筑卡片添加不拦截点击的锁形遮罩。 */
+    /**
+     * lockedCardOverlay: 为等级不足的建筑卡片添加不拦截点击的锁形遮罩。
+     */
     private static UIElement lockedCardOverlay(int cardWidth, int cardHeight) {
         UIElement overlay = new UIElement().layout(layout -> {
             layout.positionType(TaffyPosition.ABSOLUTE);
@@ -408,7 +398,9 @@ public final class BuildingListScreenOpener {
         return overlay;
     }
 
-    /** lockPart: 创建锁图标的固定尺寸色块。 */
+    /**
+     * lockPart: 创建锁图标的固定尺寸色块。
+     */
     private static UIElement lockPart(int left, int top, int width, int height, int color) {
         return new UIElement().layout(layout -> {
             layout.positionType(TaffyPosition.ABSOLUTE);
@@ -498,7 +490,9 @@ public final class BuildingListScreenOpener {
         return Math.max(min, Math.min(max, value));
     }
 
-    /** searchTextOffsetY: 根据搜索框高度计算输入文字的垂直居中偏移。 */
+    /**
+     * searchTextOffsetY: 根据搜索框高度计算输入文字的垂直居中偏移。
+     */
     private static int searchTextOffsetY(int frameHeight) {
         return Math.max(1, (frameHeight - RecipeBookSearchUi.TEXT_HEIGHT) / 2);
     }
@@ -557,13 +551,16 @@ public final class BuildingListScreenOpener {
                 .toList();
     }
 
-    /** currentComparator: 根据当前工具栏排序状态生成稳定排序规则。 */
+    /**
+     * currentComparator: 根据当前工具栏排序状态生成稳定排序规则。
+     */
     private static Comparator<BuildingCacheService.BuildingMeta> currentComparator() {
         Comparator<BuildingCacheService.BuildingMeta> comparator = switch (sortMode) {
             case NAME -> Comparator.comparing(BuildingCacheService.BuildingMeta::name, String.CASE_INSENSITIVE_ORDER);
             case PRICE -> Comparator.comparingDouble(building -> firstNumber(building.amount()));
             case SIZE -> Comparator.comparingInt(building -> sizeVolume(building.size()));
-            case AUTHOR -> Comparator.comparing(BuildingCacheService.BuildingMeta::author, String.CASE_INSENSITIVE_ORDER);
+            case AUTHOR ->
+                    Comparator.comparing(BuildingCacheService.BuildingMeta::author, String.CASE_INSENSITIVE_ORDER);
         };
         comparator = comparator.thenComparing(BuildingCacheService.BuildingMeta::name, String.CASE_INSENSITIVE_ORDER)
                 .thenComparing(BuildingCacheService.BuildingMeta::structureFileName, String.CASE_INSENSITIVE_ORDER);
@@ -590,7 +587,9 @@ public final class BuildingListScreenOpener {
         return searchText == null ? "" : searchText.trim().toLowerCase(Locale.ROOT);
     }
 
-    /** toggleFavorite: 切换建筑收藏并处理仅看收藏时的选中状态。 */
+    /**
+     * toggleFavorite: 切换建筑收藏并处理仅看收藏时的选中状态。
+     */
     private static void toggleFavorite(BuildingCacheService.BuildingMeta building) {
         BuildingFavoriteStore.toggleFavorite(building);
         if (selectedBuildingFileName != null && selectedBuildingFileName.equals(building.structureFileName()) && showFavoritesOnly && !isFavorite(building)) {
@@ -598,12 +597,16 @@ public final class BuildingListScreenOpener {
         }
     }
 
-    /** isFavorite: 查询建筑是否已收藏。 */
+    /**
+     * isFavorite: 查询建筑是否已收藏。
+     */
     private static boolean isFavorite(BuildingCacheService.BuildingMeta building) {
         return BuildingFavoriteStore.isFavorite(building);
     }
 
-    /** firstNumber: 从造价文本中提取排序用的首个数字。 */
+    /**
+     * firstNumber: 从造价文本中提取排序用的首个数字。
+     */
     private static double firstNumber(String text) {
         if (text == null || text.isBlank()) {
             return 0.0D;
@@ -626,7 +629,9 @@ public final class BuildingListScreenOpener {
         }
     }
 
-    /** sizeVolume: 从尺寸文本中提取长宽高并计算体积排序值。 */
+    /**
+     * sizeVolume: 从尺寸文本中提取长宽高并计算体积排序值。
+     */
     private static int sizeVolume(String size) {
         if (size == null || size.isBlank()) {
             return 0;
@@ -698,13 +703,17 @@ public final class BuildingListScreenOpener {
         };
     }
 
-    /** isLocked: 按服务端同步的城市等级判断建筑是否仍被锁定。 */
+    /**
+     * isLocked: 按服务端同步的城市等级判断建筑是否仍被锁定。
+     */
     private static boolean isLocked(BuildingCacheService.BuildingMeta building) {
         return building != null && building.unlockLevel() > 0
                 && BuildBoxScreenOpener.currentCityLevel() < building.unlockLevel();
     }
 
-    /** showLockedMessage: 阻止预览时向玩家显示所需城市等级。 */
+    /**
+     * showLockedMessage: 阻止预览时向玩家显示所需城市等级。
+     */
     private static void showLockedMessage(BuildingCacheService.BuildingMeta building) {
         ClientInfoToast.show(
                 Component.translatable("toast.simukraft.title"),
@@ -758,7 +767,9 @@ public final class BuildingListScreenOpener {
             this.toolbarButtonsRegion = toolbarButtonsRegion;
         }
 
-        /** onSearchChanged: 搜索变化时只刷新建筑列表，保留输入框焦点。 */
+        /**
+         * onSearchChanged: 搜索变化时只刷新建筑列表，保留输入框焦点。
+         */
         private void onSearchChanged(String text) {
             searchText = text == null ? "" : text;
             currentPage = 0;
@@ -766,7 +777,9 @@ public final class BuildingListScreenOpener {
             refresh();
         }
 
-        /** refresh: 根据当前搜索、分页和选中状态重建可变区域。 */
+        /**
+         * refresh: 根据当前搜索、分页和选中状态重建可变区域。
+         */
         private void refresh() {
             List<BuildingCacheService.BuildingMeta> filteredBuildings = filteredBuildings(buildings, category);
             int pageCount = totalPages(filteredBuildings, grid.perPage());
@@ -886,7 +899,9 @@ public final class BuildingListScreenOpener {
             confirmRegion.addChild(confirmButton);
         }
 
-        /** refreshToolbar: 重建搜索栏右侧的收藏与排序按钮。 */
+        /**
+         * refreshToolbar: 重建搜索栏右侧的收藏与排序按钮。
+         */
         private void refreshToolbar() {
             toolbarButtonsRegion.clearAllChildren();
             int width = Math.max(MIN_BUTTON_WIDTH, (regions.toolbarButtonsRegion().width() - TOOLBAR_GAP * 3) / 4);
@@ -943,7 +958,9 @@ public final class BuildingListScreenOpener {
             toolbarButtonsRegion.addChild(resetButton);
         }
 
-        /** toolbarButton: 创建建筑列表工具栏的固定尺寸按钮。 */
+        /**
+         * toolbarButton: 创建建筑列表工具栏的固定尺寸按钮。
+         */
         private Button toolbarButton(Component text, int width, int height) {
             Button button = new Button();
             button.setText(text);
@@ -956,7 +973,8 @@ public final class BuildingListScreenOpener {
         }
     }
 
-    private record PendingPreview(BuildingCacheService.BuildingMeta building, BlockPos buildBoxPos, BuildingStructure structure) {
+    private record PendingPreview(BuildingCacheService.BuildingMeta building, BlockPos buildBoxPos,
+                                  BuildingStructure structure) {
     }
 
     private record GridMetrics(int columns, int rows, int perPage, int cardWidth, int cardHeight) {

@@ -11,15 +11,21 @@ public interface ClientInteractionHandler {
     ClientInteractionHandler NOOP = new ClientInteractionHandler() {
     };
 
-    /** openBuildBox: 打开建造箱客户端界面。 */
+    /**
+     * openBuildBox: 打开建造箱客户端界面。
+     */
     default void openBuildBox(BlockPos pos) {
     }
 
-    /** openManifest: 打开材料清单客户端界面。 */
+    /**
+     * openManifest: 打开材料清单客户端界面。
+     */
     default void openManifest(ItemStack stack, InteractionHand hand) {
     }
 
-    /** openGuideBook: 打开指南书客户端界面。 */
+    /**
+     * openGuideBook: 打开指南书客户端界面。
+     */
     default void openGuideBook(ItemStack stack) {
     }
 }

@@ -27,7 +27,9 @@ public final class LogisticsWorkService {
     private LogisticsWorkService() {
     }
 
-    /** tick: 服务端定期批处理物流路线转运。 */
+    /**
+     * tick: 服务端定期批处理物流路线转运。
+     */
     public static void tick(ServerLevel level) {
         if (level == null) {
             return;
@@ -59,7 +61,9 @@ public final class LogisticsWorkService {
         cursor.set((start + processed) % channels.size());
     }
 
-    /** clearServerCaches: 清理 tick 游标，避免切档后复用旧维度状态。 */
+    /**
+     * clearServerCaches: 清理 tick 游标，避免切档后复用旧维度状态。
+     */
     public static void clearServerCaches(MinecraftServer server) {
         String serverKey = SaveScopedCacheKey.serverKey(server);
         CURSORS.keySet().removeIf(key -> key.startsWith(serverKey + "|"));

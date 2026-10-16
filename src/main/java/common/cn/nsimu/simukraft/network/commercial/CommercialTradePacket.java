@@ -4,16 +4,16 @@ import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
 import common.cn.nsimu.simukraft.commercial.CommercialTradeAccessValidator;
 import common.cn.nsimu.simukraft.commercial.CommercialTradeService;
-import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteCitizenAccess;
+import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.network.protocol.game.ClientboundContainerSetSlotPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
@@ -24,7 +24,8 @@ import java.util.List;
 import java.util.UUID;
 
 
-public record CommercialTradePacket(BlockPos pos, UUID workerId, String offerId, int count, boolean quickMove) implements CustomPacketPayload {
+public record CommercialTradePacket(BlockPos pos, UUID workerId, String offerId, int count,
+                                    boolean quickMove) implements CustomPacketPayload {
     public static final Type<CommercialTradePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "commercial_trade"));
     public static final StreamCodec<RegistryFriendlyByteBuf, CommercialTradePacket> STREAM_CODEC = StreamCodec.of(CommercialTradePacket::encode, CommercialTradePacket::decode);
 
@@ -37,7 +38,9 @@ public record CommercialTradePacket(BlockPos pos, UUID workerId, String offerId,
         this(pos, workerId, offerId, count, true);
     }
 
-    /** encode: 写入玩家商业交易请求。 */
+    /**
+     * encode: 写入玩家商业交易请求。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, CommercialTradePacket packet) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeUUID(packet.workerId());
@@ -46,12 +49,16 @@ public record CommercialTradePacket(BlockPos pos, UUID workerId, String offerId,
         buffer.writeBoolean(packet.quickMove());
     }
 
-    /** decode: 读取玩家商业交易请求。 */
+    /**
+     * decode: 读取玩家商业交易请求。
+     */
     public static CommercialTradePacket decode(RegistryFriendlyByteBuf buffer) {
         return new CommercialTradePacket(buffer.readBlockPos(), buffer.readUUID(), buffer.readUtf(256), buffer.readVarInt(), buffer.readBoolean());
     }
 
-    /** handle: 在服务端执行 NPC 商业交易并刷新交易视图。 */
+    /**
+     * handle: 在服务端执行 NPC 商业交易并刷新交易视图。
+     */
     public static void handle(CommercialTradePacket packet, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             if (!CommercialTradeAccessValidator.isValidWorker(level, packet.pos(), packet.workerId())
@@ -79,7 +86,9 @@ public record CommercialTradePacket(BlockPos pos, UUID workerId, String offerId,
         }
     }
 
-    /** snapshotInventory: 快照玩家背包所有槽位用于交易后对比。 */
+    /**
+     * snapshotInventory: 快照玩家背包所有槽位用于交易后对比。
+     */
     private static List<ItemStack> snapshotInventory(ServerPlayer player) {
         List<ItemStack> snapshot = new java.util.ArrayList<>(player.getInventory().getContainerSize());
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
@@ -106,7 +115,7 @@ public record CommercialTradePacket(BlockPos pos, UUID workerId, String offerId,
     }
 
     static int[] inventorySlotSync(int inventorySlot) {
-        return new int[] {PLAYER_INVENTORY_CONTAINER_ID, inventorySlot};
+        return new int[]{PLAYER_INVENTORY_CONTAINER_ID, inventorySlot};
     }
 
     private static void sendPlayerInventorySlot(ServerPlayer player, int slot, ItemStack stack) {

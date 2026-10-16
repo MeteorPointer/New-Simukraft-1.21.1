@@ -1,17 +1,7 @@
 package common.cn.nsimu.simukraft.network.city;
 
-import common.cn.nsimu.simukraft.city.CityChunkManager;
-import common.cn.nsimu.simukraft.city.CityData;
-import common.cn.nsimu.simukraft.city.CityMemberData;
-import common.cn.nsimu.simukraft.city.CityLevelDefinitionLoader;
-import common.cn.nsimu.simukraft.city.CityPermissionLevel;
-import common.cn.nsimu.simukraft.city.CityPopulationStats;
-import common.cn.nsimu.simukraft.city.DistrictManager;
-import common.cn.nsimu.simukraft.city.DistrictData;
-import common.cn.nsimu.simukraft.city.DistrictMemberData;
-import common.cn.nsimu.simukraft.city.DistrictRole;
-import common.cn.nsimu.simukraft.city.CityService;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
+import common.cn.nsimu.simukraft.city.*;
 import common.cn.nsimu.simukraft.network.city.core.CityCoreOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.city.map.CityCoreMapResponsePacket;
 import common.cn.nsimu.simukraft.network.city.member.CityCoreMembersResponsePacket;
@@ -19,13 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.ChunkPos;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 
 public final class CityNetworkViewFactory {
@@ -153,7 +137,8 @@ public final class CityNetworkViewFactory {
         List<CityCoreMapResponsePacket.DistrictEntry> districts = DistrictManager.get(level).all().stream()
                 .filter(district -> district.parentCityId().equals(city.cityId()))
                 .map(district -> new CityCoreMapResponsePacket.DistrictEntry(district.districtId(), district.name(), district.color(), district.chunks().stream().map(value -> {
-                    ChunkPos chunk = new ChunkPos(value); return new CityCoreMapResponsePacket.ChunkEntry(chunk.x, chunk.z);
+                    ChunkPos chunk = new ChunkPos(value);
+                    return new CityCoreMapResponsePacket.ChunkEntry(chunk.x, chunk.z);
                 }).toList()))
                 .toList();
         return new CityCoreMapResponsePacket(pos, city.cityId(), city.cityName(), city.funds(), city.cityLevel(), city.members().size(), permissionLevel, CityService.canManageCity(city, viewerId), centerChunk.x, centerChunk.z, entries, districts);

@@ -29,7 +29,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.client.ClientHooks;
 import net.neoforged.neoforge.client.extensions.common.IClientItemExtensions;
 
-/** PregnancyBellyArmorLayer：为已装备胸甲的孕期 NPC 绘制外扩腹部盔甲。 */
+/**
+ * PregnancyBellyArmorLayer：为已装备胸甲的孕期 NPC 绘制外扩腹部盔甲。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class PregnancyBellyArmorLayer extends RenderLayer<CitizenEntity, CitizenModel> {
@@ -42,17 +44,19 @@ public final class PregnancyBellyArmorLayer extends RenderLayer<CitizenEntity, C
     private final TextureAtlas armorTrimAtlas;
 
     public PregnancyBellyArmorLayer(RenderLayerParent<CitizenEntity, CitizenModel> parent,
-            ModelManager modelManager) {
+                                    ModelManager modelManager) {
         super(parent);
         this.belly = createArmorBellyModel();
         this.armorTrimAtlas = modelManager.getAtlas(Sheets.ARMOR_TRIMS_SHEET);
     }
 
-    /** render：使用已装备胸甲的材质层、颜色和特效绘制腹部覆盖部分。 */
+    /**
+     * render：使用已装备胸甲的材质层、颜色和特效绘制腹部覆盖部分。
+     */
     @Override
     public void render(PoseStack poseStack, MultiBufferSource buffer, int packedLight,
-            CitizenEntity entity, float limbSwing, float limbSwingAmount, float partialTick,
-            float ageInTicks, float netHeadYaw, float headPitch) {
+                       CitizenEntity entity, float limbSwing, float limbSwingAmount, float partialTick,
+                       float ageInTicks, float netHeadYaw, float headPitch) {
         if (entity.isInvisible() || entity.isChildNpc()) {
             return;
         }
@@ -78,7 +82,9 @@ public final class PregnancyBellyArmorLayer extends RenderLayer<CitizenEntity, C
         }
     }
 
-    /** createArmorBellyModel：创建与原版胸甲躯干中下段连续衔接的腹部网格。 */
+    /**
+     * createArmorBellyModel：创建与原版胸甲躯干中下段连续衔接的腹部网格。
+     */
     private static ModelPart createArmorBellyModel() {
         MeshDefinition mesh = new MeshDefinition();
         mesh.getRoot().addOrReplaceChild("belly",
@@ -90,10 +96,12 @@ public final class PregnancyBellyArmorLayer extends RenderLayer<CitizenEntity, C
         return LayerDefinition.create(mesh, 64, 32).bakeRoot().getChild("belly");
     }
 
-    /** renderArmorLayers：按原版材质层顺序绘制胸甲基础贴图和染色层。 */
+    /**
+     * renderArmorLayers：按原版材质层顺序绘制胸甲基础贴图和染色层。
+     */
     private void renderArmorLayers(PoseStack poseStack, MultiBufferSource buffer, int packedLight,
-            CitizenEntity entity, ItemStack chestArmor, ArmorMaterial armorMaterial,
-            IClientItemExtensions extensions) {
+                                   CitizenEntity entity, ItemStack chestArmor, ArmorMaterial armorMaterial,
+                                   IClientItemExtensions extensions) {
         int fallbackColor = extensions.getDefaultDyeColor(chestArmor);
         for (int layerIndex = 0; layerIndex < armorMaterial.layers().size(); layerIndex++) {
             ArmorMaterial.Layer armorLayer = armorMaterial.layers().get(layerIndex);
@@ -107,9 +115,11 @@ public final class PregnancyBellyArmorLayer extends RenderLayer<CitizenEntity, C
         }
     }
 
-    /** renderTrim：为外扩腹部追加与胸甲一致的盔甲饰纹。 */
+    /**
+     * renderTrim：为外扩腹部追加与胸甲一致的盔甲饰纹。
+     */
     private void renderTrim(PoseStack poseStack, MultiBufferSource buffer, int packedLight,
-            ItemStack chestArmor, ArmorItem armorItem) {
+                            ItemStack chestArmor, ArmorItem armorItem) {
         ArmorTrim trim = chestArmor.get(DataComponents.TRIM);
         if (trim == null) {
             return;

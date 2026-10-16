@@ -30,7 +30,9 @@ public final class LogisticsAutoClientService {
     private LogisticsAutoClientService() {
     }
 
-    /** clientsForCity: 获取指定城市和维度的建筑自动物流客户端。 */
+    /**
+     * clientsForCity: 获取指定城市和维度的建筑自动物流客户端。
+     */
     public static List<LogisticsClientData> clientsForCity(ServerLevel level, UUID cityId, String dimensionId) {
         if (level == null || cityId == null) {
             return List.of();
@@ -41,7 +43,9 @@ public final class LogisticsAutoClientService {
                 .toList();
     }
 
-    /** findClient: 按稳定 UUID 查找自动物流客户端。 */
+    /**
+     * findClient: 按稳定 UUID 查找自动物流客户端。
+     */
     public static LogisticsClientData findClient(ServerLevel level, UUID clientId) {
         if (level == null || clientId == null) {
             return null;
@@ -52,7 +56,9 @@ public final class LogisticsAutoClientService {
         return null;
     }
 
-    /** allClients: 返回当前维度的自动客户端快照。 */
+    /**
+     * allClients: 返回当前维度的自动客户端快照。
+     */
     public static List<LogisticsClientData> allClients(ServerLevel level) {
         if (level == null) {
             return List.of();
@@ -68,7 +74,9 @@ public final class LogisticsAutoClientService {
         return clients;
     }
 
-    /** clearServerCaches: 清理服务器维度缓存，防止切档复用旧建筑端口。 */
+    /**
+     * clearServerCaches: 清理服务器维度缓存，防止切档复用旧建筑端口。
+     */
     public static void clearServerCaches(MinecraftServer server) {
         String serverKey = SaveScopedCacheKey.serverKey(server);
         CACHE.keySet().removeIf(key -> key.startsWith(serverKey + "|"));
@@ -110,7 +118,9 @@ public final class LogisticsAutoClientService {
         appendClient(building, dimensionId, gameTime, LogisticsConstants.AUTO_INDUSTRIAL_SOURCE_TYPE, ports, output);
     }
 
-    /** isDrillingPlatform: 钻井平台木桶由玩家手动建立物流接口，不注册自动客户端。 */
+    /**
+     * isDrillingPlatform: 钻井平台木桶由玩家手动建立物流接口，不注册自动客户端。
+     */
     private static boolean isDrillingPlatform(PlacedBuildingRecord building) {
         return building != null
                 && BuildingCatalog.findBuilding(building.category(), building.buildingFileName())

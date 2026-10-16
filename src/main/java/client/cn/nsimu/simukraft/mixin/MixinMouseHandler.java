@@ -1,13 +1,13 @@
 package client.cn.nsimu.simukraft.mixin;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraManager;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraScreen;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.gui.screens.Screen;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -18,11 +18,16 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(MouseHandler.class)
 @OnlyIn(Dist.CLIENT)
 public final class MixinMouseHandler {
-    @Shadow private double accumulatedDX;
-    @Shadow private double accumulatedDY;
-    @Shadow private boolean mouseGrabbed;
-    @Unique private double simukraft$lastX = Double.NaN;
-    @Unique private double simukraft$lastY = Double.NaN;
+    @Shadow
+    private double accumulatedDX;
+    @Shadow
+    private double accumulatedDY;
+    @Shadow
+    private boolean mouseGrabbed;
+    @Unique
+    private double simukraft$lastX = Double.NaN;
+    @Unique
+    private double simukraft$lastY = Double.NaN;
 
     @Inject(method = "onMove", at = @At("HEAD"))
     private void simukraft$onMove(long window, double xpos, double ypos, CallbackInfo callbackInfo) {

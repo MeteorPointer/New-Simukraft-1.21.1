@@ -39,15 +39,20 @@ public final class CommercialControlBoxScreenOpener {
     private static final int ACTION_HEIGHT = 22;
     private static final int INTEGRITY_HEIGHT = 18;
     private static final float TEXT_ROLL_SPEED = 0.25F;
+
     private CommercialControlBoxScreenOpener() {
     }
 
-    /** request: 请求服务端打开商业控制箱管理界面。 */
+    /**
+     * request: 请求服务端打开商业控制箱管理界面。
+     */
     public static void request(BlockPos pos) {
         PacketDistributor.sendToServer(new CommercialControlBoxOpenRequestPacket(pos));
     }
 
-    /** open: 打开或刷新商业控制箱管理界面。 */
+    /**
+     * open: 打开或刷新商业控制箱管理界面。
+     */
     public static void open(CommercialControlBoxOpenResponsePacket packet) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null) {

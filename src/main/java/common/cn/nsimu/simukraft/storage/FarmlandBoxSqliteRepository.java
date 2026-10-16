@@ -4,11 +4,7 @@ import common.cn.nsimu.simukraft.SimuKraft;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Types;
+import java.sql.*;
 
 /**
  * 农田盒配置的 SQLite 仓库。读写格式与 FarmlandBoxData.toTag/fromTag 对齐：
@@ -35,8 +31,11 @@ public final class FarmlandBoxSqliteRepository {
                 for (int i = 0; i < boxes.size(); i++) {
                     CompoundTag box = boxes.getCompound(i);
                     statement.setLong(1, box.getLong("BoxPos"));
-                    if (box.contains("Crop")) { statement.setString(2, box.getString("Crop")); }
-                    else { statement.setNull(2, java.sql.Types.VARCHAR); }
+                    if (box.contains("Crop")) {
+                        statement.setString(2, box.getString("Crop"));
+                    } else {
+                        statement.setNull(2, java.sql.Types.VARCHAR);
+                    }
                     if (box.contains("Plot")) {
                         CompoundTag plot = box.getCompound("Plot");
                         statement.setLong(3, plot.getLong("Min"));
@@ -45,8 +44,11 @@ public final class FarmlandBoxSqliteRepository {
                         statement.setNull(3, java.sql.Types.INTEGER);
                         statement.setNull(4, java.sql.Types.INTEGER);
                     }
-                    if (box.contains("ChestPos")) { statement.setLong(5, box.getLong("ChestPos")); }
-                    else { statement.setNull(5, java.sql.Types.INTEGER); }
+                    if (box.contains("ChestPos")) {
+                        statement.setLong(5, box.getLong("ChestPos"));
+                    } else {
+                        statement.setNull(5, java.sql.Types.INTEGER);
+                    }
                     statement.setInt(6, box.getBoolean("Running") ? 1 : 0);
                     statement.addBatch();
                 }

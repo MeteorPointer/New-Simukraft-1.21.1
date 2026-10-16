@@ -28,7 +28,9 @@ public final class NpcBlockProtectionPolicy {
     private NpcBlockProtectionPolicy() {
     }
 
-    /** isProtected: 判断建筑师和规划师是否必须跳过该方块。 */
+    /**
+     * isProtected: 判断建筑师和规划师是否必须跳过该方块。
+     */
     public static boolean isProtected(BlockState state) {
         if (state == null || state.isAir()) {
             return false;
@@ -37,7 +39,9 @@ public final class NpcBlockProtectionPolicy {
         return snapshot.enabled() && blacklist(snapshot).contains(blockId(state.getBlock()));
     }
 
-    /** logSkipped: 按配置记录被黑名单保护跳过的方块。 */
+    /**
+     * logSkipped: 按配置记录被黑名单保护跳过的方块。
+     */
     public static void logSkipped(String workerType, ServerLevel level, BlockPos pos, BlockState state) {
         if (level == null || pos == null || state == null || !ServerConfig.logBlacklistSkippedBlocks()) {
             return;
@@ -54,7 +58,9 @@ public final class NpcBlockProtectionPolicy {
         SimuKraft.LOGGER.info("Simukraft: {} skipped protected block {} at {}", workerType, blockId(state.getBlock()), pos.toShortString());
     }
 
-    /** clearCache: 服务端配置变动或关服时清理解析缓存。 */
+    /**
+     * clearCache: 服务端配置变动或关服时清理解析缓存。
+     */
     public static void clearCache() {
         synchronized (NpcBlockProtectionPolicy.class) {
             cachedSnapshot = null;

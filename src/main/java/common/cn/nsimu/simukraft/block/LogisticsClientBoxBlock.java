@@ -22,7 +22,9 @@ public final class LogisticsClientBoxBlock extends Block {
         super(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_ORANGE).strength(1.0F).sound(SoundType.METAL).pushReaction(PushReaction.BLOCK));
     }
 
-    /** useWithoutItem: 玩家空手右键打开物流客户端盒界面。 */
+    /**
+     * useWithoutItem: 玩家空手右键打开物流客户端盒界面。
+     */
     @Override
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
@@ -31,7 +33,9 @@ public final class LogisticsClientBoxBlock extends Block {
         return InteractionResult.sidedSuccess(level.isClientSide());
     }
 
-    /** onRemove: 客户端盒移除时清理手动客户端和相关路线。 */
+    /**
+     * onRemove: 客户端盒移除时清理手动客户端和相关路线。
+     */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
         if (!level.isClientSide() && !state.is(newState.getBlock()) && level instanceof ServerLevel serverLevel) {

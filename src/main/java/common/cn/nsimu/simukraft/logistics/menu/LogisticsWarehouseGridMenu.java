@@ -47,19 +47,25 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         refreshWarehouseDisplay();
     }
 
-    /** createClientMenu: 从服务端打开菜单数据创建客户端仓库菜单。 */
+    /**
+     * createClientMenu: 从服务端打开菜单数据创建客户端仓库菜单。
+     */
     public static LogisticsWarehouseGridMenu createClientMenu(int containerId, Inventory inv, RegistryFriendlyByteBuf buf) {
         BlockPos pos = buf.readBlockPos();
         LogisticsServerBoxOpenResponsePacket snapshot = LogisticsServerBoxOpenResponsePacket.decode(buf);
         return new LogisticsWarehouseGridMenu(containerId, inv, pos, snapshot);
     }
 
-    /** getWarehousePos: 返回物流服务端箱坐标。 */
+    /**
+     * getWarehousePos: 返回物流服务端箱坐标。
+     */
     public BlockPos getWarehousePos() {
         return warehousePos;
     }
 
-    /** updateClientItems: 接收服务端聚合快照并刷新超级堆叠展示。 */
+    /**
+     * updateClientItems: 接收服务端聚合快照并刷新超级堆叠展示。
+     */
     public void updateClientItems(List<ItemStack> items, List<Integer> counts) {
         displayItems.clear();
         actualCounts.clear();
@@ -78,7 +84,9 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         refreshVisibleSlots();
     }
 
-    /** refreshWarehouseDisplay: 服务端打开菜单时生成一次聚合快照。 */
+    /**
+     * refreshWarehouseDisplay: 服务端打开菜单时生成一次聚合快照。
+     */
     public void refreshWarehouseDisplay() {
         if (!(inventory.player.level() instanceof ServerLevel level)) {
             return;
@@ -89,41 +97,55 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
                 aggregate.stream().map(LogisticsWarehouseInventoryService.WarehouseItem::count).toList());
     }
 
-    /** setSearchFilter: 设置客户端搜索词并移除不匹配条目。 */
+    /**
+     * setSearchFilter: 设置客户端搜索词并移除不匹配条目。
+     */
     public void setSearchFilter(String filter) {
         searchFilter = filter == null ? "" : filter.toLowerCase(Locale.ROOT).trim();
         scrollRow = Math.min(scrollRow, maxScroll());
         refreshVisibleSlots();
     }
 
-    /** setScrollOffset: 设置客户端聚合列表滚动行。 */
+    /**
+     * setScrollOffset: 设置客户端聚合列表滚动行。
+     */
     public void setScrollOffset(int offset) {
         scrollRow = Math.max(0, Math.min(maxScroll(), offset));
         refreshVisibleSlots();
     }
 
-    /** scrollOffset: 返回当前聚合列表滚动行。 */
+    /**
+     * scrollOffset: 返回当前聚合列表滚动行。
+     */
     public int scrollOffset() {
         return scrollRow;
     }
 
-    /** totalRows: 返回过滤后的非空聚合行数。 */
+    /**
+     * totalRows: 返回过滤后的非空聚合行数。
+     */
     public int totalRows() {
         return Math.max(GRID_ROWS, (int) Math.ceil(filteredEntries().size() / (double) GRID_COLS));
     }
 
-    /** maxScroll: 返回最大滚动行。 */
+    /**
+     * maxScroll: 返回最大滚动行。
+     */
     public int maxScroll() {
         return Math.max(0, totalRows() - GRID_ROWS);
     }
 
-    /** actualCountAtVisibleSlot: 返回可见超级堆叠槽的真实总数。 */
+    /**
+     * actualCountAtVisibleSlot: 返回可见超级堆叠槽的真实总数。
+     */
     public int actualCountAtVisibleSlot(int slot) {
         Entry entry = visibleEntry(slot);
         return entry != null ? entry.count() : 0;
     }
 
-    /** targetStackAtVisibleSlot: 返回点击聚合槽时发给服务端的完整组件物品原型。 */
+    /**
+     * targetStackAtVisibleSlot: 返回点击聚合槽时发给服务端的完整组件物品原型。
+     */
     public ItemStack targetStackAtVisibleSlot(int slot) {
         Entry entry = visibleEntry(slot);
         if (entry == null) {
@@ -132,7 +154,9 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         return entry.stack().copyWithCount(Math.min(entry.count(), entry.stack().getMaxStackSize()));
     }
 
-    /** clicked: 仓库超级堆叠槽只发送精确请求，避免客户端直接改虚拟库存。 */
+    /**
+     * clicked: 仓库超级堆叠槽只发送精确请求，避免客户端直接改虚拟库存。
+     */
     @Override
     public void clicked(int slotId, int dragType, ClickType clickType, Player player) {
         if (slotId >= 0 && slotId < WAREHOUSE_SLOTS) {
@@ -145,19 +169,25 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         super.clicked(slotId, dragType, clickType, player);
     }
 
-    /** canDragTo: 禁止把原版拖拽分配直接应用到聚合展示槽。 */
+    /**
+     * canDragTo: 禁止把原版拖拽分配直接应用到聚合展示槽。
+     */
     @Override
     public boolean canDragTo(Slot slot) {
         return !(slot instanceof WarehouseDisplaySlot) && super.canDragTo(slot);
     }
 
-    /** canTakeItemForPickAll: 禁止双击收集聚合展示槽，避免重复提取。 */
+    /**
+     * canTakeItemForPickAll: 禁止双击收集聚合展示槽，避免重复提取。
+     */
     @Override
     public boolean canTakeItemForPickAll(ItemStack stack, Slot slot) {
         return !(slot instanceof WarehouseDisplaySlot) && super.canTakeItemForPickAll(stack, slot);
     }
 
-    /** quickMoveStack: Shift 点击玩家背包时存入仓库。 */
+    /**
+     * quickMoveStack: Shift 点击玩家背包时存入仓库。
+     */
     @Override
     public ItemStack quickMoveStack(Player player, int index) {
         if (index < WAREHOUSE_SLOTS || index >= slots.size()) {
@@ -184,13 +214,17 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         return original;
     }
 
-    /** stillValid: 保持玩家在物流服务端箱附近时菜单有效。 */
+    /**
+     * stillValid: 保持玩家在物流服务端箱附近时菜单有效。
+     */
     @Override
     public boolean stillValid(Player player) {
         return player.distanceToSqr(warehousePos.getX() + 0.5D, warehousePos.getY() + 0.5D, warehousePos.getZ() + 0.5D) <= 64.0D;
     }
 
-    /** addWarehouseSlots: 添加 54 个只读超级堆叠展示槽。 */
+    /**
+     * addWarehouseSlots: 添加 54 个只读超级堆叠展示槽。
+     */
     private void addWarehouseSlots() {
         for (int row = 0; row < GRID_ROWS; row++) {
             for (int col = 0; col < GRID_COLS; col++) {
@@ -200,7 +234,9 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         }
     }
 
-    /** addPlayerSlots: 添加玩家背包和快捷栏真实槽位。 */
+    /**
+     * addPlayerSlots: 添加玩家背包和快捷栏真实槽位。
+     */
     private void addPlayerSlots(Inventory inv) {
         for (int row = 0; row < 3; row++) {
             for (int col = 0; col < 9; col++) {
@@ -212,14 +248,18 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         }
     }
 
-    /** insertToWarehouse: 服务端把玩家物品存入仓库整体库存。 */
+    /**
+     * insertToWarehouse: 服务端把玩家物品存入仓库整体库存。
+     */
     private ItemStack insertToWarehouse(ItemStack stack) {
         return inventory.player.level() instanceof ServerLevel level
                 ? LogisticsWarehouseInventoryService.insert(level, warehousePos, stack)
                 : stack;
     }
 
-    /** handleWarehouseClick: 客户端点击聚合槽时发送精确物品操作请求。 */
+    /**
+     * handleWarehouseClick: 客户端点击聚合槽时发送精确物品操作请求。
+     */
     private void handleWarehouseClick(int slotId, int dragType, ClickType clickType, Player player) {
         if (!player.level().isClientSide()) {
             return;
@@ -241,7 +281,9 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         }
     }
 
-    /** refreshVisibleSlots: 根据搜索和滚动刷新 54 个紧凑展示槽。 */
+    /**
+     * refreshVisibleSlots: 根据搜索和滚动刷新 54 个紧凑展示槽。
+     */
     private void refreshVisibleSlots() {
         List<Entry> filtered = filteredEntries();
         int start = scrollRow * GRID_COLS;
@@ -253,7 +295,9 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         broadcastChanges();
     }
 
-    /** visibleEntry: 获取可见聚合槽对应的过滤条目。 */
+    /**
+     * visibleEntry: 获取可见聚合槽对应的过滤条目。
+     */
     private Entry visibleEntry(int visibleSlot) {
         if (visibleSlot < 0 || visibleSlot >= WAREHOUSE_SLOTS) {
             return null;
@@ -263,7 +307,9 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
         return index >= 0 && index < filtered.size() ? filtered.get(index) : null;
     }
 
-    /** filteredEntries: 生成搜索过滤后的非空超级堆叠条目。 */
+    /**
+     * filteredEntries: 生成搜索过滤后的非空超级堆叠条目。
+     */
     private List<Entry> filteredEntries() {
         List<Entry> entries = new ArrayList<>();
         for (int i = 0; i < displayItems.size(); i++) {
@@ -287,13 +333,17 @@ public final class LogisticsWarehouseGridMenu extends AbstractContainerMenu {
             super(container, slot, x, y);
         }
 
-        /** mayPlace: 超级堆叠展示槽不接受原版直接放入。 */
+        /**
+         * mayPlace: 超级堆叠展示槽不接受原版直接放入。
+         */
         @Override
         public boolean mayPlace(ItemStack stack) {
             return false;
         }
 
-        /** mayPickup: 超级堆叠展示槽由点击逻辑请求服务端提取。 */
+        /**
+         * mayPickup: 超级堆叠展示槽由点击逻辑请求服务端提取。
+         */
         @Override
         public boolean mayPickup(Player player) {
             return false;

@@ -16,7 +16,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** 客户端请求打开医疗控制箱。 */
+/**
+ * 客户端请求打开医疗控制箱。
+ */
 
 public record MedicalControlBoxOpenRequestPacket(BlockPos pos) implements CustomPacketPayload {
     public static final Type<MedicalControlBoxOpenRequestPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "medical_control_box_open_request"));
@@ -27,24 +29,32 @@ public record MedicalControlBoxOpenRequestPacket(BlockPos pos) implements Custom
         return TYPE;
     }
 
-    /** encode：写入控制箱坐标。 */
+    /**
+     * encode：写入控制箱坐标。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, MedicalControlBoxOpenRequestPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode：读取控制箱坐标。 */
+    /**
+     * decode：读取控制箱坐标。
+     */
     public static MedicalControlBoxOpenRequestPacket decode(RegistryFriendlyByteBuf buffer) {
         return new MedicalControlBoxOpenRequestPacket(buffer.readBlockPos());
     }
 
-    /** handle：在服务端校验并打开医疗控制箱。 */
+    /**
+     * handle：在服务端校验并打开医疗控制箱。
+     */
     public static void handle(MedicalControlBoxOpenRequestPacket packet, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             openFor(level, player, packet.pos());
         }
     }
 
-    /** openFor：校验距离和方块后发送只读视图。 */
+    /**
+     * openFor：校验距离和方块后发送只读视图。
+     */
     public static void openFor(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (!player.blockPosition().closerThan(pos, 16.0D) && !RtsRemoteMenuAccess.hasAccess(player, pos)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.medical_control_box.too_far"));

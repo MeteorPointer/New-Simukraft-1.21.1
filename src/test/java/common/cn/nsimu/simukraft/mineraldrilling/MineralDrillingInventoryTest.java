@@ -10,13 +10,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 
 class MineralDrillingInventoryTest {
-    /** serializesValidatedToolSlotsWithNativeComponents: 验证两格工具库存的原版 NBT 往返。 */
+    /**
+     * serializesValidatedToolSlotsWithNativeComponents: 验证两格工具库存的原版 NBT 往返。
+     */
     @Test
     void serializesValidatedToolSlotsWithNativeComponents() {
         RegistryAccess registries = RegistryAccess.fromRegistryOfRegistries(BuiltInRegistries.REGISTRY);
@@ -38,7 +38,9 @@ class MineralDrillingInventoryTest {
         assertTrue(loaded.getItem(MineralDrillingInventory.DRILL_BIT_SLOT).is(ModItems.DEEP_DRILL_BIT.get()));
     }
 
-    /** rejectsItemsOutsideTheirDedicatedSlots: 验证容器层不接受错误物品与越界槽位。 */
+    /**
+     * rejectsItemsOutsideTheirDedicatedSlots: 验证容器层不接受错误物品与越界槽位。
+     */
     @Test
     void rejectsItemsOutsideTheirDedicatedSlots() {
         MineralDrillingInventory inventory = new MineralDrillingInventory();
@@ -51,7 +53,9 @@ class MineralDrillingInventoryTest {
         assertFalse(inventory.canPlaceItem(MineralDrillingInventory.SLOT_COUNT, ItemStack.EMPTY));
     }
 
-    /** drillBitsHaveConfiguredDurability: 钻头必须不可堆叠并采用各自的耐久上限。 */
+    /**
+     * drillBitsHaveConfiguredDurability: 钻头必须不可堆叠并采用各自的耐久上限。
+     */
     @Test
     void drillBitsHaveConfiguredDurability() {
         ItemStack shallow = new ItemStack(ModItems.SHALLOW_DRILL_BIT.get());

@@ -1,105 +1,72 @@
 package common.cn.nsimu.simukraft;
 
 import com.mojang.logging.LogUtils;
-
-import common.cn.nsimu.simukraft.citizen.CitizenBedSleepService;
-import common.cn.nsimu.simukraft.citizen.CitizenDeathService;
-import common.cn.nsimu.simukraft.citizen.CitizenDroppedFoodService;
-import common.cn.nsimu.simukraft.citizen.CitizenManager;
-import common.cn.nsimu.simukraft.citizen.CitizenHomeRestService;
-import common.cn.nsimu.simukraft.citizen.CitizenSelfFeedingService;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
-import common.cn.nsimu.simukraft.citizen.PopulationGrowthService;
-import common.cn.nsimu.simukraft.city.CityChunkManager;
-import common.cn.nsimu.simukraft.city.CityManager;
-import common.cn.nsimu.simukraft.city.CityRuntimeService;
-import common.cn.nsimu.simukraft.city.CityUpgradeService;
-import common.cn.nsimu.simukraft.city.CityPermissionInviteService;
+import common.cn.nsimu.simukraft.building.*;
+import common.cn.nsimu.simukraft.citizen.*;
+import common.cn.nsimu.simukraft.city.*;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
-import common.cn.nsimu.simukraft.building.BuildingCatalog;
-import common.cn.nsimu.simukraft.building.BuildingPackageCatalog;
-import common.cn.nsimu.simukraft.building.BuildingStructureDataPack;
-import common.cn.nsimu.simukraft.building.BuilderConstructionService;
-import common.cn.nsimu.simukraft.building.BuildingIntegrityService;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
-import common.cn.nsimu.simukraft.building.ResidentialBedPoiService;
-import common.cn.nsimu.simukraft.building.MedicalBedPoiService;
-import common.cn.nsimu.simukraft.medical.MedicalDefinitionLoader;
-import common.cn.nsimu.simukraft.medical.MedicalMealService;
-import common.cn.nsimu.simukraft.exchange.ExchangeMarketService;
-import common.cn.nsimu.simukraft.medical.MedicalService;
-import common.cn.nsimu.simukraft.commercial.CommercialBoxManager;
-import common.cn.nsimu.simukraft.commercial.CommercialDefinitionLoader;
-import common.cn.nsimu.simukraft.commercial.CommercialFoodMarketService;
-import common.cn.nsimu.simukraft.commercial.CommercialStockManager;
-import common.cn.nsimu.simukraft.commercial.CommercialWorkService;
 import common.cn.nsimu.simukraft.command.SimuKraftCommand;
+import common.cn.nsimu.simukraft.commercial.*;
 import common.cn.nsimu.simukraft.config.ClientConfig;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.economy.ResidentialRentService;
+import common.cn.nsimu.simukraft.event.CityPlacementRestrictionHandler;
+import common.cn.nsimu.simukraft.event.PlayerWelcomeService;
+import common.cn.nsimu.simukraft.exchange.ExchangeMarketService;
 import common.cn.nsimu.simukraft.farmland.FarmlandBoxManager;
 import common.cn.nsimu.simukraft.farmland.FarmlandFarmingService;
+import common.cn.nsimu.simukraft.guard.NtIntegrityGuard;
 import common.cn.nsimu.simukraft.industrial.IndustrialBoxManager;
 import common.cn.nsimu.simukraft.industrial.IndustrialDefinitionLoader;
 import common.cn.nsimu.simukraft.industrial.IndustrialWorkService;
+import common.cn.nsimu.simukraft.job.CityJobAssignmentService;
 import common.cn.nsimu.simukraft.logistics.LogisticsAutoClientService;
 import common.cn.nsimu.simukraft.logistics.LogisticsManager;
 import common.cn.nsimu.simukraft.logistics.LogisticsWorkService;
+import common.cn.nsimu.simukraft.material.WorkMaterialPolicy;
+import common.cn.nsimu.simukraft.medical.MedicalDefinitionLoader;
+import common.cn.nsimu.simukraft.medical.MedicalMealService;
+import common.cn.nsimu.simukraft.medical.MedicalService;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingBoxManager;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingDefinitionLoader;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingWorkService;
-import common.cn.nsimu.simukraft.planner.PlannerWorkService;
-import common.cn.nsimu.simukraft.event.CityPlacementRestrictionHandler;
 import common.cn.nsimu.simukraft.network.ModNetwork;
 import common.cn.nsimu.simukraft.network.city.chunk.CityChunkSyncService;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
-import common.cn.nsimu.simukraft.job.CityJobAssignmentService;
-import common.cn.nsimu.simukraft.material.WorkMaterialPolicy;
-import common.cn.nsimu.simukraft.path.CitizenNavigationService;
-import common.cn.nsimu.simukraft.guard.NtIntegrityGuard;
-import common.cn.nsimu.simukraft.protection.NpcBlockProtectionPolicy;
-import common.cn.nsimu.simukraft.path.CitizenWanderService;
-import common.cn.nsimu.simukraft.util.NpcWorkChunkLoadService;
-import common.cn.nsimu.simukraft.registry.ModBlocks;
-import common.cn.nsimu.simukraft.registry.ModCreativeModeTabs;
-import common.cn.nsimu.simukraft.registry.ModEntities;
-import common.cn.nsimu.simukraft.registry.ModEntityAttributes;
-import common.cn.nsimu.simukraft.registry.ModFluidTypes;
-import common.cn.nsimu.simukraft.registry.ModFluids;
-import common.cn.nsimu.simukraft.registry.ModItems;
-import common.cn.nsimu.simukraft.registry.ModMenuTypes;
-import common.cn.nsimu.simukraft.registry.ModRecipeSerializers;
-import common.cn.nsimu.simukraft.registry.ModSoundEvents;
-import common.cn.nsimu.simukraft.registry.ModStructures;
-import common.cn.nsimu.simukraft.event.PlayerWelcomeService;
-import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
-import common.cn.nsimu.simukraft.network.rts.RtsRemoteCitizenAccess;
 import common.cn.nsimu.simukraft.network.rts.RtsChunkViewService;
+import common.cn.nsimu.simukraft.network.rts.RtsRemoteCitizenAccess;
+import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
+import common.cn.nsimu.simukraft.path.CitizenNavigationService;
+import common.cn.nsimu.simukraft.path.CitizenWanderService;
+import common.cn.nsimu.simukraft.planner.PlannerWorkService;
+import common.cn.nsimu.simukraft.protection.NpcBlockProtectionPolicy;
+import common.cn.nsimu.simukraft.registry.*;
 import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
+import common.cn.nsimu.simukraft.util.NpcWorkChunkLoadService;
 import common.cn.nsimu.simukraft.virtualvein.VirtualVeinService;
+import net.minecraft.core.BlockPos;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import net.neoforged.bus.api.IEventBus;
+import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.common.Mod;
+import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.ExplosionEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.level.PistonEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
-import net.neoforged.fml.ModContainer;
-import net.neoforged.fml.common.Mod;
-import net.neoforged.fml.config.ModConfig;
-import net.neoforged.fml.event.config.ModConfigEvent;
-import net.minecraft.core.BlockPos;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import org.slf4j.Logger;
 
 
@@ -177,7 +144,9 @@ public final class SimuKraft {
         }
     }
 
-    /** onPlayerLoggedOut: 清理 RTS 远程菜单会话。 */
+    /**
+     * onPlayerLoggedOut: 清理 RTS 远程菜单会话。
+     */
     private void onPlayerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
             RtsRemoteMenuAccess.clear(player);
@@ -217,7 +186,9 @@ public final class SimuKraft {
         }
     }
 
-    /** 活塞结构里只要带上城市核心就取消本次推动，避免原位恢复和被推走的方块同时存在。 */
+    /**
+     * 活塞结构里只要带上城市核心就取消本次推动，避免原位恢复和被推走的方块同时存在。
+     */
     private void onPistonPre(PistonEvent.Pre event) {
         PistonStructureResolver resolver = event.getStructureHelper();
         if (resolver == null || !resolver.resolve()) {
@@ -258,12 +229,16 @@ public final class SimuKraft {
         }
     }
 
-    /** onServerAboutToStart: 在任何 tick 之前打开存储并建表，把建库失败暴露在启动阶段。 */
+    /**
+     * onServerAboutToStart: 在任何 tick 之前打开存储并建表，把建库失败暴露在启动阶段。
+     */
     private void onServerAboutToStart(ServerAboutToStartEvent event) {
         SimuSqliteStorage.bootstrap(event.getServer());
     }
 
-    /** onServerStarted: 服务端启动后立即准备官方建筑包目录。 */
+    /**
+     * onServerStarted: 服务端启动后立即准备官方建筑包目录。
+     */
     private void onServerStarted(ServerStartedEvent event) {
         BuildingPackageCatalog.ensurePrepared();
         common.cn.nsimu.simukraft.block.CautionTapeZones.rebuild(null);
@@ -324,7 +299,9 @@ public final class SimuKraft {
         PlayerWelcomeService.tick(event.getServer());
     }
 
-    /** onLevelSave: 世界自动保存时顺带落股市，避免只在关服才写。 */
+    /**
+     * onLevelSave: 世界自动保存时顺带落股市，避免只在关服才写。
+     */
     private void onLevelSave(LevelEvent.Save event) {
         if (event.getLevel() instanceof ServerLevel level) {
             ExchangeMarketService.saveToSqlite(level);
@@ -385,7 +362,9 @@ public final class SimuKraft {
         common.cn.nsimu.simukraft.util.SaveScopedCacheKey.clearServerCache(event.getServer());
     }
 
-    /** onServerStopped: 服务器实例彻底退出后释放存储层对它的引用。 */
+    /**
+     * onServerStopped: 服务器实例彻底退出后释放存储层对它的引用。
+     */
     private void onServerStopped(ServerStoppedEvent event) {
         SimuSqliteStorage.forgetServer(event.getServer());
         common.cn.nsimu.simukraft.storage.BuildingStructureSqliteDatabase.forgetServer(event.getServer());

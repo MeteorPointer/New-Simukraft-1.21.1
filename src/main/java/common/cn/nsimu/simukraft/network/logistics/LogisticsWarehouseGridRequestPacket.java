@@ -20,17 +20,23 @@ public record LogisticsWarehouseGridRequestPacket(BlockPos pos) implements Custo
         return TYPE;
     }
 
-    /** encode: 写入仓库快照请求坐标。 */
+    /**
+     * encode: 写入仓库快照请求坐标。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, LogisticsWarehouseGridRequestPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode: 读取仓库快照请求坐标。 */
+    /**
+     * decode: 读取仓库快照请求坐标。
+     */
     public static LogisticsWarehouseGridRequestPacket decode(RegistryFriendlyByteBuf buffer) {
         return new LogisticsWarehouseGridRequestPacket(buffer.readBlockPos());
     }
 
-    /** handle: 校验权限后直接返回仓库物品快照，不打开容器 Menu。 */
+    /**
+     * handle: 校验权限后直接返回仓库物品快照，不打开容器 Menu。
+     */
     public static void handle(LogisticsWarehouseGridRequestPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;

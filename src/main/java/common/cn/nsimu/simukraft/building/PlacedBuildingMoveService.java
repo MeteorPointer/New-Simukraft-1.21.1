@@ -1,7 +1,7 @@
 package common.cn.nsimu.simukraft.building;
 
-import common.cn.nsimu.simukraft.citizen.CitizenHousingService;
 import common.cn.nsimu.simukraft.citizen.CitizenHomeRestService;
+import common.cn.nsimu.simukraft.citizen.CitizenHousingService;
 import common.cn.nsimu.simukraft.city.CityChunkManager;
 import common.cn.nsimu.simukraft.city.CityData;
 import common.cn.nsimu.simukraft.city.CityManager;
@@ -18,25 +18,21 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.ChestBlock;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.ChestType;
+import net.minecraft.world.level.levelgen.Heightmap;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** 已登记建筑和普通方块的 RTS 移动事务。所有方法只在服务端主线程调用。 */
+/**
+ * 已登记建筑和普通方块的 RTS 移动事务。所有方法只在服务端主线程调用。
+ */
 
 public final class PlacedBuildingMoveService {
     private static final double MAX_DISTANCE = 128.0D;
@@ -49,18 +45,24 @@ public final class PlacedBuildingMoveService {
     private PlacedBuildingMoveService() {
     }
 
-    /** move: 按源位置和目标位置移动单方块或整座已登记建筑。 */
+    /**
+     * move: 按源位置和目标位置移动单方块或整座已登记建筑。
+     */
     public static MoveStatus move(ServerLevel level, ServerPlayer player, BlockPos source, BlockPos destination) {
         return move(level, player, source, destination, 0);
     }
 
-    /** move: 按源位置和目标位置移动单方块或整座已登记建筑，并保留客户端高度微调。 */
+    /**
+     * move: 按源位置和目标位置移动单方块或整座已登记建筑，并保留客户端高度微调。
+     */
     public static MoveStatus move(ServerLevel level, ServerPlayer player, BlockPos source, BlockPos destination,
                                   int manualVerticalOffset) {
         return move(level, player, source, destination, manualVerticalOffset, 0);
     }
 
-    /** move: 按抓取点旋转并移动单方块或整座已登记建筑。 */
+    /**
+     * move: 按抓取点旋转并移动单方块或整座已登记建筑。
+     */
     public static MoveStatus move(ServerLevel level, ServerPlayer player, BlockPos source, BlockPos destination,
                                   int manualVerticalOffset, int rotationDegrees) {
         if (level == null || player == null || source == null || destination == null) {
@@ -89,7 +91,9 @@ public final class PlacedBuildingMoveService {
         return moveBlock(level, player, sourcePos, destinationPos, normalizedRotation);
     }
 
-    /** moveBlock: 搬运普通方块并覆盖目标方块，不产生掉落物。 */
+    /**
+     * moveBlock: 搬运普通方块并覆盖目标方块，不产生掉落物。
+     */
     private static MoveStatus moveBlock(ServerLevel level, ServerPlayer player, BlockPos source, BlockPos destination,
                                         int rotationDegrees) {
         if ((source.equals(destination) && rotationDegrees == 0) || !level.isAreaLoaded(source, 1) || !level.isAreaLoaded(destination, 1)
@@ -119,10 +123,12 @@ public final class PlacedBuildingMoveService {
         return MoveStatus.SUCCESS_BLOCK;
     }
 
-    /** moveBuilding: 校验整座建筑的边界和加载状态后覆盖迁移方块与 POI。 */
+    /**
+     * moveBuilding: 校验整座建筑的边界和加载状态后覆盖迁移方块与 POI。
+     */
     private static synchronized MoveStatus moveBuilding(ServerLevel level, PlacedBuildingRecord building,
-                                                         BlockPos source, BlockPos destination, int manualVerticalOffset,
-                                                         int rotationDegrees) {
+                                                        BlockPos source, BlockPos destination, int manualVerticalOffset,
+                                                        int rotationDegrees) {
         if (building.blocks() == null || building.blocks().isEmpty() || building.blocks().size() > MAX_MOVED_BLOCKS) {
             return MoveStatus.INVALID;
         }
@@ -220,7 +226,9 @@ public final class PlacedBuildingMoveService {
         return MoveStatus.SUCCESS_BUILDING;
     }
 
-    /** syncMovedPois: 保留 POI UUID、容量、激活状态并修正其世界坐标。 */
+    /**
+     * syncMovedPois: 保留 POI UUID、容量、激活状态并修正其世界坐标。
+     */
     private static void syncMovedPois(ServerLevel level, PlacedBuildingRecord movedBuilding,
                                       PositionTransform transform) {
         if (movedBuilding.cityId() == null) {
@@ -242,9 +250,11 @@ public final class PlacedBuildingMoveService {
         }
     }
 
-    /** movePoiInstances: 固化真实 UUID，并合并旧记录中同位置的重复 POI。 */
+    /**
+     * movePoiInstances: 固化真实 UUID，并合并旧记录中同位置的重复 POI。
+     */
     private static List<BuildingPoiInstance> movePoiInstances(ServerLevel level, PlacedBuildingRecord building, PositionTransform transform,
-                                                               Map<BlockPos, CityPoiData> residentialPois) {
+                                                              Map<BlockPos, CityPoiData> residentialPois) {
         CityPoiManager manager = building.cityId() != null ? CityPoiManager.get(level) : null;
         Map<String, BuildingPoiInstance> movedPois = new LinkedHashMap<>();
         for (BuildingPoiInstance poi : building.poiInstances()) {
@@ -268,7 +278,9 @@ public final class PlacedBuildingMoveService {
         return List.copyOf(movedPois.values());
     }
 
-    /** snapshotResidentialPois：在搬迁前快照建筑内实际登记的住宅床位 POI。 */
+    /**
+     * snapshotResidentialPois：在搬迁前快照建筑内实际登记的住宅床位 POI。
+     */
     private static Map<BlockPos, CityPoiData> snapshotResidentialPois(ServerLevel level, PlacedBuildingRecord building) {
         if (level == null || building == null || building.cityId() == null) {
             return Map.of();
@@ -294,9 +306,11 @@ public final class PlacedBuildingMoveService {
         return Map.copyOf(snapshot);
     }
 
-    /** remapResidentialHomes：按床位搬迁后的坐标修复住宅 POI 和居民 homeId。 */
+    /**
+     * remapResidentialHomes：按床位搬迁后的坐标修复住宅 POI 和居民 homeId。
+     */
     private static Set<UUID> remapResidentialHomes(ServerLevel level, UUID cityId,
-                                                    Map<BlockPos, CityPoiData> oldPois, PositionTransform transform) {
+                                                   Map<BlockPos, CityPoiData> oldPois, PositionTransform transform) {
         if (level == null || cityId == null || oldPois.isEmpty()) {
             return Set.of();
         }
@@ -324,7 +338,9 @@ public final class PlacedBuildingMoveService {
         return Set.copyOf(movedHomePoiIds);
     }
 
-    /** canManageBuilding: 复用城市官方权限规则保护整体建筑移动。 */
+    /**
+     * canManageBuilding: 复用城市官方权限规则保护整体建筑移动。
+     */
     private static boolean canManageBuilding(ServerLevel level, ServerPlayer player, PlacedBuildingRecord building) {
         if (player.hasPermissions(2)) {
             return true;
@@ -336,7 +352,9 @@ public final class PlacedBuildingMoveService {
         return city != null && city.hasPermission(player.getUUID(), CityPermissionLevel.OFFICIAL);
     }
 
-    /** snapBuildingDestination: 用建筑实际方块脚印的最高地表重新计算控制方块目标高度。 */
+    /**
+     * snapBuildingDestination: 用建筑实际方块脚印的最高地表重新计算控制方块目标高度。
+     */
     private static BlockPos snapBuildingDestination(ServerLevel level, PlacedBuildingRecord building,
                                                     BlockPos source, BlockPos destination, int manualVerticalOffset,
                                                     int rotationDegrees) {
@@ -368,7 +386,9 @@ public final class PlacedBuildingMoveService {
         return new BlockPos(destination.getX(), snappedY, destination.getZ());
     }
 
-    /** resolveBuildingFootprint: 从登记的非空气方块计算真实横向脚印和最低高度。 */
+    /**
+     * resolveBuildingFootprint: 从登记的非空气方块计算真实横向脚印和最低高度。
+     */
     private static BuildingFootprint resolveBuildingFootprint(PlacedBuildingRecord building, BlockPos source,
                                                               int rotationDegrees) {
         int minX = Integer.MAX_VALUE;
@@ -391,7 +411,9 @@ public final class PlacedBuildingMoveService {
         return minY == Integer.MAX_VALUE ? null : new BuildingFootprint(minX, maxX, minY, minZ, maxZ);
     }
 
-    /** resolveWorldPos: 兼容旧记录的相对坐标与当前记录的世界坐标。 */
+    /**
+     * resolveWorldPos: 兼容旧记录的相对坐标与当前记录的世界坐标。
+     */
     private static BlockPos resolveWorldPos(PlacedBuildingRecord building, BlockPos storedPos) {
         if (storedPos == null) {
             return BlockPos.ZERO;
@@ -408,7 +430,9 @@ public final class PlacedBuildingMoveService {
                 && pos.getZ() >= Math.min(min.getZ(), max.getZ()) && pos.getZ() <= Math.max(min.getZ(), max.getZ());
     }
 
-    /** destinationBoundsInCity：校验建筑旋转和搬迁后的完整边界均位于所属城市领地。 */
+    /**
+     * destinationBoundsInCity：校验建筑旋转和搬迁后的完整边界均位于所属城市领地。
+     */
     private static boolean destinationBoundsInCity(ServerLevel level, PlacedBuildingRecord building, BuildingBounds bounds) {
         if (building.cityId() == null) {
             return false;
@@ -426,7 +450,9 @@ public final class PlacedBuildingMoveService {
         return entity == null ? null : entity.saveWithoutMetadata(level.registryAccess());
     }
 
-    /** refreshMovedConnectionStates: 所有方块落位后重算栅栏、墙和铁栅栏的连接状态。 */
+    /**
+     * refreshMovedConnectionStates: 所有方块落位后重算栅栏、墙和铁栅栏的连接状态。
+     */
     private static void refreshMovedConnectionStates(ServerLevel level, List<MoveBlock> blocks) {
         for (MoveBlock block : blocks) {
             BlockState currentState = level.getBlockState(block.newPos());
@@ -437,7 +463,9 @@ public final class PlacedBuildingMoveService {
         }
     }
 
-    /** syncMovedUnitAssignments: 重新写入旋转后住宅 POI 的单元归属，防止运行时缓存残留。 */
+    /**
+     * syncMovedUnitAssignments: 重新写入旋转后住宅 POI 的单元归属，防止运行时缓存残留。
+     */
     private static void syncMovedUnitAssignments(ServerLevel level, PlacedBuildingRecord building) {
         if (level == null || building == null || building.unitInstances().isEmpty()) {
             return;
@@ -450,7 +478,9 @@ public final class PlacedBuildingMoveService {
         }
     }
 
-    /** rebuildMovedUnitInstances: 依据旋转后的 POI、原点和朝向重建住宅单元归属。 */
+    /**
+     * rebuildMovedUnitInstances: 依据旋转后的 POI、原点和朝向重建住宅单元归属。
+     */
     private static PlacedBuildingRecord rebuildMovedUnitInstances(ServerLevel level, PlacedBuildingRecord building) {
         List<BuildingUnitInstance> unitInstances = BuildingUnitResolver.resolveUnitInstances(building, CityPoiManager.get(level));
         if (unitInstances.isEmpty() && !building.unitInstances().isEmpty()) {
@@ -467,19 +497,25 @@ public final class PlacedBuildingMoveService {
                 building.unitDefinitions(), unitInstances).withDistrictId(building.districtId());
     }
 
-    /** isMovingBuildingBlock: 判断控制箱移除是否属于 RTS 整体搬迁事务。 */
+    /**
+     * isMovingBuildingBlock: 判断控制箱移除是否属于 RTS 整体搬迁事务。
+     */
     public static boolean isMovingBuildingBlock(ServerLevel level, BlockPos pos) {
         MoveContext context = ACTIVE_BUILDING_MOVE.get();
         return context != null && context.level() == level && context.sourcePositions().contains(pos);
     }
 
-    /** clearBlockWithoutDrops: 先移除方块实体，再替换状态，防止容器 onRemove 抛出库存。 */
+    /**
+     * clearBlockWithoutDrops: 先移除方块实体，再替换状态，防止容器 onRemove 抛出库存。
+     */
     private static void clearBlockWithoutDrops(ServerLevel level, BlockPos pos, int updateFlags) {
         level.removeBlockEntity(pos);
         level.setBlock(pos, Blocks.AIR.defaultBlockState(), updateFlags);
     }
 
-    /** singleChestState: 单独搬运大箱子半边时规范为独立小箱子。 */
+    /**
+     * singleChestState: 单独搬运大箱子半边时规范为独立小箱子。
+     */
     private static BlockState singleChestState(BlockState state) {
         if (state.getBlock() instanceof ChestBlock && state.hasProperty(ChestBlock.TYPE)) {
             return state.setValue(ChestBlock.TYPE, ChestType.SINGLE);
@@ -487,7 +523,9 @@ public final class PlacedBuildingMoveService {
         return state;
     }
 
-    /** preserveMovedChestPair: 仅在另一半也属于同一搬运事务时保留大箱子连接状态。 */
+    /**
+     * preserveMovedChestPair: 仅在另一半也属于同一搬运事务时保留大箱子连接状态。
+     */
     private static BlockState preserveMovedChestPair(MoveBlock block, java.util.Set<BlockPos> oldPositions) {
         BlockState originalState = block.originalState();
         BlockState movedState = block.movedState();
@@ -499,7 +537,9 @@ public final class PlacedBuildingMoveService {
         return oldPositions.contains(partner) ? movedState : singleChestState(movedState);
     }
 
-    /** boundsOf: 计算旋转后实际方块的世界边界，用于领地校验和建筑登记。 */
+    /**
+     * boundsOf: 计算旋转后实际方块的世界边界，用于领地校验和建筑登记。
+     */
     private static BuildingBounds boundsOf(List<MoveBlock> blocks) {
         if (blocks == null || blocks.isEmpty()) {
             return null;
@@ -522,7 +562,9 @@ public final class PlacedBuildingMoveService {
         return new BuildingBounds(new BlockPos(minX, minY, minZ), new BlockPos(maxX, maxY, maxZ));
     }
 
-    /** normalizeRotation: 仅接受四分之一圈旋转，拒绝客户端伪造的任意角度。 */
+    /**
+     * normalizeRotation: 仅接受四分之一圈旋转，拒绝客户端伪造的任意角度。
+     */
     private static int normalizeRotation(int rotationDegrees) {
         if (Math.floorMod(rotationDegrees, 90) != 0) {
             return -1;
@@ -540,7 +582,9 @@ public final class PlacedBuildingMoveService {
         }
     }
 
-    /** BuildingFootprint: 已登记非空气方块的真实横向范围和最低高度。 */
+    /**
+     * BuildingFootprint: 已登记非空气方块的真实横向范围和最低高度。
+     */
     private record BuildingFootprint(int minX, int maxX, int minY, int minZ, int maxZ) {
     }
 
@@ -557,10 +601,12 @@ public final class PlacedBuildingMoveService {
     }
 
     private record MoveBlock(BlockPos oldPos, BlockPos newPos, BlockState originalState, BlockState movedState,
-                              CompoundTag blockEntityData, BlockPos originalStructurePos) {
+                             CompoundTag blockEntityData, BlockPos originalStructurePos) {
     }
 
-    /** PositionTransform: 以抓取方块为轴，把旧坐标映射到旋转后的目标坐标。 */
+    /**
+     * PositionTransform: 以抓取方块为轴，把旧坐标映射到旋转后的目标坐标。
+     */
     private record PositionTransform(BlockPos source, BlockPos destination, int rotationDegrees) {
         private BlockPos apply(BlockPos oldPos) {
             return destination.offset(BuildingTransform.rotatePosition(oldPos.subtract(source), rotationDegrees));

@@ -1,12 +1,8 @@
 package client.cn.nsimu.simukraft.client.citizen;
 
-import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.GuiTextureGroup;
-import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
-import com.lowdragmc.lowdraglib2.gui.texture.TextTexture;
-import com.lowdragmc.lowdraglib2.gui.ui.data.Transform2D;
+import com.lowdragmc.lowdraglib2.gui.texture.*;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import com.lowdragmc.lowdraglib2.gui.ui.data.Transform2D;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import com.lowdragmc.lowdraglib2.gui.ui.style.PropertyRegistry;
@@ -14,8 +10,8 @@ import com.lowdragmc.lowdraglib2.syncdata.ISubscription;
 import common.cn.nsimu.simukraft.citizen.CitizenInfoSlotLayout;
 import common.cn.nsimu.simukraft.citizen.CitizenInventory;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
-import common.cn.nsimu.simukraft.network.citizen.info.CitizenInfoResponsePacket;
 import common.cn.nsimu.simukraft.network.citizen.info.CitizenBehaviorActionPacket;
+import common.cn.nsimu.simukraft.network.citizen.info.CitizenInfoResponsePacket;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
@@ -32,7 +28,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.List;
 
-/** 参考证件卡草图实现的 NPC 信息、装备与双背包一体界面。 */
+/**
+ * 参考证件卡草图实现的 NPC 信息、装备与双背包一体界面。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class CitizenInfoUiRoot extends UIElement {
@@ -235,7 +233,7 @@ public final class CitizenInfoUiRoot extends UIElement {
         button.clearAllChildren();
         boolean enabled = action == CitizenBehaviorActionPacket.Action.TOGGLE_FOLLOW ? followEnabled : stayEnabled;
         UIElement label = text(Component.translatable(
-                translationKey,
+                        translationKey,
                         Component.translatable(enabled
                                 ? "screen.simukraft.citizen_info.toggle.on"
                                 : "screen.simukraft.citizen_info.toggle.off")),
@@ -280,7 +278,9 @@ public final class CitizenInfoUiRoot extends UIElement {
         return bar;
     }
 
-    /** armorStatusBar：监听客户端真实装备槽，在当前界面内穿脱盔甲时实时刷新护甲值。 */
+    /**
+     * armorStatusBar：监听客户端真实装备槽，在当前界面内穿脱盔甲时实时刷新护甲值。
+     */
     private UIElement armorStatusBar(CitizenInventory inventory) {
         int initialArmor = Math.clamp(packet.armor(), 0, 20);
         UIElement bar = statusBar(LEFT_CONTENT_X, 157, LEFT_CONTENT_WIDTH, 12, 0xFF8293A1,
@@ -299,7 +299,9 @@ public final class CitizenInfoUiRoot extends UIElement {
         return bar;
     }
 
-    /** armorValue：按原版装备属性计算 NPC 背包四个盔甲槽的 0-20 护甲值。 */
+    /**
+     * armorValue：按原版装备属性计算 NPC 背包四个盔甲槽的 0-20 护甲值。
+     */
     private static int armorValue(CitizenInventory inventory) {
         if (inventory == null) {
             return 0;
@@ -326,7 +328,9 @@ public final class CitizenInfoUiRoot extends UIElement {
         return Math.clamp((int) Math.floor(addValue[0] * totalMultiplier[0]), 0, 20);
     }
 
-    /** refreshStatusBar：重建状态条填充和文字，不替换状态条本身及其事件监听。 */
+    /**
+     * refreshStatusBar：重建状态条填充和文字，不替换状态条本身及其事件监听。
+     */
     private void refreshStatusBar(UIElement bar, int width, int height, int fillColor, double progress, Component label) {
         bar.clearAllChildren();
         int fillWidth = Math.clamp((int) Math.round((width - 4) * Math.clamp(progress, 0.0D, 1.0D)), 0, width - 4);
@@ -360,7 +364,9 @@ public final class CitizenInfoUiRoot extends UIElement {
                 : Math.clamp(common.cn.nsimu.simukraft.citizen.CitizenLevelService.xpInCurrentLevel(snapshot) / (double) required, 0.0D, 1.0D);
     }
 
-    /** metalPanel：创建双层金属边框，用于区分主卡片、信息卡片与凹陷槽位区。 */
+    /**
+     * metalPanel：创建双层金属边框，用于区分主卡片、信息卡片与凹陷槽位区。
+     */
     private static UIElement metalPanel(int x, int y, int width, int height, int faceColor) {
         UIElement frame = panel(x, y, width, height, FRAME_OUTER, FRAME_OUTER);
         frame.setAllowHitTest(false);
@@ -492,7 +498,9 @@ public final class CitizenInfoUiRoot extends UIElement {
             animateTo(closed, 0.18F, () -> backdrop.setDisplay(false));
         }
 
-        /** animateTo：使用 LDLib2 渲染帧动画平移抽屉，避免每帧重新计算布局。 */
+        /**
+         * animateTo：使用 LDLib2 渲染帧动画平移抽屉，避免每帧重新计算布局。
+         */
         private void animateTo(Transform2D target, float duration, Runnable finished) {
             if (animationSubscription != null) {
                 animationSubscription.unsubscribe();

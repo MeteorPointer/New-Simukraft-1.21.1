@@ -15,7 +15,8 @@ import java.util.Set;
 import java.util.UUID;
 
 public final class DistrictService {
-    private DistrictService() {}
+    private DistrictService() {
+    }
 
     public static Optional<DistrictData> findByChunk(ServerLevel level, long chunkLong) {
         return level == null ? Optional.empty() : DistrictManager.get(level).byChunk(chunkLong);
@@ -42,7 +43,9 @@ public final class DistrictService {
                 && district.get().hasPermission(playerId, DistrictRole.OFFICIAL);
     }
 
-    /** releaseCity: 先卸下分区记录，再拆掉分区核心。主城核心方块不动。 */
+    /**
+     * releaseCity: 先卸下分区记录，再拆掉分区核心。主城核心方块不动。
+     */
     public static void releaseCity(ServerLevel level, UUID cityId) {
         if (level == null || cityId == null) return;
         List<BlockPos> cores = DistrictManager.get(level).removeCity(cityId);
@@ -56,9 +59,11 @@ public final class DistrictService {
     }
 
     public static boolean assign(ServerLevel level, UUID cityId, UUID playerId, UUID districtId, Set<Long> chunks) {
-        if (level == null || cityId == null || playerId == null || !CityService.hasPermission(level, cityId, playerId, CityPermissionLevel.MAYOR)) return false;
+        if (level == null || cityId == null || playerId == null || !CityService.hasPermission(level, cityId, playerId, CityPermissionLevel.MAYOR))
+            return false;
         DistrictData district = DistrictManager.get(level).get(districtId).orElse(null);
-        if (district == null || !district.parentCityId().equals(cityId) || chunks == null || chunks.isEmpty()) return false;
+        if (district == null || !district.parentCityId().equals(cityId) || chunks == null || chunks.isEmpty())
+            return false;
         CityChunkManager chunkManager = CityChunkManager.get(level);
         if (chunks.stream().anyMatch(chunk -> !cityId.equals(chunkManager.getChunkOwner(chunk)))) return false;
         return DistrictManager.get(level).assignChunks(districtId, chunks);

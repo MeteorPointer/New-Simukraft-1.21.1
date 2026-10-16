@@ -8,7 +8,9 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.Locale;
 
-/** CoinDenominations: 现金硬币面值与找零。金币 1 元、银币 0.1 元、铜币 0.01 元。 */
+/**
+ * CoinDenominations: 现金硬币面值与找零。金币 1 元、银币 0.1 元、铜币 0.01 元。
+ */
 public final class CoinDenominations {
     public static final double GOLD_YUAN = 1.00D;
     public static final double SILVER_YUAN = 0.10D;
@@ -17,12 +19,16 @@ public final class CoinDenominations {
     private CoinDenominations() {
     }
 
-    /** cashValue: 把金/银/铜枚数折成元。 */
+    /**
+     * cashValue: 把金/银/铜枚数折成元。
+     */
     public static double cashValue(int gold, int silver, int copper) {
         return EconomyService.normalizeAmount(gold * GOLD_YUAN + silver * SILVER_YUAN + copper * COPPER_YUAN);
     }
 
-    /** countCash: 统计玩家背包里的现金总额。 */
+    /**
+     * countCash: 统计玩家背包里的现金总额。
+     */
     public static double countCash(Player player) {
         if (player == null) {
             return 0.0D;
@@ -32,7 +38,9 @@ public final class CoinDenominations {
                 countItem(player.getInventory(), ModItems.COPPER_COIN.get()));
     }
 
-    /** extractCash: 从背包按金、银、铜顺序扣现金，返回实际扣到的金额。 */
+    /**
+     * extractCash: 从背包按金、银、铜顺序扣现金，返回实际扣到的金额。
+     */
     public static double extractCash(Player player, double requested) {
         double want = EconomyService.normalizeAmount(requested);
         if (player == null || want <= 0.0D) {
@@ -47,7 +55,9 @@ public final class CoinDenominations {
         return EconomyService.normalizeAmount(take - remaining);
     }
 
-    /** insertCash: 按贪心找零把现金发进背包，发不下的部分返回。 */
+    /**
+     * insertCash: 按贪心找零把现金发进背包，发不下的部分返回。
+     */
     public static double insertCash(Player player, double amount) {
         double remaining = EconomyService.normalizeAmount(amount);
         if (player == null || remaining <= 0.0D) {
@@ -60,17 +70,21 @@ public final class CoinDenominations {
         return EconomyService.normalizeAmount(Math.max(0.0D, remaining));
     }
 
-    /** breakdown: 把金额拆成金、银、铜枚数。 */
+    /**
+     * breakdown: 把金额拆成金、银、铜枚数。
+     */
     public static int[] breakdown(double amount) {
         int cents = (int) Math.round(EconomyService.normalizeAmount(amount) * 100.0D);
         int gold = cents / 100;
         cents -= gold * 100;
         int silver = cents / 10;
         cents -= silver * 10;
-        return new int[] {gold, silver, cents};
+        return new int[]{gold, silver, cents};
     }
 
-    /** formatYuan: 金额显示，满千用 K。 */
+    /**
+     * formatYuan: 金额显示，满千用 K。
+     */
     public static String formatYuan(double amount) {
         double value = EconomyService.normalizeAmount(amount);
         if (Math.abs(value) >= 1000.0D) {
@@ -79,7 +93,9 @@ public final class CoinDenominations {
         return String.format(Locale.ROOT, "%.2f", value);
     }
 
-    /** formatCount: 枚数显示，满千用 K。 */
+    /**
+     * formatCount: 枚数显示，满千用 K。
+     */
     public static String formatCount(int count) {
         if (count >= 1000) {
             return (count % 1000 == 0)

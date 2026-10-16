@@ -10,9 +10,12 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** GeologicalSurveyHintPacket: 向客户端传递地质锤的短文本提示。 */
+/**
+ * GeologicalSurveyHintPacket: 向客户端传递地质锤的短文本提示。
+ */
 
-public record GeologicalSurveyHintPacket(Component message, boolean typewriter, int lingerMillis) implements CustomPacketPayload {
+public record GeologicalSurveyHintPacket(Component message, boolean typewriter,
+                                         int lingerMillis) implements CustomPacketPayload {
     public static final Type<GeologicalSurveyHintPacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "geological_survey_hint"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GeologicalSurveyHintPacket> STREAM_CODEC =
@@ -32,14 +35,18 @@ public record GeologicalSurveyHintPacket(Component message, boolean typewriter, 
         return TYPE;
     }
 
-    /** encode: 编码勘探提示文本。 */
+    /**
+     * encode: 编码勘探提示文本。
+     */
     private static void encode(RegistryFriendlyByteBuf buffer, GeologicalSurveyHintPacket packet) {
         ComponentSerialization.STREAM_CODEC.encode(buffer, packet.message());
         buffer.writeBoolean(packet.typewriter());
         buffer.writeVarInt(packet.lingerMillis());
     }
 
-    /** decode: 解码勘探提示文本。 */
+    /**
+     * decode: 解码勘探提示文本。
+     */
     private static GeologicalSurveyHintPacket decode(RegistryFriendlyByteBuf buffer) {
         return new GeologicalSurveyHintPacket(
                 ComponentSerialization.STREAM_CODEC.decode(buffer),
@@ -47,7 +54,9 @@ public record GeologicalSurveyHintPacket(Component message, boolean typewriter, 
                 buffer.readVarInt());
     }
 
-    /** handle: 将网络包切换到客户端线程处理。 */
+    /**
+     * handle: 将网络包切换到客户端线程处理。
+     */
     public static void handle(GeologicalSurveyHintPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> ClientboundNetworkBridge.handleGeologicalSurveyHint(packet));
     }

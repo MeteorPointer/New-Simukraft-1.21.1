@@ -7,17 +7,23 @@ public enum CommercialVisibility {
     NPC,
     MIXED;
 
-    /** visibleToPlayer: 判断该交易是否对玩家显示。 */
+    /**
+     * visibleToPlayer: 判断该交易是否对玩家显示。
+     */
     public boolean visibleToPlayer() {
         return this == PLAYER || this == MIXED;
     }
 
-    /** visibleToNpc: 判断该交易是否允许 NPC 自动处理。 */
+    /**
+     * visibleToNpc: 判断该交易是否允许 NPC 自动处理。
+     */
     public boolean visibleToNpc() {
         return this == NPC || this == MIXED;
     }
 
-    /** fromName: 从 JSON 字段解析可见性，非法值默认玩家可见。 */
+    /**
+     * fromName: 从 JSON 字段解析可见性，非法值默认玩家可见。
+     */
     public static CommercialVisibility fromName(String name) {
         if (name == null || name.isBlank()) {
             return PLAYER;

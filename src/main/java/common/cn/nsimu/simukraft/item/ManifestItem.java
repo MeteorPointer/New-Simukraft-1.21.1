@@ -1,8 +1,8 @@
 package common.cn.nsimu.simukraft.item;
 
+import common.cn.nsimu.simukraft.building.BuildingBlockData;
 import common.cn.nsimu.simukraft.building.BuildingStructure;
 import common.cn.nsimu.simukraft.building.BuildingStructureService;
-import common.cn.nsimu.simukraft.building.BuildingBlockData;
 import common.cn.nsimu.simukraft.building.BuildingTaskData;
 import common.cn.nsimu.simukraft.clientbridge.ClientInteractionBridge;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
@@ -21,7 +21,6 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
@@ -30,19 +29,12 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 
 public final class ManifestItem extends Item {
@@ -116,12 +108,16 @@ public final class ManifestItem extends Item {
         return state.is(ModBlocks.BUILD_BOX.get());
     }
 
-    /** isCommercialControlBox: 判断方块是否为商业控制箱。 */
+    /**
+     * isCommercialControlBox: 判断方块是否为商业控制箱。
+     */
     private static boolean isCommercialControlBox(BlockState state) {
         return state.is(ModBlocks.COMMERCIAL_CONTROL_BOX.get());
     }
 
-    /** isIndustrialControlBox: 判断方块是否为工业控制箱。 */
+    /**
+     * isIndustrialControlBox: 判断方块是否为工业控制箱。
+     */
     private static boolean isIndustrialControlBox(BlockState state) {
         return state.is(ModBlocks.INDUSTRIAL_CONTROL_BOX.get());
     }
@@ -167,17 +163,23 @@ public final class ManifestItem extends Item {
         InfoToastService.success(player, Component.translatable("message.simukraft.manifest.filled"));
     }
 
-    /** fillFromCommercialControlBox: 从商业控制箱填充清单材料。 */
+    /**
+     * fillFromCommercialControlBox: 从商业控制箱填充清单材料。
+     */
     private static void fillFromCommercialControlBox(ItemStack stack, ServerLevel level, BlockPos controlBoxPos, ServerPlayer player) {
         fillFromControlBoxSnapshot(stack, player, ManifestControlBoxSnapshotService.commercial(level, controlBoxPos));
     }
 
-    /** fillFromIndustrialControlBox: 从工业控制箱填充当前配方清单材料。 */
+    /**
+     * fillFromIndustrialControlBox: 从工业控制箱填充当前配方清单材料。
+     */
     private static void fillFromIndustrialControlBox(ItemStack stack, ServerLevel level, BlockPos controlBoxPos, ServerPlayer player) {
         fillFromControlBoxSnapshot(stack, player, ManifestControlBoxSnapshotService.industrial(level, controlBoxPos));
     }
 
-    /** fillFromControlBoxSnapshot: 将控制箱材料快照写入清单 NBT。 */
+    /**
+     * fillFromControlBoxSnapshot: 将控制箱材料快照写入清单 NBT。
+     */
     private static void fillFromControlBoxSnapshot(ItemStack stack, ServerPlayer player, ManifestControlBoxSnapshotService.FillResult result) {
         if (!result.success()) {
             InfoToastService.warning(player, result.warning());
@@ -205,7 +207,9 @@ public final class ManifestItem extends Item {
                 .toList();
     }
 
-    /** displayName: 选择清单标题，优先使用任务持久化的建筑名。 */
+    /**
+     * displayName: 选择清单标题，优先使用任务持久化的建筑名。
+     */
     private static String displayName(String primary, String secondary, String fallback) {
         if (primary != null && !primary.isBlank()) {
             return primary;
@@ -266,7 +270,9 @@ public final class ManifestItem extends Item {
         tag.put(TAG_CHECKED, checkedList);
     }
 
-    /** writeProductGroups: 写入“材料到商品”的清单分组，保留材料全局勾选索引。 */
+    /**
+     * writeProductGroups: 写入“材料到商品”的清单分组，保留材料全局勾选索引。
+     */
     private static void writeProductGroups(@Nonnull CompoundTag tag,
                                            @Nonnull List<ManifestControlBoxSnapshotService.ProductGroup> productGroups) {
         if (productGroups.isEmpty()) {
@@ -443,6 +449,7 @@ public final class ManifestItem extends Item {
                 .map(citizen -> citizen.uuid())
                 .orElse(null);
     }
+
     private static CompoundTag customTag(ItemStack stack) {
         return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
     }

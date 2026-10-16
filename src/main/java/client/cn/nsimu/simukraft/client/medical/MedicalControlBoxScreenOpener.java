@@ -28,7 +28,9 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
-/** 医疗控制箱 LDLib 单页界面。 */
+/**
+ * 医疗控制箱 LDLib 单页界面。
+ */
 
 @OnlyIn(Dist.CLIENT)
 public final class MedicalControlBoxScreenOpener {
@@ -40,12 +42,16 @@ public final class MedicalControlBoxScreenOpener {
     private MedicalControlBoxScreenOpener() {
     }
 
-    /** request：请求服务端刷新医疗控制箱视图。 */
+    /**
+     * request：请求服务端刷新医疗控制箱视图。
+     */
     public static void request(BlockPos pos) {
         PacketDistributor.sendToServer(new MedicalControlBoxOpenRequestPacket(pos));
     }
 
-    /** open：打开医疗控制箱界面。 */
+    /**
+     * open：打开医疗控制箱界面。
+     */
     public static void open(MedicalControlBoxOpenResponsePacket packet) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
@@ -111,7 +117,7 @@ public final class MedicalControlBoxScreenOpener {
         } else {
             for (MedicalControlBoxView.PatientEntry patient : packet.patients()) {
                 content.addChild(label(Component.translatable("gui.simukraft.medical.patient_line", patient.name(),
-                        Component.translatable(patient.conditionKey()), String.format(java.util.Locale.ROOT, "%.1f/20", patient.health())),
+                                Component.translatable(patient.conditionKey()), String.format(java.util.Locale.ROOT, "%.1f/20", patient.health())),
                         Horizontal.LEFT, 0xFFFFFFFF, 13));
             }
         }

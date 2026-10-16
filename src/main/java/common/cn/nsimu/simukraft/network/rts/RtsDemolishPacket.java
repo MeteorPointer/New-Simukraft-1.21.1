@@ -20,7 +20,9 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
-/** RTS 拆除请求：服务端重新验证权限后才执行整体建筑或单方块拆除。 */
+/**
+ * RTS 拆除请求：服务端重新验证权限后才执行整体建筑或单方块拆除。
+ */
 
 public record RtsDemolishPacket(BlockPos pos) implements CustomPacketPayload {
     private static final double MAX_DISTANCE = 128.0D;
@@ -34,17 +36,23 @@ public record RtsDemolishPacket(BlockPos pos) implements CustomPacketPayload {
         return TYPE;
     }
 
-    /** encode: 编码待拆除方块位置。 */
+    /**
+     * encode: 编码待拆除方块位置。
+     */
     private static void encode(RegistryFriendlyByteBuf buffer, RtsDemolishPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode: 解码待拆除方块位置。 */
+    /**
+     * decode: 解码待拆除方块位置。
+     */
     private static RtsDemolishPacket decode(RegistryFriendlyByteBuf buffer) {
         return new RtsDemolishPacket(buffer.readBlockPos());
     }
 
-    /** handle: 切换到服务端线程执行受权限保护的拆除。 */
+    /**
+     * handle: 切换到服务端线程执行受权限保护的拆除。
+     */
     public static void handle(RtsDemolishPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;
@@ -52,7 +60,9 @@ public record RtsDemolishPacket(BlockPos pos) implements CustomPacketPayload {
         context.enqueueWork(() -> demolish(level, player, packet.pos()));
     }
 
-    /** demolish: 区分已登记建筑与普通方块并执行拆除。 */
+    /**
+     * demolish: 区分已登记建筑与普通方块并执行拆除。
+     */
     private static void demolish(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (pos == null || !RtsChunkViewService.isTargetReachable(level, player, pos, MAX_DISTANCE)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.rts.too_far"));

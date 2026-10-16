@@ -5,7 +5,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class MineralDrillingDepthCostTest {
-    /** chargesOnlyNewDownwardSegments: 验证下移跨越十格边界才新增消耗且回升不返还。 */
+    /**
+     * chargesOnlyNewDownwardSegments: 验证下移跨越十格边界才新增消耗且回升不返还。
+     */
     @Test
     void chargesOnlyNewDownwardSegments() {
         assertEquals(0, MineralDrillingDepthCost.segmentsForDepth(100, 100));

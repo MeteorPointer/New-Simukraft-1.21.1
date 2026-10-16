@@ -6,16 +6,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Locale;
-import java.util.Set;
+import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
-/** BuildingZipMerger: 把拖进建筑包目录的 zip 解压并合并进官方建筑文件夹。 */
+/**
+ * BuildingZipMerger: 把拖进建筑包目录的 zip 解压并合并进官方建筑文件夹。
+ */
 public final class BuildingZipMerger {
     private static final Set<String> CATEGORIES = Set.of("residential", "commercial", "industry", "public", "other");
     private static final String IMPORTED_DIR = ".imported";
@@ -101,7 +98,9 @@ public final class BuildingZipMerger {
         return copied;
     }
 
-    /** buildingRelativePath: 接受 buildings/分类/文件，也接受直接以分类开头的文件。 */
+    /**
+     * buildingRelativePath: 接受 buildings/分类/文件，也接受直接以分类开头的文件。
+     */
     static Path buildingRelativePath(String entryName) {
         if (entryName == null || entryName.isBlank()) {
             return null;

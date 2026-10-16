@@ -12,13 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 
 public final class CommercialTradeService {
@@ -27,12 +21,16 @@ public final class CommercialTradeService {
     private CommercialTradeService() {
     }
 
-    /** executePlayerTrade: 执行玩家发起的商业交易。 */
+    /**
+     * executePlayerTrade: 执行玩家发起的商业交易。
+     */
     public static synchronized TradeResult executePlayerTrade(ServerLevel level, ServerPlayer player, BlockPos boxPos, String offerId, int count) {
         return executePlayerTrade(level, player, boxPos, offerId, count, true);
     }
 
-    /** executePlayerTrade: 根据点击方式执行玩家商业交易。 */
+    /**
+     * executePlayerTrade: 根据点击方式执行玩家商业交易。
+     */
     public static synchronized TradeResult executePlayerTrade(ServerLevel level, ServerPlayer player, BlockPos boxPos, String offerId, int count, boolean quickMove) {
         int times = Math.clamp(count, 1, MAX_TRADE_COUNT);
         if (level == null || player == null || boxPos == null) {
@@ -64,7 +62,9 @@ public final class CommercialTradeService {
         return applyPlayerTrade(level, player, building.cityId(), payerCityId, boxPos, offer, times, quickMove);
     }
 
-    /** executeNpcOffer: 执行 NPC 自动经营可见的商业报价。 */
+    /**
+     * executeNpcOffer: 执行 NPC 自动经营可见的商业报价。
+     */
     public static synchronized TradeResult executeNpcOffer(ServerLevel level, BlockPos boxPos, CommercialDefinition definition, CommercialOffer offer) {
         if (level == null || boxPos == null || definition == null || offer == null || !offer.visibleToNpc()) {
             return TradeResult.fail("message.simukraft.commercial.offer_unavailable");
@@ -102,7 +102,9 @@ public final class CommercialTradeService {
         return TradeResult.success("message.simukraft.commercial.npc_trade_done");
     }
 
-    /** resolvePayerCityId: 成员用建筑城市账户，访客用自己城市账户，无城市为 null。 */
+    /**
+     * resolvePayerCityId: 成员用建筑城市账户，访客用自己城市账户，无城市为 null。
+     */
     public static UUID resolvePayerCityId(ServerLevel level, ServerPlayer player, UUID buildingCityId) {
         if (level == null || player == null || buildingCityId == null) {
             return null;
@@ -356,27 +358,37 @@ public final class CommercialTradeService {
     }
 
     public record TradeResult(boolean success, Component message, ItemStack carriedStack) {
-        /** success: 创建交易成功结果。 */
+        /**
+         * success: 创建交易成功结果。
+         */
         public static TradeResult success(String key) {
             return success(Component.translatable(key));
         }
 
-        /** success: 创建带自定义消息的交易成功结果。 */
+        /**
+         * success: 创建带自定义消息的交易成功结果。
+         */
         public static TradeResult success(Component message) {
             return success(message, ItemStack.EMPTY);
         }
 
-        /** success: 创建带鼠标手持结果的交易成功结果。 */
+        /**
+         * success: 创建带鼠标手持结果的交易成功结果。
+         */
         public static TradeResult success(Component message, ItemStack carriedStack) {
             return new TradeResult(true, Objects.requireNonNullElse(message, Component.empty()), Objects.requireNonNullElse(carriedStack, ItemStack.EMPTY));
         }
 
-        /** fail: 创建交易失败结果。 */
+        /**
+         * fail: 创建交易失败结果。
+         */
         public static TradeResult fail(String key) {
             return new TradeResult(false, Component.translatable(key), ItemStack.EMPTY);
         }
 
-        /** money: 格式化资金文本。 */
+        /**
+         * money: 格式化资金文本。
+         */
         public static String money(double value) {
             return String.format(Locale.ROOT, "%.2f", value);
         }

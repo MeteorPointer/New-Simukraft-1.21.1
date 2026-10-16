@@ -2,11 +2,7 @@ package client.cn.nsimu.simukraft.client.exchange;
 
 import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
 import common.cn.nsimu.simukraft.economy.CoinDenominations;
-import common.cn.nsimu.simukraft.exchange.ExchangeCandle;
-import common.cn.nsimu.simukraft.exchange.ExchangeCompanyLoader;
-import common.cn.nsimu.simukraft.exchange.ExchangeMarketClock;
-import common.cn.nsimu.simukraft.exchange.ExchangePriceMath;
-import common.cn.nsimu.simukraft.exchange.ExchangeQuote;
+import common.cn.nsimu.simukraft.exchange.*;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.network.chat.Component;
@@ -19,7 +15,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-/** ExchangeChartPlot: 真实行情图的坐标、均线、十字光标和悬浮文案。 */
+/**
+ * ExchangeChartPlot: 真实行情图的坐标、均线、十字光标和悬浮文案。
+ */
 @OnlyIn(Dist.CLIENT)
 final class ExchangeChartPlot {
     static final int UP = 0xFF55FF55;
@@ -38,7 +36,9 @@ final class ExchangeChartPlot {
     private ExchangeChartPlot() {
     }
 
-    /** layout: 给绘图区和坐标轴留边，只铺最近若干交易日，均线仍用更早的历史。 */
+    /**
+     * layout: 给绘图区和坐标轴留边，只铺最近若干交易日，均线仍用更早的历史。
+     */
     static Layout layout(@Nullable ExchangeQuote quote, int x, int y, int w, int h, ExchangeChartElement.Mode mode,
                          int days) {
         int plotX = x;
@@ -80,7 +80,9 @@ final class ExchangeChartPlot {
         return new Layout(x, y, w, h, plotX, plotY, plotW, plotH, slot, min, max, candles, history, historyStart, mode);
     }
 
-    /** draw: 画网格、均线、K 线或成交量、坐标和悬浮十字。 */
+    /**
+     * draw: 画网格、均线、K 线或成交量、坐标和悬浮十字。
+     */
     static void draw(GUIContext guiContext, Layout layout, @Nullable ExchangeQuote quote, int mouseX, int mouseY,
                      int clipLeft, int clipRight) {
         Font font = Minecraft.getInstance().font;
@@ -109,7 +111,9 @@ final class ExchangeChartPlot {
         }
     }
 
-    /** tooltip: 组装一根 K 线的完整悬浮信息。 */
+    /**
+     * tooltip: 组装一根 K 线的完整悬浮信息。
+     */
     static List<Component> tooltip(@Nullable ExchangeQuote quote, Layout layout, int index) {
         if (quote == null || index < 0 || index >= layout.candles.size()) {
             return List.of();
@@ -152,7 +156,9 @@ final class ExchangeChartPlot {
         }
     }
 
-    /** drawDaySeparators: 换日处画一条竖线，区分前几日的 K 线。 */
+    /**
+     * drawDaySeparators: 换日处画一条竖线，区分前几日的 K 线。
+     */
     private static void drawDaySeparators(GUIContext guiContext, Layout layout) {
         long lastDay = Long.MIN_VALUE;
         for (int i = 0; i < layout.candles.size(); i++) {
@@ -313,7 +319,7 @@ final class ExchangeChartPlot {
                 Component.translatable("gui.simukraft.exchange.candle.close", CoinDenominations.formatYuan(candle.close()))
                         .withStyle(style -> style.withColor(color)),
                 Component.translatable("gui.simukraft.exchange.candle.change",
-                        signedYuan(change), percent(prev <= 0.0D ? 0.0D : change / prev))
+                                signedYuan(change), percent(prev <= 0.0D ? 0.0D : change / prev))
                         .withStyle(style -> style.withColor(color)),
                 Component.translatable("gui.simukraft.exchange.candle.volume", candle.volume())
         );
@@ -378,7 +384,9 @@ final class ExchangeChartPlot {
     record Layout(int x, int y, int w, int h, int plotX, int plotY, int plotW, int plotH, int slot,
                   double min, double max, List<ExchangeCandle> candles, List<ExchangeCandle> history, int historyStart,
                   ExchangeChartElement.Mode mode) {
-        /** indexAt: 鼠标 X 落到哪一根 K 线。 */
+        /**
+         * indexAt: 鼠标 X 落到哪一根 K 线。
+         */
         int indexAt(float mouseX) {
             if (candles.isEmpty() || slot <= 0) {
                 return -1;

@@ -7,19 +7,25 @@ import net.minecraft.world.entity.player.Player;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-/** 隔离 common 容器持有器与客户端界面实现。 */
+/**
+ * 隔离 common 容器持有器与客户端界面实现。
+ */
 public final class CitizenInfoUiBridge {
     private static final AtomicReference<Factory> FACTORY = new AtomicReference<>();
 
     private CitizenInfoUiBridge() {
     }
 
-    /** install：客户端启动时安装 LDLib 界面工厂。 */
+    /**
+     * install：客户端启动时安装 LDLib 界面工厂。
+     */
     public static void install(Factory factory) {
         FACTORY.set(factory);
     }
 
-    /** create：在物理客户端创建界面；服务端未安装时返回 null。 */
+    /**
+     * create：在物理客户端创建界面；服务端未安装时返回 null。
+     */
     public static ModularUI create(CitizenInfoResponsePacket packet,
                                    CitizenInventory inventory,
                                    CitizenEntity owner,

@@ -10,16 +10,8 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.Property;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -34,12 +26,16 @@ public final class BuildingVoxelCodec {
     private BuildingVoxelCodec() {
     }
 
-    /** solidCount: 会写入快照的非空气方块数。 */
+    /**
+     * solidCount: 会写入快照的非空气方块数。
+     */
     public static int solidCount(List<BuildingBlockData> blocks) {
         return solidBlocks(blocks).size();
     }
 
-    /** encode: 把完工快照压成 payload；空列表写成合法的空快照而不是 null。 */
+    /**
+     * encode: 把完工快照压成 payload；空列表写成合法的空快照而不是 null。
+     */
     public static byte[] encode(List<BuildingBlockData> blocks) {
         List<BuildingBlockData> solid = solidBlocks(blocks);
         Map<BlockState, Integer> palette = new LinkedHashMap<>();
@@ -74,7 +70,9 @@ public final class BuildingVoxelCodec {
         return gzipBytes.toByteArray();
     }
 
-    /** decode: 空/损坏的 payload 返回空列表，不抛到加载路径。 */
+    /**
+     * decode: 空/损坏的 payload 返回空列表，不抛到加载路径。
+     */
     public static List<BuildingBlockData> decode(byte[] payload) {
         if (payload == null || payload.length == 0) {
             return List.of();
@@ -126,7 +124,9 @@ public final class BuildingVoxelCodec {
         }
     }
 
-    /** decodeLegacyBlockState: 旧表 Base64(NBT) 行，迁移折叠时用。 */
+    /**
+     * decodeLegacyBlockState: 旧表 Base64(NBT) 行，迁移折叠时用。
+     */
     public static BlockState decodeLegacyBlockState(String encoded, String blockId) {
         try {
             byte[] bytes = Base64.getDecoder().decode(encoded == null ? "" : encoded);
@@ -156,7 +156,9 @@ public final class BuildingVoxelCodec {
         }
     }
 
-    /** encodeLegacyBlockState: 仅测试用来构造旧表行。 */
+    /**
+     * encodeLegacyBlockState: 仅测试用来构造旧表行。
+     */
     public static String encodeLegacyBlockState(BlockState state) {
         CompoundTag tag = new CompoundTag();
         tag.putString("Name", BuiltInRegistries.BLOCK.getKey(state.getBlock()).toString());

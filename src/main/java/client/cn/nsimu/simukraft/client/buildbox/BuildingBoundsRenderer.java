@@ -1,17 +1,10 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
-import com.mojang.blaze3d.systems.RenderSystem;
-import com.mojang.blaze3d.vertex.BufferBuilder;
-import com.mojang.blaze3d.vertex.BufferUploader;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.Tesselator;
-import com.mojang.blaze3d.vertex.VertexFormat;
 import client.cn.nsimu.simukraft.client.city.ClientCityChunkCache;
 import client.cn.nsimu.simukraft.client.rts.RtsMovePreviewManager;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.*;
 import common.cn.nsimu.simukraft.building.BuildingTerritoryValidator;
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
@@ -22,6 +15,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
 import org.joml.Matrix4f;
@@ -36,10 +31,10 @@ import java.util.concurrent.ConcurrentHashMap;
 @OnlyIn(Dist.CLIENT)
 public final class BuildingBoundsRenderer {
     private static final int COLOR_CITY_BORDER = 0x553C66FF;
-    private static final int COLOR_INTRUSION_AIR   = 0x28FFEE00; // 黄色实心面，低透明避免叠加过亮
-    private static final int COLOR_INTRUSION_BLOCK  = 0x28FF3300; // 红色实心面
-    private static final int COLOR_INTRUSION_AIR_EDGE   = 0xCCFFEE00; // 黄色线框边缘
-    private static final int COLOR_INTRUSION_BLOCK_EDGE  = 0xCCFF3300; // 红色线框边缘
+    private static final int COLOR_INTRUSION_AIR = 0x28FFEE00; // 黄色实心面，低透明避免叠加过亮
+    private static final int COLOR_INTRUSION_BLOCK = 0x28FF3300; // 红色实心面
+    private static final int COLOR_INTRUSION_AIR_EDGE = 0xCCFFEE00; // 黄色线框边缘
+    private static final int COLOR_INTRUSION_BLOCK_EDGE = 0xCCFF3300; // 红色线框边缘
     private static final int COLOR_SELECTED_BUILDING = 0xAAFFFFFF;
     private static final int COLOR_RTS_TARGET = 0xEE22DDFF;
     private static final int COLOR_RTS_SELECTED = 0xEEFFAA22;
@@ -120,29 +115,39 @@ public final class BuildingBoundsRenderer {
         }
     }
 
-    /** setRtsTarget: 更新 RTS 光标当前命中的方块。 */
+    /**
+     * setRtsTarget: 更新 RTS 光标当前命中的方块。
+     */
     public static void setRtsTarget(BlockPos targetPos) {
         rtsTargetPos = targetPos == null ? null : targetPos.immutable();
     }
 
-    /** setRtsSelection: 更新 RTS 左键选中的方块。 */
+    /**
+     * setRtsSelection: 更新 RTS 左键选中的方块。
+     */
     public static void setRtsSelection(BlockPos selectedPos) {
         rtsSelectedPos = selectedPos == null ? null : selectedPos.immutable();
     }
 
-    /** setRtsBuildingBounds: 替换 RTS 建筑边界与名称快照，使用不可变列表避免渲染并发修改。 */
+    /**
+     * setRtsBuildingBounds: 替换 RTS 建筑边界与名称快照，使用不可变列表避免渲染并发修改。
+     */
     public static void setRtsBuildingBounds(List<RtsBuildingBounds> bounds) {
         rtsBuildingBounds = bounds == null ? List.of() : bounds.stream()
                 .filter(boundsEntry -> boundsEntry != null && boundsEntry.bounds() != null)
                 .toList();
     }
 
-    /** setRtsMovePreviewBounds: 更新 RTS 抓取预览的整体边界。 */
+    /**
+     * setRtsMovePreviewBounds: 更新 RTS 抓取预览的整体边界。
+     */
     public static void setRtsMovePreviewBounds(AABB bounds) {
         rtsMovePreviewBounds = bounds;
     }
 
-    /** knownBuildingBoundsAt: 查找已同步到客户端的建筑边界。 */
+    /**
+     * knownBuildingBoundsAt: 查找已同步到客户端的建筑边界。
+     */
     public static AABB knownBuildingBoundsAt(BlockPos pos) {
         if (pos == null) {
             return null;
@@ -161,7 +166,9 @@ public final class BuildingBoundsRenderer {
         return null;
     }
 
-    /** knownRtsBuildingNameAt: 查找 RTS 快照中包含指定方块的建筑名称。 */
+    /**
+     * knownRtsBuildingNameAt: 查找 RTS 快照中包含指定方块的建筑名称。
+     */
     public static String knownRtsBuildingNameAt(BlockPos pos) {
         if (pos == null) {
             return "";
@@ -311,6 +318,7 @@ public final class BuildingBoundsRenderer {
     private static void renderIntrusions(PoseStack poseStack, Vec3 cameraPos, Minecraft minecraft) {
         renderCachedIntrusions(poseStack, cameraPos, minecraft);
     }
+
     private static void renderSelectedBuildingBounds(PoseStack poseStack, Vec3 cameraPos) {
         if (DISPLAYED_BUILDING_BOUNDS.isEmpty()) {
             return;
@@ -586,7 +594,9 @@ public final class BuildingBoundsRenderer {
     private record DisplayedBuildingBounds(AABB bounds, List<DisplayMarker> markers) {
     }
 
-    /** RtsBuildingBounds: 客户端 RTS 建筑边界与显示名称快照。 */
+    /**
+     * RtsBuildingBounds: 客户端 RTS 建筑边界与显示名称快照。
+     */
     public record RtsBuildingBounds(AABB bounds, String displayName) {
         public RtsBuildingBounds {
             displayName = displayName == null ? "" : displayName;

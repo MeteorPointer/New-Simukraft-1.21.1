@@ -8,10 +8,14 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-/** RTS 远程箱子兼容：保持原版箱子开盖计数。 */
+/**
+ * RTS 远程箱子兼容：保持原版箱子开盖计数。
+ */
 @Mixin(ChestBlockEntity.class)
 public abstract class MixinChestBlockEntity {
-    /** simukraft$keepRtsChestOpen: 远程菜单有效时跳过原版的近距离开箱者重检。 */
+    /**
+     * simukraft$keepRtsChestOpen: 远程菜单有效时跳过原版的近距离开箱者重检。
+     */
     @Inject(method = "recheckOpen", at = @At("HEAD"), cancellable = true)
     private void simukraft$keepRtsChestOpen(CallbackInfo callback) {
         ChestBlockEntity chest = (ChestBlockEntity) (Object) this;

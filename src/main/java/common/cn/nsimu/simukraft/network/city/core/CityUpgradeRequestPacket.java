@@ -18,9 +18,12 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 import java.util.Optional;
 
-/** CityUpgradeRequestPacket: 请求服务端校验并升级当前城市。 */
+/**
+ * CityUpgradeRequestPacket: 请求服务端校验并升级当前城市。
+ */
 
-public record CityUpgradeRequestPacket(BlockPos pos, int expectedCurrentLevel, int targetLevel) implements CustomPacketPayload {
+public record CityUpgradeRequestPacket(BlockPos pos, int expectedCurrentLevel,
+                                       int targetLevel) implements CustomPacketPayload {
     public static final Type<CityUpgradeRequestPacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "city_upgrade_request"));
     public static final StreamCodec<RegistryFriendlyByteBuf, CityUpgradeRequestPacket> STREAM_CODEC =
@@ -31,19 +34,25 @@ public record CityUpgradeRequestPacket(BlockPos pos, int expectedCurrentLevel, i
         return TYPE;
     }
 
-    /** encode: 写入城市核心位置和客户端快照等级，服务端仍从数据包定义读取费用。 */
+    /**
+     * encode: 写入城市核心位置和客户端快照等级，服务端仍从数据包定义读取费用。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, CityUpgradeRequestPacket packet) {
         buffer.writeBlockPos(packet.pos());
         buffer.writeVarInt(packet.expectedCurrentLevel());
         buffer.writeVarInt(packet.targetLevel());
     }
 
-    /** decode: 读取城市升级请求。 */
+    /**
+     * decode: 读取城市升级请求。
+     */
     public static CityUpgradeRequestPacket decode(RegistryFriendlyByteBuf buffer) {
         return new CityUpgradeRequestPacket(buffer.readBlockPos(), buffer.readVarInt(), buffer.readVarInt());
     }
 
-    /** handle: 在服务端游戏线程完成访问、权限及资源校验。 */
+    /**
+     * handle: 在服务端游戏线程完成访问、权限及资源校验。
+     */
     public static void handle(CityUpgradeRequestPacket packet, IPayloadContext context) {
         context.enqueueWork(() -> {
             try {
@@ -57,7 +66,9 @@ public record CityUpgradeRequestPacket(BlockPos pos, int expectedCurrentLevel, i
         });
     }
 
-    /** handleOnServer: 在主线程执行升级，避免网络线程直接修改城市和背包。 */
+    /**
+     * handleOnServer: 在主线程执行升级，避免网络线程直接修改城市和背包。
+     */
     private static void handleOnServer(CityUpgradeRequestPacket packet, IPayloadContext context) {
         if (!(context.player() instanceof ServerPlayer player) || !(player.level() instanceof ServerLevel level)) {
             return;

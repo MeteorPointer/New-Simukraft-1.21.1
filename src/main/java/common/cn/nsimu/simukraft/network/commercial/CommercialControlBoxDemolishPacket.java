@@ -30,24 +30,32 @@ public record CommercialControlBoxDemolishPacket(BlockPos pos) implements Custom
         return TYPE;
     }
 
-    /** encode: 写入商业建筑拆除请求。 */
+    /**
+     * encode: 写入商业建筑拆除请求。
+     */
     public static void encode(RegistryFriendlyByteBuf buffer, CommercialControlBoxDemolishPacket packet) {
         buffer.writeBlockPos(packet.pos());
     }
 
-    /** decode: 读取商业建筑拆除请求。 */
+    /**
+     * decode: 读取商业建筑拆除请求。
+     */
     public static CommercialControlBoxDemolishPacket decode(RegistryFriendlyByteBuf buffer) {
         return new CommercialControlBoxDemolishPacket(buffer.readBlockPos());
     }
 
-    /** handle: 校验并拆除商业控制箱关联建筑。 */
+    /**
+     * handle: 校验并拆除商业控制箱关联建筑。
+     */
     public static void handle(CommercialControlBoxDemolishPacket packet, IPayloadContext context) {
         if (context.player() instanceof ServerPlayer player && player.level() instanceof ServerLevel level) {
             handleFor(level, player, packet.pos());
         }
     }
 
-    /** handleFor: 执行拆除并释放商业员工。 */
+    /**
+     * handleFor: 执行拆除并释放商业员工。
+     */
     private static void handleFor(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (!player.blockPosition().closerThan(pos, 8.0D) && !RtsRemoteMenuAccess.hasAccess(player, pos)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.commercial_control_box.too_far"));

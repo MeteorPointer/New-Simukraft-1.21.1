@@ -1,14 +1,7 @@
 package common.cn.nsimu.simukraft.medical;
 
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.citizen.CitizenData;
-import common.cn.nsimu.simukraft.citizen.CitizenFoodConsumptionService;
-import common.cn.nsimu.simukraft.citizen.CitizenJobVisualService;
-import common.cn.nsimu.simukraft.citizen.CitizenManager;
-import common.cn.nsimu.simukraft.citizen.CitizenPanicService;
-import common.cn.nsimu.simukraft.citizen.CitizenSelfFeedingService;
-import common.cn.nsimu.simukraft.citizen.CitizenService;
-import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
+import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.commercial.CommercialFoodMarketService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
@@ -33,7 +26,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
-/** 医生中午采购、携带并向住院患者分发餐食的运行时服务。 */
+/**
+ * 医生中午采购、携带并向住院患者分发餐食的运行时服务。
+ */
 
 public final class MedicalMealService {
     public static final String BUYING_MEALS_STATUS = "gui.npc.status.medical_buying_meals";
@@ -48,7 +43,9 @@ public final class MedicalMealService {
     private MedicalMealService() {
     }
 
-    /** tick：推进各医院医生的中午采购和送餐流程。 */
+    /**
+     * tick：推进各医院医生的中午采购和送餐流程。
+     */
     static void tick(ServerLevel level, List<HospitalContext> hospitals) {
         if (level == null || level.isClientSide() || level.getGameTime() % SERVICE_INTERVAL_TICKS != 0L) {
             return;
@@ -85,25 +82,33 @@ public final class MedicalMealService {
         }
     }
 
-    /** isDoctorMealRunActive：供自主买饭服务避让正在给患者采购的医生。 */
+    /**
+     * isDoctorMealRunActive：供自主买饭服务避让正在给患者采购的医生。
+     */
     public static boolean isDoctorMealRunActive(ServerLevel level, UUID doctorId) {
         return level != null && doctorId != null
                 && runtime(level).active.values().stream().anyMatch(run -> doctorId.equals(run.doctorId));
     }
 
-    /** clearServerCaches：切换存档时释放医生送餐运行状态。 */
+    /**
+     * clearServerCaches：切换存档时释放医生送餐运行状态。
+     */
     public static void clearServerCaches(MinecraftServer server) {
         String prefix = SaveScopedCacheKey.serverKey(server).toLowerCase(Locale.ROOT) + "|";
         RUNTIMES.keySet().removeIf(key -> key.startsWith(prefix));
     }
 
-    /** isMealTime：判断当前是否处于 Minecraft 中午供餐窗口。 */
+    /**
+     * isMealTime：判断当前是否处于 Minecraft 中午供餐窗口。
+     */
     static boolean isMealTime(long dayTime) {
         int timeOfDay = (int) Math.floorMod(dayTime, 24_000L);
         return timeOfDay >= NOON_START_TICK && timeOfDay < NOON_END_TICK;
     }
 
-    /** needsMeal：判断住院患者今天是否仍需医院供餐。 */
+    /**
+     * needsMeal：判断住院患者今天是否仍需医院供餐。
+     */
     static boolean needsMeal(CitizenData patient, long currentDay) {
         return patient != null && !patient.dead() && MedicalService.isAdmitted(patient)
                 && patient.medical().lastHospitalMealDay() < currentDay;

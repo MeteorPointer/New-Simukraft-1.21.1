@@ -1,8 +1,8 @@
 package common.cn.nsimu.simukraft.city;
 
+import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import io.netty.buffer.ByteBuf;
 
 
 public enum CityPermissionLevel {

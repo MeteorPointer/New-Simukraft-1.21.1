@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/** PathExtraCosts: 寻路只加总外部登记的代价，不认识具体玩法。 */
+/**
+ * PathExtraCosts: 寻路只加总外部登记的代价，不认识具体玩法。
+ */
 public final class PathExtraCosts {
     private static final List<Source> SOURCES = new CopyOnWriteArrayList<>();
 

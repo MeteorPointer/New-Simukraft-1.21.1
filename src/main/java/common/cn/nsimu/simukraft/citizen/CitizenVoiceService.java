@@ -1,19 +1,19 @@
 package common.cn.nsimu.simukraft.citizen;
 
+import common.cn.nsimu.simukraft.building.BuilderConstructionService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.registry.ModItems;
 import common.cn.nsimu.simukraft.registry.ModSoundEvents;
-import common.cn.nsimu.simukraft.building.BuilderConstructionService;
 import net.minecraft.core.BlockPos;
-import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.phys.AABB;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.registries.DeferredHolder;
 
 import javax.annotation.Nullable;
@@ -24,7 +24,9 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/** NPC 语音：按性别/年龄选事件，同类有冷却，避免建造和闲聊刷屏。 */
+/**
+ * NPC 语音：按性别/年龄选事件，同类有冷却，避免建造和闲聊刷屏。
+ */
 public final class CitizenVoiceService {
     public enum Cue {
         HURT,
@@ -94,7 +96,9 @@ public final class CitizenVoiceService {
         level.playSound(null, entity.blockPosition(), sound, SoundSource.NEUTRAL, 1.0F, 1.0F);
     }
 
-    /** tryBuilderApproach: 玩家走进施工中的建筑师附近时，有几率只播一次施工语音。 */
+    /**
+     * tryBuilderApproach: 玩家走进施工中的建筑师附近时，有几率只播一次施工语音。
+     */
     public static void tryBuilderApproach(ServerLevel level, CitizenEntity entity, @Nullable CitizenData data) {
         if (level == null || entity == null || !BuilderConstructionService.hasActiveBuildTask(level, entity.getUUID())) {
             BUILD_NEARBY.remove(entity == null ? null : entity.getUUID());
@@ -123,7 +127,9 @@ public final class CitizenVoiceService {
         }
     }
 
-    /** nearbyTalkCue: 走近先问好，问好还在冷却时才闲聊。 */
+    /**
+     * nearbyTalkCue: 走近先问好，问好还在冷却时才闲聊。
+     */
     public static Cue nearbyTalkCue(UUID uuid, long gameTime) {
         if (uuid == null || isCoolingDown(uuid, Cue.GREET, gameTime)) {
             return Cue.CHAT;

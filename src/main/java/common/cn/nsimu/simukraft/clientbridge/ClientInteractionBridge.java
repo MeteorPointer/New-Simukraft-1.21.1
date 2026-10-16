@@ -16,27 +16,37 @@ public final class ClientInteractionBridge {
     private ClientInteractionBridge() {
     }
 
-    /** install: 安装客户端交互实现。 */
+    /**
+     * install: 安装客户端交互实现。
+     */
     public static void install(ClientInteractionHandler handler) {
         HANDLER.set(Objects.requireNonNullElse(handler, ClientInteractionHandler.NOOP));
     }
 
-    /** reset: 恢复为空实现。 */
+    /**
+     * reset: 恢复为空实现。
+     */
     public static void reset() {
         HANDLER.set(ClientInteractionHandler.NOOP);
     }
 
-    /** openBuildBox: 分发建造箱界面打开请求。 */
+    /**
+     * openBuildBox: 分发建造箱界面打开请求。
+     */
     public static void openBuildBox(BlockPos pos) {
         HANDLER.get().openBuildBox(pos);
     }
 
-    /** openManifest: 分发材料清单界面打开请求。 */
+    /**
+     * openManifest: 分发材料清单界面打开请求。
+     */
     public static void openManifest(ItemStack stack, InteractionHand hand) {
         HANDLER.get().openManifest(stack, hand);
     }
 
-    /** openGuideBook: 分发指南书界面打开请求。 */
+    /**
+     * openGuideBook: 分发指南书界面打开请求。
+     */
     public static void openGuideBook(ItemStack stack) {
         HANDLER.get().openGuideBook(stack);
     }

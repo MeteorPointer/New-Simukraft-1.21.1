@@ -1,12 +1,8 @@
 package common.cn.nsimu.simukraft.building;
 
-import common.cn.nsimu.simukraft.material.NpcWorkMaterialService;
-import common.cn.nsimu.simukraft.material.WorkMaterialCache;
-import common.cn.nsimu.simukraft.material.WorkMaterialPolicy;
-import common.cn.nsimu.simukraft.material.WorkMaterialRequest;
-import common.cn.nsimu.simukraft.material.WorkMaterialResult;
-import net.minecraft.world.item.ItemStack;
+import common.cn.nsimu.simukraft.material.*;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 
 public final class BuilderMaterialService {

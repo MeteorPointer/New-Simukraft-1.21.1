@@ -73,7 +73,9 @@ public final class CitizenWorkStatusDisplayRegistry {
     private CitizenWorkStatusDisplayRegistry() {
     }
 
-    /** register: 注册一类可显示在 NPC 工作状态行的文字来源。 */
+    /**
+     * register: 注册一类可显示在 NPC 工作状态行的文字来源。
+     */
     public static void register(String id, int priority, WorkStatusProvider provider) {
         if (id == null || id.isBlank() || provider == null) {
             return;
@@ -82,7 +84,9 @@ public final class CitizenWorkStatusDisplayRegistry {
         ENTRIES.add(new Entry(id, priority, provider));
     }
 
-    /** registerLabelPrefix: 按 statusLabel 前缀注册一组工作状态文本。 */
+    /**
+     * registerLabelPrefix: 按 statusLabel 前缀注册一组工作状态文本。
+     */
     public static void registerLabelPrefix(String id, int priority, String prefix) {
         if (prefix == null || prefix.isBlank()) {
             return;
@@ -90,14 +94,18 @@ public final class CitizenWorkStatusDisplayRegistry {
         register(id, priority, statusLabel(label -> label.startsWith(prefix)));
     }
 
-    /** unregister: 移除指定工作状态文字来源。 */
+    /**
+     * unregister: 移除指定工作状态文字来源。
+     */
     public static void unregister(String id) {
         if (id != null && !id.isBlank()) {
             ENTRIES.removeIf(entry -> entry.id().equals(id));
         }
     }
 
-    /** resolve: 按优先级返回当前 NPC 工作状态行应该显示的文字。 */
+    /**
+     * resolve: 按优先级返回当前 NPC 工作状态行应该显示的文字。
+     */
     public static Component resolve(CitizenEntity entity) {
         if (entity == null) {
             return Component.translatable(WORK_STATUS_IDLE);
@@ -105,7 +113,9 @@ public final class CitizenWorkStatusDisplayRegistry {
         return resolve(new WorkStatusContext(entity, entity.getWorkStatus(), entity.getStatusLabel()));
     }
 
-    /** resolve: 供居民信息界面等非实体渲染入口复用同一套工作状态文字规则。 */
+    /**
+     * resolve: 供居民信息界面等非实体渲染入口复用同一套工作状态文字规则。
+     */
     public static Component resolve(String workStatus, String statusLabel) {
         return resolve(new WorkStatusContext(null, workStatus, statusLabel));
     }
@@ -123,7 +133,9 @@ public final class CitizenWorkStatusDisplayRegistry {
         return Component.translatable(WORK_STATUS_IDLE);
     }
 
-    /** statusLabel: 把实体 statusLabel 按条件解析为工作状态文字。 */
+    /**
+     * statusLabel: 把实体 statusLabel 按条件解析为工作状态文字。
+     */
     private static WorkStatusProvider statusLabel(Predicate<String> matcher) {
         return context -> {
             String statusLabel = context.statusLabel();
@@ -134,19 +146,25 @@ public final class CitizenWorkStatusDisplayRegistry {
         };
     }
 
-    /** workStatus: 匹配基础 workStatus 文本。 */
+    /**
+     * workStatus: 匹配基础 workStatus 文本。
+     */
     private static WorkStatusProvider workStatus(String expectedStatus) {
         return context -> expectedStatus.equals(context.workStatus()) ? Optional.of(localizedOrLiteral(expectedStatus)) : Optional.empty();
     }
 
-    /** workStatusWhenLabelBlank: 没有更具体状态时才显示基础 workStatus。 */
+    /**
+     * workStatusWhenLabelBlank: 没有更具体状态时才显示基础 workStatus。
+     */
     private static WorkStatusProvider workStatusWhenLabelBlank(String expectedStatus) {
         return context -> isBlank(context.statusLabel()) && expectedStatus.equals(context.workStatus())
                 ? Optional.of(localizedOrLiteral(expectedStatus))
                 : Optional.empty();
     }
 
-    /** localizedOrLiteral: 翻译键走本地化，JSON Component 直接反序列化，普通文本保持原样。 */
+    /**
+     * localizedOrLiteral: 翻译键走本地化，JSON Component 直接反序列化，普通文本保持原样。
+     */
     private static Component localizedOrLiteral(String value) {
         if (isBlank(value)) {
             return Component.empty();
@@ -155,7 +173,8 @@ public final class CitizenWorkStatusDisplayRegistry {
             try {
                 Component c = Component.Serializer.fromJson(value, net.minecraft.core.RegistryAccess.EMPTY);
                 if (c != null) return c;
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
         Optional<Component> legacyStatus = legacyLocalizedStatus(value);
         if (legacyStatus.isPresent()) {
@@ -198,7 +217,9 @@ public final class CitizenWorkStatusDisplayRegistry {
         return value == null ? "" : value.replace('：', ':').trim();
     }
 
-    /** missingMaterialStatus: 客户端按本地语言显示缺少的材料名。 */
+    /**
+     * missingMaterialStatus: 客户端按本地语言显示缺少的材料名。
+     */
     private static Optional<Component> missingMaterialStatus(WorkStatusContext context) {
         String label = context.statusLabel();
         if (isBlank(label) || !label.startsWith(NpcWorkMaterialService.MISSING_MATERIAL_STATUS_PREFIX)) {
@@ -297,7 +318,9 @@ public final class CitizenWorkStatusDisplayRegistry {
 
     @FunctionalInterface
     public interface WorkStatusProvider {
-        /** resolve: 根据 NPC 状态上下文解析一条可选工作状态文字。 */
+        /**
+         * resolve: 根据 NPC 状态上下文解析一条可选工作状态文字。
+         */
         Optional<Component> resolve(WorkStatusContext context);
     }
 

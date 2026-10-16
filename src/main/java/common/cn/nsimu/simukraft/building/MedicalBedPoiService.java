@@ -15,7 +15,9 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 
-/** 医疗白床 POI 的激活与失效维护。 */
+/**
+ * 医疗白床 POI 的激活与失效维护。
+ */
 
 public final class MedicalBedPoiService {
     private static final ConcurrentMap<String, Set<BlockPos>> RECORDED_BED_HEADS = new ConcurrentHashMap<>();
@@ -23,7 +25,9 @@ public final class MedicalBedPoiService {
     private MedicalBedPoiService() {
     }
 
-    /** handleBlockBroken：拆除医疗白床时停用对应 POI。 */
+    /**
+     * handleBlockBroken：拆除医疗白床时停用对应 POI。
+     */
     public static void handleBlockBroken(ServerLevel level, BlockPos pos, BlockState brokenState) {
         BlockPos headPos = resolveBedHeadPos(pos, brokenState);
         if (headPos == null) {
@@ -35,7 +39,9 @@ public final class MedicalBedPoiService {
         }
     }
 
-    /** handleBlockPlaced：修复已登记白床时重新激活 POI。 */
+    /**
+     * handleBlockPlaced：修复已登记白床时重新激活 POI。
+     */
     public static void handleBlockPlaced(ServerLevel level, BlockPos pos, BlockState placedState) {
         if (level == null || pos == null || !isWhiteBedHead(placedState)) {
             return;
@@ -47,7 +53,9 @@ public final class MedicalBedPoiService {
         CityPoiManager.get(level).registerPoi(poi.poiId(), poi.cityId(), pos, CityPoiType.MEDICAL, poi.capacity());
     }
 
-    /** addRecordedBeds：记录已建成医疗建筑的白床坐标。 */
+    /**
+     * addRecordedBeds：记录已建成医疗建筑的白床坐标。
+     */
     public static void addRecordedBeds(ServerLevel level, PlacedBuildingRecord building) {
         if (level == null || building == null) {
             return;
@@ -60,7 +68,9 @@ public final class MedicalBedPoiService {
                 .forEach(beds::add);
     }
 
-    /** removeRecordedBeds：建筑拆除时释放白床记录。 */
+    /**
+     * removeRecordedBeds：建筑拆除时释放白床记录。
+     */
     public static void removeRecordedBeds(ServerLevel level, PlacedBuildingRecord building) {
         if (level == null || building == null) {
             return;
@@ -74,13 +84,17 @@ public final class MedicalBedPoiService {
         }
     }
 
-    /** clearServerCaches：切换存档时清理医疗床缓存。 */
+    /**
+     * clearServerCaches：切换存档时清理医疗床缓存。
+     */
     public static void clearServerCaches(MinecraftServer server) {
         String prefix = common.cn.nsimu.simukraft.util.SaveScopedCacheKey.serverKey(server) + "|";
         RECORDED_BED_HEADS.keySet().removeIf(key -> key.startsWith(prefix));
     }
 
-    /** resolveBedHeadPos：把白床任一半部解析为床头坐标。 */
+    /**
+     * resolveBedHeadPos：把白床任一半部解析为床头坐标。
+     */
     public static BlockPos resolveBedHeadPos(BlockPos pos, BlockState state) {
         if (isWhiteBedHead(state)) {
             return pos.immutable();
@@ -94,7 +108,9 @@ public final class MedicalBedPoiService {
         return pos.relative(state.getValue(BlockStateProperties.HORIZONTAL_FACING)).immutable();
     }
 
-    /** isWhiteBedHead：判断方块是否为白床床头。 */
+    /**
+     * isWhiteBedHead：判断方块是否为白床床头。
+     */
     public static boolean isWhiteBedHead(BlockState state) {
         return state != null && state.is(Blocks.WHITE_BED)
                 && (!state.hasProperty(BlockStateProperties.BED_PART)

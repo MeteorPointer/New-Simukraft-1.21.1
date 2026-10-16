@@ -1,7 +1,5 @@
 package client.cn.nsimu.simukraft.client.city.map;
 
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.api.distmarker.OnlyIn;
 import com.mojang.logging.LogUtils;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.player.LocalPlayer;
@@ -9,14 +7,12 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -128,7 +124,7 @@ public class SimuMapManager {
     /**
      * onBlockAtlasReloaded: 方块图集重建后清空贴图色缓存并重扫已加载区块。
      */
-    
+
     public static void onBlockAtlasReloaded() {
         SimuBlockTextureColors.clear();
         if (instance == null || !instance.initialized) {
@@ -268,7 +264,9 @@ public class SimuMapManager {
         scanLoadedChunk(level, chunk, chunk.getPos().x, chunk.getPos().z, false);
     }
 
-    /** onClientChunkUnloaded: 卸载后允许下次加载重新采样，建筑变化能反映到地图。 */
+    /**
+     * onClientChunkUnloaded: 卸载后允许下次加载重新采样，建筑变化能反映到地图。
+     */
     public void onClientChunkUnloaded(ChunkPos chunkPos) {
         if (chunkPos == null) {
             return;
@@ -382,7 +380,9 @@ public class SimuMapManager {
         }
     }
 
-    /** shouldScanChunk: 未扫描过的区块立刻采；地图打开时隔一段时间才重扫。 */
+    /**
+     * shouldScanChunk: 未扫描过的区块立刻采；地图打开时隔一段时间才重扫。
+     */
     private boolean shouldScanChunk(long chunkLong) {
         Long lastScanTick = scannedAtTick.get(chunkLong);
         if (lastScanTick == null) {

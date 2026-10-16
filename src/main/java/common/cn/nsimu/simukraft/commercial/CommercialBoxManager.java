@@ -22,7 +22,9 @@ public final class CommercialBoxManager extends SavedData {
     private volatile boolean sqliteLoaded;
     private volatile ServerLevel level;
 
-    /** get: 获取当前维度的商业箱管理器。 */
+    /**
+     * get: 获取当前维度的商业箱管理器。
+     */
     public static CommercialBoxManager get(ServerLevel level) {
         CommercialBoxManager manager = level.getDataStorage().computeIfAbsent(FACTORY, DATA_NAME);
         manager.level = level;
@@ -48,7 +50,9 @@ public final class CommercialBoxManager extends SavedData {
         return tag;
     }
 
-    /** saveToSqlite: 将商业箱状态写入 SQLite。 */
+    /**
+     * saveToSqlite: 将商业箱状态写入 SQLite。
+     */
     public synchronized void saveToSqlite(ServerLevel level) {
         if (level != null) {
             SimuSqliteStorage.saveCommercialBoxes(level, save(new CompoundTag(), level.registryAccess()));
@@ -75,17 +79,23 @@ public final class CommercialBoxManager extends SavedData {
         boxes.putAll(loaded.boxes);
     }
 
-    /** get: 查找商业箱状态。 */
+    /**
+     * get: 查找商业箱状态。
+     */
     public CommercialBoxData get(BlockPos boxPos) {
         return boxPos == null ? null : boxes.get(boxPos.immutable());
     }
 
-    /** getOrCreate: 获取或创建商业箱状态。 */
+    /**
+     * getOrCreate: 获取或创建商业箱状态。
+     */
     public CommercialBoxData getOrCreate(BlockPos boxPos) {
         return boxes.computeIfAbsent(boxPos.immutable(), CommercialBoxData::new);
     }
 
-    /** persist: 持久化单个商业箱状态。写入的合并与排序由存储层写队列负责。 */
+    /**
+     * persist: 持久化单个商业箱状态。写入的合并与排序由存储层写队列负责。
+     */
     public void persist(CommercialBoxData data) {
         if (data == null) return;
         data.touch();
@@ -96,7 +106,9 @@ public final class CommercialBoxManager extends SavedData {
         SimuSqliteStorage.saveCommercialBox(lv, data.toTag());
     }
 
-    /** remove: 删除商业箱状态。 */
+    /**
+     * remove: 删除商业箱状态。
+     */
     public void remove(BlockPos boxPos) {
         if (boxPos == null) {
             return;
@@ -110,7 +122,9 @@ public final class CommercialBoxManager extends SavedData {
         }
     }
 
-    /** all: 返回商业箱状态快照。 */
+    /**
+     * all: 返回商业箱状态快照。
+     */
     public List<CommercialBoxData> all() {
         return List.copyOf(boxes.values());
     }
