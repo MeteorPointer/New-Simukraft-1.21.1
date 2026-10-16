@@ -385,9 +385,9 @@ public final class MedicalService {
             if (entity.distanceToSqr(target) <= 2.25D && entity.getNavigation().isDone()) {
                 CitizenBedSleepService.tryStartSleeping(level, entity, bed.pos(), target);
             } else if (!CitizenPanicService.isFleeing(level, citizen.uuid())
-                    && !CitizenNavigationService.isNavigating(level, citizen.uuid())
-                    && !CitizenNavigationService.requestMove(level, citizen.uuid(), target, MovementIntent.MEDICAL)) {
-                CitizenTeleportService.teleportCitizen(level, citizen.uuid(), target);
+                    && !CitizenNavigationService.isNavigating(level, citizen.uuid())) {
+                // 寻路失败时留在原地，下一次再试。传送会把人丢进未加载区块，名单还在，实体找不到。
+                CitizenNavigationService.requestMove(level, citizen.uuid(), target, MovementIntent.MEDICAL);
             }
             // 还没躺下时也刷新病因，避免血已回满或已怀孕仍停在旧的「生命值过低」。
             boolean statusChanged = applyAdmittedStatus(citizen, currentDay);

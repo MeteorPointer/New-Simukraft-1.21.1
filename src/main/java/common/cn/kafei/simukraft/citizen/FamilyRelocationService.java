@@ -138,15 +138,20 @@ public final class FamilyRelocationService {
 
         int slot = 0;
         String representativeName = "";
+        boolean homeChanged = false;
         for (UUID memberId : members) {
             if (slot >= vacantPoiIds.size()) break;
             CitizenData c = manager.getCitizen(memberId).orElse(null);
             if (c == null || c.dead()) continue;
-            CitizenService.setHome(level, memberId, vacantPoiIds.get(slot));
+            UUID nextHome = vacantPoiIds.get(slot);
+            if (!nextHome.equals(c.homeId())) {
+                homeChanged = true;
+            }
+            CitizenService.setHome(level, memberId, nextHome);
             if (representativeName.isBlank()) representativeName = c.name();
             slot++;
         }
-        if (slot > 0 && family.cityId() != null && !representativeName.isBlank()) {
+        if (homeChanged && family.cityId() != null && !representativeName.isBlank()) {
             CityGroupMessageService.successToCity(level, family.cityId(),
                     Component.translatable("message.simukraft.citizen.moved_in",
                             representativeName, targetBuilding.displayName()));

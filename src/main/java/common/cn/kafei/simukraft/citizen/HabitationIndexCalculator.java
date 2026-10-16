@@ -41,10 +41,9 @@ public final class HabitationIndexCalculator {
         double matchCoeff;
         if (vacant < expectedBeds) {
             matchCoeff = expectedBeds > 0 ? (double) vacant / expectedBeds : 0;
-        } else if (vacant == expectedBeds) {
-            matchCoeff = 1.0;
         } else {
-            matchCoeff = 1.1;
+            // 空床刚好或更多都是 1。再给富余加分会让同一户每天搬去下一栋更大的空房。
+            matchCoeff = 1.0;
         }
         return index * matchCoeff;
     }
