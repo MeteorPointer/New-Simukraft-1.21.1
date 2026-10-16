@@ -4,6 +4,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Mirror;
@@ -23,8 +25,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
 /**
- * 警戒线：无碰撞薄带。贴图裁掉透明行后高 8 像素，模型与选中框只包住这条带子，并渲染顶面和底面。
- * 32×8 贴图右半张作为拐角。
+ * 警戒线：无碰撞薄带。单独放置时贴着方块四边围成一圈，和相邻警戒线连接时改成直线或拐角。
  */
 public final class CautionTapeBlock extends Block {
     public static final DirectionProperty FACING = BlockStateProperties.HORIZONTAL_FACING;
@@ -33,6 +34,11 @@ public final class CautionTapeBlock extends Block {
     public static final BooleanProperty SOUTH = BlockStateProperties.SOUTH;
     public static final BooleanProperty WEST = BlockStateProperties.WEST;
 
+    private static final VoxelShape RING = Shapes.or(
+            Block.box(0.0, 8.5, 0.0, 16.0, 12.5, 1.0),
+            Block.box(0.0, 8.5, 15.0, 16.0, 12.5, 16.0),
+            Block.box(0.0, 8.5, 1.0, 1.0, 12.5, 15.0),
+            Block.box(15.0, 8.5, 1.0, 16.0, 12.5, 15.0));
     private static final VoxelShape ARM_NORTH = Block.box(7.5, 8.5, 0.0, 8.5, 12.5, 8.0);
     private static final VoxelShape ARM_SOUTH = Block.box(7.5, 8.5, 8.0, 8.5, 12.5, 16.0);
     private static final VoxelShape ARM_WEST = Block.box(0.0, 8.5, 7.5, 8.0, 12.5, 8.5);
@@ -50,8 +56,8 @@ public final class CautionTapeBlock extends Block {
                 .isSuffocating((state, level, pos) -> false));
         registerDefaultState(stateDefinition.any()
                 .setValue(FACING, Direction.NORTH)
-                .setValue(NORTH, true)
-                .setValue(SOUTH, true)
+                .setValue(NORTH, false)
+                .setValue(SOUTH, false)
                 .setValue(EAST, false)
                 .setValue(WEST, false));
     }
@@ -136,15 +142,7 @@ public final class CautionTapeBlock extends Block {
         boolean south = connectsTo(level.getBlockState(pos.south()));
         boolean west = connectsTo(level.getBlockState(pos.west()));
         int count = (north ? 1 : 0) + (east ? 1 : 0) + (south ? 1 : 0) + (west ? 1 : 0);
-        if (count == 0) {
-            if (state.getValue(FACING).getAxis() == Direction.Axis.Z) {
-                east = true;
-                west = true;
-            } else {
-                north = true;
-                south = true;
-            }
-        } else if (count == 1) {
+        if (count == 1) {
             if (north) {
                 south = true;
             } else if (south) {
@@ -191,8 +189,16 @@ public final class CautionTapeBlock extends Block {
             if ((i & 8) != 0) {
                 shape = Shapes.or(shape, ARM_WEST);
             }
-            shapes[i] = shape.isEmpty() ? ARM_NORTH : shape;
+            shapes[i] = shape.isEmpty() ? RING : shape;
         }
         return shapes;
+    }
+
+    @Override
+    protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {
+        if (level instanceof ServerLevel serverLevel && !state.is(newState.getBlock())) {
+            CautionTapePlacers.get(serverLevel).remove(pos);
+        }
+        super.onRemove(state, level, pos, newState, movedByPiston);
     }
 }

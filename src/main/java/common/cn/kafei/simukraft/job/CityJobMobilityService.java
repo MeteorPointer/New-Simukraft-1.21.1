@@ -37,7 +37,7 @@ public final class CityJobMobilityService {
             case "planner" -> CityJobType.PLANNER;
             case "farmer" -> CityJobType.FARMER;
             case "guard" -> CityJobType.GUARD;
-            case "gatherer", "miner" -> CityJobType.GATHERER;
+            case "gatherer" -> CityJobType.GATHERER;
             case "commercial_worker", "commercial" -> CityJobType.COMMERCIAL_WORKER;
             case "industrial_worker", "industrial", MineralDrillingConstants.HIRE_ROLE -> CityJobType.INDUSTRIAL_WORKER;
             case "logistics_worker", "logistics" -> CityJobType.LOGISTICS_WORKER;

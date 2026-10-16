@@ -106,7 +106,7 @@ public final class GeologicalHammerItem extends PickaxeItem {
             return InteractionResult.CONSUME;
         }
         if (!serverLevel.dimension().equals(Level.OVERWORLD)) {
-            GeologicalSurveyHintService.send(player, Component.translatable("message.simukraft.geological_hammer.not_overworld"));
+            hint(player, Component.translatable("message.simukraft.geological_hammer.not_overworld"));
             return InteractionResult.FAIL;
         }
         player.getCooldowns().addCooldown(this, COOLDOWN_TICKS);
@@ -144,14 +144,23 @@ public final class GeologicalHammerItem extends PickaxeItem {
                         "message.simukraft.geological_hammer.result",
                         slot.displayName()));
             }
-            GeologicalSurveyHintService.send(player, result);
+            hint(player, result);
             return;
         }
         if (!nearbySlots.isEmpty()) {
-            GeologicalSurveyHintService.send(player, Component.translatable("message.simukraft.geological_hammer.depleted"));
+            hint(player, Component.translatable("message.simukraft.geological_hammer.depleted"));
             return;
         }
-        GeologicalSurveyHintService.send(player, Component.translatable("message.simukraft.geological_hammer.no_nearby"));
+        hint(player, Component.translatable("message.simukraft.geological_hammer.no_nearby"));
+    }
+
+    /** hint: 提示类缺失时改走聊天，避免地质锤把服务器打崩。 */
+    private static void hint(ServerPlayer player, Component message) {
+        try {
+            GeologicalSurveyHintService.send(player, message);
+        } catch (LinkageError error) {
+            player.sendSystemMessage(message);
+        }
     }
 
     /** scanMinimumY: 计算向下探查 60 格后的最低高度，并限制在世界可用高度内。 */
@@ -161,10 +170,10 @@ public final class GeologicalHammerItem extends PickaxeItem {
 
     private static void sendLookupFailure(ServerPlayer player, VirtualVeinLookupStatus status) {
         switch (status) {
-            case NOT_OVERWORLD -> GeologicalSurveyHintService.send(player, Component.translatable("message.simukraft.geological_hammer.not_overworld"));
-            case DEFINITIONS_UNAVAILABLE -> GeologicalSurveyHintService.send(player, Component.translatable("message.simukraft.geological_hammer.definitions_unavailable"));
-            case DATABASE_UNAVAILABLE -> GeologicalSurveyHintService.send(player, Component.translatable("message.simukraft.geological_hammer.database_unavailable"));
-            case UNSUPPORTED_WORLDGEN -> GeologicalSurveyHintService.send(player, Component.translatable("message.simukraft.geological_hammer.unsupported_worldgen"));
+            case NOT_OVERWORLD -> hint(player, Component.translatable("message.simukraft.geological_hammer.not_overworld"));
+            case DEFINITIONS_UNAVAILABLE -> hint(player, Component.translatable("message.simukraft.geological_hammer.definitions_unavailable"));
+            case DATABASE_UNAVAILABLE -> hint(player, Component.translatable("message.simukraft.geological_hammer.database_unavailable"));
+            case UNSUPPORTED_WORLDGEN -> hint(player, Component.translatable("message.simukraft.geological_hammer.unsupported_worldgen"));
             case READY -> {
             }
         }

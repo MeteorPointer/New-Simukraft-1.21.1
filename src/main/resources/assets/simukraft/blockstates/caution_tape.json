@@ -1,6 +1,10 @@
 {
   "multipart": [
     {
+      "when": { "north": "false", "east": "false", "south": "false", "west": "false" },
+      "apply": { "model": "simukraft:block/caution_tape_ring" }
+    },
+    {
       "when": { "north": "true", "south": "true" },
       "apply": { "model": "simukraft:block/caution_tape_straight" }
     },

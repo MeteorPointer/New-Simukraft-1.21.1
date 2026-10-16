@@ -1,5 +1,6 @@
 package common.cn.kafei.simukraft.entity;
 
+import common.cn.kafei.simukraft.building.BuilderConstructionService;
 import common.cn.kafei.simukraft.citizen.CitizenBedSleepService;
 import common.cn.kafei.simukraft.citizen.CitizenData;
 import common.cn.kafei.simukraft.citizen.CitizenHomeRestService;
@@ -267,6 +268,10 @@ public class CitizenEntity extends PathfinderMob {
         AABB around = getBoundingBox().inflate(8.0D, 3.0D, 8.0D);
         if (!level.getEntitiesOfClass(Zombie.class, around, zombie -> zombie.isAlive() && !zombie.isBaby()).isEmpty()) {
             CitizenVoiceService.play(level, this, data, CitizenVoiceService.Cue.FLEE);
+            return;
+        }
+        if (BuilderConstructionService.hasActiveBuildTask(level, getUUID())) {
+            CitizenVoiceService.tryBuilderApproach(level, this, data);
             return;
         }
         if ((tickCount + stagger) % 80 != 0) {

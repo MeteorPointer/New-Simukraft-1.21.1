@@ -110,6 +110,7 @@ public final class SimuKraft {
 
     public SimuKraft(IEventBus modEventBus, ModContainer modContainer) {
         NtIntegrityGuard.verify(); // 内测版启动前校验 NT 保护层完整性，防止用户删除 JiJ 绕过
+        common.cn.kafei.simukraft.block.CautionTapeZones.registerPathCost();
         ModFluidTypes.register(modEventBus);
         ModFluids.register(modEventBus);
         ModItems.register(modEventBus);
@@ -265,6 +266,7 @@ public final class SimuKraft {
     /** onServerStarted: 服务端启动后立即准备官方建筑包目录。 */
     private void onServerStarted(ServerStartedEvent event) {
         BuildingPackageCatalog.ensurePrepared();
+        common.cn.kafei.simukraft.block.CautionTapeZones.rebuild(null);
     }
 
     private void onPlayerInteractBed(PlayerInteractEvent.RightClickBlock event) {
@@ -310,7 +312,6 @@ public final class SimuKraft {
             BuilderConstructionService.tick(level);
             PlannerWorkService.tick(level);
             IndustrialWorkService.tick(level);
-            common.cn.kafei.simukraft.mining.MiningBoxWorkService.tick(level);
             MineralDrillingWorkService.tick(level);
             CommercialWorkService.tick(level);
             LogisticsWorkService.tick(level);

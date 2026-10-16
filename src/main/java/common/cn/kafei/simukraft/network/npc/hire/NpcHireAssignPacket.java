@@ -87,9 +87,7 @@ public record NpcHireAssignPacket(BlockPos sourcePos, String sourceType, String 
             if (ExchangeControlBoxService.HIRE_SOURCE_TYPE.equals(access.sourceType())) {
                 PacketDistributor.sendToPlayer(player, ExchangeControlBoxOpenRequestPacket.snapshot(level, player, access.sourcePos(), ""));
             }
-            if (common.cn.kafei.simukraft.mining.MiningBoxService.HIRE_SOURCE_TYPE.equals(access.sourceType())) {
-                PacketDistributor.sendToPlayer(player, common.cn.kafei.simukraft.network.mining.MiningBoxOpenRequestPacket.snapshot(level, access.sourcePos()));
-            }
+
             if (LogisticsConstants.SERVER_SOURCE_TYPE.equals(access.sourceType())) {
                 PacketDistributor.sendToPlayer(player, LogisticsServerBoxOpenResponsePacket.from(LogisticsControlBoxService.buildServerView(level, access.sourcePos())));
             }

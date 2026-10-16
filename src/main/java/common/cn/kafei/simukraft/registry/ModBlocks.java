@@ -16,6 +16,8 @@ import common.cn.kafei.simukraft.block.IndustrialHousingTrapdoorBlock;
 import common.cn.kafei.simukraft.block.LightBlock;
 import common.cn.kafei.simukraft.block.MiningBoxBlock;
 import common.cn.kafei.simukraft.block.CautionTapeBlock;
+import common.cn.kafei.simukraft.item.CautionTapeRollItem;
+
 import common.cn.kafei.simukraft.block.ResidentialControlBoxBlock;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -39,6 +41,7 @@ import net.minecraft.world.phys.shapes.VoxelShape;
 import net.minecraft.core.BlockPos;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
+import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 
 import java.util.function.Supplier;
@@ -50,7 +53,11 @@ public final class ModBlocks {
 
     public static final DeferredBlock<Block> BLUE_LIGHT_BLOCK = registerBlock("blue_light_block", ModBlocks::lightBlock);
     public static final DeferredBlock<Block> BUILD_BOX = registerBlock("build_box", common.cn.kafei.simukraft.block.BuildBoxBlock::new);
-    public static final DeferredBlock<Block> CAUTION_TAPE = registerNamedItemBlock("caution_tape", CautionTapeBlock::new);
+    public static final DeferredBlock<Block> CAUTION_TAPE = BLOCKS.register("caution_tape", CautionTapeBlock::new);
+    public static final DeferredItem<CautionTapeRollItem> CAUTION_TAPE_ROLL = ITEMS.register("caution_tape",
+            () -> new CautionTapeRollItem(CAUTION_TAPE.get(), new Item.Properties()
+                    .durability(CautionTapeRollItem.USES_PER_ROLL)
+                    .stacksTo(1)));
     public static final DeferredBlock<Block> CHEESE_BLOCK = registerBlock("cheese_block", ModBlocks::cheeseBlock);
     public static final DeferredBlock<Block> CITY_CORE = registerBlock("city_core", CityCoreBlock::new);
     public static final DeferredBlock<Block> COMMERCIAL_CONTROL_BOX = registerBlock("commercial_control_box", CommercialControlBoxBlock::new);

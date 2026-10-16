@@ -38,10 +38,14 @@ public final class LightBlock extends Block {
     protected InteractionResult useWithoutItem(BlockState state, Level level, BlockPos pos, Player player, BlockHitResult hit) {
         if (level instanceof ServerLevel && player instanceof ServerPlayer serverPlayer) {
             level.playSound(null, pos, ModSoundEvents.LIGHT_USE.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
-            GeologicalSurveyHintService.sendTypewriter(
-                    serverPlayer,
-                    Component.translatable(LightBlockSpeech.KEY),
-                    LightBlockSpeech.SPEECH_MILLIS);
+            try {
+                GeologicalSurveyHintService.sendTypewriter(
+                        serverPlayer,
+                        Component.translatable(LightBlockSpeech.KEY),
+                        LightBlockSpeech.SPEECH_MILLIS);
+            } catch (LinkageError error) {
+                serverPlayer.sendSystemMessage(Component.translatable(LightBlockSpeech.KEY));
+            }
             grantTalkingLightAdvancement(serverPlayer);
         }
         return InteractionResult.sidedSuccess(level.isClientSide());

@@ -149,11 +149,6 @@ public final class ClientboundNetworkBridge {
         HANDLER.get().handleExchangeControlBoxOpenResponse(packet);
     }
 
-    /** handleMiningBoxOpenResponse: 分发挖矿盒打开响应。 */
-    public static void handleMiningBoxOpenResponse(common.cn.kafei.simukraft.network.mining.MiningBoxOpenResponsePacket packet) {
-        HANDLER.get().handleMiningBoxOpenResponse(packet);
-    }
-
     /** handleCommercialTradeOpenResponse: 分发 NPC 商业交易界面响应。 */
     public static void handleCommercialTradeOpenResponse(CommercialTradeOpenResponsePacket packet) {
         HANDLER.get().handleCommercialTradeOpenResponse(packet);

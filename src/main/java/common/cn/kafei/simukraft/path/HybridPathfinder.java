@@ -76,7 +76,8 @@ final class HybridPathfinder {
                 return PathResult.success(request, smooth(snapshot, reconstruct(current)));
             }
             for (Neighbor neighbor : neighbors(snapshot, current.cell, target, request.intent())) {
-                double nextCost = current.gCost + neighbor.cost;
+                double nextCost = current.gCost + neighbor.cost
+                        + PathExtraCosts.total(request.citizenId(), request.dimensionId(), neighbor.cell.pos());
                 SearchNode existing = bestNodes.get(neighbor.cell.key());
                 if (existing != null && existing.gCost <= nextCost) {
                     continue;

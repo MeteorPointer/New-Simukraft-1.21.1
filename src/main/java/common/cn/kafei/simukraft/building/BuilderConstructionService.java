@@ -320,8 +320,6 @@ public final class BuilderConstructionService {
             level.setBlock(worldPos, BuildingBlockPlacementService.refreshedPlacementState(level, worldPos, targetState), 3);
             BuildingBlockPlacementService.applyBlockEntityData(level, worldPos, block.copyBlockEntityData());
             spawnBuildParticles(level, worldPos);
-            CitizenEntity builder = CitizenTeleportService.findCitizenEntity(level, citizen.uuid());
-            CitizenVoiceService.play(level, builder, citizen, CitizenVoiceService.Cue.BUILD);
             addPendingBuilderXp(taskRuntime, 1);
             index++;
             placed++;

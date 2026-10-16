@@ -73,6 +73,7 @@ tab_index: 1
 深层钻头:矿井钻透浅层后钻探深板岩层钻探使用
 
 :::right
+
 :item[simukraft:caution_tape] {spacing=4}
 一卷警戒线:警示你掉下悬崖的好东西
 :item[simukraft:gold_coin] {spacing=4}
