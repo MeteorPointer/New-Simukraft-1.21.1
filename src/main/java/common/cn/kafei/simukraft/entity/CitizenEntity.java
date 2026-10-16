@@ -230,6 +230,10 @@ public class CitizenEntity extends PathfinderMob {
                 discard();
                 return;
             }
+            if (CitizenManager.get(serverLevel).wasRemoved(getUUID())) {
+                discard();
+                return;
+            }
             CitizenManualControlService.tick(serverLevel, this);
             CitizenPanicService.tick(serverLevel, this);
             if (isSleeping() && !CitizenHomeRestService.isRestTime(serverLevel)

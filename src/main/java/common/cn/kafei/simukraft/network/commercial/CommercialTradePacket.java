@@ -88,18 +88,29 @@ public record CommercialTradePacket(BlockPos pos, UUID workerId, String offerId,
         return snapshot;
     }
 
-    /** syncChangedSlots: 逐槽对比并用 ClientboundContainerSetSlotPacket 同步变更。 */
+
+    static final int PLAYER_INVENTORY_CONTAINER_ID = -2;
+
+    /**
+     * syncChangedSlots: 商店界面没有玩家背包槽，按当前菜单槽号发包会被客户端丢掉。
+     * 容器号改成-2 直接写入玩家物品栏，快捷栏、主背包和副手都会立刻显示,不然有些时候会出现物品栏不同步的情况。
+     */
     private static void syncChangedSlots(ServerPlayer player, List<ItemStack> before) {
-        final int containerId = player.containerMenu.containerId;
-        final int stateId = player.containerMenu.getStateId();
-        final int low = 9;
-        final int high = Math.min(player.getInventory().getContainerSize(), 36);
-        for (int i = low; i < high; i++) {
-            ItemStack current = player.getInventory().getItem(i);
-            if (!ItemStack.matches(before.get(i), current)) {
-                final int slot = i - low;
-                player.connection.send(new ClientboundContainerSetSlotPacket(containerId, stateId, slot, current.copy()));
+        int size = Math.min(before.size(), player.getInventory().getContainerSize());
+        for (int slot = 0; slot < size; slot++) {
+            ItemStack current = player.getInventory().getItem(slot);
+            if (!ItemStack.matches(before.get(slot), current)) {
+                sendPlayerInventorySlot(player, slot, current);
             }
         }
+    }
+
+    static int[] inventorySlotSync(int inventorySlot) {
+        return new int[] {PLAYER_INVENTORY_CONTAINER_ID, inventorySlot};
+    }
+
+    private static void sendPlayerInventorySlot(ServerPlayer player, int slot, ItemStack stack) {
+        int[] target = inventorySlotSync(slot);
+        player.connection.send(new ClientboundContainerSetSlotPacket(target[0], 0, target[1], stack.copy()));
     }
 }

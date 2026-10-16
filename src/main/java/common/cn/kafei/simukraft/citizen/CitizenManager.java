@@ -45,6 +45,7 @@ public final class CitizenManager extends SavedData {
     // 分帧处理居民状态，避免城市人口变大后单 tick 扫全量。
     private final ConcurrentLinkedQueue<UUID> aiQueue = new ConcurrentLinkedQueue<>();
     private final Set<UUID> queuedAiCitizenIds = ConcurrentHashMap.newKeySet();
+    private final Set<UUID> removedCitizenIds = ConcurrentHashMap.newKeySet();
     private final ConcurrentMap<UUID, Long> lastHungerDecayTick = new ConcurrentHashMap<>();
     private final AtomicInteger dirtyCounter = new AtomicInteger();
     private volatile boolean sqliteLoaded;
@@ -67,6 +68,9 @@ public final class CitizenManager extends SavedData {
             return level.getServer().overworld();
         }
         return level;
+    }
+
+    CitizenManager() {
     }
 
     private static CitizenManager load(CompoundTag tag, HolderLookup.Provider registries) {
@@ -278,6 +282,10 @@ public final class CitizenManager extends SavedData {
             }
         }
         if (data == null) {
+            if (removedCitizenIds.contains(entity.getUUID())) {
+                entity.discard();
+                return null;
+            }
             data = createDefaultFromEntity(entity);
             CitizenData existing = citizens.putIfAbsent(entity.getUUID(), data);
             if (existing != null) {
@@ -353,10 +361,35 @@ public final class CitizenManager extends SavedData {
                 .map(CitizenData::uuid)
                 .toList()
                 .forEach(uuid -> {
-                    CitizenEntity entity = CitizenTeleportService.findCitizenEntity(level, uuid);
-                    if (entity != null) entity.discard();
+                    discardCitizenEntities(level, uuid);
+                    removedCitizenIds.add(uuid);
                     removeCitizen(uuid);
                 });
+    }
+
+    /** discardCitizenEntities：删城时清掉所有已加载维度里的对应实体，避免只丢掉当前维度。 */
+    private static void discardCitizenEntities(ServerLevel level, UUID citizenId) {
+        if (level == null || citizenId == null || level.getServer() == null) {
+            return;
+        }
+        for (ServerLevel serverLevel : level.getServer().getAllLevels()) {
+            CitizenEntity entity = CitizenTeleportService.findCitizenEntity(serverLevel, citizenId);
+            if (entity != null) {
+                entity.discard();
+            }
+        }
+    }
+
+    /** wasRemoved：这个 UUID 已随删城或删除居民清掉，重新加载的旧实体不能再补档案。 */
+    public boolean wasRemoved(UUID citizenId) {
+        return citizenId != null && removedCitizenIds.contains(citizenId);
+    }
+
+    /** rememberRemovedForTest：无世界环境下记录已删除居民。 */
+    void rememberRemovedForTest(UUID citizenId) {
+        if (citizenId != null) {
+            removedCitizenIds.add(citizenId);
+        }
     }
 
     public void tick(ServerLevel level) {

@@ -78,6 +78,9 @@ public final class CommercialTradeService {
             return stateValidation;
         }
         CommercialStockService.restock(level, boxPos, definition);
+        if (offer.stock() != null && offer.stock().materialBacked() && offer.itemLeavesStock()) {
+            return TradeResult.success("message.simukraft.commercial.npc_trade_done");
+        }
         Map<String, Integer> stockDeltas = stockDeltas(offer, 1);
         if (stockDeltas.isEmpty()) {
             return TradeResult.fail("message.simukraft.commercial.npc_trade_unsupported");
