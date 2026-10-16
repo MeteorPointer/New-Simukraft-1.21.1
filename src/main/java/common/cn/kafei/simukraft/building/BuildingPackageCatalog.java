@@ -254,7 +254,7 @@ public final class BuildingPackageCatalog {
         String displayName = localizedText(meta, "name", "name_en", baseName);
         String author = findValue(meta, "author", "External");
         String size = findValue(meta, "size", "-");
-        String amount = findValue(meta, "amount", findValue(meta, "price", "-"));
+        String amount = displayAmount(findValue(meta, "amount", findValue(meta, "price", "-")));
         String description = localizedText(meta, "description", "description_en", findValue(meta, "desc", ""));
         int unlockLevel = readUnlockLevel(metaText.get());
         String structureFile = findValue(metaText.get(), "structure", findValue(metaText.get(), "file", ""));
@@ -609,6 +609,14 @@ public final class BuildingPackageCatalog {
             SimuKraft.LOGGER.warn("Simukraft: Failed to read building package entry {}", entryPath, exception);
             return Optional.empty();
         }
+    }
+
+    /** displayAmount: 英文界面去掉造价里的“元”。 */
+    private static String displayAmount(String amount) {
+        if (amount == null || amount.isBlank() || !BuildingLocale.preferEnglish()) {
+            return amount;
+        }
+        return amount.replace("元", "").trim();
     }
 
     private static String findValue(String text, String key, String fallback) {

@@ -349,6 +349,7 @@
     "screen.simukraft.city_core.finance.recent":  "Recent Transactions",
     "screen.simukraft.city_core.finance.empty":  "No finance transactions.",
     "screen.simukraft.city_core.finance.row":  "%s %s | Balance: %s | %s | %s",
+    "screen.simukraft.city_core.finance.row_merged":  "%s %s × %s | %s | %s",
     "screen.simukraft.city_core.finance.system":  "System",
     "screen.simukraft.city_core.finance.type.income":  "Income",
     "screen.simukraft.city_core.finance.type.expense":  "Expense",

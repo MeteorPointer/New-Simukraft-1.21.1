@@ -1,6 +1,7 @@
 package common.cn.kafei.simukraft.network.exchange;
 
 import common.cn.kafei.simukraft.SimuKraft;
+import common.cn.kafei.simukraft.building.BuildingCatalog;
 import common.cn.kafei.simukraft.building.BuildingIntegrityService;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.citizen.CitizenData;
@@ -87,7 +88,7 @@ public record ExchangeControlBoxOpenRequestPacket(BlockPos pos, String selectedC
         return new ExchangeControlBoxOpenResponsePacket(
                 pos,
                 building != null,
-                building != null ? building.displayName() : "",
+                BuildingCatalog.localizedDisplayName(building),
                 cityId,
                 statusKey,
                 broker != null,

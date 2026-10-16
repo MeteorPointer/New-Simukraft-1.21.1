@@ -62,7 +62,7 @@ public final class MineralDrillingControlBoxService {
         return new MineralDrillingControlBoxView(
                 boxPos,
                 building != null,
-                building != null ? building.displayName() : "",
+                BuildingCatalog.localizedDisplayName(building),
                 integrity.available(),
                 integrity.percent(),
                 integrity.repairableBlocks(),

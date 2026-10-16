@@ -1,5 +1,6 @@
 package common.cn.kafei.simukraft.building.controlbox;
 
+import common.cn.kafei.simukraft.building.BuildingCatalog;
 import common.cn.kafei.simukraft.building.BuildingUnitInstance;
 import common.cn.kafei.simukraft.building.BuilderConstructionService;
 import common.cn.kafei.simukraft.building.BuildingPoiInstance;
@@ -70,8 +71,8 @@ public final class ResidentialControlBoxService {
                 .map(poi -> poi.pos().immutable())
                 .distinct()
                 .toList();
-        String buildingName = building != null && !building.displayName().isBlank()
-                ? building.displayName()
+        String buildingName = building != null && !BuildingCatalog.localizedDisplayName(building).isBlank()
+                ? BuildingCatalog.localizedDisplayName(building)
                 : "gui.residential_control_box.unknown_building";
         BlockPos min = building != null ? building.minPos() : BlockPos.ZERO;
         BlockPos max = building != null ? building.maxPos() : BlockPos.ZERO;

@@ -43,11 +43,12 @@ public final class BuildingBuiltinResourceService {
                 return;
             }
             try {
-                copyOfficialPackage(normalizedRoot);
+                if (copyOfficialPackage(normalizedRoot)) {
+                    COPIED_ROOTS.add(rootKey);
+                }
             } catch (RuntimeException exception) {
                 SimuKraft.LOGGER.error("Simukraft: Failed to copy official building package into {}", normalizedRoot, exception);
             }
-            COPIED_ROOTS.add(rootKey);
         }
     }
 
@@ -85,26 +86,41 @@ public final class BuildingBuiltinResourceService {
         COPIED_ROOTS.clear();
     }
 
-    private static void copyOfficialPackage(Path rootDirectory) {
+    private static boolean copyOfficialPackage(Path rootDirectory) {
         try {
             Files.createDirectories(rootDirectory);
         } catch (IOException exception) {
             SimuKraft.LOGGER.error("Simukraft: Failed to create building package directory {}", rootDirectory, exception);
-            return;
+            return false;
         }
         Path target = officialTarget(rootDirectory);
         if (target == null) {
-            return;
+            return false;
         }
-        if (Files.isDirectory(target)) {
-            SimuKraft.LOGGER.info("Simukraft: Kept existing official building package {}", target);
-            return;
+        Path staging = rootDirectory.resolve(BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME + ".tmp").normalize();
+        if (!staging.startsWith(rootDirectory)) {
+            return false;
         }
         try {
-            copyBuiltin(target);
-            SimuKraft.LOGGER.info("Simukraft: Copied official building package to {}", target);
+            deleteRecursively(staging);
+            copyBuiltin(staging);
+            if (!Files.isDirectory(staging.resolve("buildings"))) {
+                deleteRecursively(staging);
+                SimuKraft.LOGGER.warn("Simukraft: Built-in building package did not contain a buildings directory");
+                return false;
+            }
+            deleteRecursively(target);
+            Files.move(staging, target);
+            SimuKraft.LOGGER.info("Simukraft: Installed official building package at {}", target);
+            return true;
         } catch (IOException exception) {
             SimuKraft.LOGGER.error("Simukraft: Failed to copy official building package to {}", target, exception);
+            try {
+                deleteRecursively(staging);
+            } catch (IOException cleanup) {
+                SimuKraft.LOGGER.warn("Simukraft: Failed to remove incomplete building package {}", staging, cleanup);
+            }
+            return false;
         }
     }
 
@@ -157,7 +173,10 @@ public final class BuildingBuiltinResourceService {
         }
         try (var walk = Files.walk(source)) {
             for (Path file : walk.filter(Files::isRegularFile).toList()) {
-                Path relative = source.relativize(file);
+                String relative = source.relativize(file).toString().replace('\\', '/');
+                if (relative.isBlank() || relative.contains("..")) {
+                    continue;
+                }
                 Path dest = target.resolve(relative).normalize();
                 if (!dest.startsWith(target)) {
                     continue;

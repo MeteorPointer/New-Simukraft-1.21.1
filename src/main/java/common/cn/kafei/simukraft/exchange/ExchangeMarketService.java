@@ -75,7 +75,7 @@ public final class ExchangeMarketService {
         for (ExchangeCompany company : ExchangeCompanyLoader.INSTANCE.companies()) {
             Quote quote = state.quotes.computeIfAbsent(company.id(), ignored -> Quote.seed(company));
             Holding holding = holdings.getOrDefault(company.id(), Holding.EMPTY);
-            quotes.add(new ExchangeQuote(company.id(), company.displayName(), quote.price, quote.previousClose,
+            quotes.add(new ExchangeQuote(company.id(), company.localizedName(), quote.price, quote.previousClose,
                     quote.volume, holding.shares, holding.costBasis, quote.candles));
         }
         return quotes;

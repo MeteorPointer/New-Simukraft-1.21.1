@@ -11,6 +11,17 @@ public final class BuildingCatalog {
     private BuildingCatalog() {
     }
 
+    /** localizedDisplayName: 界面显示用当前语言的建筑名，旧存档里的中文名只作后备。 */
+    public static String localizedDisplayName(PlacedBuildingRecord building) {
+        if (building == null) {
+            return "";
+        }
+        return findBuilding(building.category(), building.buildingFileName())
+                .map(BuildingDefinition::displayName)
+                .filter(name -> name != null && !name.isBlank())
+                .orElse(building.displayName() == null ? "" : building.displayName());
+    }
+
     /** findBuilding: 按分类和 .sk 文件名查找建筑，兼容不带扩展名的旧保存值。 */
     public static Optional<BuildingDefinition> findBuilding(String category, String buildingFileName) {
         if (buildingFileName == null || buildingFileName.isBlank()) {

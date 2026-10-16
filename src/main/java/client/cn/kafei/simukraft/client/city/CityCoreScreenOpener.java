@@ -365,15 +365,8 @@ public final class CityCoreScreenOpener {
         if (packet.financeEntries().isEmpty()) {
             panel.addChild(line(Component.translatable("screen.simukraft.city_core.finance.empty")));
         } else {
-            for (CityCoreOpenResponsePacket.FinanceEntry entry : packet.financeEntries()) {
-                panel.addChild(line(Component.translatable(
-                        "screen.simukraft.city_core.finance.row",
-                        financeTypeText(entry),
-                        financeAmountText(entry),
-                        String.format(Locale.ROOT, "%.2f", entry.balanceAfter()),
-                        financeReasonText(entry),
-                        entry.actorName().isBlank() ? Component.translatable("screen.simukraft.city_core.finance.system").getString() : entry.actorName()
-                )));
+            for (MergedFinance group : mergeFinance(packet.financeEntries())) {
+                panel.addChild(line(financeRow(group)));
             }
         }
         return scrollable(panel);
@@ -480,16 +473,61 @@ public final class CityCoreScreenOpener {
         return Component.translatable(key);
     }
 
+    private record MergedFinance(CityCoreOpenResponsePacket.FinanceEntry newest, double amount, int count) {
+    }
+
+    /** mergeFinance: 相同类型、原因和操作者的流水合成一行，金额相加。 */
+    private static List<MergedFinance> mergeFinance(List<CityCoreOpenResponsePacket.FinanceEntry> entries) {
+        java.util.LinkedHashMap<String, MergedFinance> groups = new java.util.LinkedHashMap<>();
+        for (CityCoreOpenResponsePacket.FinanceEntry entry : entries) {
+            String reason = entry.reason() == null ? "" : entry.reason();
+            String actor = entry.actorName() == null ? "" : entry.actorName();
+            String key = entry.type().name() + "\0" + reason + "\0" + actor;
+            MergedFinance existing = groups.get(key);
+            if (existing == null) {
+                groups.put(key, new MergedFinance(entry, entry.amount(), 1));
+            } else {
+                groups.put(key, new MergedFinance(existing.newest(), existing.amount() + entry.amount(), existing.count() + 1));
+            }
+        }
+        return List.copyOf(groups.values());
+    }
+
+    private static Component financeRow(MergedFinance group) {
+        CityCoreOpenResponsePacket.FinanceEntry entry = group.newest();
+        String actor = entry.actorName().isBlank()
+                ? Component.translatable("screen.simukraft.city_core.finance.system").getString()
+                : entry.actorName();
+        String amount = financeAmountText(entry.type(), group.amount());
+        if (group.count() <= 1) {
+            return Component.translatable("screen.simukraft.city_core.finance.row",
+                    financeTypeText(entry),
+                    amount,
+                    String.format(Locale.ROOT, "%.2f", entry.balanceAfter()),
+                    financeReasonText(entry),
+                    actor);
+        }
+        return Component.translatable("screen.simukraft.city_core.finance.row_merged",
+                financeTypeText(entry),
+                amount,
+                group.count(),
+                financeReasonText(entry),
+                actor);
+    }
+
     private static String financeTypeText(CityCoreOpenResponsePacket.FinanceEntry entry) {
         return Component.translatable("screen.simukraft.city_core.finance.type." + entry.type().name().toLowerCase(Locale.ROOT)).getString();
     }
 
     /** financeAmountText：收入显示正数，支出显示负数，避免流水里两种符号同时出现。 */
     private static String financeAmountText(CityCoreOpenResponsePacket.FinanceEntry entry) {
-        double amount = entry.amount();
-        if (entry.type() == FinanceTransactionData.Type.EXPENSE) {
+        return financeAmountText(entry.type(), entry.amount());
+    }
+
+    private static String financeAmountText(FinanceTransactionData.Type type, double amount) {
+        if (type == FinanceTransactionData.Type.EXPENSE) {
             amount = -Math.abs(amount);
-        } else if (entry.type() == FinanceTransactionData.Type.INCOME) {
+        } else if (type == FinanceTransactionData.Type.INCOME) {
             amount = Math.abs(amount);
         }
         return String.format(Locale.ROOT, "%+.2f", amount);

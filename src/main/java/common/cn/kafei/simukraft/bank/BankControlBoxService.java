@@ -1,5 +1,6 @@
 package common.cn.kafei.simukraft.bank;
 
+import common.cn.kafei.simukraft.building.BuildingCatalog;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.building.PlacedBuildingService;
 import common.cn.kafei.simukraft.building.PublicBuildingTypes;
@@ -28,7 +29,7 @@ public final class BankControlBoxService {
         return new BankControlBoxView(
                 boxPos,
                 building != null,
-                building != null ? building.displayName() : "",
+                BuildingCatalog.localizedDisplayName(building),
                 building != null ? building.cityId() : null,
                 statusKey,
                 teller != null,

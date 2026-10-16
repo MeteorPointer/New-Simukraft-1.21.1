@@ -1,5 +1,6 @@
 package common.cn.kafei.simukraft.medical;
 
+import common.cn.kafei.simukraft.building.BuildingCatalog;
 import common.cn.kafei.simukraft.building.BuildingBlockData;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.building.PlacedBuildingService;
@@ -37,7 +38,7 @@ public final class MedicalControlBoxService {
         return new MedicalControlBoxView(
                 boxPos,
                 building != null,
-                building != null ? building.displayName() : "",
+                BuildingCatalog.localizedDisplayName(building),
                 definitionResult.valid(),
                 definition != null ? definition.name() : "",
                 rings,

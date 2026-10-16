@@ -50,7 +50,7 @@ public final class IndustrialControlBoxService {
         return new IndustrialControlBoxView(
                 boxPos.immutable(),
                 building != null,
-                building != null ? building.displayName() : "",
+                BuildingCatalog.localizedDisplayName(building),
                 loadResult.valid(),
                 definition != null ? definition.name() : "",
                 statusKey,
@@ -141,7 +141,7 @@ public final class IndustrialControlBoxService {
                 data.buildingId(),
                 data.definitionId(),
                 building != null ? building.buildingFileName() : "",
-                building != null ? building.displayName() : "",
+                BuildingCatalog.localizedDisplayName(building),
                 definition != null ? definition.id() : "",
                 definition != null ? definition.name() : "")) {
             CitizenVoiceService.playAt(level, boxPos, ModSoundEvents.CHEESE_MACHINE_START.get());

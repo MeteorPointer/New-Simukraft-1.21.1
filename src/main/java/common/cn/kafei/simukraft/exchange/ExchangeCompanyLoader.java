@@ -64,24 +64,25 @@ public final class ExchangeCompanyLoader implements PreparableReloadListener {
     static ExchangeCompany parse(ResourceLocation resourceId, JsonObject root) {
         String id = text(root, "id", resourceId.getPath());
         String name = text(root, "display_name", id);
+        String nameEn = text(root, "display_name_en", "");
         String sector = text(root, "sector", "other");
         double price = number(root, "base_price", 1.0D);
         double volatility = number(root, "volatility", 0.02D);
-        return new ExchangeCompany(id, name, sector, price, volatility);
+        return new ExchangeCompany(id, name, nameEn, sector, price, volatility);
     }
 
     /** defaults: 内置九家公司。 */
     public static List<ExchangeCompany> defaults() {
         return List.of(
-                new ExchangeCompany("xiaoliang_media", "小亮传媒", "media", 1.20D, 0.028D),
-                new ExchangeCompany("lapis_industry", "青金石工业", "industry", 1.10D, 0.022D),
-                new ExchangeCompany("redstone_medical", "红石医疗", "medical", 1.15D, 0.020D),
-                new ExchangeCompany("laozhang_mining", "老张矿业", "mining", 1.05D, 0.030D),
-                new ExchangeCompany("mochen_dairy", "沐尘奶业", "agriculture", 0.95D, 0.018D),
-                new ExchangeCompany("gunmu_network", "棍木网络", "tech", 1.25D, 0.032D),
-                new ExchangeCompany("pastor_music", "老牧师音乐", "entertainment", 0.90D, 0.026D),
-                new ExchangeCompany("suqing_construction", "苏庆建筑", "construction", 1.00D, 0.021D),
-                new ExchangeCompany("xu_realty", "许氏地产", "realty", 1.30D, 0.024D)
+                new ExchangeCompany("xiaoliang_media", "小亮传媒", "Xiaoliang Media", "media", 1.20D, 0.028D),
+                new ExchangeCompany("lapis_industry", "青金石工业", "Lapis Industry", "industry", 1.10D, 0.022D),
+                new ExchangeCompany("redstone_medical", "红石医疗", "Redstone Medical", "medical", 1.15D, 0.020D),
+                new ExchangeCompany("laozhang_mining", "老张矿业", "Laozhang Mining", "mining", 1.05D, 0.030D),
+                new ExchangeCompany("mochen_dairy", "沐尘奶业", "Mochen Dairy", "agriculture", 0.95D, 0.018D),
+                new ExchangeCompany("gunmu_network", "棍木网络", "Gunmu Network", "tech", 1.25D, 0.032D),
+                new ExchangeCompany("pastor_music", "老牧师音乐", "Pastor Music", "entertainment", 0.90D, 0.026D),
+                new ExchangeCompany("suqing_construction", "苏庆建筑", "Suqing Construction", "construction", 1.00D, 0.021D),
+                new ExchangeCompany("xu_realty", "许氏地产", "Xu Realty", "realty", 1.30D, 0.024D)
         );
     }
 

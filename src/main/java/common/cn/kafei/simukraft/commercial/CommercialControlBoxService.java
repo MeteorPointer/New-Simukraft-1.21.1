@@ -1,5 +1,6 @@
 package common.cn.kafei.simukraft.commercial;
 
+import common.cn.kafei.simukraft.building.BuildingCatalog;
 import common.cn.kafei.simukraft.building.BuildingIntegrityService;
 import common.cn.kafei.simukraft.building.PlacedBuildingRecord;
 import common.cn.kafei.simukraft.building.PlacedBuildingService;
@@ -33,7 +34,7 @@ public final class CommercialControlBoxService {
         return new CommercialControlBoxView(
                 boxPos.immutable(),
                 building != null,
-                building != null ? building.displayName() : "",
+                BuildingCatalog.localizedDisplayName(building),
                 loadResult.valid(),
                 definition != null ? definition.name() : "",
                 resolveStatusKey(data, building, loadResult, worker),
