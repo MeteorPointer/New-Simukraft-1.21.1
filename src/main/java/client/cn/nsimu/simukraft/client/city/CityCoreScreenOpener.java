@@ -1978,6 +1978,9 @@ public final class CityCoreScreenOpener {
                 RenderSystem.applyModelViewMatrix();
                 RenderSystem.restoreProjectionMatrix();
                 RenderSystem.enableCull();
+                // 立体方块会写深度。清掉地图区域内的深度，后面的按钮和文字才不会被墙面挡住。
+                RenderSystem.depthMask(true);
+                RenderSystem.clear(256, Minecraft.ON_OSX);
                 RenderSystem.disableDepthTest();
             }
         }
@@ -2139,7 +2142,8 @@ public final class CityCoreScreenOpener {
         private void onDragUpdate(com.lowdragmc.lowdraglib2.gui.ui.event.UIEvent event) {
             contextMenuVisible = false;
             if (THREE_D_DRAG.equals(event.dragHandler.getDraggingObject())) {
-                threeYaw = threeYawDragStart + (float) (event.x - event.dragStartX) * 0.012F;
+                // 相机用 -yaw 绕 Y 轴，向右拖要减小偏航，地形才跟着光标转。
+                threeYaw = threeYawDragStart - (float) (event.x - event.dragStartX) * 0.012F;
                 event.stopPropagation();
                 return;
             }
