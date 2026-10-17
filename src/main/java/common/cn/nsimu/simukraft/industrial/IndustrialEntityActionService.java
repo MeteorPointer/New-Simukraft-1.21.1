@@ -2,19 +2,30 @@ package common.cn.nsimu.simukraft.industrial;
 
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
+import common.cn.nsimu.simukraft.citizen.CitizenLevelService;
 import common.cn.nsimu.simukraft.citizen.CitizenManager;
 import common.cn.nsimu.simukraft.citizen.CitizenVoiceService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
+import common.cn.nsimu.simukraft.job.CityJobType;
 import common.cn.nsimu.simukraft.material.GenericContainerAccess;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -69,6 +80,7 @@ public final class IndustrialEntityActionService {
             return ActionResult.MISSING_ENTITIES;
         }
         int limit = Math.max(1, step.count());
+        int looting = slaughterLootingLevel(industrialLevel(level, worker));
         int killed = 0;
         for (Animal target : targets) {
             if (killed >= limit) {
@@ -78,13 +90,76 @@ public final class IndustrialEntityActionService {
                 worker.getLookControl().setLookAt(target);
                 worker.triggerWorkSwing(InteractionHand.MAIN_HAND);
             }
-            target.hurt(level.damageSources().generic(), target.getMaxHealth() + 20.0F);
-            if (target.isAlive()) {
-                target.kill();
-            }
+            killForLoot(level, target, worker, looting);
             killed++;
         }
         return killed > 0 ? ActionResult.SUCCESS : ActionResult.MISSING_ENTITIES;
+    }
+
+    /**
+     * slaughterLootingLevel: 工人等级减 1 即为掠夺等级，1 级没有加成，20 级为掠夺 19。
+     */
+    static int slaughterLootingLevel(int workerLevel) {
+        return Math.max(0, workerLevel - 1);
+    }
+
+    /**
+     * killForLoot: 击杀前把掠夺临时写到主手，让原版生物掉落表按该等级增产，击杀后立刻还原。
+     */
+    private static void killForLoot(ServerLevel level, Animal target, CitizenEntity worker, int looting) {
+        ItemStack previousHand = ItemStack.EMPTY;
+        boolean armed = false;
+        if (worker != null && looting > 0) {
+            previousHand = worker.getMainHandItem().copy();
+            ItemStack weapon = weaponWithLooting(level, previousHand, looting);
+            if (weapon != null) {
+                worker.setItemInHand(InteractionHand.MAIN_HAND, weapon);
+                armed = true;
+            }
+        }
+        try {
+            DamageSource source = worker != null && looting > 0
+                    ? level.damageSources().source(DamageTypes.GENERIC_KILL, worker)
+                    : level.damageSources().generic();
+            target.hurt(source, Float.MAX_VALUE);
+            if (target.isAlive()) {
+                target.kill();
+            }
+        } finally {
+            if (armed) {
+                worker.setItemInHand(InteractionHand.MAIN_HAND, previousHand);
+            }
+        }
+    }
+
+    /**
+     * industrialLevel: 读取工业工人当前等级，没有市民数据时按 1 级。
+     */
+    private static int industrialLevel(ServerLevel level, CitizenEntity worker) {
+        if (level == null || worker == null) {
+            return 1;
+        }
+        CitizenData data = CitizenManager.get(level).getCitizen(worker.getUUID()).orElse(null);
+        return CitizenLevelService.snapshot(data, CityJobType.INDUSTRIAL_WORKER).level();
+    }
+
+    /**
+     * weaponWithLooting: 在现有主手或木剑上写入掠夺，不改动物掉落表本身。
+     */
+    private static ItemStack weaponWithLooting(ServerLevel level, ItemStack original, int looting) {
+        try {
+            Holder<Enchantment> enchantment = level.registryAccess()
+                    .lookupOrThrow(Registries.ENCHANTMENT)
+                    .getOrThrow(Enchantments.LOOTING);
+            ItemStack weapon = original == null || original.isEmpty() ? new ItemStack(Items.WOODEN_SWORD) : original.copy();
+            ItemEnchantments.Mutable enchantments = new ItemEnchantments.Mutable(
+                    weapon.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY));
+            enchantments.upgrade(enchantment, looting);
+            weapon.set(DataComponents.ENCHANTMENTS, enchantments.toImmutable());
+            return weapon;
+        } catch (RuntimeException exception) {
+            return null;
+        }
     }
 
     /**

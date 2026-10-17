@@ -188,7 +188,7 @@ public final class IndustrialWorkService {
             boxRuntime.nextTick = gameTime + IDLE_RETRY_TICKS;
             return;
         }
-        // 赶路和计时步骤不一���写状态，请假结束后先清掉，避免复工后仍显示医疗假
+        // 赶路和计时步骤不一定写状态，请假结束后先清掉，避免复工后仍显示医疗假
         if ("gui.simukraft.industrial.status.medical_leave".equals(data.statusKey())) {
             setStatus(manager, data, "gui.simukraft.industrial.status.running", "");
         }

@@ -383,14 +383,26 @@ tasks.withType(JavaCompile).configureEach {
 
 tasks.named("compileJava", JavaCompile).configure {
     dependsOn "generateMixinMappings"
-    inputs.file(mixinMappingsOutput)
-    outputs.file(rawMixinRefMapOutput)
+    inputs.file(mixinMappingsOutput).withPropertyName("mixinMappings")
+    // 打破“refmap 缺失也被当成编译成功”的构建缓存与执行历史
+    inputs.property("mixinRefMapRevision", "1")
+    outputs.file(rawMixinRefMapOutput).withPropertyName("rawMixinRefMap")
+    // 注解处理器没写出 refmap 时，Gradle 会把缺失文件记成成功输出，之后一直 UP-TO-DATE
+    outputs.upToDateWhen {
+        rawMixinRefMapOutput.get().asFile.exists()
+    }
     options.compilerArgs.addAll([
             "-AoutRefMapFile=${rawMixinRefMapOutput.get().asFile.absolutePath}",
             "-AreobfTsrgFile=${mixinMappingsOutput.get().asFile.absolutePath}",
             "-AmappingTypes=tsrg",
             "-AdefaultObfuscationEnv=searge"
     ])
+    doLast {
+        def refMap = rawMixinRefMapOutput.get().asFile
+        if (!refMap.isFile()) {
+            throw new GradleException("Mixin 注解处理器没有生成 refmap: ${refMap}")
+        }
+    }
 }
 
 // The development runtime uses Mojang names, while a packaged NeoForge runtime
@@ -398,8 +410,8 @@ tasks.named("compileJava", JavaCompile).configure {
 // lets one refmap serve both environments without remapping dev targets to SRG.
 tasks.register("prepareMixinRefMap") {
     dependsOn "compileJava"
-    inputs.file(rawMixinRefMapOutput)
-    outputs.file(mixinRefMapOutput)
+    inputs.file(rawMixinRefMapOutput).withPropertyName("rawMixinRefMap")
+    outputs.file(mixinRefMapOutput).withPropertyName("mixinRefMap")
 
     doLast {
         def rawRefMap = rawMixinRefMapOutput.get().asFile

@@ -700,7 +700,7 @@ public final class MedicalService {
     }
 
     /**
-     * canBypassResidentialCoverage：紧急医疗患者无需住宅覆盖即可���接前往同城医院。
+     * canBypassResidentialCoverage：紧急医疗患者无需住宅覆盖即可直接前往同城医院。
      */
     static boolean canBypassResidentialCoverage(CitizenData citizen) {
         if (citizen == null) {
