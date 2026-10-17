@@ -4,12 +4,14 @@ import client.cn.nsimu.simukraft.client.city.ClientCityChunkCache;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.resources.language.I18n;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.FormattedCharSequence;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -31,6 +33,7 @@ public final class CityEntryHud {
     private static String cityName = null;
     private static long startTime = 0L;
     private static UUID lastCityId = null;
+    private static UUID lastDistrictId = null;
     private static long lastChunkLong = Long.MIN_VALUE;
 
     private CityEntryHud() {
@@ -40,6 +43,7 @@ public final class CityEntryHud {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null || mc.level == null) {
             lastCityId = null;
+            lastDistrictId = null;
             lastChunkLong = Long.MIN_VALUE;
             return;
         }
@@ -49,15 +53,46 @@ public final class CityEntryHud {
 
         ClientCityChunkCache cache = ClientCityChunkCache.getInstance();
         UUID cityId = cache.getChunkOwner(chunkLong);
-        if (cityId == null || cityId.equals(lastCityId)) {
-            lastCityId = cityId;
+        ClientCityChunkCache.DistrictLabel district = cache.getChunkDistrict(chunkLong);
+        UUID districtId = district == null ? null : district.districtId();
+        boolean cityChanged = !Objects.equals(cityId, lastCityId);
+        boolean districtChanged = !Objects.equals(districtId, lastDistrictId);
+        lastCityId = cityId;
+        lastDistrictId = districtId;
+        if (districtChanged && district != null && district.name() != null && !district.name().isBlank()) {
+            show(districtBanner(cityName(cache, district.cityId() != null ? district.cityId() : cityId), district.name()));
+            return;
+        }
+        if (!cityChanged || cityId == null) {
             return;
         }
         ClientCityChunkCache.CityCoreEntry entry = cache.getAllCityCores().get(cityId);
         if (entry != null && !entry.cityName().isBlank()) {
             show(entry.cityName());
         }
-        lastCityId = cityId;
+    }
+
+    /**
+     * districtBanner: 分区横幅文案，中文为「城市名城市 · 分区名」。
+     */
+    private static String districtBanner(String cityName, String districtName) {
+        String district = districtName == null ? "" : districtName.trim();
+        String city = cityName == null ? "" : cityName.trim();
+        if (district.isEmpty()) {
+            return city;
+        }
+        if (city.isEmpty()) {
+            return district;
+        }
+        return I18n.get("gui.simukraft.city_entry.district", city, district);
+    }
+
+    private static String cityName(ClientCityChunkCache cache, UUID cityId) {
+        if (cityId == null) {
+            return "";
+        }
+        ClientCityChunkCache.CityCoreEntry entry = cache.getAllCityCores().get(cityId);
+        return entry == null || entry.cityName() == null ? "" : entry.cityName().trim();
     }
 
     public static void show(String name) {
@@ -70,6 +105,7 @@ public final class CityEntryHud {
         cityName = null;
         startTime = 0L;
         lastCityId = null;
+        lastDistrictId = null;
         lastChunkLong = Long.MIN_VALUE;
     }
 

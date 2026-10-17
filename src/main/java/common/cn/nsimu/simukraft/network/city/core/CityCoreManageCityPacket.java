@@ -157,6 +157,7 @@ public record CityCoreManageCityPacket(BlockPos pos, Action action, String value
         if (renamed) {
             CityGroupMessageService.successToCity(level, cityId, message);
             HudSyncService.syncToCityGroup(level, cityId, true);
+            CityChunkSyncService.syncToAll(level);
         } else {
             InfoToastService.warning(player, message);
         }

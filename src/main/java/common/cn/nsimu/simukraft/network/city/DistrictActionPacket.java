@@ -3,6 +3,7 @@ package common.cn.nsimu.simukraft.network.city;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.city.*;
+import common.cn.nsimu.simukraft.network.city.chunk.CityChunkSyncService;
 import common.cn.nsimu.simukraft.network.city.core.CityCoreAccessValidator;
 import common.cn.nsimu.simukraft.network.city.core.CityCoreOpenRequestPacket;
 import common.cn.nsimu.simukraft.network.city.map.CityCoreMapRequestPacket;
@@ -228,6 +229,9 @@ public record DistrictActionPacket(Action action, BlockPos corePos, UUID distric
         }
         if (chunksChanged) {
             DistrictOwnershipSync.retagCity(level, city.cityId());
+        }
+        if (ok && (chunksChanged || packet.action() == Action.RENAME)) {
+            CityChunkSyncService.syncToAll(level);
         }
         // Refresh the parent core snapshot so the management tab sees newly created,
         // renamed, assigned, or deleted districts without reopening the block.

@@ -124,6 +124,7 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
         packet.cityCores().forEach((cityId, core) -> cores.put(cityId, new ClientCityChunkCache.CityCoreEntry(core.pos(), core.cityName())));
         cache.updateAllCityChunks(packet.currentCityId(), packet.cityChunks());
         cache.updateAllCityCores(cores);
+        cache.updateDistricts(packet.districts());
         ClientCompatHooks.refreshXaeroCityHighlights();
     }
 

@@ -283,6 +283,7 @@
     "screen.simukraft.city_core.map.current_city":  "Current City",
     "screen.simukraft.city_core.map.other_city":  "Other City",
     "gui.simukraft.xaero.city.current":  "Your City: %s",
+    "gui.simukraft.city_entry.district":  "%s City · %s",
     "gui.simukraft.xaero.city.other":  "City: %s",
     "screen.simukraft.city_core.map.unclaimed":  "Unclaimed",
     "screen.simukraft.city_core.map.tooltip.chunk":  "Chunk %s, %s",

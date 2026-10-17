@@ -303,6 +303,7 @@
     "screen.simukraft.city_core.map.other_city":  "其他城市",
     "gui.simukraft.xaero.city.current":  "你的城市：%s",
     "gui.simukraft.xaero.city.other":  "城市：%s",
+    "gui.simukraft.city_entry.district":  "%s城市 · %s",
     "screen.simukraft.city_core.map.unclaimed":  "未认领",
     "screen.simukraft.city_core.map.tooltip.chunk":  "区块 %s, %s",
     "screen.simukraft.city_core.map.menu.chunk":  "区块 %s, %s",

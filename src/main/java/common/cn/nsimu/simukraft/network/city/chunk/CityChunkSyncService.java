@@ -3,11 +3,15 @@ package common.cn.nsimu.simukraft.network.city.chunk;
 import common.cn.nsimu.simukraft.city.CityChunkManager;
 import common.cn.nsimu.simukraft.city.CityData;
 import common.cn.nsimu.simukraft.city.CityService;
+import common.cn.nsimu.simukraft.city.DistrictData;
+import common.cn.nsimu.simukraft.city.DistrictManager;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -53,6 +57,11 @@ public final class CityChunkSyncService {
             chunks.put(city.cityId(), Set.copyOf(chunkManager.getCityChunks(city.cityId())));
             cores.put(city.cityId(), new CityChunkSyncPacket.CityCoreEntry(city.cityCorePos(), city.cityName()));
         }
-        return new CityChunkSyncPacket(currentCityId, Map.copyOf(chunks), Map.copyOf(cores));
+        List<CityChunkSyncPacket.DistrictEntry> districts = new ArrayList<>();
+        for (DistrictData district : DistrictManager.get(level).all()) {
+            districts.add(new CityChunkSyncPacket.DistrictEntry(
+                    district.districtId(), district.parentCityId(), district.name(), Set.copyOf(district.chunks())));
+        }
+        return new CityChunkSyncPacket(currentCityId, Map.copyOf(chunks), Map.copyOf(cores), List.copyOf(districts));
     }
 }
