@@ -100,9 +100,7 @@ public record DistrictActionPacket(Action action, BlockPos corePos, UUID distric
             case CREATE -> {
                 if (cityMayor) {
                     CityChunkManager chunkManager = CityChunkManager.get(level);
-                    // A selection commonly contains the parent core chunk because the map is
-                    // centered on it. Core chunks are protected and cannot belong to a district,
-                    // so ignore them while keeping the rest of the atomic create operation.
+                    // 城市核心区块默认没有分区。只有已经绑定分区核心的区块不能被拆进新区。
                     Set<Long> eligibleChunks = chunks.stream()
                             .filter(chunk -> !isProtectedCoreChunk(level, chunk))
                             .collect(Collectors.toUnmodifiableSet());
@@ -242,11 +240,11 @@ public record DistrictActionPacket(Action action, BlockPos corePos, UUID distric
         }
     }
 
+    /**
+     * isProtectedCoreChunk: 已有分区核心的区块不能划进另一个分区。城市核心本身不是默认分区。
+     */
     private static boolean isProtectedCoreChunk(ServerLevel level, long chunkLong) {
         ChunkPos chunk = new ChunkPos(chunkLong);
-        if (CityService.allCities(level).stream().anyMatch(city -> new ChunkPos(city.cityCorePos()).toLong() == chunkLong)) {
-            return true;
-        }
         return DistrictManager.get(level).all().stream()
                 .flatMap(district -> district.cores().stream())
                 .anyMatch(core -> new ChunkPos(BlockPos.of(core)).toLong() == chunk.toLong());

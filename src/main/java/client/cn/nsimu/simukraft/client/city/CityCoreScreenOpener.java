@@ -1760,7 +1760,6 @@ public final class CityCoreScreenOpener {
                     if (!batchClaimChunks.isEmpty()) {
                         List<Long> districtChunks = batchClaimChunks.stream()
                                 .filter(this::isDistrictChunk)
-                                .filter(c -> c != coreChunkLong)
                                 .toList();
                         if (!districtChunks.isEmpty()) {
                             PacketDistributor.sendToServer(new common.cn.nsimu.simukraft.network.city.DistrictActionPacket(
@@ -1780,7 +1779,7 @@ public final class CityCoreScreenOpener {
                         }
                     } else {
                         long singleChunk = ChunkPos.asLong(contextMenuChunkX, contextMenuChunkZ);
-                        if (singleChunk != coreChunkLong && isDistrictChunk(singleChunk)) {
+                        if (isDistrictChunk(singleChunk)) {
                             PacketDistributor.sendToServer(new common.cn.nsimu.simukraft.network.city.DistrictActionPacket(
                                     common.cn.nsimu.simukraft.network.city.DistrictActionPacket.Action.MOVE_TO_CITY,
                                     packet.pos(), null, "", List.of(singleChunk)));
