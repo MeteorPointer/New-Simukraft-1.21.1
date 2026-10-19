@@ -1,0 +1,16 @@
+{
+  "variants": {
+    "face=floor,facing=north": { "model": "simukraft:block/manifest_floor" },
+    "face=floor,facing=east": { "model": "simukraft:block/manifest_floor", "y": 90 },
+    "face=floor,facing=south": { "model": "simukraft:block/manifest_floor", "y": 180 },
+    "face=floor,facing=west": { "model": "simukraft:block/manifest_floor", "y": 270 },
+    "face=wall,facing=south": { "model": "simukraft:block/manifest_wall" },
+    "face=wall,facing=west": { "model": "simukraft:block/manifest_wall", "y": 90 },
+    "face=wall,facing=north": { "model": "simukraft:block/manifest_wall", "y": 180 },
+    "face=wall,facing=east": { "model": "simukraft:block/manifest_wall", "y": 270 },
+    "face=ceiling,facing=north": { "model": "simukraft:block/manifest_floor", "x": 180, "y": 180 },
+    "face=ceiling,facing=east": { "model": "simukraft:block/manifest_floor", "x": 180, "y": 270 },
+    "face=ceiling,facing=south": { "model": "simukraft:block/manifest_floor", "x": 180 },
+    "face=ceiling,facing=west": { "model": "simukraft:block/manifest_floor", "x": 180, "y": 90 }
+  }
+}

@@ -1,6 +1,7 @@
 package common.cn.nsimu.simukraft.network.logistics;
 
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.logistics.LogisticsChannelFilterMode;
 import common.cn.nsimu.simukraft.logistics.LogisticsControlBoxService;
 import common.cn.nsimu.simukraft.logistics.LogisticsDirection;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
@@ -31,7 +32,10 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
                                        LogisticsDirection direction,
                                        BlockPos areaMin,
                                        BlockPos areaMax,
-                                       List<String> filters) implements CustomPacketPayload {
+                                       List<String> filters,
+                                       LogisticsChannelFilterMode filterMode,
+                                       int keepSourceQuantity,
+                                       int keepTargetQuantity) implements CustomPacketPayload {
     public static final Type<LogisticsBoxActionPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "logistics_box_action"));
     public static final StreamCodec<RegistryFriendlyByteBuf, LogisticsBoxActionPacket> STREAM_CODEC = StreamCodec.of(LogisticsBoxActionPacket::encode, LogisticsBoxActionPacket::decode);
 
@@ -62,6 +66,20 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
         this(boxPos, action, clientId, channelId, targetPos, value, direction, BlockPos.ZERO, BlockPos.ZERO, List.of());
     }
 
+    public LogisticsBoxActionPacket(BlockPos boxPos,
+                                    Action action,
+                                    UUID clientId,
+                                    UUID channelId,
+                                    BlockPos targetPos,
+                                    String value,
+                                    LogisticsDirection direction,
+                                    BlockPos areaMin,
+                                    BlockPos areaMax,
+                                    List<String> filters) {
+        this(boxPos, action, clientId, channelId, targetPos, value, direction, areaMin, areaMax, filters,
+                LogisticsChannelFilterMode.ITEM, 0, 0);
+    }
+
     public LogisticsBoxActionPacket {
         boxPos = boxPos != null ? boxPos.immutable() : BlockPos.ZERO;
         targetPos = targetPos != null ? targetPos.immutable() : BlockPos.ZERO;
@@ -70,6 +88,9 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
         value = value != null ? value : "";
         direction = direction != null ? direction : LogisticsDirection.WAREHOUSE_TO_CLIENT;
         filters = filters != null ? filters.stream().filter(filter -> filter != null && !filter.isBlank()).distinct().limit(128).toList() : List.of();
+        filterMode = filterMode != null ? filterMode : LogisticsChannelFilterMode.ITEM;
+        keepSourceQuantity = Math.max(0, keepSourceQuantity);
+        keepTargetQuantity = Math.max(0, keepTargetQuantity);
     }
 
     @Override
@@ -91,6 +112,9 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
         for (String filter : packet.filters()) {
             buffer.writeUtf(filter, 256);
         }
+        buffer.writeEnum(packet.filterMode() != null ? packet.filterMode() : LogisticsChannelFilterMode.ITEM);
+        buffer.writeVarInt(packet.keepSourceQuantity());
+        buffer.writeVarInt(packet.keepTargetQuantity());
     }
 
     public static LogisticsBoxActionPacket decode(RegistryFriendlyByteBuf buffer) {
@@ -111,6 +135,9 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
                 filters.add(filter);
             }
         }
+        LogisticsChannelFilterMode filterMode = buffer.readEnum(LogisticsChannelFilterMode.class);
+        int keepSourceQuantity = Math.max(0, buffer.readVarInt());
+        int keepTargetQuantity = Math.max(0, buffer.readVarInt());
         return new LogisticsBoxActionPacket(
                 boxPos,
                 action,
@@ -121,7 +148,10 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
                 direction,
                 areaMin,
                 areaMax,
-                filters);
+                filters,
+                filterMode,
+                keepSourceQuantity,
+                keepTargetQuantity);
     }
 
     public static void handle(LogisticsBoxActionPacket packet, IPayloadContext context) {
@@ -162,7 +192,8 @@ public record LogisticsBoxActionPacket(BlockPos boxPos,
             case REMOVE_WAREHOUSE_CONTAINER ->
                     LogisticsControlBoxService.removeWarehouseContainer(level, packet.boxPos(), packet.targetPos());
             case ADD_CHANNEL ->
-                    LogisticsControlBoxService.addChannel(level, packet.boxPos(), packet.clientId(), packet.direction(), packet.value(), packet.filters());
+                    LogisticsControlBoxService.addChannel(level, packet.boxPos(), packet.clientId(), packet.direction(),
+                            packet.value(), packet.filters(), packet.filterMode(), packet.keepSourceQuantity(), packet.keepTargetQuantity());
             case TOGGLE_CHANNEL -> LogisticsControlBoxService.toggleChannel(level, packet.channelId());
             case DELETE_CHANNEL -> LogisticsControlBoxService.removeChannel(level, packet.channelId());
             case SET_CHANNEL_KEEP_QUANTITY -> {

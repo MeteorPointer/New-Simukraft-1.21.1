@@ -13,7 +13,7 @@ import java.util.List;
 /**
  * ClientToastLayout: 计算并渲染单个通知的缩放布局。
  */
-final class ClientToastLayout {
+public final class ClientToastLayout {
     private static final ResourceLocation LOGO_TEXTURE = ResourceLocation.fromNamespaceAndPath(
             SimuKraft.MOD_ID, "textures/gui/logo.png");
     private static final int DEFAULT_WIDTH = 184;
@@ -67,8 +67,8 @@ final class ClientToastLayout {
         this.iconY = metrics.iconY();
         this.titleY = verticalOffset + BASE_TITLE_Y;
         this.messageY = verticalOffset + BASE_MESSAGE_Y;
-        this.itemGap = Math.max(1, Math.round(BASE_ITEM_GAP * metrics.horizontalScale()));
-        this.inlineItemSize = Math.max(12, Math.round(BASE_INLINE_ITEM_SIZE * metrics.horizontalScale()));
+        this.itemGap = BASE_ITEM_GAP;
+        this.inlineItemSize = BASE_INLINE_ITEM_SIZE;
         this.sidePadding = metrics.sidePadding();
         this.scale = scale;
     }
@@ -76,12 +76,37 @@ final class ClientToastLayout {
     /**
      * create: 根据目标尺寸迭代计算字体缩放和自动换行。
      */
-    static ClientToastLayout create(Font font, Component title, Component message, ItemStack iconStack,
+    public static ClientToastLayout create(Font font, Component title, Component message, ItemStack iconStack,
                                     int targetWidth, int targetHeight) {
-        int safeWidth = Math.max(1, targetWidth);
-        int safeHeight = Math.max(1, targetHeight);
-        float maximumScale = safeHeight / (float) DEFAULT_HEIGHT;
-        float minimumScale = 0.05F;
+        return create(
+                font,
+                title,
+                message,
+                iconStack,
+                targetWidth,
+                targetHeight,
+                ClientToastConfig.minTextScale(),
+                ClientToastConfig.fitMode());
+    }
+
+    /**
+     * create: 按最小字号和扩展模式计算通知布局。
+     */
+    public static ClientToastLayout create(Font font, Component title, Component message, ItemStack iconStack,
+                                    int targetWidth, int targetHeight, float minTextScale,
+                                    ClientToastConfig.FitMode fitMode) {
+        float minimumScale = Math.max(0.25F, Math.min(1.0F, minTextScale));
+        int[] fitted = ClientToastFit.resolve(
+                targetWidth,
+                targetHeight,
+                ClientToastConfig.MAX_WIDTH,
+                ClientToastConfig.MAX_HEIGHT,
+                minimumScale,
+                fitMode,
+                logicalWidth -> LayoutMetrics.create(font, message, iconStack, logicalWidth).requiredHeight());
+        int safeWidth = Math.max(1, fitted[0]);
+        int safeHeight = Math.max(1, fitted[1]);
+        float maximumScale = Math.max(minimumScale, safeHeight / (float) DEFAULT_HEIGHT);
         float scale = findMaximumFittingScale(
                 font, message, iconStack, safeWidth, safeHeight, minimumScale, maximumScale);
         int logicalWidth = Math.max(1, Math.round(safeWidth / scale));
@@ -97,6 +122,20 @@ final class ClientToastLayout {
                 logicalHeight,
                 verticalOffset,
                 scale);
+    }
+
+    /**
+     * displayWidth: 缩放后的实际像素宽度。
+     */
+    public int displayWidth() {
+        return Math.max(1, Math.round(logicalWidth * scale));
+    }
+
+    /**
+     * displayHeight: 缩放后的实际像素高度。
+     */
+    public int displayHeight() {
+        return Math.max(1, Math.round(logicalHeight * scale));
     }
 
     /**
@@ -122,7 +161,7 @@ final class ClientToastLayout {
     /**
      * render: 将布局缩放至配置的目标矩形。
      */
-    void render(GuiGraphics graphics, Font font, int x, int y, int count, String style) {
+    public void render(GuiGraphics graphics, Font font, int x, int y, int count, String style) {
         graphics.pose().pushPose();
         // 通知必须位于其他 HUD 与屏幕元素之上，避免文本被后续图层覆盖。
         graphics.pose().translate(x, y, RENDER_DEPTH);
@@ -268,7 +307,7 @@ final class ClientToastLayout {
 
             Component itemPrefix = Component.translatable("message.simukraft.material.required_prefix");
             int itemPrefixWidth = font.width(itemPrefix);
-            int inlineItemSize = Math.max(12, Math.round(BASE_INLINE_ITEM_SIZE * horizontalScale));
+            int inlineItemSize = BASE_INLINE_ITEM_SIZE;
             int itemTextWidth = Math.max(1, textWidth - itemPrefixWidth - inlineItemSize - 8);
             List<FormattedCharSequence> itemNameLines = List.copyOf(
                     font.split(safeIconStack.getHoverName(), itemTextWidth));
@@ -279,7 +318,7 @@ final class ClientToastLayout {
                     DEFAULT_HEIGHT,
                     BASE_MESSAGE_Y
                             + Math.max(1, messageLines.size()) * BASE_LINE_HEIGHT
-                            + Math.max(1, Math.round(BASE_ITEM_GAP * horizontalScale))
+                            + BASE_ITEM_GAP
                             + itemContentHeight
                             + BASE_BOTTOM_PADDING);
             return new LayoutMetrics(

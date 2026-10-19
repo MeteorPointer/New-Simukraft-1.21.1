@@ -21,6 +21,7 @@ import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncPacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxViewUpdatePacket;
+import common.cn.nsimu.simukraft.network.manifest.ManifestOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsClientBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsServerBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsWarehouseGridResponsePacket;
@@ -273,5 +274,12 @@ public final class ClientboundNetworkBridge {
      */
     public static void handleRtsBuildingBoundsSync(RtsBuildingBoundsSyncPacket packet) {
         HANDLER.get().handleRtsBuildingBoundsSync(packet);
+    }
+
+    /**
+     * handleManifestOpenResponse: 分发贴墙清单打开响应。
+     */
+    public static void handleManifestOpenResponse(ManifestOpenResponsePacket packet) {
+        HANDLER.get().handleManifestOpenResponse(packet);
     }
 }

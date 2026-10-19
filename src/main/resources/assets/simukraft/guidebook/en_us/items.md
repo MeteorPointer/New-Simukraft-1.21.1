@@ -52,8 +52,7 @@ Farmland Box: The core of automated agricultural production. Hire farmers here t
 
 :item[simukraft:manifest]
 
-Manifest: sneak + right-click on a build box
-to get the material list for the current task.
+Manifest: sneak + right-click a build box or control box to read its material list. Sneak + right-click other blocks to hang it on a floor or wall, then right-click to open.
 
 
 :::right

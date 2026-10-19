@@ -21,6 +21,7 @@ import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncPacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxViewUpdatePacket;
+import common.cn.nsimu.simukraft.network.manifest.ManifestOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsClientBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsServerBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsWarehouseGridResponsePacket;
@@ -223,5 +224,11 @@ public interface ClientboundNetworkHandler {
      * handleRtsBuildingBoundsSync: 更新 RTS 客户端建筑边界快照。
      */
     default void handleRtsBuildingBoundsSync(RtsBuildingBoundsSyncPacket packet) {
+    }
+
+    /**
+     * handleManifestOpenResponse: 打开贴墙清单界面。
+     */
+    default void handleManifestOpenResponse(ManifestOpenResponsePacket packet) {
     }
 }

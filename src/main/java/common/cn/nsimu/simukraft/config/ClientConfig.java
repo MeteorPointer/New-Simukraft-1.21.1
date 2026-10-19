@@ -18,6 +18,8 @@ public final class ClientConfig {
     public static final int DEFAULT_TOAST_POS_Y = 0;
     public static final int DEFAULT_TOAST_WIDTH = 184;
     public static final int DEFAULT_TOAST_HEIGHT = 48;
+    public static final double DEFAULT_TOAST_MIN_TEXT_SCALE = 0.50D;
+    public static final String DEFAULT_TOAST_FIT_MODE = "WIDTH";
     public static final int DEFAULT_RTS_MOVE_HOLD_SECONDS = 1;
 
     public static final ModConfigSpec SPEC;
@@ -31,6 +33,8 @@ public final class ClientConfig {
     public static final ModConfigSpec.IntValue TOAST_POS_Y;
     public static final ModConfigSpec.IntValue TOAST_WIDTH;
     public static final ModConfigSpec.IntValue TOAST_HEIGHT;
+    public static final ModConfigSpec.DoubleValue TOAST_MIN_TEXT_SCALE;
+    public static final ModConfigSpec.ConfigValue<String> TOAST_FIT_MODE;
     public static final ModConfigSpec.BooleanValue PATH_DEBUG_REQUEST_ON_TOGGLE;
     public static final ModConfigSpec.BooleanValue RTS_TARGET_SIMUKRAFT_BLOCKS;
     public static final ModConfigSpec.BooleanValue RTS_TARGET_VANILLA_BLOCKS;
@@ -82,6 +86,14 @@ public final class ClientConfig {
                 .comment("Toast height in pixels. Text scales and wraps to fit.")
                 .translation("config.simukraft.client.toast.height")
                 .defineInRange("height", DEFAULT_TOAST_HEIGHT, 36, 160);
+        TOAST_MIN_TEXT_SCALE = builder
+                .comment("Minimum toast text scale. Item icons follow this scale; the logo does not.")
+                .translation("config.simukraft.client.toast.minTextScale")
+                .defineInRange("minTextScale", DEFAULT_TOAST_MIN_TEXT_SCALE, 0.25D, 1.0D);
+        TOAST_FIT_MODE = builder
+                .comment("When toast text does not fit at the minimum scale: WIDTH grows width first, HEIGHT grows height first.")
+                .translation("config.simukraft.client.toast.fitMode")
+                .define("fitMode", DEFAULT_TOAST_FIT_MODE, ClientConfig::isToastFitMode);
         builder.pop();
         builder.push("path_debug");
         PATH_DEBUG_REQUEST_ON_TOGGLE = builder
@@ -217,6 +229,21 @@ public final class ClientConfig {
     }
 
     /**
+     * toastMinTextScale: 获取通知文字最小缩放。
+     */
+    public static float toastMinTextScale() {
+        return TOAST_MIN_TEXT_SCALE.get().floatValue();
+    }
+
+    /**
+     * toastFitModeName: 获取放不下时的扩展方向。
+     */
+    public static String toastFitModeName() {
+        String value = TOAST_FIT_MODE.get();
+        return isToastFitMode(value) ? value.toUpperCase(Locale.ROOT) : DEFAULT_TOAST_FIT_MODE;
+    }
+
+    /**
      * resetHudDefaults: 重置 HUD 位置到默认值。
      */
     public static void resetHudDefaults() {
@@ -236,6 +263,8 @@ public final class ClientConfig {
         TOAST_POS_Y.set(DEFAULT_TOAST_POS_Y);
         TOAST_WIDTH.set(DEFAULT_TOAST_WIDTH);
         TOAST_HEIGHT.set(DEFAULT_TOAST_HEIGHT);
+        TOAST_MIN_TEXT_SCALE.set(DEFAULT_TOAST_MIN_TEXT_SCALE);
+        TOAST_FIT_MODE.set(DEFAULT_TOAST_FIT_MODE);
         SPEC.save();
     }
 
@@ -248,6 +277,19 @@ public final class ClientConfig {
         }
         return switch (string.toUpperCase(Locale.ROOT)) {
             case "TOP_LEFT", "TOP_RIGHT", "BOTTOM_LEFT", "BOTTOM_RIGHT", "TOP_CENTER", "BOTTOM_CENTER" -> true;
+            default -> false;
+        };
+    }
+
+    /**
+     * isToastFitMode: 校验通知扩展模式。
+     */
+    private static boolean isToastFitMode(Object value) {
+        if (!(value instanceof String string) || string.isBlank()) {
+            return false;
+        }
+        return switch (string.toUpperCase(Locale.ROOT)) {
+            case "WIDTH", "HEIGHT" -> true;
             default -> false;
         };
     }

@@ -23,6 +23,29 @@ public final class ClientToastConfig {
         BOTTOM_CENTER
     }
 
+    /**
+     * FitMode: 最小字号仍放不下时优先加宽或加高。
+     */
+    public enum FitMode {
+        WIDTH,
+        HEIGHT;
+
+        /**
+         * fromName: 解析扩展模式，未知值回退到宽度优先。
+         */
+        public static FitMode fromName(String value) {
+            if (value != null && value.equalsIgnoreCase(HEIGHT.name())) {
+                return HEIGHT;
+            }
+            return WIDTH;
+        }
+    }
+
+    public static final int MIN_WIDTH = 120;
+    public static final int MAX_WIDTH = 512;
+    public static final int MIN_HEIGHT = 36;
+    public static final int MAX_HEIGHT = 160;
+
     private ClientToastConfig() {
     }
 
@@ -49,6 +72,20 @@ public final class ClientToastConfig {
      */
     public static int height() {
         return ClientConfig.toastHeight();
+    }
+
+    /**
+     * minTextScale: 获取通知文字最小缩放，物品图标跟随该值。
+     */
+    public static float minTextScale() {
+        return ClientConfig.toastMinTextScale();
+    }
+
+    /**
+     * fitMode: 获取放不下时的扩展方向。
+     */
+    public static FitMode fitMode() {
+        return FitMode.fromName(ClientConfig.toastFitModeName());
     }
 
     /**

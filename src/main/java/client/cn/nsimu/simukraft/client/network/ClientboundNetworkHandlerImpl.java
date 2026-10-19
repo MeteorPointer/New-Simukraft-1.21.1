@@ -22,6 +22,7 @@ import client.cn.nsimu.simukraft.client.hire.NpcHireScreen;
 import client.cn.nsimu.simukraft.client.industrial.IndustrialControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.logistics.LogisticsClientBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.logistics.LogisticsServerBoxScreenOpener;
+import client.cn.nsimu.simukraft.client.manifest.ManifestScreen;
 import client.cn.nsimu.simukraft.client.medical.MedicalControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
@@ -48,6 +49,7 @@ import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncPacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxViewUpdatePacket;
+import common.cn.nsimu.simukraft.network.manifest.ManifestOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsClientBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsServerBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsWarehouseGridResponsePacket;
@@ -273,5 +275,13 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
         }
         GuideBookLang.reload(minecraft.getResourceManager());
         GuideBookLoader.reload(minecraft.getResourceManager());
+    }
+
+    /**
+     * handleManifestOpenResponse: 打开贴墙清单界面。
+     */
+    @Override
+    public void handleManifestOpenResponse(ManifestOpenResponsePacket packet) {
+        ManifestScreen.openFromBlock(packet.stack(), packet.pos());
     }
 }

@@ -79,6 +79,14 @@ public final class LogisticsWorkService {
                     || MedicalService.isOnMedicalLeave(worker, level.getDayTime() / 24_000L)) {
                 return false;
             }
+            if (channel.filterMode() == LogisticsChannelFilterMode.MANIFEST
+                    && channel.direction() != LogisticsDirection.WAREHOUSE_TO_CLIENT) {
+                return false;
+            }
+            List<LogisticsItemFilter> filters = effectiveFilters(level, channel, client);
+            if (channel.filterMode() == LogisticsChannelFilterMode.MANIFEST && filters.isEmpty()) {
+                return false;
+            }
             List<BlockPos> sourcePositions;
             List<BlockPos> targetPositions;
             if (channel.direction() == LogisticsDirection.CLIENT_TO_WAREHOUSE) {
@@ -90,17 +98,17 @@ public final class LogisticsWorkService {
             }
             // 接收端保有量：接收端持有的匹配物品达到上限即停止转运（0 表示无限供应）。
             int targetKeep = channel.keepTargetQuantity();
-            int targetRemaining = targetKeep > 0 ? targetKeep - countItems(level, targetPositions, channel) : Integer.MAX_VALUE;
+            int targetRemaining = targetKeep > 0 ? targetKeep - countItems(level, targetPositions, filters) : Integer.MAX_VALUE;
             if (targetRemaining <= 0) {
                 return false;
             }
             // 发送端保有量：发送端只外发超出保有量的部分（0 表示不保留）。
             int sourceKeep = channel.keepSourceQuantity();
-            int sourceSurplus = sourceKeep > 0 ? countItems(level, sourcePositions, channel) - sourceKeep : Integer.MAX_VALUE;
+            int sourceSurplus = sourceKeep > 0 ? countItems(level, sourcePositions, filters) - sourceKeep : Integer.MAX_VALUE;
             if (sourceSurplus <= 0) {
                 return false;
             }
-            return transfer(level, channel, sourcePositions, targetPositions, warehouse, Math.min(sourceSurplus, targetRemaining));
+            return transfer(level, channel, filters, sourcePositions, targetPositions, warehouse, Math.min(sourceSurplus, targetRemaining));
         } catch (RuntimeException exception) {
             SimuKraft.LOGGER.warn("Simukraft: Logistics transfer failed for channel {}", channel.channelId(), exception);
             return false;
@@ -109,6 +117,7 @@ public final class LogisticsWorkService {
 
     private static boolean transfer(ServerLevel level,
                                     LogisticsChannelData channel,
+                                    List<LogisticsItemFilter> filters,
                                     List<BlockPos> sourcePositions,
                                     List<BlockPos> targetPositions,
                                     LogisticsWarehouseData warehouse,
@@ -122,7 +131,7 @@ public final class LogisticsWorkService {
             }
             for (GenericContainerAccess.SlotSnapshot snapshot : GenericContainerAccess.snapshotSlots(level, source)) {
                 ItemStack stack = snapshot.stack();
-                if (stack.isEmpty() || !matches(channel, stack, level)) {
+                if (stack.isEmpty() || !matches(channel, filters, stack, level)) {
                     continue;
                 }
                 InsertTarget target = findInsertTarget(level, targetPositions, stack);
@@ -138,7 +147,7 @@ public final class LogisticsWorkService {
                     return false;
                 }
                 ItemStack extracted = GenericContainerAccess.extractFromSlot(level, source, snapshot.slot(), snapshot.access(), snapshot.side(), moveAmount,
-                        current -> ItemStack.isSameItemSameComponents(current, stack) && matches(channel, current, level));
+                        current -> ItemStack.isSameItemSameComponents(current, stack) && matches(channel, filters, current, level));
                 if (extracted.isEmpty()) {
                     refund(level, warehouse.cityId(), cost);
                     continue;
@@ -196,14 +205,14 @@ public final class LogisticsWorkService {
         return null;
     }
 
-    private static int countItems(ServerLevel level, List<BlockPos> positions, LogisticsChannelData channel) {
+    private static int countItems(ServerLevel level, List<BlockPos> positions, List<LogisticsItemFilter> filters) {
         int total = 0;
         for (BlockPos pos : positions) {
             if (!level.isLoaded(pos)) {
                 continue;
             }
             for (GenericContainerAccess.SlotSnapshot snapshot : GenericContainerAccess.snapshotSlots(level, pos)) {
-                if (!snapshot.stack().isEmpty() && matches(channel, snapshot.stack(), level)) {
+                if (!snapshot.stack().isEmpty() && matchesFilters(filters, snapshot.stack(), level, false)) {
                     total += snapshot.stack().getCount();
                 }
             }
@@ -211,11 +220,25 @@ public final class LogisticsWorkService {
         return total;
     }
 
-    private static boolean matches(LogisticsChannelData channel, ItemStack stack, ServerLevel level) {
-        if (channel.filters().isEmpty()) {
-            return true;
+    /**
+     * effectiveFilters: 清单模式现场读取客户端表面清单，物品模式使用线路存储的过滤。
+     */
+    private static List<LogisticsItemFilter> effectiveFilters(ServerLevel level, LogisticsChannelData channel, LogisticsClientData client) {
+        if (channel.filterMode() == LogisticsChannelFilterMode.MANIFEST) {
+            return LogisticsManifestFilterService.resolve(level, client);
         }
-        return channel.filters().stream().anyMatch(filter -> filter.matches(stack, level.registryAccess()));
+        return channel.filters();
+    }
+
+    private static boolean matches(LogisticsChannelData channel, List<LogisticsItemFilter> filters, ItemStack stack, ServerLevel level) {
+        return matchesFilters(filters, stack, level, channel.filterMode() != LogisticsChannelFilterMode.MANIFEST);
+    }
+
+    private static boolean matchesFilters(List<LogisticsItemFilter> filters, ItemStack stack, ServerLevel level, boolean emptyMatchesAll) {
+        if (filters == null || filters.isEmpty()) {
+            return emptyMatchesAll;
+        }
+        return filters.stream().anyMatch(filter -> filter.matches(stack, level.registryAccess()));
     }
 
     private static boolean charge(ServerLevel level, UUID cityId, double amount) {

@@ -52,6 +52,10 @@ public final class ModBlocks {
     public static final DeferredBlock<Block> MINERAL_DRILLING_CONTROL_BOX = registerBlock("mineral_drilling_control_box", MineralDrillingControlBoxBlock::new);
     public static final DeferredBlock<Block> LOGISTICS_CLIENT_BOX = registerBlock("logistics_client_box", LogisticsClientBoxBlock::new);
     public static final DeferredBlock<Block> LOGISTICS_SERVER_BOX = registerBlock("logistics_server_box", LogisticsServerBoxBlock::new);
+    /**
+     * MANIFEST: 可贴地/挂墙的清单方块，物品仍由 ManifestItem 注册。
+     */
+    public static final DeferredBlock<Block> MANIFEST = BLOCKS.register("manifest", () -> new ManifestBlock());
     public static final DeferredBlock<Block> MEDICAL_CONTROL_BOX = registerBlock("medical_control_box", MedicalControlBoxBlock::new);
     public static final DeferredBlock<Block> BANK_CONTROL_BOX = registerBlock("bank_control_box", BankControlBoxBlock::new);
     public static final DeferredBlock<Block> EXCHANGE_CONTROL_BOX = registerBlock("exchange_control_box", ExchangeControlBoxBlock::new);

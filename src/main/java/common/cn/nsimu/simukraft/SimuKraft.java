@@ -80,8 +80,9 @@ public final class SimuKraft {
         common.cn.nsimu.simukraft.block.CautionTapeZones.registerPathCost();
         ModFluidTypes.register(modEventBus);
         ModFluids.register(modEventBus);
-        ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
+        ModBlockEntities.register(modEventBus);
+        ModItems.register(modEventBus);
         ModMenuTypes.register(modEventBus);
         ModRecipeSerializers.register(modEventBus);
         ModCreativeModeTabs.register(modEventBus);

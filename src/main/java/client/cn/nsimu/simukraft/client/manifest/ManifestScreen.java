@@ -1,12 +1,14 @@
 package client.cn.nsimu.simukraft.client.manifest;
 
 import common.cn.nsimu.simukraft.item.ManifestItem;
+import common.cn.nsimu.simukraft.network.manifest.ManifestBlockTogglePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestTogglePacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.PageButton;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -50,6 +52,7 @@ public final class ManifestScreen extends Screen {
 
     private final ItemStack manifestStack;
     private final InteractionHand hand;
+    private final BlockPos blockPos;
     private final List<RowBounds> rowBounds = new ArrayList<>();
     private List<ManifestItem.MaterialEntry> materials = List.of();
     private List<ManifestItem.ProductGroup> productGroups = List.of();
@@ -57,18 +60,31 @@ public final class ManifestScreen extends Screen {
     private PageButton backButton;
     private int currentPage;
 
-    private ManifestScreen(ItemStack manifestStack, InteractionHand hand) {
+    private ManifestScreen(ItemStack manifestStack, InteractionHand hand, BlockPos blockPos) {
         super(Component.translatable("screen.simukraft.manifest.title"));
         this.manifestStack = manifestStack.copy();
         this.hand = hand;
+        this.blockPos = blockPos;
     }
 
     public static void open(ItemStack stack, InteractionHand hand) {
+        openInternal(stack, hand, null);
+    }
+
+    /**
+     * openFromBlock: 打开贴在方块上的清单。
+     */
+    public static void openFromBlock(ItemStack stack, BlockPos pos) {
+        openInternal(stack, null, pos);
+    }
+
+    private static void openInternal(ItemStack stack, InteractionHand hand, BlockPos pos) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft == null) {
             return;
         }
-        minecraft.execute(() -> minecraft.setScreen(new ManifestScreen(stack, hand)));
+        ItemStack view = stack == null ? ItemStack.EMPTY : stack.copy();
+        minecraft.execute(() -> minecraft.setScreen(new ManifestScreen(view, hand, pos)));
     }
 
     @Override
@@ -339,7 +355,11 @@ public final class ManifestScreen extends Screen {
         }
         boolean checked = !entry.checked();
         ManifestItem.setChecked(manifestStack, materialIndex, checked);
-        PacketDistributor.sendToServer(new ManifestTogglePacket(hand, materialIndex, checked));
+        if (blockPos != null) {
+            PacketDistributor.sendToServer(new ManifestBlockTogglePacket(blockPos, materialIndex, checked));
+        } else if (hand != null) {
+            PacketDistributor.sendToServer(new ManifestTogglePacket(hand, materialIndex, checked));
+        }
         refreshMaterials();
     }
 

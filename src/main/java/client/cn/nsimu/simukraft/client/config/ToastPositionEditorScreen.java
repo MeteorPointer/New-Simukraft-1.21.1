@@ -1,13 +1,17 @@
 package client.cn.nsimu.simukraft.client.config;
 
-import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import client.cn.nsimu.simukraft.client.toast.ClientToastConfig;
+import client.cn.nsimu.simukraft.client.toast.ClientToastLayout;
 import common.cn.nsimu.simukraft.config.ClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
@@ -22,10 +26,13 @@ public final class ToastPositionEditorScreen extends Screen {
     private static final int BUTTON_WIDTH = 90;
     private static final int BUTTON_HEIGHT = 20;
     private static final int EDGE_HIT = 8;
-    private static final int MIN_WIDTH = 120;
-    private static final int MAX_WIDTH = 512;
-    private static final int MIN_HEIGHT = 36;
-    private static final int MAX_HEIGHT = 160;
+    private static final int MIN_WIDTH = ClientToastConfig.MIN_WIDTH;
+    private static final int MAX_WIDTH = ClientToastConfig.MAX_WIDTH;
+    private static final int MIN_HEIGHT = ClientToastConfig.MIN_HEIGHT;
+    private static final int MAX_HEIGHT = ClientToastConfig.MAX_HEIGHT;
+    private static final float MIN_TEXT_SCALE = 0.25F;
+    private static final float MAX_TEXT_SCALE = 1.0F;
+    private static final int CLICK_SLOP = 4;
 
     private final Screen parent;
     private DragMode dragMode = DragMode.NONE;
@@ -43,6 +50,13 @@ public final class ToastPositionEditorScreen extends Screen {
     private int regionX1;
     private int regionX2;
     private int regionY2;
+    private float minTextScale;
+    private ClientToastConfig.FitMode fitMode;
+    private boolean longPreview;
+    private boolean configLoaded;
+    private boolean toastClickCandidate;
+    private int displayWidth;
+    private int displayHeight;
 
     private enum DragMode {
         NONE,
@@ -64,10 +78,27 @@ public final class ToastPositionEditorScreen extends Screen {
         regionX1 = width / 3;
         regionX2 = width * 2 / 3;
         regionY2 = height / 2;
-        loadConfig();
+        if (!configLoaded) {
+            loadConfig();
+            configLoaded = true;
+        }
 
-        int buttonY = height - 36;
+        int sliderY = height - 82;
+        int buttonY = height - 58;
         int centerX = width / 2;
+        int sliderWidth = 210;
+        int modeWidth = 150;
+        int controlGap = 8;
+        int controlsWidth = sliderWidth + controlGap + modeWidth;
+        int controlsX = centerX - controlsWidth / 2;
+        addRenderableWidget(new MinTextScaleSlider(controlsX, sliderY, sliderWidth, BUTTON_HEIGHT, minTextScale));
+        addRenderableWidget(CycleButton.builder((ClientToastConfig.FitMode mode) ->
+                        Component.translatable("gui.toast_editor.fit." + mode.name().toLowerCase(Locale.ROOT)))
+                .withValues(ClientToastConfig.FitMode.WIDTH, ClientToastConfig.FitMode.HEIGHT)
+                .withInitialValue(fitMode)
+                .create(controlsX + sliderWidth + controlGap, sliderY, modeWidth, BUTTON_HEIGHT,
+                        Component.translatable("gui.toast_editor.fit_mode"),
+                        (button, value) -> fitMode = value));
         int totalWidth = BUTTON_WIDTH * 3 + 12;
         addRenderableWidget(Button.builder(Component.translatable("gui.toast_editor.save"), button -> saveAndClose())
                 .bounds(centerX - totalWidth / 2, buttonY, BUTTON_WIDTH, BUTTON_HEIGHT)
@@ -87,6 +118,9 @@ public final class ToastPositionEditorScreen extends Screen {
         currentAnchor = ClientToastConfig.getAnchor();
         toastWidth = ClientToastConfig.width();
         toastHeight = ClientToastConfig.height();
+        minTextScale = ClientToastConfig.minTextScale();
+        fitMode = ClientToastConfig.fitMode();
+        longPreview = false;
         int[] position = ClientToastConfig.calculatePosition(width, height, toastWidth, toastHeight);
         toastAbsoluteX = clamp(position[0], 0, Math.max(0, width - toastWidth));
         toastAbsoluteY = clamp(position[1], 0, Math.max(0, height - toastHeight));
@@ -153,6 +187,8 @@ public final class ToastPositionEditorScreen extends Screen {
         ClientConfig.TOAST_POS_Y.set(clamp(offsetY, -4096, 4096));
         ClientConfig.TOAST_WIDTH.set(toastWidth);
         ClientConfig.TOAST_HEIGHT.set(toastHeight);
+        ClientConfig.TOAST_MIN_TEXT_SCALE.set((double) minTextScale);
+        ClientConfig.TOAST_FIT_MODE.set(fitMode.name());
         ClientConfig.SPEC.save();
         Minecraft.getInstance().setScreen(parent);
     }
@@ -164,6 +200,10 @@ public final class ToastPositionEditorScreen extends Screen {
         currentAnchor = ClientToastConfig.Anchor.TOP_RIGHT;
         toastWidth = ClientConfig.DEFAULT_TOAST_WIDTH;
         toastHeight = ClientConfig.DEFAULT_TOAST_HEIGHT;
+        minTextScale = (float) ClientConfig.DEFAULT_TOAST_MIN_TEXT_SCALE;
+        fitMode = ClientToastConfig.FitMode.fromName(ClientConfig.DEFAULT_TOAST_FIT_MODE);
+        longPreview = false;
+        rebuildWidgets();
         int[] position = ClientToastConfig.calculatePosition(
                 currentAnchor,
                 ClientConfig.DEFAULT_TOAST_POS_X,
@@ -180,28 +220,28 @@ public final class ToastPositionEditorScreen extends Screen {
      * isOnLeftEdge: 判断鼠标是否位于左侧调宽边缘。
      */
     private boolean isOnLeftEdge(double mouseX, double mouseY) {
-        return isWithinEdge(mouseX, mouseY, toastAbsoluteX, toastAbsoluteY, 1, toastHeight);
+        return isWithinEdge(mouseX, mouseY, toastAbsoluteX, toastAbsoluteY, 1, visibleHeight());
     }
 
     /**
      * isOnRightEdge: 判断鼠标是否位于右侧调宽边缘。
      */
     private boolean isOnRightEdge(double mouseX, double mouseY) {
-        return isWithinEdge(mouseX, mouseY, toastAbsoluteX + toastWidth, toastAbsoluteY, 1, toastHeight);
+        return isWithinEdge(mouseX, mouseY, toastAbsoluteX + visibleWidth(), toastAbsoluteY, 1, visibleHeight());
     }
 
     /**
      * isOnTopEdge: 判断鼠标是否位于顶部调高边缘。
      */
     private boolean isOnTopEdge(double mouseX, double mouseY) {
-        return isWithinEdge(mouseX, mouseY, toastAbsoluteX, toastAbsoluteY, toastWidth, 1);
+        return isWithinEdge(mouseX, mouseY, toastAbsoluteX, toastAbsoluteY, visibleWidth(), 1);
     }
 
     /**
      * isOnBottomEdge: 判断鼠标是否位于底部调高边缘。
      */
     private boolean isOnBottomEdge(double mouseX, double mouseY) {
-        return isWithinEdge(mouseX, mouseY, toastAbsoluteX, toastAbsoluteY + toastHeight, toastWidth, 1);
+        return isWithinEdge(mouseX, mouseY, toastAbsoluteX, toastAbsoluteY + visibleHeight(), visibleWidth(), 1);
     }
 
     /**
@@ -219,9 +259,9 @@ public final class ToastPositionEditorScreen extends Screen {
      */
     private boolean isOverToast(double mouseX, double mouseY) {
         return mouseX >= toastAbsoluteX
-                && mouseX <= toastAbsoluteX + toastWidth
+                && mouseX <= toastAbsoluteX + visibleWidth()
                 && mouseY >= toastAbsoluteY
-                && mouseY <= toastAbsoluteY + toastHeight;
+                && mouseY <= toastAbsoluteY + visibleHeight();
     }
 
     @Override
@@ -232,6 +272,9 @@ public final class ToastPositionEditorScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, width, height, 0xCC000000);
         renderRegions(graphics);
+        ClientToastLayout preview = previewLayout();
+        displayWidth = preview.displayWidth();
+        displayHeight = preview.displayHeight();
         graphics.drawCenteredString(font, title, width / 2, 12, 0xFFFFFF);
         graphics.drawCenteredString(
                 font,
@@ -247,28 +290,21 @@ public final class ToastPositionEditorScreen extends Screen {
                                 "gui.toast_editor.anchor." + currentAnchor.name().toLowerCase(Locale.ROOT)),
                         toastAbsoluteX,
                         toastAbsoluteY,
-                        toastWidth,
-                        toastHeight),
+                        displayWidth,
+                        displayHeight),
                 width / 2,
                 46,
                 0xFFFFAA);
-
         int outlineColor = outlineColor(mouseX, mouseY);
         graphics.fill(
                 toastAbsoluteX,
                 toastAbsoluteY,
-                toastAbsoluteX + toastWidth,
-                toastAbsoluteY + toastHeight,
+                toastAbsoluteX + displayWidth,
+                toastAbsoluteY + displayHeight,
                 0x22000000);
-        graphics.renderOutline(toastAbsoluteX, toastAbsoluteY, toastWidth, toastHeight, outlineColor);
+        graphics.renderOutline(toastAbsoluteX, toastAbsoluteY, displayWidth, displayHeight, outlineColor);
         renderResizeIndicators(graphics, mouseX, mouseY);
-        ClientInfoToast.renderPreview(
-                graphics,
-                font,
-                toastAbsoluteX,
-                toastAbsoluteY,
-                toastWidth,
-                toastHeight);
+        preview.render(graphics, font, toastAbsoluteX, toastAbsoluteY, 1, longPreview ? "warning" : "success");
         super.render(graphics, mouseX, mouseY, partialTick);
     }
 
@@ -293,16 +329,16 @@ public final class ToastPositionEditorScreen extends Screen {
      */
     private void renderResizeIndicators(GuiGraphics graphics, int mouseX, int mouseY) {
         if (isOnLeftEdge(mouseX, mouseY) || dragMode == DragMode.RESIZE_LEFT) {
-            graphics.fill(toastAbsoluteX - 1, toastAbsoluteY, toastAbsoluteX + 2, toastAbsoluteY + toastHeight, 0xCCFFAA00);
+            graphics.fill(toastAbsoluteX - 1, toastAbsoluteY, toastAbsoluteX + 2, toastAbsoluteY + visibleHeight(), 0xCCFFAA00);
         }
         if (isOnRightEdge(mouseX, mouseY) || dragMode == DragMode.RESIZE_RIGHT) {
-            graphics.fill(toastAbsoluteX + toastWidth - 1, toastAbsoluteY, toastAbsoluteX + toastWidth + 2, toastAbsoluteY + toastHeight, 0xCCFFAA00);
+            graphics.fill(toastAbsoluteX + visibleWidth() - 1, toastAbsoluteY, toastAbsoluteX + visibleWidth() + 2, toastAbsoluteY + visibleHeight(), 0xCCFFAA00);
         }
         if (isOnTopEdge(mouseX, mouseY) || dragMode == DragMode.RESIZE_TOP) {
-            graphics.fill(toastAbsoluteX, toastAbsoluteY - 1, toastAbsoluteX + toastWidth, toastAbsoluteY + 2, 0xCCFFAA00);
+            graphics.fill(toastAbsoluteX, toastAbsoluteY - 1, toastAbsoluteX + visibleWidth(), toastAbsoluteY + 2, 0xCCFFAA00);
         }
         if (isOnBottomEdge(mouseX, mouseY) || dragMode == DragMode.RESIZE_BOTTOM) {
-            graphics.fill(toastAbsoluteX, toastAbsoluteY + toastHeight - 1, toastAbsoluteX + toastWidth, toastAbsoluteY + toastHeight + 2, 0xCCFFAA00);
+            graphics.fill(toastAbsoluteX, toastAbsoluteY + visibleHeight() - 1, toastAbsoluteX + visibleWidth(), toastAbsoluteY + visibleHeight() + 2, 0xCCFFAA00);
         }
     }
 
@@ -389,6 +425,7 @@ public final class ToastPositionEditorScreen extends Screen {
             return true;
         }
         if (isOverToast(mouseX, mouseY)) {
+            toastClickCandidate = true;
             beginDrag(DragMode.MOVE, mouseX, mouseY);
             return true;
         }
@@ -404,8 +441,11 @@ public final class ToastPositionEditorScreen extends Screen {
         dragStartMouseY = (int) mouseY;
         dragStartX = toastAbsoluteX;
         dragStartY = toastAbsoluteY;
-        dragStartWidth = toastWidth;
-        dragStartHeight = toastHeight;
+        dragStartWidth = visibleWidth();
+        dragStartHeight = visibleHeight();
+        if (nextDragMode != DragMode.MOVE) {
+            toastClickCandidate = false;
+        }
     }
 
     @Override
@@ -415,6 +455,9 @@ public final class ToastPositionEditorScreen extends Screen {
         }
         int deltaX = (int) mouseX - dragStartMouseX;
         int deltaY = (int) mouseY - dragStartMouseY;
+        if (Math.abs(deltaX) > CLICK_SLOP || Math.abs(deltaY) > CLICK_SLOP) {
+            toastClickCandidate = false;
+        }
         switch (dragMode) {
             case MOVE -> movePreview(deltaX, deltaY);
             case RESIZE_LEFT -> resizeLeft(deltaX);
@@ -431,9 +474,9 @@ public final class ToastPositionEditorScreen extends Screen {
      * movePreview: 移动预览并在跨区域时更新锚点。
      */
     private void movePreview(int deltaX, int deltaY) {
-        toastAbsoluteX = clamp(dragStartX + deltaX, 0, Math.max(0, width - toastWidth));
-        toastAbsoluteY = clamp(dragStartY + deltaY, 0, Math.max(0, height - toastHeight));
-        currentAnchor = detectAnchor(toastAbsoluteX + toastWidth / 2, toastAbsoluteY + toastHeight / 2);
+        toastAbsoluteX = clamp(dragStartX + deltaX, 0, Math.max(0, width - visibleWidth()));
+        toastAbsoluteY = clamp(dragStartY + deltaY, 0, Math.max(0, height - visibleHeight()));
+        currentAnchor = detectAnchor(toastAbsoluteX + visibleWidth() / 2, toastAbsoluteY + visibleHeight() / 2);
     }
 
     /**
@@ -475,7 +518,11 @@ public final class ToastPositionEditorScreen extends Screen {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button == 0) {
+            if (dragMode == DragMode.MOVE && toastClickCandidate) {
+                longPreview = !longPreview;
+            }
             dragMode = DragMode.NONE;
+            toastClickCandidate = false;
         }
         return super.mouseReleased(mouseX, mouseY, button);
     }
@@ -495,5 +542,59 @@ public final class ToastPositionEditorScreen extends Screen {
      */
     private static int clamp(int value, int min, int max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    /**
+     * previewLayout: 按当前预览文本、最小字号和扩展模式生成布局。
+     */
+    private ClientToastLayout previewLayout() {
+        Component title = Component.translatable(longPreview
+                ? "toast.simukraft.material_title"
+                : "gui.toast_editor.preview_title");
+        Component message = Component.translatable(longPreview
+                ? "gui.toast_editor.preview_message_long"
+                : "gui.toast_editor.preview_message");
+        ItemStack icon = longPreview ? new ItemStack(Items.STONE_BRICKS) : ItemStack.EMPTY;
+        return ClientToastLayout.create(font, title, message, icon, toastWidth, toastHeight, minTextScale, fitMode);
+    }
+
+    /**
+     * visibleWidth: 预览实际绘制宽度。
+     */
+    private int visibleWidth() {
+        return displayWidth > 0 ? displayWidth : toastWidth;
+    }
+
+    /**
+     * visibleHeight: 预览实际绘制高度。
+     */
+    private int visibleHeight() {
+        return displayHeight > 0 ? displayHeight : toastHeight;
+    }
+
+    /**
+     * MinTextScaleSlider: 调整通知文字最小尺寸。
+     */
+    private final class MinTextScaleSlider extends AbstractSliderButton {
+        private MinTextScaleSlider(int x, int y, int width, int height, float scale) {
+            super(x, y, width, height, Component.empty(), (scale - MIN_TEXT_SCALE) / (MAX_TEXT_SCALE - MIN_TEXT_SCALE));
+            updateMessage();
+        }
+
+        @Override
+        protected void updateMessage() {
+            setMessage(Component.translatable(
+                    "gui.toast_editor.min_text",
+                    Math.round(sliderScale() * 100.0F)));
+        }
+
+        @Override
+        protected void applyValue() {
+            minTextScale = sliderScale();
+        }
+
+        private float sliderScale() {
+            return MIN_TEXT_SCALE + (float) value * (MAX_TEXT_SCALE - MIN_TEXT_SCALE);
+        }
     }
 }

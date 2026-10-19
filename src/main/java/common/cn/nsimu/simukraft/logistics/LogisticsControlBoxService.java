@@ -176,6 +176,15 @@ public final class LogisticsControlBoxService {
      * addChannel: 新增带多个物品过滤器的物流路线。
      */
     public static ActionResult addChannel(ServerLevel level, BlockPos serverBoxPos, UUID clientId, LogisticsDirection direction, String name, List<String> filterItemIds) {
+        return addChannel(level, serverBoxPos, clientId, direction, name, filterItemIds, LogisticsChannelFilterMode.ITEM, 0, 0);
+    }
+
+    /**
+     * addChannel: 新增物流路线，可指定过滤模式和创建时保有量。
+     */
+    public static ActionResult addChannel(ServerLevel level, BlockPos serverBoxPos, UUID clientId, LogisticsDirection direction,
+                                          String name, List<String> filterItemIds, LogisticsChannelFilterMode filterMode,
+                                          int keepSourceQuantity, int keepTargetQuantity) {
         LogisticsWarehouseData warehouse = LogisticsManager.get(level).warehouseAt(serverBoxPos);
         LogisticsClientData client = resolveClient(level, clientId);
         if (warehouse == null || client == null) {
@@ -184,12 +193,18 @@ public final class LogisticsControlBoxService {
         if (!warehouse.dimensionId().equals(client.dimensionId()) || !warehouse.cityId().equals(client.cityId())) {
             return ActionResult.INVALID_TARGET;
         }
-        List<LogisticsItemFilter> filters = filterItemIds == null ? List.of() : filterItemIds.stream()
+        LogisticsChannelFilterMode mode = filterMode != null ? filterMode : LogisticsChannelFilterMode.ITEM;
+        if (mode == LogisticsChannelFilterMode.MANIFEST && direction == LogisticsDirection.CLIENT_TO_WAREHOUSE) {
+            return ActionResult.INVALID_TARGET;
+        }
+        List<LogisticsItemFilter> filters = mode == LogisticsChannelFilterMode.MANIFEST
+                ? List.of()
+                : (filterItemIds == null ? List.of() : filterItemIds.stream()
                 .filter(itemId -> itemId != null && !itemId.isBlank())
                 .distinct()
                 .limit(128)
                 .map(LogisticsItemFilter::item)
-                .toList();
+                .toList());
         LogisticsChannelData channel = new LogisticsChannelData(
                 UUID.randomUUID(),
                 warehouse.warehouseId(),
@@ -199,8 +214,9 @@ public final class LogisticsControlBoxService {
                 true,
                 filters,
                 level.getGameTime(),
-                0,
-                0);
+                keepSourceQuantity,
+                keepTargetQuantity,
+                mode);
         LogisticsManager.get(level).updateChannel(channel);
         return ActionResult.SUCCESS;
     }

@@ -1,0 +1,22 @@
+{
+  "ambientocclusion": false,
+  "textures": {
+    "front": "simukraft:block/manifest_front",
+    "back": "simukraft:block/manifest_back",
+    "particle": "simukraft:block/manifest_front"
+  },
+  "elements": [
+    {
+      "from": [1, 0, 0],
+      "to": [15, 16, 1],
+      "faces": {
+        "south": { "uv": [1, 0, 15, 16], "texture": "#front" },
+        "north": { "uv": [1, 0, 15, 16], "texture": "#back", "cullface": "north" },
+        "up": { "uv": [1, 0, 15, 1], "texture": "#front" },
+        "down": { "uv": [1, 15, 15, 16], "texture": "#front" },
+        "west": { "uv": [1, 0, 2, 16], "texture": "#front" },
+        "east": { "uv": [14, 0, 15, 16], "texture": "#front" }
+      }
+    }
+  ]
+}

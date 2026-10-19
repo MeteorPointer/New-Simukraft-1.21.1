@@ -40,6 +40,8 @@ public final class ClientInfoToast {
     private Font cachedLayoutFont;
     private int cachedLayoutWidth = Integer.MIN_VALUE;
     private int cachedLayoutHeight = Integer.MIN_VALUE;
+    private float cachedMinTextScale = Float.NaN;
+    private ClientToastConfig.FitMode cachedFitMode;
 
     private ClientInfoToast(Component title, Component message, String style, ItemStack iconStack,
                             ToastKey token) {
@@ -90,22 +92,24 @@ public final class ClientInfoToast {
 
         Font font = minecraft.font;
         ClientToastConfig.Anchor anchor = ClientToastConfig.getAnchor();
-        int toastWidth = ClientToastConfig.width();
-        int toastHeight = ClientToastConfig.height();
-        int[] initialPosition = ClientToastConfig.calculatePosition(
-                graphics.guiWidth(), graphics.guiHeight(), toastWidth, toastHeight);
+        int preferredWidth = ClientToastConfig.width();
+        int preferredHeight = ClientToastConfig.height();
         int usedSlots = 0;
         for (ClientInfoToast toast : VISIBLE_TOASTS) {
-            if (usedSlots + slotCountForHeight(toastHeight) > MAX_VISIBLE_SLOTS) {
+            ClientToastLayout layout = toast.createLayout(font, preferredWidth, preferredHeight);
+            int displayWidth = layout.displayWidth();
+            int displayHeight = layout.displayHeight();
+            if (usedSlots + slotCountForHeight(displayHeight) > MAX_VISIBLE_SLOTS) {
                 break;
             }
-            ClientToastLayout layout = toast.createLayout(font, toastWidth, toastHeight);
+            int[] initialPosition = ClientToastConfig.calculatePosition(
+                    graphics.guiWidth(), graphics.guiHeight(), displayWidth, displayHeight);
             int stackedY = stackedY(anchor, initialPosition[1], usedSlots);
             float visibility = toast.visibility(nowMillis);
-            int animatedX = animatedX(anchor, initialPosition[0], toastWidth, visibility);
-            int animatedY = animatedY(anchor, stackedY, toastHeight, visibility);
+            int animatedX = animatedX(anchor, initialPosition[0], displayWidth, visibility);
+            int animatedY = animatedY(anchor, stackedY, displayHeight, visibility);
             layout.render(graphics, font, animatedX, animatedY, toast.count, toast.style);
-            usedSlots += slotCountForHeight(toastHeight);
+            usedSlots += slotCountForHeight(displayHeight);
         }
     }
 
@@ -113,14 +117,37 @@ public final class ClientInfoToast {
      * renderPreview: 在编辑器中绘制与实际通知相同的预览内容。
      */
     public static void renderPreview(GuiGraphics graphics, Font font, int x, int y, int width, int height) {
-        ClientToastLayout layout = ClientToastLayout.create(
+        renderPreview(
+                graphics,
                 font,
-                Component.translatable("gui.toast_editor.preview_title"),
-                Component.translatable("gui.toast_editor.preview_message"),
-                ItemStack.EMPTY,
+                x,
+                y,
                 width,
-                height);
-        layout.render(graphics, font, x, y, 1, "success");
+                height,
+                false,
+                ClientToastConfig.minTextScale(),
+                ClientToastConfig.fitMode());
+    }
+
+    /**
+     * renderPreview: 按编辑器当前最小字号、扩展模式和长短文绘制预览。
+     */
+    public static ClientToastLayout renderPreview(GuiGraphics graphics, Font font, int x, int y, int width, int height,
+                                                  boolean longPreview, float minTextScale,
+                                                  ClientToastConfig.FitMode fitMode) {
+        Component title = Component.translatable(longPreview
+                ? "toast.simukraft.material_title"
+                : "gui.toast_editor.preview_title");
+        Component message = Component.translatable(longPreview
+                ? "gui.toast_editor.preview_message_long"
+                : "gui.toast_editor.preview_message");
+        ItemStack icon = longPreview
+                ? new ItemStack(net.minecraft.world.item.Items.STONE_BRICKS)
+                : ItemStack.EMPTY;
+        ClientToastLayout layout = ClientToastLayout.create(
+                font, title, message, icon, width, height, minTextScale, fitMode);
+        layout.render(graphics, font, x, y, 1, longPreview ? "warning" : "success");
+        return layout;
     }
 
     /**
@@ -215,14 +242,21 @@ public final class ClientInfoToast {
      * createLayout: 按当前尺寸计算缩放、换行与垂直排版。
      */
     private ClientToastLayout createLayout(Font font, int toastWidth, int toastHeight) {
+        float minTextScale = ClientToastConfig.minTextScale();
+        ClientToastConfig.FitMode fitMode = ClientToastConfig.fitMode();
         if (cachedLayout == null
                 || cachedLayoutFont != font
                 || cachedLayoutWidth != toastWidth
-                || cachedLayoutHeight != toastHeight) {
-            cachedLayout = ClientToastLayout.create(font, title, message, iconStack, toastWidth, toastHeight);
+                || cachedLayoutHeight != toastHeight
+                || cachedMinTextScale != minTextScale
+                || cachedFitMode != fitMode) {
+            cachedLayout = ClientToastLayout.create(
+                    font, title, message, iconStack, toastWidth, toastHeight, minTextScale, fitMode);
             cachedLayoutFont = font;
             cachedLayoutWidth = toastWidth;
             cachedLayoutHeight = toastHeight;
+            cachedMinTextScale = minTextScale;
+            cachedFitMode = fitMode;
         }
         return cachedLayout;
     }

@@ -29,6 +29,8 @@ import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncPacket;
 import common.cn.nsimu.simukraft.network.industrial.*;
 import common.cn.nsimu.simukraft.network.logistics.*;
+import common.cn.nsimu.simukraft.network.manifest.ManifestBlockTogglePacket;
+import common.cn.nsimu.simukraft.network.manifest.ManifestOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestTogglePacket;
 import common.cn.nsimu.simukraft.network.medical.MedicalControlBoxDemolishPacket;
 import common.cn.nsimu.simukraft.network.medical.MedicalControlBoxOpenRequestPacket;
@@ -53,7 +55,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 
 public final class ModNetwork {
-    private static final String NETWORK_VERSION = "38";
+    private static final String NETWORK_VERSION = "40";
 
     private ModNetwork() {
     }
@@ -126,6 +128,7 @@ public final class ModNetwork {
         registrar.playToServer(RtsOpenTargetPacket.TYPE, RtsOpenTargetPacket.STREAM_CODEC, RtsOpenTargetPacket::handle);
         registrar.playToServer(RtsPlaceBlockPacket.TYPE, RtsPlaceBlockPacket.STREAM_CODEC, RtsPlaceBlockPacket::handle);
         registrar.playToServer(ManifestTogglePacket.TYPE, ManifestTogglePacket.STREAM_CODEC, ManifestTogglePacket::handle);
+        registrar.playToServer(ManifestBlockTogglePacket.TYPE, ManifestBlockTogglePacket.STREAM_CODEC, ManifestBlockTogglePacket::handle);
         registrar.playToServer(ServerConfigSavePacket.TYPE, ServerConfigSavePacket.STREAM_CODEC, ServerConfigSavePacket::handle);
         registrar.playToClient(CityCoreOpenResponsePacket.TYPE, CityCoreOpenResponsePacket.STREAM_CODEC, CityCoreOpenResponsePacket::handle);
         registrar.playToClient(CityCoreMembersResponsePacket.TYPE, CityCoreMembersResponsePacket.STREAM_CODEC, CityCoreMembersResponsePacket::handle);
@@ -159,5 +162,6 @@ public final class ModNetwork {
         registrar.playToClient(GeologicalSurveyHintPacket.TYPE, GeologicalSurveyHintPacket.STREAM_CODEC, GeologicalSurveyHintPacket::handle);
         registrar.playToClient(ReloadGuideBookPacket.TYPE, ReloadGuideBookPacket.STREAM_CODEC, ReloadGuideBookPacket::handle);
         registrar.playToClient(RtsBuildingBoundsSyncPacket.TYPE, RtsBuildingBoundsSyncPacket.STREAM_CODEC, RtsBuildingBoundsSyncPacket::handle);
+        registrar.playToClient(ManifestOpenResponsePacket.TYPE, ManifestOpenResponsePacket.STREAM_CODEC, ManifestOpenResponsePacket::handle);
     }
 }
