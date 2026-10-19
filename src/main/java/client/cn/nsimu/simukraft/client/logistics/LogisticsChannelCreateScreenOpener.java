@@ -83,7 +83,7 @@ public final class LogisticsChannelCreateScreenOpener {
          */
         @Override
         public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-            LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
+            LogisticsNativeStyle.drawDenseBackdrop(graphics, this.width, this.height);
         }
 
         /**
