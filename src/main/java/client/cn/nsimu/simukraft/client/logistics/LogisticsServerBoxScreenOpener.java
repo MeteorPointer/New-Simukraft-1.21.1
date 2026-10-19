@@ -398,7 +398,6 @@ public final class LogisticsServerBoxScreenOpener {
             int panelT = routeViewportTop() - 6;
             int panelR = this.width - 6;
             int panelB = routeViewportBottom() + 4;
-            graphics.fill(panelL, panelT, panelR, panelB, 0xFF10101C);
             if (channels.isEmpty()) {
                 graphics.drawString(this.font, Component.translatable("gui.simukraft.logistics.empty"), x, y + 30, LogisticsNativeStyle.TEXT_MUTED);
                 return;

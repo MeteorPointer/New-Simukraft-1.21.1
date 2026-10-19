@@ -21,6 +21,7 @@ import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncPacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxViewUpdatePacket;
+import common.cn.nsimu.simukraft.network.manifest.ManifestHeldOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsClientBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsServerBoxOpenResponsePacket;
@@ -230,5 +231,11 @@ public interface ClientboundNetworkHandler {
      * handleManifestOpenResponse: 打开贴墙清单界面。
      */
     default void handleManifestOpenResponse(ManifestOpenResponsePacket packet) {
+    }
+
+    /**
+     * handleManifestHeldOpenResponse: 打开刷新后的手持清单界面。
+     */
+    default void handleManifestHeldOpenResponse(ManifestHeldOpenResponsePacket packet) {
     }
 }

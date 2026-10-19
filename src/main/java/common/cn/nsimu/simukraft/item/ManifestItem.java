@@ -4,9 +4,9 @@ import common.cn.nsimu.simukraft.building.BuildingBlockData;
 import common.cn.nsimu.simukraft.building.BuildingStructure;
 import common.cn.nsimu.simukraft.building.BuildingStructureService;
 import common.cn.nsimu.simukraft.building.BuildingTaskData;
-import common.cn.nsimu.simukraft.clientbridge.ClientInteractionBridge;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
 import common.cn.nsimu.simukraft.material.GenericContainerAccess;
+import common.cn.nsimu.simukraft.network.manifest.ManifestHeldOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
 import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
@@ -35,6 +35,7 @@ import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -63,8 +64,9 @@ public final class ManifestItem extends ItemNameBlockItem {
     @Override
     public @Nonnull InteractionResultHolder<ItemStack> use(@Nonnull Level level, @Nonnull Player player, @Nonnull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (level.isClientSide()) {
-            ClientInteractionBridge.openManifest(stack, hand);
+        if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
+            refreshFromLinkedSource(stack, serverLevel);
+            PacketDistributor.sendToPlayer(serverPlayer, new ManifestHeldOpenResponsePacket(hand, stack));
         }
         return InteractionResultHolder.sidedSuccess(stack, level.isClientSide());
     }
@@ -148,14 +150,29 @@ public final class ManifestItem extends ItemNameBlockItem {
      * refreshFromLinkedBuildBox: 静默按建筑盒当前位置刷新清单剩余材料。
      */
     public static boolean refreshFromLinkedBuildBox(@Nonnull ItemStack stack, @Nonnull ServerLevel level) {
-        if (!"build".equals(getSourceType(stack))) {
+        return "build".equals(getSourceType(stack)) && refreshFromLinkedSource(stack, level);
+    }
+
+    /**
+     * refreshFromLinkedSource: 打开时按绑定来源惰性刷新材料，保留原勾选。
+     */
+    public static boolean refreshFromLinkedSource(@Nonnull ItemStack stack, @Nonnull ServerLevel level) {
+        String sourceType = getSourceType(stack);
+        BlockPos sourcePos = getBuildBoxPos(stack);
+        if (sourceType.isBlank() || sourcePos == null || !level.isLoaded(sourcePos)) {
             return false;
         }
-        BlockPos buildBoxPos = getBuildBoxPos(stack);
-        if (buildBoxPos == null || !level.isLoaded(buildBoxPos)) {
-            return false;
+        Map<String, Boolean> previousChecked = checkedByItem(stack);
+        boolean updated = switch (sourceType) {
+            case "build" -> applyBuildBoxSnapshot(stack, level, sourcePos) == FillStatus.OK;
+            case "commercial" -> applyControlBoxSnapshot(stack, ManifestControlBoxSnapshotService.commercial(level, sourcePos));
+            case "industrial" -> applyControlBoxSnapshot(stack, ManifestControlBoxSnapshotService.industrial(level, sourcePos));
+            default -> false;
+        };
+        if (updated) {
+            restoreChecked(stack, previousChecked);
         }
-        return applyBuildBoxSnapshot(stack, level, buildBoxPos) == FillStatus.OK;
+        return updated;
     }
 
     /**
@@ -220,11 +237,20 @@ public final class ManifestItem extends ItemNameBlockItem {
      * fillFromControlBoxSnapshot: 将控制箱材料快照写入清单 NBT。
      */
     private static void fillFromControlBoxSnapshot(ItemStack stack, ServerPlayer player, ManifestControlBoxSnapshotService.FillResult result) {
-        if (!result.success()) {
+        if (!applyControlBoxSnapshot(stack, result)) {
             InfoToastService.warning(player, result.warning());
             return;
         }
+        InfoToastService.success(player, Component.translatable("message.simukraft.manifest.filled"));
+    }
 
+    /**
+     * applyControlBoxSnapshot: 把控制箱快照写入清单，失败时不改原数据。
+     */
+    private static boolean applyControlBoxSnapshot(ItemStack stack, ManifestControlBoxSnapshotService.FillResult result) {
+        if (result == null || !result.success()) {
+            return false;
+        }
         ManifestControlBoxSnapshotService.Snapshot snapshot = result.snapshot();
         CompoundTag tag = customTag(stack);
         tag.putString(TAG_BUILDING_NAME, snapshot.buildingName());
@@ -235,7 +261,41 @@ public final class ManifestItem extends ItemNameBlockItem {
         writeMaterials(tag, snapshot.materials(), snapshot.availableMaterials());
         writeProductGroups(tag, snapshot.productGroups());
         applyCustomTag(stack, tag);
-        InfoToastService.success(player, Component.translatable("message.simukraft.manifest.filled"));
+        return true;
+    }
+
+    /**
+     * checkedByItem: 读取当前勾选，供刷新后还原。
+     */
+    private static Map<String, Boolean> checkedByItem(ItemStack stack) {
+        Map<String, Boolean> checked = new LinkedHashMap<>();
+        for (MaterialEntry entry : getMaterials(stack)) {
+            checked.put(entry.itemId(), entry.checked());
+        }
+        return checked;
+    }
+
+    /**
+     * restoreChecked: 按物品 ID 还原勾选，新增条目保留自动勾选。
+     */
+    private static void restoreChecked(ItemStack stack, Map<String, Boolean> previousChecked) {
+        if (previousChecked == null || previousChecked.isEmpty()) {
+            return;
+        }
+        CompoundTag tag = customTag(stack);
+        if (!tag.contains(TAG_MATERIALS)) {
+            return;
+        }
+        ListTag materialsList = tag.getList(TAG_MATERIALS, Tag.TAG_COMPOUND);
+        ListTag checkedList = tag.getList(TAG_CHECKED, Tag.TAG_STRING);
+        ListTag restored = new ListTag();
+        for (int i = 0; i < materialsList.size(); i++) {
+            String itemId = materialsList.getCompound(i).getString("Item");
+            boolean fallback = i < checkedList.size() && Boolean.parseBoolean(checkedList.getString(i));
+            restored.add(StringTag.valueOf(Boolean.toString(previousChecked.getOrDefault(itemId, fallback))));
+        }
+        tag.put(TAG_CHECKED, restored);
+        applyCustomTag(stack, tag);
     }
 
     private static List<BuildingBlockData> sortedPlacedBlocks(BuildingStructure structure, BuildingTaskData task) {

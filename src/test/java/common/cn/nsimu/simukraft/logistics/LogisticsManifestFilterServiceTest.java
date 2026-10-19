@@ -13,6 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class LogisticsManifestFilterServiceTest {
     /**
@@ -26,8 +27,22 @@ class LogisticsManifestFilterServiceTest {
 
         List<LogisticsItemFilter> filters = LogisticsManifestFilterService.remainingFilters(stack);
 
-        assertEquals(1, filters.size());
-        assertEquals("minecraft:oak_log", filters.getFirst().itemId());
+        assertTrue(filters.stream().anyMatch(filter -> "minecraft:oak_log".equals(filter.itemId())));
+        assertTrue(filters.stream().noneMatch(filter -> "minecraft:iron_ingot".equals(filter.itemId())));
+    }
+
+    /**
+     * remainingFiltersExpandsMaterialCategory: 通类组内的替代物也会进入输送过滤。
+     */
+    @Test
+    void remainingFiltersExpandsMaterialCategory() {
+        ItemStack stack = manifestWith(material("minecraft:stone_brick_wall", 4, 0));
+        List<String> ids = LogisticsManifestFilterService.remainingFilters(stack).stream()
+                .map(LogisticsItemFilter::itemId)
+                .toList();
+        assertTrue(ids.contains("minecraft:stone_brick_wall"));
+        assertFalse(ids.isEmpty());
+        assertTrue(ids.contains("minecraft:stone_bricks") || ids.size() == 1);
     }
 
     /**

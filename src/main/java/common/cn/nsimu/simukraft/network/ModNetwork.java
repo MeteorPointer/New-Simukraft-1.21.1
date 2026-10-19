@@ -30,6 +30,7 @@ import common.cn.nsimu.simukraft.network.hud.HudSyncPacket;
 import common.cn.nsimu.simukraft.network.industrial.*;
 import common.cn.nsimu.simukraft.network.logistics.*;
 import common.cn.nsimu.simukraft.network.manifest.ManifestBlockTogglePacket;
+import common.cn.nsimu.simukraft.network.manifest.ManifestHeldOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestTogglePacket;
 import common.cn.nsimu.simukraft.network.medical.MedicalControlBoxDemolishPacket;
@@ -55,7 +56,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 
 public final class ModNetwork {
-    private static final String NETWORK_VERSION = "40";
+    private static final String NETWORK_VERSION = "41";
 
     private ModNetwork() {
     }
@@ -163,5 +164,6 @@ public final class ModNetwork {
         registrar.playToClient(ReloadGuideBookPacket.TYPE, ReloadGuideBookPacket.STREAM_CODEC, ReloadGuideBookPacket::handle);
         registrar.playToClient(RtsBuildingBoundsSyncPacket.TYPE, RtsBuildingBoundsSyncPacket.STREAM_CODEC, RtsBuildingBoundsSyncPacket::handle);
         registrar.playToClient(ManifestOpenResponsePacket.TYPE, ManifestOpenResponsePacket.STREAM_CODEC, ManifestOpenResponsePacket::handle);
+        registrar.playToClient(ManifestHeldOpenResponsePacket.TYPE, ManifestHeldOpenResponsePacket.STREAM_CODEC, ManifestHeldOpenResponsePacket::handle);
     }
 }

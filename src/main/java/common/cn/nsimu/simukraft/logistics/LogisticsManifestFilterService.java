@@ -3,6 +3,7 @@ package common.cn.nsimu.simukraft.logistics;
 import common.cn.nsimu.simukraft.block.ManifestBlock;
 import common.cn.nsimu.simukraft.block.entity.ManifestBlockEntity;
 import common.cn.nsimu.simukraft.item.ManifestItem;
+import common.cn.nsimu.simukraft.material.WorkMaterialPolicy;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
@@ -41,10 +42,10 @@ public final class LogisticsManifestFilterService {
     }
 
     /**
-     * remainingFilters: 把清单里尚未备齐的材料转成物流过滤项。
+     * remainingFilters: 把清单里尚未备齐的材料转成物流过滤项，通类组内物品都可输送。
      */
     public static List<LogisticsItemFilter> remainingFilters(ItemStack stack) {
-        List<LogisticsItemFilter> filters = new ArrayList<>();
+        Map<String, LogisticsItemFilter> filters = new LinkedHashMap<>();
         for (ManifestItem.MaterialEntry entry : ManifestItem.getMaterials(stack)) {
             if (entry.itemId() == null || entry.itemId().isBlank()) {
                 continue;
@@ -52,9 +53,11 @@ public final class LogisticsManifestFilterService {
             if (entry.available() >= entry.count()) {
                 continue;
             }
-            filters.add(LogisticsItemFilter.item(entry.itemId()));
+            for (String itemId : WorkMaterialPolicy.categoryItemIds(entry.itemId())) {
+                filters.putIfAbsent(itemId, LogisticsItemFilter.item(itemId));
+            }
         }
-        return List.copyOf(filters);
+        return List.copyOf(filters.values());
     }
 
     private static List<ItemStack> adjacentManifests(ServerLevel level, BlockPos clientPos, boolean refreshBuildBox) {
@@ -72,7 +75,7 @@ public final class LogisticsManifestFilterService {
                 continue;
             }
             ItemStack stack = entity.toItem();
-            if (refreshBuildBox && ManifestItem.refreshFromLinkedBuildBox(stack, level)) {
+            if (refreshBuildBox && ManifestItem.refreshFromLinkedSource(stack, level)) {
                 entity.loadFromItem(stack);
             }
             stacks.add(stack);

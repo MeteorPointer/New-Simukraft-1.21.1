@@ -2,6 +2,7 @@ package common.cn.nsimu.simukraft.network.manifest;
 
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.block.entity.ManifestBlockEntity;
+import common.cn.nsimu.simukraft.item.ManifestItem;
 import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkBridge;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
 import common.cn.nsimu.simukraft.registry.ModItems;
@@ -57,9 +58,15 @@ public record ManifestOpenResponsePacket(BlockPos pos, ItemStack stack) implemen
         if (!player.isAlive() || player.distanceToSqr(pos.getX() + 0.5D, pos.getY() + 0.5D, pos.getZ() + 0.5D) > 64.0D) {
             return;
         }
-        ItemStack stack = level.getBlockEntity(pos) instanceof ManifestBlockEntity manifest
-                ? manifest.toItem()
-                : new ItemStack(ModItems.MANIFEST.get());
+        ItemStack stack;
+        if (level.getBlockEntity(pos) instanceof ManifestBlockEntity manifest) {
+            stack = manifest.toItem();
+            if (ManifestItem.refreshFromLinkedSource(stack, level)) {
+                manifest.loadFromItem(stack);
+            }
+        } else {
+            stack = new ItemStack(ModItems.MANIFEST.get());
+        }
         PacketDistributor.sendToPlayer(player, new ManifestOpenResponsePacket(pos, stack));
     }
 }

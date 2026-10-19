@@ -48,6 +48,7 @@ import common.cn.nsimu.simukraft.network.geology.GeologicalSurveyHintPacket;
 import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncPacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxOpenResponsePacket;
+import common.cn.nsimu.simukraft.network.manifest.ManifestHeldOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.industrial.IndustrialControlBoxViewUpdatePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsClientBoxOpenResponsePacket;
@@ -283,5 +284,13 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
     @Override
     public void handleManifestOpenResponse(ManifestOpenResponsePacket packet) {
         ManifestScreen.openFromBlock(packet.stack(), packet.pos());
+    }
+
+    /**
+     * handleManifestHeldOpenResponse: 打开刷新后的手持清单。
+     */
+    @Override
+    public void handleManifestHeldOpenResponse(ManifestHeldOpenResponsePacket packet) {
+        ManifestScreen.open(packet.stack(), packet.hand());
     }
 }
