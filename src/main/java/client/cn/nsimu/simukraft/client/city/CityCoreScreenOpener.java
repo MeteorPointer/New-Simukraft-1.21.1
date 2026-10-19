@@ -510,13 +510,6 @@ public final class CityCoreScreenOpener {
         return Component.translatable("screen.simukraft.city_core.finance.type." + entry.type().name().toLowerCase(Locale.ROOT)).getString();
     }
 
-    /**
-     * financeAmountText：收入显示正数，支出显示负数，避免流水里两种符号同时出现。
-     */
-    private static String financeAmountText(CityCoreOpenResponsePacket.FinanceEntry entry) {
-        return financeAmountText(entry.type(), entry.amount());
-    }
-
     private static String financeAmountText(FinanceTransactionData.Type type, double amount) {
         if (type == FinanceTransactionData.Type.EXPENSE) {
             amount = -Math.abs(amount);
@@ -1040,19 +1033,6 @@ public final class CityCoreScreenOpener {
         Button button = baseButton(key, action);
         button.layout(layout -> {
             layout.width(100);
-            layout.height(20);
-            layout.flexDirection(FlexDirection.ROW);
-            layout.justifyContent(AlignContent.CENTER);
-        });
-        return button;
-    }
-
-    private static Button contentButton(Component text, Runnable action) {
-        Button button = new Button();
-        button.setText(text);
-        button.setOnClick(event -> action.run());
-        button.layout(layout -> {
-            layout.width(170);
             layout.height(20);
             layout.flexDirection(FlexDirection.ROW);
             layout.justifyContent(AlignContent.CENTER);

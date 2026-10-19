@@ -634,16 +634,6 @@ public final class BuildingPackageCatalog {
         }
     }
 
-    /**
-     * displayAmount: 英文界面去掉造价里的“元”。
-     */
-    private static String displayAmount(String amount) {
-        if (amount == null || amount.isBlank() || !BuildingLocale.preferEnglish()) {
-            return amount;
-        }
-        return amount.replace("元", "").trim();
-    }
-
     private static String findValue(String text, String key, String fallback) {
         String value = findDeclaredValue(text, key);
         return value == null || value.isBlank() ? fallback : value;

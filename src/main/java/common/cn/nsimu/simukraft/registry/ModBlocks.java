@@ -7,7 +7,6 @@ import common.cn.nsimu.simukraft.item.CautionTapeRollItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.*;
@@ -79,15 +78,6 @@ public final class ModBlocks {
     private static DeferredBlock<Block> registerBlock(String name, Supplier<Block> blockSupplier) {
         DeferredBlock<Block> block = BLOCKS.register(name, blockSupplier);
         ITEMS.register(name, () -> new BlockItem(block.get(), new Item.Properties()));
-        return block;
-    }
-
-    /**
-     * 物品名与方块名分开：物品显示成卷胶带，放置后是警戒线。
-     */
-    private static DeferredBlock<Block> registerNamedItemBlock(String name, Supplier<Block> blockSupplier) {
-        DeferredBlock<Block> block = BLOCKS.register(name, blockSupplier);
-        ITEMS.register(name, () -> new ItemNameBlockItem(block.get(), new Item.Properties()));
         return block;
     }
 

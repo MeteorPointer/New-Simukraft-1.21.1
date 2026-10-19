@@ -76,7 +76,6 @@ class BottomSlabHeadroomTest {
         }
         PathSnapshot snapshot = build(states, shapes, 0, 5, 0, 2, 63, 66);
         BlockPos start = new BlockPos(0, 63, 1);
-        BlockPos target = new BlockPos(5, 63, 1);
         PathResult result = HybridPathfinder.find(new PathRequest(UUID.randomUUID(), DIMENSION, start,
                 new Vec3(5.5D, 63.5D, 1.5D), MovementIntent.WALK, 0L), snapshot);
 
