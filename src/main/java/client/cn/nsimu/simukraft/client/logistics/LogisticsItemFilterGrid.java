@@ -82,6 +82,12 @@ final class LogisticsItemFilterGrid {
                 }
             }
         }
+    }
+
+    /**
+     * renderHoverTooltip: 在文字层之后绘制悬浮提示。
+     */
+    void renderHoverTooltip(GuiGraphics graphics, Font font, int x, int y, int mouseX, int mouseY) {
         renderTooltip(graphics, font, x, y, mouseX, mouseY);
     }
 

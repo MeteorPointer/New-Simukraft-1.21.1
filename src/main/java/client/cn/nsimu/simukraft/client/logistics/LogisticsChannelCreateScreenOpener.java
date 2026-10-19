@@ -94,6 +94,15 @@ public final class LogisticsChannelCreateScreenOpener {
             renderBackground(graphics, mouseX, mouseY, partialTick);
             Layout layout = layout();
             LogisticsNativeStyle.drawPanel(graphics, layout.x(), layout.y(), layout.width(), layout.height());
+            renderClientScrollbar(graphics, layout);
+            if (filterMode == LogisticsChannelFilterMode.ITEM) {
+                itemGrid.render(graphics, this.font, layout.gridX(), layout.gridY(), mouseX, mouseY);
+            } else {
+                renderManifestHintPanel(graphics, layout);
+            }
+            for (var renderable : this.renderables) {
+                renderable.render(graphics, mouseX, mouseY, partialTick);
+            }
             graphics.drawCenteredString(this.font, this.title, layout.x() + layout.width() / 2, layout.titleY(), LogisticsNativeStyle.TEXT);
             graphics.drawString(this.font, Component.translatable("gui.simukraft.logistics.channel.client"), layout.x() + 12, layout.nameLabelY(), LogisticsNativeStyle.TEXT_WARN);
             graphics.drawString(this.font, Component.translatable("gui.simukraft.logistics.channel.name"), layout.rightX(), layout.nameLabelY(), LogisticsNativeStyle.TEXT_WARN);
@@ -101,16 +110,14 @@ public final class LogisticsChannelCreateScreenOpener {
             graphics.drawString(this.font, Component.translatable("gui.simukraft.logistics.channel.keep_source"), layout.rightX(), layout.keepLabelY(), LogisticsNativeStyle.TEXT_WARN);
             graphics.drawString(this.font, Component.translatable("gui.simukraft.logistics.channel.keep_target"), layout.keepTargetX(), layout.keepLabelY(), LogisticsNativeStyle.TEXT_WARN);
             renderSelectedClientHint(graphics, layout.x() + 12, layout.y() + layout.height() - 18);
-            renderClientScrollbar(graphics, layout);
             if (filterMode == LogisticsChannelFilterMode.ITEM) {
-                itemGrid.render(graphics, this.font, layout.gridX(), layout.gridY(), mouseX, mouseY);
                 graphics.drawString(this.font, Component.translatable(
                         "gui.simukraft.logistics.channel.selected_count", itemGrid.selectedItemIds().size()),
                         layout.actionX(), layout.selectedY(), LogisticsNativeStyle.TEXT, false);
+                itemGrid.renderHoverTooltip(graphics, this.font, layout.gridX(), layout.gridY(), mouseX, mouseY);
             } else {
-                renderManifestHint(graphics, layout);
+                renderManifestHintText(graphics, layout);
             }
-            super.render(graphics, mouseX, mouseY, partialTick);
         }
 
         /**
@@ -416,13 +423,20 @@ public final class LogisticsChannelCreateScreenOpener {
          * layout: 计算表单位置和尺寸。
          */
         /**
-         * renderManifestHint: 清单过滤页说明，不占用物品格。
+         * renderManifestHintPanel: 清单说明底，叠在背景后、文字前。
          */
-        private void renderManifestHint(GuiGraphics graphics, Layout layout) {
+        private void renderManifestHintPanel(GuiGraphics graphics, Layout layout) {
             int x = layout.gridX();
             int y = layout.gridY();
-            int boxWidth = itemGrid.width();
-            graphics.fill(x - 2, y - 2, x + boxWidth, y + itemGrid.height() + 2, 0xFF10101C);
+            graphics.fill(x - 2, y - 2, x + itemGrid.width(), y + itemGrid.height() + 2, 0xFF10101C);
+        }
+
+        /**
+         * renderManifestHintText: 清单说明文字，叠在按钮之后。
+         */
+        private void renderManifestHintText(GuiGraphics graphics, Layout layout) {
+            int x = layout.gridX();
+            int y = layout.gridY();
             graphics.drawString(this.font, Component.translatable("gui.simukraft.logistics.channel.manifest_hint"),
                     x, y + 6, LogisticsNativeStyle.TEXT, false);
             graphics.drawString(this.font, Component.translatable("gui.simukraft.logistics.channel.manifest_hint_build"),
