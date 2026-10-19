@@ -17,8 +17,8 @@ final class LogisticsNativeStyle {
     static final int PANEL = 0xE0111122;
     static final int PANEL_DARK = 0xCC0D0D1A;
     static final int PANEL_LINE = 0xFF333355;
-    static final int STATUS_ON = 0xCC1F8F3A;
-    static final int STATUS_OFF = 0xCC9B2C2C;
+    static final int STATUS_ON = 0x661F8F3A;
+    static final int STATUS_OFF = 0x669B2C2C;
     static final int STATUS_ON_LINE = 0xFF55FF77;
     static final int STATUS_OFF_LINE = 0xFFFF7777;
 
