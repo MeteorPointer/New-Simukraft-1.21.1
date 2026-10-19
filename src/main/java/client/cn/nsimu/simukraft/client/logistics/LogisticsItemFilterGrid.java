@@ -13,7 +13,7 @@ import java.util.Set;
 
 final class LogisticsItemFilterGrid {
     private static final int COLS = 9;
-    private static final int ROWS = 3;
+    private static final int ROWS = 4;
     private static final int SLOT = 18;
     private static final float COUNT_SCALE = 0.65F;
 

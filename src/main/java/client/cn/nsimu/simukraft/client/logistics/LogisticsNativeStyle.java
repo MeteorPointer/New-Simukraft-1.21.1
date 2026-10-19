@@ -29,7 +29,7 @@ final class LogisticsNativeStyle {
      * drawBackdrop: 绘制旧版物流界面的半透明深色背景。
      */
     static void drawBackdrop(GuiGraphics graphics, int width, int height) {
-        graphics.fill(0, 0, width, height, 0x660D0D1A);
+        graphics.fill(0, 0, width, height, 0xCC0D0D1A);
     }
 
     /**
