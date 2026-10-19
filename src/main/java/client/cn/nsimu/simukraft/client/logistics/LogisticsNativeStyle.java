@@ -29,7 +29,7 @@ final class LogisticsNativeStyle {
      * drawBackdrop: 绘制旧版物流界面的半透明深色背景。
      */
     static void drawBackdrop(GuiGraphics graphics, int width, int height) {
-        graphics.fill(0, 0, width, height, PANEL_DARK);
+        graphics.fill(0, 0, width, height, 0x660D0D1A);
     }
 
     /**
@@ -80,12 +80,23 @@ final class LogisticsNativeStyle {
         int height = 11;
         int fill = enabled ? STATUS_ON : STATUS_OFF;
         int line = enabled ? STATUS_ON_LINE : STATUS_OFF_LINE;
+        drawStatusBadgeBackground(graphics, enabled, x, y);
+        graphics.drawCenteredString(font, text, x + width / 2, y + 1, TEXT);
+    }
+
+    /**
+     * drawStatusBadgeBackground: 只画启停色块，供背景后、文字前的分层绘制。
+     */
+    static void drawStatusBadgeBackground(GuiGraphics graphics, boolean enabled, int x, int y) {
+        int width = 25;
+        int height = 11;
+        int fill = enabled ? STATUS_ON : STATUS_OFF;
+        int line = enabled ? STATUS_ON_LINE : STATUS_OFF_LINE;
         graphics.fill(x, y, x + width, y + height, fill);
         graphics.fill(x, y, x + width, y + 1, line);
         graphics.fill(x, y + height - 1, x + width, y + height, line);
         graphics.fill(x, y, x + 1, y + height, line);
         graphics.fill(x + width - 1, y, x + width, y + height, line);
-        graphics.drawCenteredString(font, text, x + width / 2, y + 1, TEXT);
     }
 
     /**

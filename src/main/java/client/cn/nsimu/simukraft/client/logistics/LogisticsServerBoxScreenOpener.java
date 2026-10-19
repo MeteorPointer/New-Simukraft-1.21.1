@@ -198,12 +198,17 @@ public final class LogisticsServerBoxScreenOpener {
             graphics.fill(lineX, 26, lineX + 1, this.height - 5, LogisticsNativeStyle.PANEL_LINE);
             int contentX = lineX + 8;
             int contentY = 30;
+            if (currentTab == ActiveTab.ROUTES) {
+                renderRouteBadges(graphics, contentX, contentY);
+            }
+            for (var renderable : this.renderables) {
+                renderable.render(graphics, mouseX, mouseY, partialTick);
+            }
             switch (currentTab) {
                 case OVERVIEW -> renderOverview(graphics, contentX + 164, contentY);
                 case MAP -> renderMapTab(graphics, contentX, contentY);
-                case ROUTES -> renderRoutes(graphics, contentX, contentY);
+                case ROUTES -> renderRouteLabels(graphics, contentX, contentY);
             }
-            super.render(graphics, mouseX, mouseY, partialTick);
         }
 
         @Override
@@ -387,9 +392,31 @@ public final class LogisticsServerBoxScreenOpener {
         }
 
         /**
-         * renderRoutes: 绘制路径列表（与 buildRouteButtons 共用滚动窗口）。
+         * renderRouteBadges: 在背景之后、按钮和文字之前绘制启停色块。
          */
-        private void renderRoutes(GuiGraphics graphics, int x, int y) {
+        private void renderRouteBadges(GuiGraphics graphics, int x, int y) {
+            List<LogisticsControlBoxService.ChannelEntry> channels = packet.channels();
+            if (channels.isEmpty()) {
+                return;
+            }
+            int panelL = x - 6;
+            int panelT = routeViewportTop() - 6;
+            int panelR = this.width - 6;
+            int panelB = routeViewportBottom() + 4;
+            int top = routeViewportTop();
+            int last = Math.min(channels.size(), routeScrollRow + routeVisibleRows());
+            graphics.enableScissor(panelL + 2, panelT + 1, panelR - SCROLLBAR_W - 2, panelB - 1);
+            for (int i = routeScrollRow; i < last; i++) {
+                int rowY = top + (i - routeScrollRow) * ROUTE_ROW_H;
+                LogisticsNativeStyle.drawStatusBadgeBackground(graphics, channels.get(i).enabled(), x, rowY - 1);
+            }
+            graphics.disableScissor();
+        }
+
+        /**
+         * renderRouteLabels: 绘制路径列表文字，叠在色块和按钮之上。
+         */
+        private void renderRouteLabels(GuiGraphics graphics, int x, int y) {
             List<LogisticsControlBoxService.ChannelEntry> channels = packet.channels();
             Component header = Component.translatable("gui.simukraft.logistics.server.tab.routes")
                     .append(Component.literal(" (" + channels.size() + ")"));
@@ -410,7 +437,7 @@ public final class LogisticsServerBoxScreenOpener {
                 LogisticsControlBoxService.ChannelEntry channel = channels.get(i);
                 int rowY = top + (i - routeScrollRow) * ROUTE_ROW_H;
                 String direction = channel.direction() == LogisticsDirection.CLIENT_TO_WAREHOUSE ? "<-" : "->";
-                LogisticsNativeStyle.drawStatusBadge(graphics, this.font, channel.enabled(), x, rowY - 1);
+                graphics.drawCenteredString(this.font, channel.enabled() ? "ON" : "OFF", x + 12, rowY, LogisticsNativeStyle.TEXT);
                 graphics.drawString(this.font, LogisticsNativeStyle.fit(this.font,
                                 direction + " " + LogisticsItemDisplayName.channelName(channel.name(), channel.filters()), 198),
                         x + 31, rowY, LogisticsNativeStyle.TEXT, true);
