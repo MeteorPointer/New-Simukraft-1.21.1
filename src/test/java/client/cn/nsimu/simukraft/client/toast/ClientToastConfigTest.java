@@ -27,7 +27,7 @@ class ClientToastConfigTest {
     void fromNameDefaultsToWidth() {
         assertEquals(ClientToastConfig.FitMode.WIDTH, ClientToastConfig.FitMode.fromName("WIDTH"));
         assertEquals(ClientToastConfig.FitMode.HEIGHT, ClientToastConfig.FitMode.fromName("height"));
-        assertEquals(ClientToastConfig.FitMode.WIDTH, ClientToastConfig.FitMode.fromName("nope"));
+        assertEquals(ClientToastConfig.FitMode.HEIGHT, ClientToastConfig.FitMode.fromName("nope"));
     }
 
     /**

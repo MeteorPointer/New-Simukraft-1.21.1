@@ -31,13 +31,13 @@ public final class ClientToastConfig {
         HEIGHT;
 
         /**
-         * fromName: 解析扩展模式，未知值回退到宽度优先。
+         * fromName: 解析扩展模式，未知值回退到高度优先。
          */
         public static FitMode fromName(String value) {
-            if (value != null && value.equalsIgnoreCase(HEIGHT.name())) {
-                return HEIGHT;
+            if (value != null && value.equalsIgnoreCase(WIDTH.name())) {
+                return WIDTH;
             }
-            return WIDTH;
+            return HEIGHT;
         }
     }
 

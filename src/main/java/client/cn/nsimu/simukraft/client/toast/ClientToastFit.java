@@ -20,7 +20,7 @@ final class ClientToastFit {
         if (fits(width, height, minScale, requiredHeightAtLogicalWidth)) {
             return new int[]{width, height};
         }
-        ClientToastConfig.FitMode mode = fitMode != null ? fitMode : ClientToastConfig.FitMode.WIDTH;
+        ClientToastConfig.FitMode mode = fitMode != null ? fitMode : ClientToastConfig.FitMode.HEIGHT;
         if (mode == ClientToastConfig.FitMode.WIDTH) {
             width = growWidth(width, height, maxWidth, minScale, requiredHeightAtLogicalWidth);
             if (!fits(width, height, minScale, requiredHeightAtLogicalWidth)) {

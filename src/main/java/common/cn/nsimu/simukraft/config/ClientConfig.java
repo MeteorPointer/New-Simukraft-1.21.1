@@ -19,7 +19,7 @@ public final class ClientConfig {
     public static final int DEFAULT_TOAST_WIDTH = 184;
     public static final int DEFAULT_TOAST_HEIGHT = 48;
     public static final double DEFAULT_TOAST_MIN_TEXT_SCALE = 0.50D;
-    public static final String DEFAULT_TOAST_FIT_MODE = "WIDTH";
+    public static final String DEFAULT_TOAST_FIT_MODE = "HEIGHT";
     public static final int DEFAULT_RTS_MOVE_HOLD_SECONDS = 1;
 
     public static final ModConfigSpec SPEC;
@@ -91,7 +91,7 @@ public final class ClientConfig {
                 .translation("config.simukraft.client.toast.minTextScale")
                 .defineInRange("minTextScale", DEFAULT_TOAST_MIN_TEXT_SCALE, 0.25D, 1.0D);
         TOAST_FIT_MODE = builder
-                .comment("When toast text does not fit at the minimum scale: WIDTH grows width first, HEIGHT grows height first.")
+                .comment("When toast text does not fit at the minimum scale: HEIGHT grows height first, WIDTH grows width first.")
                 .translation("config.simukraft.client.toast.fitMode")
                 .define("fitMode", DEFAULT_TOAST_FIT_MODE, ClientConfig::isToastFitMode);
         builder.pop();
