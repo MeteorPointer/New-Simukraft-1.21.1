@@ -22,7 +22,7 @@ import java.util.PriorityQueue;
  */
 final class HybridPathfinder {
     private static final int MAX_ITERATIONS = 20000;
-    private static final int NEAREST_RANGE = 5;
+    static final int NEAREST_RANGE = 5;
     private static final int SMOOTH_LOOKAHEAD = 24;
     private static final double WALK_CORRIDOR_HALF_WIDTH = 0.36D;
     private static final double WALK_CORRIDOR_SAMPLE_STEP = 0.20D;
@@ -97,7 +97,7 @@ final class HybridPathfinder {
      * caller must finish iterating it before invoking this method again. Because the search runs on
      * a fixed worker pool this avoids one list allocation per expanded node.
      */
-    private static List<Neighbor> neighbors(PathSnapshot snapshot, PathCell current, PathCell target, MovementIntent intent) {
+    static List<Neighbor> neighbors(PathSnapshot snapshot, PathCell current, PathCell target, MovementIntent intent) {
         List<Neighbor> neighbors = NEIGHBOR_SCRATCH.get();
         neighbors.clear();
         if (current.water()) {
@@ -508,8 +508,7 @@ final class HybridPathfinder {
         if (raised - from.standY() <= 0.02D && raised - to.standY() <= 0.02D) {
             return true;
         }
-        Long2ObjectOpenHashMap<VoxelShape> shapes = snapshot.collisionShapes();
-        return clearsStand(from, raised, shapes) && clearsStand(to, raised, shapes);
+        return clearsStand(snapshot, from, raised) && clearsStand(snapshot, to, raised);
     }
 
     /**
@@ -534,7 +533,7 @@ final class HybridPathfinder {
      * Collapses runs of collinear, same-mode waypoints into straight segments the follower can
      * drive directly, while preserving every waypoint a merge would unsafely skip.
      */
-    private static List<PathWaypoint> smooth(PathSnapshot snapshot, List<PathWaypoint> rawWaypoints) {
+    static List<PathWaypoint> smooth(PathSnapshot snapshot, List<PathWaypoint> rawWaypoints) {
         if (rawWaypoints.size() <= 2) {
             return rawWaypoints;
         }
@@ -745,7 +744,7 @@ final class HybridPathfinder {
      * collision shapes captured in the snapshot. A collision-free cell is preferred; when none
      * exists within range the geometrically nearest cell is returned as a fallback.
      */
-    private static PathCell nearestCell(PathSnapshot snapshot, BlockPos target, int range) {
+    static PathCell nearestCell(PathSnapshot snapshot, BlockPos target, int range) {
         PathCell direct = snapshot.cell(target);
         if (direct != null) {
             return direct;
@@ -754,7 +753,6 @@ final class HybridPathfinder {
         double bestClearDistance = Double.MAX_VALUE;
         PathCell bestAny = null;
         double bestAnyDistance = Double.MAX_VALUE;
-        Long2ObjectOpenHashMap<VoxelShape> shapes = snapshot.collisionShapes();
         for (int dx = -range; dx <= range; dx++) {
             for (int dy = -range; dy <= range; dy++) {
                 for (int dz = -range; dz <= range; dz++) {
@@ -765,7 +763,7 @@ final class HybridPathfinder {
                         bestAny = cell;
                         bestAnyDistance = d;
                     }
-                    if (d < bestClearDistance && hasCitizenClearance(cell, shapes)) {
+                    if (d < bestClearDistance && hasCitizenClearance(snapshot, cell)) {
                         bestClear = cell;
                         bestClearDistance = d;
                     }
@@ -779,17 +777,14 @@ final class HybridPathfinder {
      * Returns whether the citizen's bounding box, centred on {@code cell} at its stand height,
      * is free of intersection with any captured block collision shape.
      */
-    private static boolean hasCitizenClearance(PathCell cell, Long2ObjectOpenHashMap<VoxelShape> shapes) {
-        return clearsStand(cell, cell.standY(), shapes);
+    private static boolean hasCitizenClearance(PathSnapshot snapshot, PathCell cell) {
+        return clearsStand(snapshot, cell, cell.standY());
     }
 
     /**
      * clearsStand: 用给定脚底高度复核这一格的头顶，半砖抬高后不能再沿用更低的净空。
      */
-    private static boolean clearsStand(PathCell cell, double standY, Long2ObjectOpenHashMap<VoxelShape> shapes) {
-        if (shapes == null || shapes.isEmpty()) {
-            return true;
-        }
+    private static boolean clearsStand(PathSnapshot snapshot, PathCell cell, double standY) {
         double centerX = cell.x() + 0.5D;
         double centerZ = cell.z() + 0.5D;
         AABB npcBox = new AABB(
@@ -803,13 +798,13 @@ final class HybridPathfinder {
         int maxX = (int) Math.floor(npcBox.maxX);
         int maxY = (int) Math.floor(npcBox.maxY);
         int maxZ = (int) Math.floor(npcBox.maxZ);
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
         for (int x = minX; x <= maxX; x++) {
             for (int y = minY; y <= maxY; y++) {
                 for (int z = minZ; z <= maxZ; z++) {
-                    mutable.set(x, y, z);
-                    VoxelShape shape = shapes.get(mutable.asLong());
-                    if (shape == null) continue;
+                    VoxelShape shape = snapshot.collisionShape(x, y, z);
+                    if (shape == null || shape.isEmpty()) {
+                        continue;
+                    }
                     for (AABB box : shape.toAabbs()) {
                         if (box.maxX + x > npcBox.minX && box.minX + x < npcBox.maxX
                                 && box.maxY + y > npcBox.minY && box.minY + y < npcBox.maxY
@@ -957,7 +952,7 @@ final class HybridPathfinder {
         }
     }
 
-    private record Neighbor(PathCell cell, MovementMode mode, double cost) {
+    record Neighbor(PathCell cell, MovementMode mode, double cost) {
     }
 
     private static final class SearchNode {

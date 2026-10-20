@@ -12,9 +12,9 @@ final class PathResultCache {
     private final LinkedHashMap<PathCacheKey, CacheEntry> entries =
             new LinkedHashMap<>(16, 0.75f, true);
 
-    synchronized PathResult get(PathCacheKey key, long gameTime) {
+    synchronized PathResult get(PathCacheKey key, long gameTime, PathSectionEpochs epochs) {
         CacheEntry entry = entries.get(key);
-        if (entry == null || entry.expiresAt < gameTime) {
+        if (entry == null || entry.expiresAt < gameTime || epochs == null || !epochs.matches(entry.stamp)) {
             if (entry != null) {
                 entries.remove(key);
             }
@@ -23,14 +23,23 @@ final class PathResultCache {
         return entry.result;
     }
 
-    synchronized void put(PathCacheKey key, PathResult result, long gameTime, int ttlTicks) {
-        if (key == null || result == null || !result.success() || ttlTicks <= 0) {
+    synchronized void put(PathCacheKey key, PathResult result, long gameTime, int ttlTicks, PathSectionStamp stamp) {
+        if (key == null || result == null || !result.success() || ttlTicks <= 0 || stamp == null) {
             return;
         }
         if (entries.size() >= MAX_ENTRIES) {
             trim(gameTime);
         }
-        entries.put(key, new CacheEntry(result, gameTime + ttlTicks));
+        entries.put(key, new CacheEntry(result, gameTime + ttlTicks, stamp));
+    }
+
+    /**
+     * dropStale: 区段版本变了的路线从缓存里拿走，避免占着名额。
+     */
+    synchronized void dropStale(long gameTime, PathSectionEpochs epochs) {
+        entries.entrySet().removeIf(entry -> entry.getValue().expiresAt < gameTime
+                || epochs == null
+                || !epochs.matches(entry.getValue().stamp));
     }
 
     synchronized void clear() {
@@ -52,6 +61,6 @@ final class PathResultCache {
         }
     }
 
-    private record CacheEntry(PathResult result, long expiresAt) {
+    private record CacheEntry(PathResult result, long expiresAt, PathSectionStamp stamp) {
     }
 }

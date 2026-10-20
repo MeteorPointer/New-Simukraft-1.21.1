@@ -45,6 +45,8 @@ import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
 import common.cn.nsimu.simukraft.util.NpcWorkChunkLoadService;
 import common.cn.nsimu.simukraft.virtualvein.VirtualVeinService;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.piston.PistonStructureResolver;
@@ -213,15 +215,29 @@ public final class SimuKraft {
     }
 
     private void onPistonPost(PistonEvent.Post event) {
-        if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel level) {
-            CitizenNavigationService.invalidate(level, event.getPos());
+        if (!(event.getLevel() instanceof net.minecraft.server.level.ServerLevel level)) {
+            return;
         }
+        BlockPos origin = event.getPos();
+        Direction direction = event.getDirection();
+        java.util.List<BlockPos> positions = new java.util.ArrayList<>();
+        positions.add(origin);
+        if (direction != null) {
+            for (int step = 1; step <= 12; step++) {
+                positions.add(origin.relative(direction, step));
+            }
+        }
+        CitizenNavigationService.invalidateAll(level, positions);
     }
 
     private void onExplosionDetonate(ExplosionEvent.Detonate event) {
-        if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel level) {
-            CitizenNavigationService.invalidate(level, level.getSharedSpawnPos());
+        if (!(event.getLevel() instanceof net.minecraft.server.level.ServerLevel level)) {
+            return;
         }
+        java.util.List<BlockPos> positions = new java.util.ArrayList<>(event.getAffectedBlocks());
+        Vec3 center = event.getExplosion().center();
+        positions.add(BlockPos.containing(center.x, center.y, center.z));
+        CitizenNavigationService.invalidateAll(level, positions);
     }
 
     private void onFarmlandTrample(BlockEvent.FarmlandTrampleEvent event) {

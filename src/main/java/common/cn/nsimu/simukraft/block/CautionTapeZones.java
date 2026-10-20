@@ -56,7 +56,9 @@ public final class CautionTapeZones {
         if (citizenId == null || dimension == null || pos == null || zones.isEmpty()) {
             return 0.0D;
         }
-        UUID citizenCity = citizenCity(dimension, citizenId);
+        UUID citizenCity = PathExtraCosts.hasBoundCity()
+                ? PathExtraCosts.boundCity()
+                : citizenCity(dimension, citizenId);
         if (citizenCity == null) {
             return 0.0D;
         }

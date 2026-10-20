@@ -5,6 +5,7 @@ import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
 import common.cn.nsimu.simukraft.medical.MedicalService;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
+import common.cn.nsimu.simukraft.path.PathCrowdCoordinator;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
@@ -19,6 +20,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.entity.Entity.RemovalReason;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.PathfinderMob;
@@ -203,6 +205,12 @@ public class CitizenEntity extends PathfinderMob {
     }
 
     @Override
+    public void remove(RemovalReason reason) {
+        PathCrowdCoordinator.untrack(this);
+        super.remove(reason);
+    }
+
+    @Override
     public void handlePortal() {
         // NPC 不允许通过任何传送门（下界门、末地门、折跃门等）
     }
@@ -210,6 +218,9 @@ public class CitizenEntity extends PathfinderMob {
     @Override
     public void tick() {
         super.tick();
+        if (!level().isClientSide()) {
+            PathCrowdCoordinator.track(this);
+        }
         syncClientWorkSwingPulse();
         if (!canSyncCitizenData()) {
             return;
@@ -258,19 +269,23 @@ public class CitizenEntity extends PathfinderMob {
             return;
         }
         int stagger = Math.floorMod(getUUID().hashCode(), 80);
-        if ((tickCount + stagger) % 20 != 0) {
+        int phase = tickCount + stagger;
+        boolean builderScan = phase % 20 == 0;
+        boolean zombieScan = phase % 60 == 0;
+        boolean talkScan = phase % 80 == 0;
+        if (!builderScan && !talkScan) {
             return;
         }
-        AABB around = getBoundingBox().inflate(8.0D, 3.0D, 8.0D);
-        if (!level.getEntitiesOfClass(Zombie.class, around, zombie -> zombie.isAlive() && !zombie.isBaby()).isEmpty()) {
+        AABB around = zombieScan || talkScan ? getBoundingBox().inflate(8.0D, 3.0D, 8.0D) : null;
+        if (zombieScan && !level.getEntitiesOfClass(Zombie.class, around, zombie -> zombie.isAlive() && !zombie.isBaby()).isEmpty()) {
             CitizenVoiceService.play(level, this, data, CitizenVoiceService.Cue.FLEE);
             return;
         }
-        if (BuilderConstructionService.hasActiveBuildTask(level, getUUID())) {
+        if (builderScan && BuilderConstructionService.hasActiveBuildTask(level, getUUID())) {
             CitizenVoiceService.tryBuilderApproach(level, this, data);
             return;
         }
-        if ((tickCount + stagger) % 80 != 0) {
+        if (!talkScan) {
             return;
         }
         if (!level.getEntitiesOfClass(Player.class, around, player -> player.isAlive() && !player.isSpectator()).isEmpty()) {

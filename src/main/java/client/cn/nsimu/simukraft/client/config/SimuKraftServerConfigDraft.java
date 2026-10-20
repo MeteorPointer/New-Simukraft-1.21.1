@@ -169,10 +169,10 @@ final class SimuKraftServerConfigDraft {
         farmAreaRadius = 3;
         farmWorkIntervalTicks = 20;
         farmActionsPerCycle = 4;
-        pathMaxLoadedCitizenEntities = 180;
-        pathMaxActiveCitizens = 64;
-        pathMaxNewRequestsPerTick = 3;
-        pathWorkerThreads = 4;
+        pathMaxLoadedCitizenEntities = 2000;
+        pathMaxActiveCitizens = 2000;
+        pathMaxNewRequestsPerTick = 16;
+        pathWorkerThreads = 8;
         pathLocalRadiusBlocks = 96;
         pathFarMovementTeleportDistance = 96;
         pathRepathCooldownTicks = 60;

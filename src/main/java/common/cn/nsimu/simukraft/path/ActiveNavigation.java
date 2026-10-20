@@ -95,7 +95,9 @@ final class ActiveNavigation {
         if (waypoints.isEmpty()) {
             return ActiveTickResult.COMPLETE;
         }
-        citizen.getNavigation().stop();
+        if (citizen.getNavigation().isInProgress()) {
+            citizen.getNavigation().stop();
+        }
         resetActionStateIfNeeded();
         advanceReachedWaypoints(citizen);
         if (waypointIndex >= waypoints.size()) {
@@ -175,7 +177,6 @@ final class ActiveNavigation {
             }
             jumpTriggered = true;
         }
-        level.getGameTime();
         return ActiveTickResult.RUNNING;
     }
 

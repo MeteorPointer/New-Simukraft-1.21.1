@@ -198,19 +198,19 @@ public final class ServerConfig {
         PATH_MAX_LOADED_CITIZEN_ENTITIES = builder
                 .comment("Maximum loaded citizen entities allowed to start new pathing work.")
                 .translation("config.simukraft.npc_pathfinding.maxLoadedCitizenEntities")
-                .defineInRange("maxLoadedCitizenEntities", 180, 1, 5000);
+                .defineInRange("maxLoadedCitizenEntities", 2000, 1, 5000);
         PATH_MAX_ACTIVE_CITIZENS = builder
                 .comment("Maximum citizens that may actively follow custom paths at once.")
                 .translation("config.simukraft.npc_pathfinding.maxActivePathingCitizens")
-                .defineInRange("maxActivePathingCitizens", 64, 1, 5000);
+                .defineInRange("maxActivePathingCitizens", 2000, 1, 5000);
         PATH_MAX_NEW_REQUESTS_PER_TICK = builder
                 .comment("Maximum new path requests converted to snapshots per server tick.")
                 .translation("config.simukraft.npc_pathfinding.maxNewPathRequestsPerTick")
-                .defineInRange("maxNewPathRequestsPerTick", 3, 0, 32);
+                .defineInRange("maxNewPathRequestsPerTick", 16, 0, 32);
         PATH_WORKER_THREADS = builder
                 .comment("Background worker threads used for pure snapshot path calculations.")
                 .translation("config.simukraft.npc_pathfinding.pathWorkerThreads")
-                .defineInRange("pathWorkerThreads", 4, 1, 16);
+                .defineInRange("pathWorkerThreads", 8, 1, 16);
         PATH_LOCAL_RADIUS_BLOCKS = builder
                 .comment("Maximum nearby pathing radius. Longer movement uses controlled teleport.")
                 .translation("config.simukraft.npc_pathfinding.localPathRadiusBlocks")

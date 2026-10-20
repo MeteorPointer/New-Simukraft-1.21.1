@@ -3,7 +3,6 @@ package common.cn.nsimu.simukraft.path;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.phys.AABB;
@@ -18,18 +17,37 @@ import java.util.concurrent.ConcurrentMap;
  */
 
 
-final class PathCrowdCoordinator {
+public final class PathCrowdCoordinator {
     private static final double SEARCH_RADIUS = 2.75D;
     private static final double FRONT_DISTANCE = 2.2D;
     private static final double LANE_RADIUS = 1.05D;
     private static final double OPPOSING_DOT = -0.25D;
     private static final double SAME_DOT = 0.35D;
     private static final long STATE_TTL_TICKS = 40L;
-    private static final long YIELD_CACHE_TICKS = 2L;
+    private static final long YIELD_CACHE_TICKS = 6L;
     private static final double YIELD_CACHE_DIRECTION_DOT = 0.98D;
     private static final double GRID_CELL_SIZE = 4.0D;
     private static final ConcurrentMap<String, ConcurrentMap<UUID, CrowdMoveState>> STATES = new ConcurrentHashMap<>();
     private static final ConcurrentMap<String, CrowdSpatialIndex> SPATIAL_INDEXES = new ConcurrentHashMap<>();
+    private static final Set<CitizenEntity> LOADED = ConcurrentHashMap.newKeySet();
+
+    /**
+     * track: 登记已加载市民，空间索引不再每 tick 扫描整个世界的实体。
+     */
+    public static void track(CitizenEntity citizen) {
+        if (citizen != null) {
+            LOADED.add(citizen);
+        }
+    }
+
+    /**
+     * untrack: 市民离开世界时从索引名单移除。
+     */
+    public static void untrack(CitizenEntity citizen) {
+        if (citizen != null) {
+            LOADED.remove(citizen);
+        }
+    }
 
     private PathCrowdCoordinator() {
     }
@@ -268,13 +286,17 @@ final class PathCrowdCoordinator {
             if (indexedGameTime == gameTime) {
                 return;
             }
-            cells.clear();
-            for (Entity entity : level.getAllEntities()) {
-                if (entity instanceof CitizenEntity citizen && !citizen.isRemoved()) {
-                    long cellKey = ChunkPos.asLong(cellCoordinate(citizen.getX()), cellCoordinate(citizen.getZ()));
-                    cells.computeIfAbsent(cellKey, ignored -> new ArrayList<>()).add(citizen);
-                }
+            for (List<CitizenEntity> bucket : cells.values()) {
+                bucket.clear();
             }
+            for (CitizenEntity citizen : LOADED) {
+                if (citizen.isRemoved() || citizen.level() != level) {
+                    continue;
+                }
+                long cellKey = ChunkPos.asLong(cellCoordinate(citizen.getX()), cellCoordinate(citizen.getZ()));
+                cells.computeIfAbsent(cellKey, ignored -> new ArrayList<>(4)).add(citizen);
+            }
+            cells.values().removeIf(List::isEmpty);
             indexedGameTime = gameTime;
         }
 

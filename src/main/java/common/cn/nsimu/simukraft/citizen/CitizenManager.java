@@ -29,6 +29,7 @@ public final class CitizenManager extends SavedData {
     private static final int SAVE_DIRTY_INTERVAL_TICKS = 100;
     // CITIZEN_STATUS_UPDATE_INTERVAL_TICKS：居民状态轮询间隔，用 UUID 错峰执行。
     private static final long CITIZEN_STATUS_UPDATE_INTERVAL_TICKS = 200L;
+    private static final int ENTITY_SYNC_INTERVAL_TICKS = 10;
     // HUNGER_DECAY_INTERVAL_TICKS：整数饥饿值自然下降间隔，约 6 分钟扣 1 点。
     private static final long HUNGER_DECAY_INTERVAL_TICKS = 7200L;
     // HUNGER_DECAY_PER_UPDATE：每次自然下降扣 1 点，保持原版 0-20 整数风格。
@@ -302,12 +303,26 @@ public final class CitizenManager extends SavedData {
         }
         reconcileEntityInventory(entity);
         enqueueAiTick(data.uuid());
-        if (entity.level() instanceof ServerLevel level) {
-            CitizenProfileGenerator.fillMissingProfile(data, level.random, level.getDayTime() / 24000L);
-        }
         recordEntityChunk(data, entity);
-        syncEntityFromData(entity, data);
+        // 外观和档案补全按人错开。背包变化仍由监听器立刻同步，避免 3000 人每个 tick 都重写装备槽。
+        if (shouldRefreshLoadedEntity(entity)) {
+            if (entity.level() instanceof ServerLevel level) {
+                CitizenProfileGenerator.fillMissingProfile(data, level.random, level.getDayTime() / 24000L);
+            }
+            syncEntityFromData(entity, data);
+        }
         return data;
+    }
+
+    /**
+     * shouldRefreshLoadedEntity: 新加载的实体马上同步，其余每人大约每 10 tick 刷新一次外观。
+     */
+    private static boolean shouldRefreshLoadedEntity(CitizenEntity entity) {
+        if (entity.tickCount < 2) {
+            return true;
+        }
+        int stagger = Math.floorMod(entity.getUUID().hashCode(), ENTITY_SYNC_INTERVAL_TICKS);
+        return Math.floorMod(entity.tickCount + stagger, ENTITY_SYNC_INTERVAL_TICKS) == 0;
     }
 
     public Optional<CitizenData> getCitizen(UUID uuid) {

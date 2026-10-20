@@ -1,6 +1,7 @@
 package common.cn.nsimu.simukraft.path;
 
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.citizen.CitizenService;
 import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
@@ -398,10 +399,12 @@ public final class CitizenNavigationService {
             return;
         }
         LevelRuntime runtime = runtime(level);
+        runtime.snapshotCache.beginTick();
         applyCompletedPaths(level, runtime);
         tickActivePaths(level, runtime);
         CitizenDoorService.processOpenedDoors(level, runtime.openedDoors, runtime.active.keySet());
         processQueuedRequests(level, runtime);
+        pumpFieldBuild(level, runtime);
         if (level.getGameTime() % 200L == 0L) {
             runtime.pathCache.cleanup(level.getGameTime());
             runtime.snapshotCache.cleanup(level.getGameTime());
@@ -414,9 +417,28 @@ public final class CitizenNavigationService {
         if (level == null || changedPos == null) {
             return;
         }
+        invalidateAll(level, List.of(changedPos));
+    }
+
+    /**
+     * invalidateAll: 一批方块只抬升区段版本，路径缓存只扫一次。
+     */
+    public static void invalidateAll(ServerLevel level, Iterable<BlockPos> positions) {
+        if (level == null || positions == null) {
+            return;
+        }
         LevelRuntime runtime = runtime(level);
-        runtime.pathCache.clear();
-        runtime.snapshotCache.clear();
+        boolean changed = false;
+        for (BlockPos pos : positions) {
+            if (pos == null) {
+                continue;
+            }
+            runtime.snapshotCache.invalidate(pos);
+            changed = true;
+        }
+        if (changed) {
+            runtime.pathCache.dropStale(level.getGameTime(), runtime.snapshotCache.epochs());
+        }
     }
 
     public static void clearServerCaches(MinecraftServer server) {
@@ -470,21 +492,140 @@ public final class CitizenNavigationService {
             PathCacheKey cacheKey = new PathCacheKey(currentRequest.dimensionId(), currentRequest.startPos(), currentRequest.targetBlockPos(), currentRequest.intent());
             PathResult cached = runtime.blockedSince.containsKey(citizenId)
                     ? null
-                    : runtime.pathCache.get(cacheKey, level.getGameTime());
+                    : runtime.pathCache.get(cacheKey, level.getGameTime(), runtime.snapshotCache.epochs());
             if (cached != null) {
                 activate(level, runtime, cached.forRequest(currentRequest));
                 processed++;
                 continue;
             }
-            PathSnapshotBuilder.ChunkDataCapture capture = runtime.snapshotCache.acquire(level, currentRequest.startPos(), currentRequest.targetBlockPos(), ServerConfig.pathLocalRadiusBlocks());
-            BlockPos reqStart = currentRequest.startPos();
-            BlockPos reqTarget = currentRequest.targetBlockPos();
-            CompletableFuture<PathResult> future = CompletableFuture.supplyAsync(
-                    () -> HybridPathfinder.find(currentRequest, PathSnapshotBuilder.buildFromCapture(capture, reqStart, reqTarget)),
-                    executor());
-            runtime.pending.put(citizenId, new RunningRequest(future, cacheKey));
+            UUID cityId = cityOf(level, citizenId);
+            PathDistanceFieldCache.PathFieldKey fieldKey = new PathDistanceFieldCache.PathFieldKey(
+                    currentRequest.dimensionId(), cityId, currentRequest.targetBlockPos(), currentRequest.intent());
+            PathDistanceField existingField = runtime.distanceFields.get(fieldKey, runtime.snapshotCache.epochs());
+            List<BlockPos> sharedPoints = sharedFieldPoints(level, runtime, cityId, currentRequest);
+            int radius = ServerConfig.pathLocalRadiusBlocks();
+            if (existingField == null && sharedPoints.size() >= 3 && runtime.fieldPump == null) {
+                runtime.fieldPump = FieldPump.start(fieldKey, currentRequest, cityId,
+                        PathSnapshotBuilder.unionBounds(level, sharedPoints, currentRequest.targetBlockPos(), radius));
+            }
+            PathSnapshotCache.Acquisition acquired = runtime.snapshotCache.acquire(level, currentRequest.startPos(), currentRequest.targetBlockPos(), radius);
+            if (!acquired.ready()) {
+                requeue(runtime, citizenId, currentRequest);
+                return;
+            }
+            CompletableFuture<PathJob> future;
+            try {
+                future = CompletableFuture.supplyAsync(
+                        () -> PathExtraCosts.callWithCity(cityId, () -> search(currentRequest, acquired, existingField)),
+                        executor());
+            } catch (RejectedExecutionException rejected) {
+                requeue(runtime, citizenId, currentRequest);
+                return;
+            }
+            runtime.pending.put(citizenId, new RunningRequest(future, cacheKey, acquired.stamp()));
             processed++;
         }
+    }
+
+    /**
+     * search: 能接上已有距离场就回溯，否则单人 A*。建场放到后台分步做。
+     */
+    private static PathJob search(PathRequest request, PathSnapshotCache.Acquisition acquired, PathDistanceField existingField) {
+        PathSnapshot snapshot = PathSnapshotBuilder.buildFromCapture(acquired.capture(), request.startPos(), request.targetBlockPos());
+        if (existingField != null) {
+            PathResult reconstructed = existingField.reconstruct(request, snapshot);
+            if (reconstructed.success()) {
+                return new PathJob(reconstructed);
+            }
+        }
+        return new PathJob(HybridPathfinder.find(request, snapshot));
+    }
+
+    /**
+     * pumpFieldBuild: 每 tick 最多推进一步距离场。采样没完成就只吃本 tick 剩余的区段预算。
+     */
+    private static void pumpFieldBuild(ServerLevel level, LevelRuntime runtime) {
+        FieldPump pump = runtime.fieldPump;
+        if (pump == null) {
+            return;
+        }
+        if (pump.step != null) {
+            if (!pump.step.isDone()) {
+                return;
+            }
+            Boolean continued = null;
+            try {
+                continued = pump.step.get();
+            } catch (Exception ignored) {
+                runtime.fieldPump = null;
+                return;
+            }
+            pump.step = null;
+            if (!Boolean.TRUE.equals(continued) || pump.acquired == null
+                    || !runtime.snapshotCache.epochs().matches(pump.acquired.stamp())) {
+                runtime.fieldPump = null;
+                return;
+            }
+            if (pump.build != null && pump.build.finished()) {
+                runtime.distanceFields.put(pump.key, pump.build.toField());
+                runtime.fieldPump = null;
+                return;
+            }
+        }
+        if (pump.acquired == null) {
+            PathSnapshotCache.Acquisition acquired = runtime.snapshotCache.acquire(level, pump.bounds);
+            if (!acquired.ready()) {
+                return;
+            }
+            pump.acquired = acquired;
+        }
+        try {
+            pump.step = CompletableFuture.supplyAsync(
+                    () -> PathExtraCosts.callWithCity(pump.cityId, () -> pump.advance()),
+                    executor());
+        } catch (RejectedExecutionException rejected) {
+            pump.step = null;
+        }
+    }
+
+    /**
+     * requeue: 这一 tick 做不完就放回队尾，下个 tick 继续。
+     */
+    private static void requeue(LevelRuntime runtime, UUID citizenId, PathRequest request) {
+        runtime.latestRequests.put(citizenId, request);
+        if (runtime.queuedCitizenIds.add(citizenId)) {
+            runtime.queue.offer(citizenId);
+        }
+    }
+
+    /**
+     * sharedFieldPoints: 收集同一城市、同一目标、同一意图的排队起点。只有自己时不建距离场。
+     */
+    private static List<BlockPos> sharedFieldPoints(ServerLevel level, LevelRuntime runtime, UUID cityId, PathRequest current) {
+        List<BlockPos> points = new ArrayList<>();
+        points.add(current.startPos());
+        points.add(current.targetBlockPos());
+        BlockPos target = current.targetBlockPos();
+        for (PathRequest queued : runtime.latestRequests.values()) {
+            if (queued.intent() != current.intent() || !queued.targetBlockPos().equals(target)) {
+                continue;
+            }
+            if (!java.util.Objects.equals(cityId, cityOf(level, queued.citizenId()))) {
+                continue;
+            }
+            points.add(queued.startPos());
+            if (points.size() >= 18) {
+                break;
+            }
+        }
+        return points;
+    }
+
+    /**
+     * cityOf: 在主线程解析市民所属城市，搜索线程不再逐边查找。
+     */
+    private static UUID cityOf(ServerLevel level, UUID citizenId) {
+        return CitizenService.findCitizen(level, citizenId).map(citizen -> citizen.cityId()).orElse(null);
     }
 
     private static void applyCompletedPaths(ServerLevel level, LevelRuntime runtime) {
@@ -495,14 +636,18 @@ public final class CitizenNavigationService {
                 continue;
             }
             iterator.remove();
-            PathResult result;
+            PathJob job;
             try {
-                result = running.future().get();
+                job = running.future().get();
             } catch (Exception e) {
-                result = null;
+                job = null;
             }
+            PathResult result = job == null ? null : job.result();
+            boolean fresh = runtime.snapshotCache.epochs().matches(running.stamp());
             if (result != null && result.success()) {
-                runtime.pathCache.put(running.cacheKey(), result, level.getGameTime(), ServerConfig.pathCacheTtlTicks());
+                if (fresh) {
+                    runtime.pathCache.put(running.cacheKey(), result, level.getGameTime(), ServerConfig.pathCacheTtlTicks(), running.stamp());
+                }
                 activate(level, runtime, result);
             } else {
                 UUID citizenId = entry.getKey();
@@ -684,7 +829,7 @@ public final class CitizenNavigationService {
                     0, requestedSize, 60L, TimeUnit.SECONDS,
                     new java.util.concurrent.SynchronousQueue<>(),
                     new PathThreadFactory());
-            pool.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
+            pool.setRejectedExecutionHandler(new ThreadPoolExecutor.AbortPolicy());
             pathExecutor = pool;
             return pathExecutor;
         }
@@ -701,11 +846,61 @@ public final class CitizenNavigationService {
         private final Map<Long, CitizenDoorService.OpenedDoor> openedDoors = new java.util.HashMap<>();
         private final PathResultCache pathCache = new PathResultCache();
         private final PathSnapshotCache snapshotCache = new PathSnapshotCache();
+        private final PathDistanceFieldCache distanceFields = new PathDistanceFieldCache();
+        private FieldPump fieldPump;
         private long loadedCitizenCountTick = Long.MIN_VALUE;
         private int loadedCitizenCount;
     }
 
-    private record RunningRequest(CompletableFuture<PathResult> future, PathCacheKey cacheKey) {
+    private record RunningRequest(CompletableFuture<PathJob> future, PathCacheKey cacheKey, PathSectionStamp stamp) {
+    }
+
+    private record PathJob(PathResult result) {
+    }
+
+    /**
+     * FieldPump: 后台距离场。同一时间只跑一份，每步扩展有限个格子。
+     */
+    private static final class FieldPump {
+        private static final int STEP_ITERATIONS = 400;
+        private final PathDistanceFieldCache.PathFieldKey key;
+        private final PathRequest request;
+        private final UUID cityId;
+        private final PathSnapshotBuilder.SnapshotBounds bounds;
+        private PathSnapshotCache.Acquisition acquired;
+        private PathDistanceField.Build build;
+        private CompletableFuture<Boolean> step;
+
+        private FieldPump(PathDistanceFieldCache.PathFieldKey key, PathRequest request, UUID cityId,
+                           PathSnapshotBuilder.SnapshotBounds bounds) {
+            this.key = key;
+            this.request = request;
+            this.cityId = cityId;
+            this.bounds = bounds;
+        }
+
+        /**
+         * start: 记下要覆盖的盒子，采样留到后续 tick。
+         */
+        static FieldPump start(PathDistanceFieldCache.PathFieldKey key, PathRequest request, UUID cityId,
+                                PathSnapshotBuilder.SnapshotBounds bounds) {
+            return new FieldPump(key, request, cityId, bounds);
+        }
+
+        /**
+         * advance: 在工人线程上创建或推进距离场。目标不可达时返回 false。
+         */
+        boolean advance() {
+            if (build == null) {
+                PathSnapshot snapshot = PathSnapshotBuilder.buildFromCapture(acquired.capture(), request.startPos(), request.targetBlockPos());
+                build = PathDistanceField.Build.start(request, snapshot, acquired.stamp());
+                if (build == null) {
+                    return false;
+                }
+            }
+            build.step(STEP_ITERATIONS);
+            return true;
+        }
     }
 
     private static final class PathThreadFactory implements ThreadFactory {

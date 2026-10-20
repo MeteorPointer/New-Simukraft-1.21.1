@@ -7,8 +7,11 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
+import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.*;
+import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
 import net.minecraft.world.level.pathfinder.PathComputationType;
@@ -27,9 +30,9 @@ import java.util.OptionalDouble;
  *       {@link ChunkDataCapture}. Context-sensitive shapes (fences, walls, bars) are computed
  *       here while the live {@link ServerLevel} is available. The result is an immutable
  *       snapshot of raw block data with no further world access needed.</li>
- *   <li>{@link #buildFromCapture} — runs on a <em>worker thread</em>. Performs all A*-relevant
- *       classification logic ({@code classify}, {@code hasBodyPassage}, clearance checks) against
- *       the pre-captured data. The live world is never read here.</li>
+ *   <li>{@link #buildFromCapture} — runs on a <em>worker thread</em>. Keeps the captured block
+ *       data and classifies a cell only when the search asks for it. The live world is never
+ *       read here.</li>
  * </ol>
  *
  * <p>{@link #build} is a convenience wrapper that calls both phases on the current thread and is
@@ -111,7 +114,7 @@ final class PathSnapshotBuilder {
                 }
                 for (int y = scanMinY; y <= scanMaxY; y++) {
                     mutable.set(x, y, z);
-                    captureBlock(level, mutable, states, shapes);
+                    captureBlock(level, mutable, states);
                 }
             }
         }
@@ -119,7 +122,7 @@ final class PathSnapshotBuilder {
     }
 
     /**
-     * captureSection: 在主线程冻结一个区段的方块状态与实际碰撞形状。
+     * captureSection: 在主线程冻结一个区段的方块状态。碰撞形状不在这里算。
      */
     static SectionDataCapture captureSection(ServerLevel level, int sectionX, int sectionY, int sectionZ) {
         Long2ObjectOpenHashMap<BlockState> states = new Long2ObjectOpenHashMap<>();
@@ -132,7 +135,7 @@ final class PathSnapshotBuilder {
             for (int z = minZ; z < minZ + 16; z++) {
                 for (int y = minY; y < minY + 16; y++) {
                     mutable.set(x, y, z);
-                    captureBlock(level, mutable, states, shapes);
+                    captureBlock(level, mutable, states);
                 }
             }
         }
@@ -149,26 +152,20 @@ final class PathSnapshotBuilder {
     }
 
     /**
-     * captureBlock: 省略空气和空碰撞，保留异步构建所需的完整非空气状态。
+     * captureBlock: 主线程只冻结方块状态。碰撞形状改到工人线程按查询计算，避免多人同时开工时把 tick 撑满。
      */
     private static void captureBlock(ServerLevel level, BlockPos.MutableBlockPos pos,
-                                     Long2ObjectOpenHashMap<BlockState> states,
-                                     Long2ObjectOpenHashMap<VoxelShape> shapes) {
+                                     Long2ObjectOpenHashMap<BlockState> states) {
         BlockState state = level.getBlockState(pos);
         if (state.isAir()) {
             return;
         }
-        long key = pos.asLong();
-        states.put(key, state);
-        VoxelShape shape = state.getCollisionShape(level, pos);
-        if (!shape.isEmpty()) {
-            shapes.put(key, shape);
-        }
+        states.put(pos.asLong(), state);
     }
 
     /**
-     * Phase 2 — worker thread. Classifies every cell in {@code capture} into walkable
-     * {@link PathCell}s and body passages. Never touches the live world.
+     * Phase 2 — worker thread. Hands the captured blocks to a lazy snapshot. Cells, body passages
+     * and door barriers are filled when the search reads them. Never touches the live world.
      */
     static PathSnapshot buildFromCapture(ChunkDataCapture capture, BlockPos start, BlockPos target) {
         CaptureData data = new CaptureData(capture);
@@ -176,35 +173,42 @@ final class PathSnapshotBuilder {
         Long2ObjectOpenHashMap<PathCell> cells = new Long2ObjectOpenHashMap<>();
         Long2ByteOpenHashMap horizontalBarriers = new Long2ByteOpenHashMap();
         LongOpenHashSet bodyPassages = new LongOpenHashSet();
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        for (int x = bounds.minX(); x <= bounds.maxX(); x++) {
-            for (int z = bounds.minZ(); z <= bounds.maxZ(); z++) {
-                for (int y = bounds.minY(); y <= bounds.maxY(); y++) {
-                    mutable.set(x, y, z);
-                    if (hasBodyPassage(data, mutable)) {
-                        bodyPassages.add(mutable.asLong());
-                    }
-                    PathCell cell = classify(data, mutable);
-                    if (cell != null) {
-                        cells.put(cell.key(), cell);
-                    }
-                }
-            }
-        }
-        markDangerAdjacent(data, bounds, cells);
-        for (int x = bounds.minX(); x <= bounds.maxX(); x++) {
-            for (int z = bounds.minZ(); z <= bounds.maxZ(); z++) {
-                for (int y = bounds.minY() - 1; y <= bounds.maxY() + 1; y++) {
-                    mutable.set(x, y, z);
-                    addOpenTrapdoorBarriers(data, mutable, bounds, horizontalBarriers);
-                    addOpenDoorBarriers(data, mutable, bounds, horizontalBarriers);
-                }
-            }
-        }
+        PathSnapshotClassifier classifier = new PathSnapshotClassifier(data, bounds, cells, bodyPassages, horizontalBarriers);
         Long2ObjectOpenHashMap<VoxelShape> snapshotShapes = extractSnapshotShapes(capture);
         return new PathSnapshot(capture.dimensionId(), start.immutable(), target.immutable(),
-                cells, LongSets.unmodifiable(bodyPassages), Long2ByteMaps.unmodifiable(horizontalBarriers),
-                bounds.minY(), bounds.maxY(), capture.createdAt(), capture.complete(), snapshotShapes);
+                cells, bodyPassages, horizontalBarriers,
+                bounds.minY(), bounds.maxY(), capture.createdAt(), capture.complete(), snapshotShapes, classifier);
+    }
+
+    /**
+     * unionBounds: 几个起点和同一个目标的并集，再按目标周围的半径夹住。
+     */
+    static SnapshotBounds unionBounds(ServerLevel level, Iterable<BlockPos> points, BlockPos clampCenter, int radius) {
+        int minX = clampCenter.getX();
+        int maxX = minX;
+        int minY = clampCenter.getY();
+        int maxY = minY;
+        int minZ = clampCenter.getZ();
+        int maxZ = minZ;
+        for (BlockPos point : points) {
+            if (point == null) {
+                continue;
+            }
+            minX = Math.min(minX, point.getX());
+            maxX = Math.max(maxX, point.getX());
+            minY = Math.min(minY, point.getY());
+            maxY = Math.max(maxY, point.getY());
+            minZ = Math.min(minZ, point.getZ());
+            maxZ = Math.max(maxZ, point.getZ());
+        }
+        int safeRadius = Math.max(16, radius);
+        minX = Math.max(minX - HORIZONTAL_PADDING, clampCenter.getX() - safeRadius);
+        maxX = Math.min(maxX + HORIZONTAL_PADDING, clampCenter.getX() + safeRadius);
+        minZ = Math.max(minZ - HORIZONTAL_PADDING, clampCenter.getZ() - safeRadius);
+        maxZ = Math.min(maxZ + HORIZONTAL_PADDING, clampCenter.getZ() + safeRadius);
+        minY = Math.max(level.getMinBuildHeight(), minY - VERTICAL_PADDING);
+        maxY = Math.min(level.getMaxBuildHeight() - 2, maxY + VERTICAL_PADDING);
+        return new SnapshotBounds(minX, maxX, minZ, maxZ, minY, maxY);
     }
 
     private static Long2ObjectOpenHashMap<VoxelShape> extractSnapshotShapes(ChunkDataCapture capture) {
@@ -257,7 +261,7 @@ final class PathSnapshotBuilder {
      * Classifies a single column position into a walkable {@link PathCell}, or {@code null} when the
      * citizen cannot occupy it.
      */
-    private static PathCell classify(BlockDataSource cache, BlockPos pos) {
+    static PathCell classify(BlockDataSource cache, BlockPos pos) {
         BlockState foot = cache.state(pos);
         BlockState head = cache.state(pos.above());
         BlockState below = cache.state(pos.below());
@@ -372,7 +376,7 @@ final class PathSnapshotBuilder {
         return true;
     }
 
-    private static boolean hasBodyPassage(BlockDataSource cache, BlockPos pos) {
+    static boolean hasBodyPassage(BlockDataSource cache, BlockPos pos) {
         BlockState foot = cache.state(pos);
         BlockState head = cache.state(pos.above());
         if (isDangerous(foot) || isDangerous(head)) {
@@ -383,7 +387,7 @@ final class PathSnapshotBuilder {
                 && hasNpcClearance(cache, pos, pos.getY(), null, null);
     }
 
-    private static void addOpenTrapdoorBarriers(BlockDataSource cache, BlockPos trapdoorPos,
+    static void addOpenTrapdoorBarriers(BlockDataSource cache, BlockPos trapdoorPos,
                                                 SnapshotBounds bounds, Long2ByteOpenHashMap barriers) {
         BlockState state = cache.state(trapdoorPos);
         if (!(state.getBlock() instanceof TrapDoorBlock)
@@ -405,7 +409,7 @@ final class PathSnapshotBuilder {
      * 打开的门扇贴在门轴一侧，厚度 0.1875。中心脚印碰不到它，格子会被当成空气，
      * 跟随直线穿过格子中心时身体会卡在门轴上。只挡住门扇所在的那条边。
      */
-    private static void addOpenDoorBarriers(BlockDataSource cache, BlockPos doorPos,
+    static void addOpenDoorBarriers(BlockDataSource cache, BlockPos doorPos,
                                             SnapshotBounds bounds, Long2ByteOpenHashMap barriers) {
         BlockState state = cache.state(doorPos);
         if (!(state.getBlock() instanceof DoorBlock)
@@ -580,7 +584,7 @@ final class PathSnapshotBuilder {
         return offset > 0.0D && offset <= MAX_LOW_STAND_OFFSET ? standY : OptionalDouble.empty();
     }
 
-    private static boolean isDangerous(BlockState state) {
+    static boolean isDangerous(BlockState state) {
         Block block = state.getBlock();
         return state.getFluidState().is(FluidTags.LAVA)
                 || block == Blocks.LAVA
@@ -609,7 +613,7 @@ final class PathSnapshotBuilder {
     /**
      * Common block-data access used by classify and clearance checks.
      */
-    private interface BlockDataSource {
+    interface BlockDataSource {
         BlockState state(BlockPos pos);
 
         VoxelShape shape(BlockPos pos, BlockState state);
@@ -620,14 +624,16 @@ final class PathSnapshotBuilder {
      * Safe to use on worker threads — the maps are never modified after capture completes.
      * Missing positions (unloaded chunks) return air / empty shape.
      */
-    private static final class CaptureData implements BlockDataSource {
+    static final class CaptureData implements BlockDataSource {
         private static final BlockState AIR = net.minecraft.world.level.block.Blocks.AIR.defaultBlockState();
         private static final VoxelShape EMPTY = net.minecraft.world.phys.shapes.Shapes.empty();
         private final Long2ObjectOpenHashMap<BlockState> states;
         private final Long2ObjectOpenHashMap<VoxelShape> shapes;
         private final Long2ObjectOpenHashMap<SectionDataCapture> sections;
+        private final Long2ObjectOpenHashMap<VoxelShape> computedShapes = new Long2ObjectOpenHashMap<>();
+        private final BlockGetter shapeLevel = new ShapeLevel();
 
-        private CaptureData(ChunkDataCapture capture) {
+        CaptureData(ChunkDataCapture capture) {
             this.states = capture.states();
             this.shapes = capture.shapes();
             this.sections = capture.sections();
@@ -647,14 +653,68 @@ final class PathSnapshotBuilder {
 
         @Override
         public VoxelShape shape(BlockPos pos, BlockState state) {
-            VoxelShape s;
-            if (sections == null) {
-                s = shapes.get(pos.asLong());
-            } else {
-                SectionDataCapture section = sections.get(sectionKey(pos));
-                s = section == null ? null : section.shapes().get(pos.asLong());
+            VoxelShape stored = storedShape(pos);
+            if (stored != null) {
+                return stored;
             }
-            return s != null ? s : EMPTY;
+            if (state == null || state.isAir()) {
+                return EMPTY;
+            }
+            long key = pos.asLong();
+            VoxelShape computed = computedShapes.get(key);
+            if (computed != null) {
+                return computed;
+            }
+            computed = state.getCollisionShape(shapeLevel, pos);
+            if (computed == null || computed.isEmpty()) {
+                computed = EMPTY;
+            }
+            computedShapes.put(key, computed);
+            return computed;
+        }
+
+        /**
+         * storedShape: 测试或旧采样已经写好的碰撞。没有时返回 null，交给工人线程现算。
+         */
+        private VoxelShape storedShape(BlockPos pos) {
+            if (sections == null) {
+                return shapes == null ? null : shapes.get(pos.asLong());
+            }
+            SectionDataCapture section = sections.get(sectionKey(pos));
+            if (section == null || section.shapes() == null) {
+                return null;
+            }
+            return section.shapes().get(pos.asLong());
+        }
+
+        /**
+         * ShapeLevel: 只用已冻结的方块状态回答邻居查询，围栏和玻璃板因此不必回到主线程。
+         */
+        private final class ShapeLevel implements BlockGetter {
+            @Override
+            public BlockEntity getBlockEntity(BlockPos pos) {
+                return null;
+            }
+
+            @Override
+            public BlockState getBlockState(BlockPos pos) {
+                return state(pos);
+            }
+
+            @Override
+            public FluidState getFluidState(BlockPos pos) {
+                return getBlockState(pos).getFluidState();
+            }
+
+            @Override
+            public int getHeight() {
+                return 384;
+            }
+
+            @Override
+            public int getMinBuildHeight() {
+                return -64;
+            }
         }
 
         /**
@@ -669,36 +729,28 @@ final class PathSnapshotBuilder {
     }
 
     /**
-     * Post-classification pass: marks every walkable cell that has a dangerous block in its
-     * 26-connected neighbourhood. Mirrors vanilla {@code WalkNodeEvaluator.getDanger()} so the A*
-     * search can penalise paths that pass close to lava, fire, cactus, etc.
+     * withDanger: 邻格有岩浆、火或仙人掌时标上危险。水和可攀爬格不加这个惩罚。
      */
-    private static void markDangerAdjacent(BlockDataSource cache, SnapshotBounds bounds,
-                                           Long2ObjectOpenHashMap<PathCell> cells) {
+    static PathCell withDanger(BlockDataSource cache, PathCell cell) {
+        if (cell == null || cell.water() || cell.climbable() || cell.dangerAdjacent()) {
+            return cell;
+        }
         BlockPos.MutableBlockPos dangerPos = new BlockPos.MutableBlockPos();
-        Long2ObjectOpenHashMap<PathCell> updated = new Long2ObjectOpenHashMap<>();
-        for (PathCell cell : cells.values()) {
-            if (cell.water() || cell.climbable()) {
-                continue;
-            }
-            boolean near = false;
-            for (int dx = -1; dx <= 1 && !near; dx++) {
-                for (int dy = -1; dy <= 1 && !near; dy++) {
-                    for (int dz = -1; dz <= 1 && !near; dz++) {
-                        if (dx == 0 && dy == 0 && dz == 0) continue;
-                        dangerPos.set(cell.x() + dx, cell.y() + dy, cell.z() + dz);
-                        if (isDangerous(cache.state(dangerPos))) {
-                            near = true;
-                        }
+        for (int dx = -1; dx <= 1; dx++) {
+            for (int dy = -1; dy <= 1; dy++) {
+                for (int dz = -1; dz <= 1; dz++) {
+                    if (dx == 0 && dy == 0 && dz == 0) {
+                        continue;
+                    }
+                    dangerPos.set(cell.x() + dx, cell.y() + dy, cell.z() + dz);
+                    if (isDangerous(cache.state(dangerPos))) {
+                        return new PathCell(cell.pos(), cell.x(), cell.y(), cell.z(), cell.standY(),
+                                cell.water(), cell.climbable(), cell.woodenDoor(), cell.floorSupported(),
+                                true, cell.cost());
                     }
                 }
             }
-            if (near) {
-                updated.put(cell.key(), new PathCell(cell.pos(), cell.x(), cell.y(), cell.z(),
-                        cell.standY(), cell.water(), cell.climbable(), cell.woodenDoor(),
-                        cell.floorSupported(), true, cell.cost()));
-            }
         }
-        cells.putAll(updated);
+        return cell;
     }
 }
