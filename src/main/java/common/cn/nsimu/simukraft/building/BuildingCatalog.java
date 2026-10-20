@@ -127,6 +127,13 @@ public final class BuildingCatalog {
         }
 
         /**
+         * isGlobalMarket: 公共 JSON type 为全球市场。
+         */
+        public boolean isGlobalMarket() {
+            return buildingType == BuildingType.GLOBAL_MARKET;
+        }
+
+        /**
          * localizedDisplayName: 按当前玩家语言选择建筑名。
          */
         public String localizedDisplayName() {
@@ -198,13 +205,14 @@ public final class BuildingCatalog {
     }
 
     /**
-     * BuildingType: 由建筑包 JSON 声明的公共/工业子类。公共目录用 type 区分医院、银行、交易所。
+     * BuildingType: 由建筑包 JSON 声明的公共/工业子类。公共目录用 type 区分医院、银行、交易所、全球市场。
      */
     public enum BuildingType {
         STANDARD,
         DRILLING_PLATFORM,
         MEDICAL,
         BANK,
-        EXCHANGE
+        EXCHANGE,
+        GLOBAL_MARKET
     }
 }

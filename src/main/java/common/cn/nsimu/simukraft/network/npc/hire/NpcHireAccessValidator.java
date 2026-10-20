@@ -10,6 +10,7 @@ import common.cn.nsimu.simukraft.commercial.CommercialConstants;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
 import common.cn.nsimu.simukraft.exchange.ExchangeControlBoxService;
 import common.cn.nsimu.simukraft.farmland.FarmlandBoxService;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketControlBoxService;
 import common.cn.nsimu.simukraft.industrial.IndustrialConstants;
 import common.cn.nsimu.simukraft.industrial.IndustrialControlBoxService;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
@@ -152,6 +153,12 @@ final class NpcHireAccessValidator {
             PlacedBuildingRecord building = ExchangeControlBoxService.resolveBuilding(level, sourcePos);
             return building != null ? building.cityId() : null;
         }
+        if (GlobalMarketControlBoxService.HIRE_SOURCE_TYPE.equals(sourceType)
+                && GlobalMarketControlBoxService.HIRE_ROLE.equals(role)
+                && level.getBlockState(sourcePos).is(ModBlocks.GLOBAL_MARKET_CONTROL_BOX.get())) {
+            PlacedBuildingRecord building = GlobalMarketControlBoxService.resolveBuilding(level, sourcePos);
+            return building != null ? building.cityId() : null;
+        }
         if (LogisticsConstants.SERVER_SOURCE_TYPE.equals(sourceType)
                 && LogisticsConstants.STORAGE_ROLE.equals(role)
                 && level.getBlockState(sourcePos).is(ModBlocks.LOGISTICS_SERVER_BOX.get())) {
@@ -203,6 +210,9 @@ final class NpcHireAccessValidator {
         }
         if (ExchangeControlBoxService.HIRE_SOURCE_TYPE.equals(sourceType)) {
             return "message.simukraft.exchange.too_far";
+        }
+        if (GlobalMarketControlBoxService.HIRE_SOURCE_TYPE.equals(sourceType)) {
+            return "message.simukraft.global_market.too_far";
         }
 
         if (LogisticsConstants.SERVER_SOURCE_TYPE.equals(sourceType)) {

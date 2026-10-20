@@ -8,6 +8,7 @@ import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
 import common.cn.nsimu.simukraft.commercial.CommercialConstants;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
 import common.cn.nsimu.simukraft.exchange.ExchangeControlBoxService;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketControlBoxService;
 import common.cn.nsimu.simukraft.industrial.IndustrialConstants;
 import common.cn.nsimu.simukraft.industrial.IndustrialControlBoxService;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
@@ -17,6 +18,7 @@ import common.cn.nsimu.simukraft.medical.MedicalControlBoxService;
 import common.cn.nsimu.simukraft.network.bank.BankControlBoxOpenRequestPacket;
 import common.cn.nsimu.simukraft.network.commercial.CommercialControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.exchange.ExchangeControlBoxOpenRequestPacket;
+import common.cn.nsimu.simukraft.network.globalmarket.GlobalMarketControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsServerBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.medical.MedicalControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
@@ -87,6 +89,9 @@ public record NpcHireAssignPacket(BlockPos sourcePos, String sourceType, String 
             }
             if (ExchangeControlBoxService.HIRE_SOURCE_TYPE.equals(access.sourceType())) {
                 PacketDistributor.sendToPlayer(player, ExchangeControlBoxOpenRequestPacket.snapshot(level, player, access.sourcePos(), ""));
+            }
+            if (GlobalMarketControlBoxService.HIRE_SOURCE_TYPE.equals(access.sourceType())) {
+                PacketDistributor.sendToPlayer(player, GlobalMarketControlBoxOpenResponsePacket.from(GlobalMarketControlBoxService.buildView(level, access.sourcePos())));
             }
 
             if (LogisticsConstants.SERVER_SOURCE_TYPE.equals(access.sourceType())) {

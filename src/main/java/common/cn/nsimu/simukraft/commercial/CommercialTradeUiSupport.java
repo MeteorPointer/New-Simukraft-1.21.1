@@ -89,6 +89,9 @@ public final class CommercialTradeUiSupport {
         if (isMoney(resource)) {
             return new ItemStack(ModItems.GOLD_COIN.get());
         }
+        if (resource.stack() != null && !resource.stack().isEmpty()) {
+            return resource.stack().copy();
+        }
         return new ItemStack(itemById(resource.itemId()), Math.max(1, resource.count()));
     }
 
@@ -115,11 +118,13 @@ public final class CommercialTradeUiSupport {
         if (player == null) {
             return 0;
         }
-        Item item = itemById(resource.itemId());
+        ItemStack template = resource.stack() != null && !resource.stack().isEmpty()
+                ? resource.stack()
+                : new ItemStack(itemById(resource.itemId()));
         int count = 0;
         for (int slot = 0; slot < player.getInventory().getContainerSize(); slot++) {
             ItemStack stack = player.getInventory().getItem(slot);
-            if (!stack.isEmpty() && stack.getItem() == item) {
+            if (!stack.isEmpty() && ItemStack.isSameItemSameComponents(stack, template)) {
                 count += stack.getCount();
             }
         }

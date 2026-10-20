@@ -59,6 +59,7 @@ public final class ModBlocks {
     public static final DeferredBlock<Block> MEDICAL_CONTROL_BOX = registerBlock("medical_control_box", MedicalControlBoxBlock::new);
     public static final DeferredBlock<Block> BANK_CONTROL_BOX = registerBlock("bank_control_box", BankControlBoxBlock::new);
     public static final DeferredBlock<Block> EXCHANGE_CONTROL_BOX = registerBlock("exchange_control_box", ExchangeControlBoxBlock::new);
+    public static final DeferredBlock<Block> GLOBAL_MARKET_CONTROL_BOX = registerBlock("global_market_control_box", GlobalMarketControlBoxBlock::new);
     public static final DeferredBlock<LiquidBlock> MILK_BLOCK = BLOCKS.register("milk_fluid", ModBlocks::milkBlock);
     public static final DeferredBlock<Block> NSUK_FARMLAND_BOX = registerBlock("nsuk_farmland_box", FarmlandBoxBlock::new);
     public static final DeferredBlock<Block> ORANGE_LIGHT_BLOCK = registerBlock("orange_light_block", ModBlocks::lightBlock);

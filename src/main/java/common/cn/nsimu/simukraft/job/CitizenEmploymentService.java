@@ -11,6 +11,7 @@ import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
 import common.cn.nsimu.simukraft.commercial.CommercialWorkService;
 import common.cn.nsimu.simukraft.exchange.ExchangeControlBoxService;
 import common.cn.nsimu.simukraft.farmland.FarmlandBoxService;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketControlBoxService;
 import common.cn.nsimu.simukraft.industrial.*;
 import common.cn.nsimu.simukraft.logistics.LogisticsConstants;
 import common.cn.nsimu.simukraft.medical.MedicalControlBoxService;
@@ -207,6 +208,9 @@ public final class CitizenEmploymentService {
         }
         if (workplaceId(ExchangeControlBoxService.HIRE_SOURCE_TYPE, ExchangeControlBoxService.HIRE_ROLE, workplacePos).equals(workplaceId)) {
             return CityJobType.BROKER;
+        }
+        if (workplaceId(GlobalMarketControlBoxService.HIRE_SOURCE_TYPE, GlobalMarketControlBoxService.HIRE_ROLE, workplacePos).equals(workplaceId)) {
+            return CityJobType.MARKET_TRADER;
         }
         return null;
     }

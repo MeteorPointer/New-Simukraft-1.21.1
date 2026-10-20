@@ -14,6 +14,7 @@ import common.cn.nsimu.simukraft.network.city.member.CityCoreMembersResponsePack
 import common.cn.nsimu.simukraft.network.commercial.CommercialControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.commercial.CommercialTradeOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.exchange.ExchangeControlBoxOpenResponsePacket;
+import common.cn.nsimu.simukraft.network.globalmarket.GlobalMarketControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxBoundsResponsePacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.geology.GeologicalSurveyHintPacket;
@@ -153,6 +154,12 @@ public interface ClientboundNetworkHandler {
      * handleExchangeControlBoxOpenResponse: 打开交易所界面。
      */
     default void handleExchangeControlBoxOpenResponse(ExchangeControlBoxOpenResponsePacket packet) {
+    }
+
+    /**
+     * handleGlobalMarketControlBoxOpenResponse: 打开全球市场控制箱界面。
+     */
+    default void handleGlobalMarketControlBoxOpenResponse(GlobalMarketControlBoxOpenResponsePacket packet) {
     }
 
     /**

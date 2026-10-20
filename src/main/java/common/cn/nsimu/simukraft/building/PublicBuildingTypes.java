@@ -44,6 +44,13 @@ public final class PublicBuildingTypes {
         return matches(building, BuildingCatalog.BuildingType.EXCHANGE, CityPoiType.EXCHANGE, ModBlocks.EXCHANGE_CONTROL_BOX.get());
     }
 
+    /**
+     * isGlobalMarket: 全球市场类公共建筑。
+     */
+    public static boolean isGlobalMarket(PlacedBuildingRecord building) {
+        return matches(building, BuildingCatalog.BuildingType.GLOBAL_MARKET, CityPoiType.GLOBAL_MARKET, ModBlocks.GLOBAL_MARKET_CONTROL_BOX.get());
+    }
+
     private static boolean matches(PlacedBuildingRecord building,
                                    BuildingCatalog.BuildingType expected,
                                    CityPoiType poiType,

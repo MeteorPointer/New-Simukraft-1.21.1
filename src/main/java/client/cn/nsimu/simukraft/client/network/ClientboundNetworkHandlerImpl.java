@@ -13,6 +13,7 @@ import client.cn.nsimu.simukraft.client.commercial.CommercialControlBoxScreenOpe
 import client.cn.nsimu.simukraft.client.compat.ClientCompatHooks;
 import client.cn.nsimu.simukraft.client.controlbox.ResidentialControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.exchange.ExchangeControlBoxScreenOpener;
+import client.cn.nsimu.simukraft.client.globalmarket.GlobalMarketControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.farmland.FarmlandBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.farmland.FarmlandHoverPreview;
 import client.cn.nsimu.simukraft.client.geology.GeologicalSurveyHintOverlay;
@@ -42,6 +43,7 @@ import common.cn.nsimu.simukraft.network.clientbound.ClientboundNetworkHandler;
 import common.cn.nsimu.simukraft.network.commercial.CommercialControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.commercial.CommercialTradeOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.exchange.ExchangeControlBoxOpenResponsePacket;
+import common.cn.nsimu.simukraft.network.globalmarket.GlobalMarketControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxBoundsResponsePacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.geology.GeologicalSurveyHintPacket;
@@ -205,6 +207,11 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
     @Override
     public void handleExchangeControlBoxOpenResponse(ExchangeControlBoxOpenResponsePacket packet) {
         ExchangeControlBoxScreenOpener.open(packet);
+    }
+
+    @Override
+    public void handleGlobalMarketControlBoxOpenResponse(GlobalMarketControlBoxOpenResponsePacket packet) {
+        GlobalMarketControlBoxScreenOpener.open(packet);
     }
 
     @Override

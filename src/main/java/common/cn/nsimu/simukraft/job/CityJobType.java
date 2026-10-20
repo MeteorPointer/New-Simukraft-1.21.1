@@ -22,7 +22,8 @@ public enum CityJobType {
     OTHER,
     DOCTOR,
     BANKER,
-    BROKER;
+    BROKER,
+    MARKET_TRADER;
 
     private static final Map<CityPoiType, CityJobType> POI_MAPPING = new EnumMap<>(CityPoiType.class);
 
@@ -35,6 +36,7 @@ public enum CityJobType {
         POI_MAPPING.put(CityPoiType.DEFENSE, GUARD);
         POI_MAPPING.put(CityPoiType.GATHERING, GATHERER);
         POI_MAPPING.put(CityPoiType.OTHER, OTHER);
+        POI_MAPPING.put(CityPoiType.GLOBAL_MARKET, MARKET_TRADER);
     }
 
     public static CityJobType fromName(String name) {

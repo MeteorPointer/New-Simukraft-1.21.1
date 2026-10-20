@@ -1,7 +1,9 @@
 package common.cn.nsimu.simukraft.storage;
 
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.commercial.CommercialTradeView;
 import common.cn.nsimu.simukraft.exchange.ExchangeCandle;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketListing;
 import common.cn.nsimu.simukraft.virtualvein.VirtualVeinConsumption;
 import common.cn.nsimu.simukraft.virtualvein.VirtualVeinFieldKey;
 import common.cn.nsimu.simukraft.virtualvein.VirtualVeinFieldProfile;
@@ -50,6 +52,7 @@ public final class SimuSqliteStorage {
     private final ResidentialOccupancyRepository residentialOccupancy;
     private final VirtualVeinSqliteRepository virtualVeins;
     private final ExchangeSqliteRepository exchange;
+    private final GlobalMarketSqliteRepository globalMarket;
 
     private SimuSqliteStorage(SimuSqliteDatabase database) {
         this.database = database;
@@ -70,6 +73,7 @@ public final class SimuSqliteStorage {
         this.residentialOccupancy = new ResidentialOccupancyRepository(database);
         this.virtualVeins = new VirtualVeinSqliteRepository(database);
         this.exchange = new ExchangeSqliteRepository(database);
+        this.globalMarket = new GlobalMarketSqliteRepository(database);
     }
 
     // ── 生命周期 ──────────────────────────────────────────────────────────────
@@ -813,6 +817,68 @@ public final class SimuSqliteStorage {
         }
         write(level, "exchange_holding:" + cityId + ":" + companyId,
                 (storage, connection) -> storage.exchange.saveHolding(connection, cityId, companyId, shares, costBasis));
+    }
+
+    /**
+     * loadGlobalMarketListings: 读取该维度全部全球市场上架报价。
+     */
+    public static List<GlobalMarketListing> loadGlobalMarketListings(ServerLevel level) {
+        SimuSqliteStorage storage = openSafely(level);
+        return storage != null ? storage.globalMarket.loadAll(dimensionId(level)) : List.of();
+    }
+
+    /**
+     * findGlobalMarketListing: 按 ID 读取一条上架报价。
+     */
+    public static GlobalMarketListing findGlobalMarketListing(ServerLevel level, String listingId) {
+        SimuSqliteStorage storage = openSafely(level);
+        return storage != null ? storage.globalMarket.find(listingId) : null;
+    }
+
+    /**
+     * saveGlobalMarketListing: 写入一条上架报价。
+     */
+    public static void saveGlobalMarketListing(ServerLevel level, GlobalMarketListing listing) {
+        if (listing == null) {
+            return;
+        }
+        String dimensionId = dimensionId(level);
+        write(level, "global_market:" + listing.id(),
+                (storage, connection) -> storage.globalMarket.upsert(connection, dimensionId, listing));
+    }
+
+    /**
+     * deleteGlobalMarketListing: 下架一条报价。
+     */
+    public static void deleteGlobalMarketListing(ServerLevel level, String listingId) {
+        if (listingId == null || listingId.isBlank()) {
+            return;
+        }
+        write(level, "global_market:" + listingId,
+                (storage, connection) -> storage.globalMarket.delete(connection, listingId));
+    }
+
+    /**
+     * loadGlobalMarketWarehouse: 读取城市全球市场仓库。
+     */
+    public static List<CommercialTradeView.WarehouseEntry> loadGlobalMarketWarehouse(ServerLevel level, UUID cityId) {
+        if (cityId == null) {
+            return List.of();
+        }
+        SimuSqliteStorage storage = openSafely(level);
+        return storage != null ? storage.globalMarket.loadWarehouse(dimensionId(level), cityId.toString()) : List.of();
+    }
+
+    /**
+     * saveGlobalMarketWarehouse: 写入城市全球市场仓库。
+     */
+    public static void saveGlobalMarketWarehouse(ServerLevel level, UUID cityId, List<CommercialTradeView.WarehouseEntry> entries) {
+        if (cityId == null) {
+            return;
+        }
+        String dimensionId = dimensionId(level);
+        write(level, "global_market_warehouse:" + cityId,
+                (storage, connection) -> storage.globalMarket.saveWarehouse(connection, dimensionId, cityId.toString(), entries));
     }
 
     private static String dimensionId(ServerLevel level) {

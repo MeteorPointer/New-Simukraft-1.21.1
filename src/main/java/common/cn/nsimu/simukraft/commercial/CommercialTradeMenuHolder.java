@@ -38,12 +38,17 @@ public final class CommercialTradeMenuHolder implements IContainerUIHolder {
         if (player == null || player.level().isClientSide()) {
             return true;
         }
-        if (packet.boxPos() == null || packet.workerId() == null) {
+        if (packet.boxPos() == null) {
             return false;
         }
         if (player instanceof ServerPlayer serverPlayer && serverPlayer.level() instanceof ServerLevel level) {
-            return CommercialTradeAccessValidator.canUseTradeMenu(level, serverPlayer, packet.boxPos(), packet.workerId())
-                    || RtsRemoteCitizenAccess.hasTradeAccess(serverPlayer, packet.boxPos(), packet.workerId());
+            if (packet.globalMarket()) {
+                return serverPlayer.blockPosition().closerThan(packet.boxPos(), 16.0D)
+                        || RtsRemoteCitizenAccess.hasTradeAccess(serverPlayer, packet.boxPos(), packet.workerId());
+            }
+            return packet.workerId() != null
+                    && (CommercialTradeAccessValidator.canUseTradeMenu(level, serverPlayer, packet.boxPos(), packet.workerId())
+                    || RtsRemoteCitizenAccess.hasTradeAccess(serverPlayer, packet.boxPos(), packet.workerId()));
         }
         return false;
     }

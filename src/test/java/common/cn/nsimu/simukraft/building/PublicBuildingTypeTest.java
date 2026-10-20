@@ -10,6 +10,7 @@ class PublicBuildingTypeTest {
     void publicJsonType_selectsHospitalBankAndExchange() {
         assertEquals(BuildingCatalog.BuildingType.BANK, BuildingPackageCatalog.publicTypeFromJson(type("bank")));
         assertEquals(BuildingCatalog.BuildingType.EXCHANGE, BuildingPackageCatalog.publicTypeFromJson(type("exchange")));
+        assertEquals(BuildingCatalog.BuildingType.GLOBAL_MARKET, BuildingPackageCatalog.publicTypeFromJson(type("global_market")));
         assertEquals(BuildingCatalog.BuildingType.MEDICAL, BuildingPackageCatalog.publicTypeFromJson(type("hospital")));
         assertEquals(BuildingCatalog.BuildingType.MEDICAL, BuildingPackageCatalog.publicTypeFromJson(type("medical")));
         assertEquals(BuildingCatalog.BuildingType.STANDARD, BuildingPackageCatalog.publicTypeFromJson(new JsonObject()));

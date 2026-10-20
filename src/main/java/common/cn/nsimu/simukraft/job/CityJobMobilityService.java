@@ -41,6 +41,7 @@ public final class CityJobMobilityService {
             case "doctor" -> CityJobType.DOCTOR;
             case "teller", "banker" -> CityJobType.BANKER;
             case "broker" -> CityJobType.BROKER;
+            case "market_trader" -> CityJobType.MARKET_TRADER;
             default -> CityJobType.OTHER;
         };
     }
@@ -66,7 +67,7 @@ public final class CityJobMobilityService {
             SimuKraft.LOGGER.debug("Simukraft: sendToWorkplace - queued recovery for citizen {} at workplace {}", citizenId, workplacePos);
             return;
         }
-        Vec3 target = (jobType == CityJobType.COMMERCIAL_WORKER
+        Vec3 target = (jobType == CityJobType.COMMERCIAL_WORKER || jobType == CityJobType.MARKET_TRADER
                 ? CitizenWorkplaceMoveService.targetAdjacentToWorkplace(level, workplacePos)
                 : CitizenWorkplaceMoveService.targetNearWorkplace(level, workplacePos))
                 .orElse(Vec3.atBottomCenterOf(workplacePos.above()));

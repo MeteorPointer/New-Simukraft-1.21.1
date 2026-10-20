@@ -13,6 +13,8 @@ import common.cn.nsimu.simukraft.economy.ResidentialRentService;
 import common.cn.nsimu.simukraft.event.CityPlacementRestrictionHandler;
 import common.cn.nsimu.simukraft.event.PlayerWelcomeService;
 import common.cn.nsimu.simukraft.exchange.ExchangeMarketService;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketService;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketWarehouseService;
 import common.cn.nsimu.simukraft.farmland.FarmlandBoxManager;
 import common.cn.nsimu.simukraft.farmland.FarmlandFarmingService;
 import common.cn.nsimu.simukraft.guard.NtIntegrityGuard;
@@ -354,6 +356,8 @@ public final class SimuKraft {
         MedicalBedPoiService.clearServerCaches(event.getServer());
         MedicalDefinitionLoader.clearCache();
         ExchangeMarketService.clearServerCaches(event.getServer());
+        GlobalMarketService.clearCache();
+        GlobalMarketWarehouseService.clearCache();
         MedicalMealService.clearServerCaches(event.getServer());
         CitizenHomeRestService.clearServerCaches(event.getServer());
         CitizenDroppedFoodService.clearServerCaches(event.getServer());

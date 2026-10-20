@@ -1,10 +1,18 @@
 package common.cn.nsimu.simukraft.storage.core;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 主库的迁移清单。新增迁移只需往 {@link #all()} 里追加，版本号必须连续递增。
@@ -21,7 +29,10 @@ public final class SimuMigrations {
                 new CitizenLastHospitalProgressDayTime(),
                 new ExchangeTables(),
                 new ResidentialOccupancyTable(),
-                new DistrictTables());
+                new DistrictTables(),
+                new GlobalMarketListingsTable(),
+                new GlobalMarketWarehouseTable(),
+                new ReleaseGlobalMarketEscrow());
     }
 
     /**
@@ -258,6 +269,164 @@ public final class SimuMigrations {
             try (Statement s = c.createStatement()) {
                 s.executeUpdate("ALTER TABLE " + table + " ADD COLUMN " + column + " " + definition);
             }
+        }
+    }
+
+    /**
+     * v9: 全球市场上架报价。
+     */
+    private static final class GlobalMarketListingsTable implements Migration {
+        @Override
+        public int version() {
+            return 9;
+        }
+
+        @Override
+        public String description() {
+            return "add global market listings";
+        }
+
+        @Override
+        public void apply(Connection connection) throws SQLException {
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("CREATE TABLE IF NOT EXISTS global_market_listings("
+                        + "listing_id TEXT PRIMARY KEY, dimension_id TEXT NOT NULL, city_id TEXT NOT NULL, city_name TEXT NOT NULL, "
+                        + "mode TEXT NOT NULL, cost_json TEXT NOT NULL, result_json TEXT NOT NULL, stock INTEGER NOT NULL, "
+                        + "max_stock INTEGER NOT NULL, created_at INTEGER NOT NULL)");
+                statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_global_market_dimension ON global_market_listings(dimension_id)");
+            }
+        }
+    }
+
+    /**
+     * v10: 全球市场城市仓库。
+     */
+    private static final class GlobalMarketWarehouseTable implements Migration {
+        @Override
+        public int version() {
+            return 10;
+        }
+
+        @Override
+        public String description() {
+            return "add global market warehouse";
+        }
+
+        @Override
+        public void apply(Connection connection) throws SQLException {
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("CREATE TABLE IF NOT EXISTS global_market_warehouse("
+                        + "city_id TEXT NOT NULL, dimension_id TEXT NOT NULL, stacks_json TEXT NOT NULL, updated_at INTEGER NOT NULL, "
+                        + "PRIMARY KEY(city_id, dimension_id))");
+            }
+        }
+    }
+
+    /**
+     * v11: 把已经预扣的出售/交换库存退回仓库，之后上架不再预扣。
+     */
+    private static final class ReleaseGlobalMarketEscrow implements Migration {
+        @Override
+        public int version() {
+            return 11;
+        }
+
+        @Override
+        public String description() {
+            return "move escrowed global market listings into warehouse";
+        }
+
+        @Override
+        public void apply(Connection connection) throws SQLException {
+            Map<String, List<JsonObject>> warehouses = new LinkedHashMap<>();
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(
+                         "SELECT dimension_id, city_id, stacks_json FROM global_market_warehouse")) {
+                while (resultSet.next()) {
+                    warehouses.put(
+                            resultSet.getString("dimension_id") + "|" + resultSet.getString("city_id"),
+                            stacksFromJson(resultSet.getString("stacks_json")));
+                }
+            }
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery(
+                         "SELECT dimension_id, city_id, mode, result_json, stock FROM global_market_listings")) {
+                while (resultSet.next()) {
+                    String mode = resultSet.getString("mode");
+                    int stock = resultSet.getInt("stock");
+                    if (stock <= 0 || (!"sell".equals(mode) && !"barter".equals(mode))) {
+                        continue;
+                    }
+                    String key = resultSet.getString("dimension_id") + "|" + resultSet.getString("city_id");
+                    List<JsonObject> stacks = warehouses.computeIfAbsent(key, ignored -> new ArrayList<>());
+                    addListingStock(stacks, resultSet.getString("result_json"), stock);
+                }
+            }
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "INSERT INTO global_market_warehouse(city_id, dimension_id, stacks_json, updated_at) VALUES(?,?,?,?) "
+                            + "ON CONFLICT(city_id, dimension_id) DO UPDATE SET stacks_json=excluded.stacks_json, updated_at=excluded.updated_at")) {
+                long now = System.currentTimeMillis();
+                for (Map.Entry<String, List<JsonObject>> entry : warehouses.entrySet()) {
+                    int split = entry.getKey().indexOf('|');
+                    String dimensionId = entry.getKey().substring(0, split);
+                    String cityId = entry.getKey().substring(split + 1);
+                    statement.setString(1, cityId);
+                    statement.setString(2, dimensionId);
+                    statement.setString(3, stacksToJson(entry.getValue()));
+                    statement.setLong(4, now);
+                    statement.executeUpdate();
+                }
+            }
+        }
+
+        private static void addListingStock(List<JsonObject> stacks, String resultJson, int stock) {
+            if (resultJson == null || resultJson.isBlank() || stock <= 0) {
+                return;
+            }
+            JsonArray array = JsonParser.parseString(resultJson).getAsJsonArray();
+            array.forEach(element -> {
+                JsonObject resource = element.getAsJsonObject();
+                if (resource.has("type") && "money".equalsIgnoreCase(resource.get("type").getAsString())) {
+                    return;
+                }
+                String itemId = resource.has("itemId") ? resource.get("itemId").getAsString() : "";
+                if (itemId.isBlank()) {
+                    return;
+                }
+                String stackNbt = resource.has("stackNbt") ? resource.get("stackNbt").getAsString() : "";
+                for (JsonObject stack : stacks) {
+                    String currentNbt = stack.has("stackNbt") ? stack.get("stackNbt").getAsString() : "";
+                    if (itemId.equals(stack.get("itemId").getAsString()) && stackNbt.equals(currentNbt)) {
+                        stack.addProperty("count", stack.get("count").getAsInt() + stock);
+                        return;
+                    }
+                }
+                JsonObject added = new JsonObject();
+                added.addProperty("itemId", itemId);
+                added.addProperty("count", stock);
+                if (!stackNbt.isBlank()) {
+                    added.addProperty("stackNbt", stackNbt);
+                }
+                stacks.add(added);
+            });
+        }
+
+        private static List<JsonObject> stacksFromJson(String json) {
+            List<JsonObject> stacks = new ArrayList<>();
+            if (json == null || json.isBlank()) {
+                return stacks;
+            }
+            JsonArray array = JsonParser.parseString(json).getAsJsonArray();
+            array.forEach(element -> stacks.add(element.getAsJsonObject()));
+            return stacks;
+        }
+
+        private static String stacksToJson(List<JsonObject> stacks) {
+            JsonArray array = new JsonArray();
+            if (stacks != null) {
+                stacks.forEach(array::add);
+            }
+            return array.toString();
         }
     }
 }

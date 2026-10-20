@@ -11,5 +11,6 @@ class CityJobMobilityServiceTest {
         assertEquals(CityJobType.BANKER, CityJobMobilityService.resolveHireRole("teller"));
         assertEquals(CityJobType.BANKER, CityJobMobilityService.resolveHireRole("banker"));
         assertEquals(CityJobType.BROKER, CityJobMobilityService.resolveHireRole("broker"));
+        assertEquals(CityJobType.MARKET_TRADER, CityJobMobilityService.resolveHireRole("market_trader"));
     }
 }

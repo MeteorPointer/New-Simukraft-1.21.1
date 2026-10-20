@@ -352,11 +352,16 @@ public final class BuildingPackageCatalog {
             if (configuredFile != null && !configuredFile.isBlank()) {
                 declaredKey = "exchange";
             } else {
-                configuredFile = findDeclaredValue(metaText, "medical");
+                configuredFile = findDeclaredValue(metaText, "global_market");
                 if (configuredFile != null && !configuredFile.isBlank()) {
-                    declaredKey = "medical";
+                    declaredKey = "global_market";
                 } else {
-                    configuredFile = baseName + ".json";
+                    configuredFile = findDeclaredValue(metaText, "medical");
+                    if (configuredFile != null && !configuredFile.isBlank()) {
+                        declaredKey = "medical";
+                    } else {
+                        configuredFile = baseName + ".json";
+                    }
                 }
             }
         }
@@ -381,7 +386,7 @@ public final class BuildingPackageCatalog {
     }
 
     /**
-     * fallbackPublicType: .sk 显式写了 medical/bank/exchange 时，JSON 缺 type 仍按该类别。
+     * fallbackPublicType: .sk 显式写了 medical/bank/exchange/global_market 时，JSON 缺 type 仍按该类别。
      */
     private static BuildingCatalog.BuildingType fallbackPublicType(String declaredKey) {
         if ("bank".equals(declaredKey)) {
@@ -389,6 +394,9 @@ public final class BuildingPackageCatalog {
         }
         if ("exchange".equals(declaredKey)) {
             return BuildingCatalog.BuildingType.EXCHANGE;
+        }
+        if ("global_market".equals(declaredKey)) {
+            return BuildingCatalog.BuildingType.GLOBAL_MARKET;
         }
         if ("medical".equals(declaredKey)) {
             return BuildingCatalog.BuildingType.MEDICAL;
@@ -411,6 +419,9 @@ public final class BuildingPackageCatalog {
             }
             if (equalsAnyIgnoreCase(type, "exchange", "stock", "simukraft:exchange")) {
                 return BuildingCatalog.BuildingType.EXCHANGE;
+            }
+            if (equalsAnyIgnoreCase(type, "global_market", "global-market", "simukraft:global_market")) {
+                return BuildingCatalog.BuildingType.GLOBAL_MARKET;
             }
             if (equalsAnyIgnoreCase(type, "hospital", "medical", "simukraft:hospital", "simukraft:medical")) {
                 return BuildingCatalog.BuildingType.MEDICAL;

@@ -3,6 +3,7 @@ package client.cn.nsimu.simukraft.client.hire;
 import client.cn.nsimu.simukraft.client.buildbox.BuildBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.citizen.CitizenAvatarFactory;
 import client.cn.nsimu.simukraft.client.commercial.CommercialControlBoxScreenOpener;
+import client.cn.nsimu.simukraft.client.globalmarket.GlobalMarketControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.industrial.IndustrialControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.logistics.LogisticsServerBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.mineraldrilling.MineralDrillingControlBoxScreenOpener;
@@ -18,6 +19,7 @@ import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.citizen.CitizenLevelService;
 import common.cn.nsimu.simukraft.citizen.CitizenSkillSnapshot;
 import common.cn.nsimu.simukraft.commercial.CommercialConstants;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketControlBoxService;
 import common.cn.nsimu.simukraft.industrial.IndustrialConstants;
 import common.cn.nsimu.simukraft.job.CityJobType;
 import common.cn.nsimu.simukraft.logistics.LogisticsConstants;
@@ -494,6 +496,10 @@ public final class NpcHireScreen {
             CommercialControlBoxScreenOpener.request(sourcePos);
             return;
         }
+        if (GlobalMarketControlBoxService.HIRE_SOURCE_TYPE.equalsIgnoreCase(sourceType)) {
+            GlobalMarketControlBoxScreenOpener.request(sourcePos);
+            return;
+        }
         if (LogisticsConstants.SERVER_SOURCE_TYPE.equalsIgnoreCase(sourceType)) {
             LogisticsServerBoxScreenOpener.request(sourcePos);
             return;
@@ -520,6 +526,9 @@ public final class NpcHireScreen {
         }
         if (CommercialConstants.HIRE_ROLE.equalsIgnoreCase(role)) {
             return "gui.simukraft.commercial.hire_title";
+        }
+        if (GlobalMarketControlBoxService.HIRE_ROLE.equalsIgnoreCase(role)) {
+            return "gui.simukraft.global_market.hire_title";
         }
         if (LogisticsConstants.STORAGE_ROLE.equalsIgnoreCase(role)) {
             return "gui.simukraft.logistics.hire_title";

@@ -14,6 +14,7 @@ import common.cn.nsimu.simukraft.network.city.member.CityCoreMembersResponsePack
 import common.cn.nsimu.simukraft.network.commercial.CommercialControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.commercial.CommercialTradeOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.exchange.ExchangeControlBoxOpenResponsePacket;
+import common.cn.nsimu.simukraft.network.globalmarket.GlobalMarketControlBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxBoundsResponsePacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.geology.GeologicalSurveyHintPacket;
@@ -191,6 +192,13 @@ public final class ClientboundNetworkBridge {
      */
     public static void handleExchangeControlBoxOpenResponse(ExchangeControlBoxOpenResponsePacket packet) {
         HANDLER.get().handleExchangeControlBoxOpenResponse(packet);
+    }
+
+    /**
+     * handleGlobalMarketControlBoxOpenResponse: 分发全球市场控制箱打开响应。
+     */
+    public static void handleGlobalMarketControlBoxOpenResponse(GlobalMarketControlBoxOpenResponsePacket packet) {
+        HANDLER.get().handleGlobalMarketControlBoxOpenResponse(packet);
     }
 
     /**

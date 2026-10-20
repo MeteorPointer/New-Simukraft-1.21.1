@@ -129,6 +129,17 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds,
         if (target == null) {
             return;
         }
+        BlockPos marketPos = common.cn.nsimu.simukraft.globalmarket.GlobalMarketControlBoxService.resolveWorkerBox(level, target.data());
+        if (marketPos != null) {
+            RtsRemoteCitizenAccess.authorize(player, citizenId, RtsRemoteCitizenAccess.Mode.SHOP, marketPos);
+            if (common.cn.nsimu.simukraft.globalmarket.GlobalMarketService.open(level, player, marketPos, citizenId)) {
+                RtsRemoteCitizenAccess.bindOpenedMenu(player);
+            } else {
+                RtsRemoteCitizenAccess.clear(player);
+                openInfo(level, player, citizenId);
+            }
+            return;
+        }
         BlockPos shopPos = CommercialControlBoxService.resolveWorkerBox(level, target.data());
         if (shopPos == null) {
             openInfo(level, player, citizenId);

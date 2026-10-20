@@ -28,6 +28,7 @@ public final class CityJobCapacityService {
         addIfPresent(capacities, CityJobType.GUARD, poiManager.getCityPois(cityId, CityPoiType.DEFENSE).size(), poiManager.getActiveCapacity(cityId, CityPoiType.DEFENSE));
         addIfPresent(capacities, CityJobType.GATHERER, poiManager.getCityPois(cityId, CityPoiType.GATHERING).size(), poiManager.getActiveCapacity(cityId, CityPoiType.GATHERING));
         addIfPresent(capacities, CityJobType.OTHER, poiManager.getCityPois(cityId, CityPoiType.OTHER).size(), poiManager.getActiveCapacity(cityId, CityPoiType.OTHER));
+        addIfPresent(capacities, CityJobType.MARKET_TRADER, poiManager.getCityPois(cityId, CityPoiType.GLOBAL_MARKET).size(), poiManager.getActiveCapacity(cityId, CityPoiType.GLOBAL_MARKET));
         return List.copyOf(capacities);
     }
 

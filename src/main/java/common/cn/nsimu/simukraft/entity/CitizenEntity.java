@@ -3,6 +3,7 @@ package common.cn.nsimu.simukraft.entity;
 import common.cn.nsimu.simukraft.building.BuilderConstructionService;
 import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketControlBoxService;
 import common.cn.nsimu.simukraft.medical.MedicalService;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import common.cn.nsimu.simukraft.path.PathCrowdCoordinator;
@@ -112,7 +113,8 @@ public class CitizenEntity extends PathfinderMob {
         if (level() instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer && player.distanceToSqr(this) <= 64.0D) {
             CitizenData data = CitizenService.ensureCitizen(serverLevel, this);
             if (data != null) {
-                if (!player.isShiftKeyDown() && CommercialControlBoxService.openForWorker(serverLevel, serverPlayer, data)) {
+                if (!player.isShiftKeyDown() && (GlobalMarketControlBoxService.openForWorker(serverLevel, serverPlayer, data)
+                        || CommercialControlBoxService.openForWorker(serverLevel, serverPlayer, data))) {
                     return InteractionResult.sidedSuccess(level().isClientSide());
                 }
                 CitizenInfoMenuProvider.open(serverLevel, serverPlayer, this, data);

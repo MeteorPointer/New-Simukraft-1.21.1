@@ -12,7 +12,8 @@ public enum CityPoiType {
     DEFENSE,
     MEDICAL,
     BANK,
-    EXCHANGE;
+    EXCHANGE,
+    GLOBAL_MARKET;
 
     public static CityPoiType fromName(String name) {
         for (CityPoiType type : values()) {

@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "simukraft:block/global_market_control_box"
+    }
+  }
+}

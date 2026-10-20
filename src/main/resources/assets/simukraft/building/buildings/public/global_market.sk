@@ -1,0 +1,11 @@
+name:全球市场
+name_en:Global Market
+size:12 x 9 x 6
+amount:15.20元
+author:SimuKraft
+description:把本城货物上架，卖给其他城市。市长和官员可自由定价、下架，并设置出售、收购与交换。
+description_en:List this city's goods for other cities. Mayors and officials can set prices, unlist, and configure sell, buy, and barter offers.
+tags:price_low,material_low,stage_early
+structure:global_market.nbt
+global_market:global_market.json
+unlockLevel:

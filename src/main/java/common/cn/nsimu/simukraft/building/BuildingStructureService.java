@@ -220,6 +220,7 @@ public final class BuildingStructureService {
         int medicalCount = 0;
         boolean bankBox = false;
         boolean exchangeBox = false;
+        boolean globalMarketBox = false;
         for (BuildingBlockData block : blocks) {
             BlockState state = block.state();
             if (state == null) {
@@ -231,6 +232,10 @@ public final class BuildingStructureService {
             }
             if (state.is(ModBlocks.EXCHANGE_CONTROL_BOX.get())) {
                 exchangeBox = true;
+                continue;
+            }
+            if (state.is(ModBlocks.GLOBAL_MARKET_CONTROL_BOX.get())) {
+                globalMarketBox = true;
                 continue;
             }
             // 只统计床头，避免一张床的头/脚两个方块重复计数
@@ -257,6 +262,9 @@ public final class BuildingStructureService {
         }
         if (type == BuildingCatalog.BuildingType.EXCHANGE || (type == BuildingCatalog.BuildingType.STANDARD && exchangeBox)) {
             result.add(new BuildingPoiDefinition("exchange", CityPoiType.EXCHANGE, 1));
+        }
+        if (type == BuildingCatalog.BuildingType.GLOBAL_MARKET || (type == BuildingCatalog.BuildingType.STANDARD && globalMarketBox)) {
+            result.add(new BuildingPoiDefinition("global_market", CityPoiType.GLOBAL_MARKET, 1));
         }
         return List.copyOf(result);
     }

@@ -26,7 +26,7 @@ public final class CommercialTradeMenuProvider implements MenuProvider {
         if (player == null || view == null) {
             return false;
         }
-        CommercialTradeOpenResponsePacket packet = CommercialTradeOpenResponsePacket.from(view);
+        CommercialTradeOpenResponsePacket packet = CommercialTradeOpenResponsePacket.from(view, player.registryAccess());
         return player.openMenu(new CommercialTradeMenuProvider(packet), buffer -> CommercialTradeOpenResponsePacket.encode(buffer, packet)).isPresent();
     }
 
@@ -58,12 +58,15 @@ public final class CommercialTradeMenuProvider implements MenuProvider {
      * title: 根据商业快照生成标题。
      */
     public static Component title(CommercialTradeOpenResponsePacket packet) {
+        if (packet.globalMarket()) {
+            return Component.translatable("gui.simukraft.global_market.title");
+        }
         return packet.shopName().isBlank()
                 ? Component.translatable("gui.simukraft.commercial.trade_title")
                 : Component.literal(packet.shopName());
     }
 
     private static CommercialTradeOpenResponsePacket emptyPacket() {
-        return new CommercialTradeOpenResponsePacket(null, null, "", "", 0.0D, false, java.util.List.of());
+        return new CommercialTradeOpenResponsePacket(null, null, "", "", 0.0D, false, java.util.List.of(), false, false, null, java.util.List.of());
     }
 }

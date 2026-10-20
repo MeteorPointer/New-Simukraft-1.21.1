@@ -33,7 +33,7 @@ public final class CitizenWanderService {
     // 农田盒是露天作业台，不列入驱离，否则站上盒顶会被下一次闲逛立刻带走。
     private static final int PUBLIC_BUILDING_EXCLUSION_RADIUS_SQ = 10 * 10;
     private static final java.util.EnumSet<CityPoiType> PUBLIC_WORK_TYPES = java.util.EnumSet.of(
-            CityPoiType.COMMERCIAL, CityPoiType.INDUSTRIAL, CityPoiType.MEDICAL
+            CityPoiType.COMMERCIAL, CityPoiType.INDUSTRIAL, CityPoiType.MEDICAL, CityPoiType.GLOBAL_MARKET
     );
     private static final ConcurrentMap<String, Long> WANDER_COOLDOWNS = new ConcurrentHashMap<>();
 

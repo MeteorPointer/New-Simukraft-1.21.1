@@ -115,7 +115,8 @@ public final class CitizenWorkplaceMoveService {
                 return targetNearWorkplace(level, buildBoxPos);
             }
         }
-        if (citizen.jobType() == CityJobType.COMMERCIAL_WORKER && citizen.workplacePos() != null) {
+        if ((citizen.jobType() == CityJobType.COMMERCIAL_WORKER || citizen.jobType() == CityJobType.MARKET_TRADER)
+                && citizen.workplacePos() != null) {
             return targetAdjacentToWorkplace(level, citizen.workplacePos());
         }
         if (citizen.workplacePos() != null) {

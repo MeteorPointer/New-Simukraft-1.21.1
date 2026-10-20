@@ -105,6 +105,8 @@ public record RtsOpenTargetPacket(BlockPos pos) implements CustomPacketPayload {
             BankControlBoxOpenRequestPacket.openFor(level, player, pos);
         } else if (state.is(ModBlocks.EXCHANGE_CONTROL_BOX.get())) {
             ExchangeControlBoxOpenRequestPacket.openFor(level, player, pos);
+        } else if (state.is(ModBlocks.GLOBAL_MARKET_CONTROL_BOX.get())) {
+            common.cn.nsimu.simukraft.network.globalmarket.GlobalMarketControlBoxOpenRequestPacket.openFor(level, player, pos);
         } else if (state.is(ModBlocks.LOGISTICS_SERVER_BOX.get())) {
             LogisticsServerBoxOpenRequestPacket.openFor(level, player, pos);
         } else if (state.is(ModBlocks.LOGISTICS_CLIENT_BOX.get())) {
@@ -137,6 +139,7 @@ public record RtsOpenTargetPacket(BlockPos pos) implements CustomPacketPayload {
         if (state.is(ModBlocks.RESIDENTIAL_CONTROL_BOX.get()) || state.is(ModBlocks.INDUSTRIAL_CONTROL_BOX.get())
                 || state.is(ModBlocks.COMMERCIAL_CONTROL_BOX.get()) || state.is(ModBlocks.MEDICAL_CONTROL_BOX.get())
                 || state.is(ModBlocks.BANK_CONTROL_BOX.get()) || state.is(ModBlocks.EXCHANGE_CONTROL_BOX.get())
+                || state.is(ModBlocks.GLOBAL_MARKET_CONTROL_BOX.get())
                 || state.is(ModBlocks.LOGISTICS_SERVER_BOX.get()) || state.is(ModBlocks.LOGISTICS_CLIENT_BOX.get())
                 || state.is(ModBlocks.NSUK_FARMLAND_BOX.get()) || state.is(ModBlocks.CITY_CORE.get())
                 || state.is(ModBlocks.BUILD_BOX.get()) || state.is(ModBlocks.MINERAL_DRILLING_CONTROL_BOX.get())
@@ -207,6 +210,7 @@ public record RtsOpenTargetPacket(BlockPos pos) implements CustomPacketPayload {
                 || state.is(ModBlocks.MEDICAL_CONTROL_BOX.get())
                 || state.is(ModBlocks.BANK_CONTROL_BOX.get())
                 || state.is(ModBlocks.EXCHANGE_CONTROL_BOX.get())
+                || state.is(ModBlocks.GLOBAL_MARKET_CONTROL_BOX.get())
                 || state.is(ModBlocks.MINERAL_DRILLING_CONTROL_BOX.get()));
     }
 
