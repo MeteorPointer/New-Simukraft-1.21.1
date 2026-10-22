@@ -28,8 +28,8 @@ class CitizenPanicServiceTest {
     }
 
     @Test
-    void nullDamageSourceIsNotAPlayerAttack() {
-        assertFalse(CitizenPanicService.isPlayerAttack(null));
+    void nullDamageSourceIsNotAnEntityAttack() {
+        assertFalse(CitizenPanicService.isEntityAttack(null));
     }
 
     @Test

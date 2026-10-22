@@ -9,7 +9,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.Vec3;
 
 import javax.annotation.Nullable;
@@ -17,7 +17,7 @@ import java.util.UUID;
 
 
 /**
- * 被玩家攻击后复刻原版 PanicGoal：短时冲刺远离攻击者，不传送、不打断后续职业恢复。
+ * 被任意实体造成伤害后复刻原版 PanicGoal：短时冲刺远离攻击者，不传送、不打断后续职业恢复。
  */
 public final class CitizenPanicService {
     // 原版 LivingEntity.getLastDamageSource 在 40 tick 后清空，PanicGoal.shouldPanic 随之结束。
@@ -32,14 +32,15 @@ public final class CitizenPanicService {
     }
 
     /**
-     * onPlayerAttack：伤害真正生效且攻击者是玩家时开始/刷新逃跑窗口。
+     * onHurt：伤害真正生效且攻击者是任意实体时开始/刷新逃跑窗口。
+     * 箭、火球等投射物用伤害来源里的发射者，坠落和窒息这类没有攻击者的伤害不触发。
      */
-    public static void onPlayerAttack(ServerLevel level, CitizenEntity citizen, DamageSource source) {
+    public static void onHurt(ServerLevel level, CitizenEntity citizen, DamageSource source) {
         if (level == null || citizen == null || citizen.isRemoved() || !citizen.isAlive()) {
             return;
         }
-        Player attacker = attackerPlayer(source);
-        if (attacker == null) {
+        Entity attacker = attackerEntity(source);
+        if (attacker == null || attacker == citizen) {
             return;
         }
         if (citizen.isSleeping()) {
@@ -115,8 +116,8 @@ public final class CitizenPanicService {
         }
     }
 
-    static boolean isPlayerAttack(DamageSource source) {
-        return attackerPlayer(source) != null;
+    static boolean isEntityAttack(DamageSource source) {
+        return attackerEntity(source) != null;
     }
 
     /**
@@ -132,16 +133,23 @@ public final class CitizenPanicService {
         return candidate.distanceToSqr(threat) - origin.distanceToSqr(threat);
     }
 
+    /**
+     * attackerEntity：真正造成这次伤害的实体。
+     * getEntity 对箭是射手，对近战是攻击者本人；旁观玩家和已移除实体不算。
+     */
     @Nullable
-    static Player attackerPlayer(DamageSource source) {
+    static Entity attackerEntity(DamageSource source) {
         if (source == null) {
             return null;
         }
         Entity attacker = source.getEntity();
-        if (attacker instanceof Player player && !player.isSpectator()) {
-            return player;
+        if (attacker == null || attacker.isRemoved() || !attacker.isAlive()) {
+            return null;
         }
-        return null;
+        if (attacker instanceof LivingEntity living && living.isSpectator()) {
+            return null;
+        }
+        return attacker;
     }
 
     private static void requestDash(ServerLevel level, CitizenEntity citizen, @Nullable Vec3 threatPos) {
@@ -207,7 +215,7 @@ public final class CitizenPanicService {
         if (threatId == null) {
             return null;
         }
-        Player player = level.getPlayerByUUID(threatId);
-        return player != null && player.level() == level ? player.position() : null;
+        Entity threat = level.getEntity(threatId);
+        return threat != null && threat.level() == level && threat.isAlive() ? threat.position() : null;
     }
 }

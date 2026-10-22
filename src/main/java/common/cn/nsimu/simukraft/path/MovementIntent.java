@@ -13,7 +13,7 @@ public enum MovementIntent {
     // MEDICAL：前往医院床位接受治疗。
     MEDICAL,
     RETURN_HOME,
-    // FLEE：被玩家攻击后的短距逃跑，可抢占其它导航，路径失败不传送。
+    // FLEE：被任意实体伤害后的短距逃跑，可抢占其它导航，路径失败不传送。
     FLEE;
 
     /**
