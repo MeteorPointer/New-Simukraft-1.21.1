@@ -68,6 +68,19 @@ public final class BuildingPreviewManager {
     }
 
     /**
+     * movePreviewTo: 把预览原点平移到目标方块，建筑相对原点的形状保持不变。
+     */
+    public static boolean movePreviewTo(BlockPos target) {
+        if (!active || target == null) {
+            return false;
+        }
+        return movePreviewRelative(
+                target.getX() - previewOrigin.getX(),
+                target.getY() - previewOrigin.getY(),
+                target.getZ() - previewOrigin.getZ());
+    }
+
+    /**
      * beginRtsPreview: 固定光标初始落点，使预览建筑按 RTS 抓取语义跟随光标。
      */
     public static void beginRtsPreview(BlockPos placement) {

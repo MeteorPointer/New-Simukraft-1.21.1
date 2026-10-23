@@ -673,6 +673,8 @@
     "gui.building_preview.label.height":  "Height",
     "gui.building_preview.label.rotate":  "Rotate",
     "gui.building_preview.label.boost":  "Boost",
+    "gui.building_preview.action.snap_origin":  "Move Origin to Crosshair",
+    "gui.building_preview.no_target":  "The crosshair is not pointing at a block.",
     "gui.building_preview.action.start":  "Start Construction",
     "gui.building_preview.action.cancel":  "Exit Preview",
     "gui.building_preview.action.hide":  "Hide Panel",
