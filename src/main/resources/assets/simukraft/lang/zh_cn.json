@@ -871,6 +871,7 @@
     "gui.simukraft.plan_area.choose_operation":  "选择规划操作",
     "gui.simukraft.plan_area.choose_operation_hint":  "先选择操作，再用两点框选世界区域。",
     "gui.simukraft.plan_area.confirm_remove_title":  "确认清除该区域？",
+    "gui.simukraft.plan_area.confirm_cost":  "花费：%s",
     "gui.simukraft.plan_area.confirm_start":  "开始规划",
     "gui.simukraft.plan_area.material_loading":  "正在扫描%s材料...",
     "gui.simukraft.plan_area.material_title":  "%s材料选择",

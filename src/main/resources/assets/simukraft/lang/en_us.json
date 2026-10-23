@@ -851,6 +851,7 @@
     "gui.simukraft.plan_area.choose_operation":  "Choose Planning Action",
     "gui.simukraft.plan_area.choose_operation_hint":  "Choose an action, then select the world area with two points.",
     "gui.simukraft.plan_area.confirm_remove_title":  "Remove this selected area?",
+    "gui.simukraft.plan_area.confirm_cost":  "Cost: %s",
     "gui.simukraft.plan_area.confirm_start":  "Start Planning",
     "gui.simukraft.plan_area.material_loading":  "Scanning %s materials...",
     "gui.simukraft.plan_area.material_title":  "%s Material Selection",

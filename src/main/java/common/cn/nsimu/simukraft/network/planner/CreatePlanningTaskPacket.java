@@ -13,6 +13,7 @@ import common.cn.nsimu.simukraft.job.CityJobType;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.planner.PlanOperation;
+import common.cn.nsimu.simukraft.planner.PlannerBilling;
 import common.cn.nsimu.simukraft.planner.PlannerWorkService;
 import common.cn.nsimu.simukraft.planner.PlanningTaskData;
 import common.cn.nsimu.simukraft.planner.PlanningTaskStatus;
@@ -182,7 +183,7 @@ public record CreatePlanningTaskPacket(BlockPos buildBoxPos,
             return;
         }
 
-        double cost = EconomyService.normalizeAmount(targetBlocks * ServerConfig.plannerMoneyPerBlock(packet.operation()));
+        double cost = PlannerBilling.cost(targetBlocks, ServerConfig.plannerMoneyPerBlock(packet.operation()));
         if (cost > 0.0D) {
             if (!EconomyService.canAfford(level, cityId, cost) || !CityService.withdrawFunds(level, cityId, cost)) {
                 InfoToastService.warning(player, Component.translatable("message.simukraft.plan_area.not_enough_funds", cost));
