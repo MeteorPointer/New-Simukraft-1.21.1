@@ -132,23 +132,26 @@ public final class CautionTapeBlock extends Block {
         return state.getBlock() instanceof CautionTapeBlock;
     }
 
-    private static BlockState applyConnections(BlockState state, BlockGetter level, BlockPos pos) {
+    /**
+     * 依据四周的警戒线重算本格自身的连接状态。
+     * 程序化放置（绕过 getStateForPlacement）后需要调用它触发自身更新，
+     * 因为 setBlock 的邻居更新标记只会刷新四周，不会刷新被放置的格子本身。
+     */
+    public static BlockState applyConnections(BlockState state, BlockGetter level, BlockPos pos) {
         boolean north = connectsTo(level.getBlockState(pos.north()));
         boolean east = connectsTo(level.getBlockState(pos.east()));
         boolean south = connectsTo(level.getBlockState(pos.south()));
         boolean west = connectsTo(level.getBlockState(pos.west()));
-        int count = (north ? 1 : 0) + (east ? 1 : 0) + (south ? 1 : 0) + (west ? 1 : 0);
-        if (count == 1) {
-            if (north) {
-                south = true;
-            } else if (south) {
-                north = true;
-            } else if (east) {
-                west = true;
-            } else {
-                east = true;
-            }
-        }
+
+        boolean xr = north || south;
+        boolean zr = east || west;
+        boolean x = north && south || (xr && !zr);
+        boolean z = east && west || (zr && !xr);
+
+        north = x || north;
+        south = x || south;
+        east = z || east;
+        west = z || west;
         return state.setValue(NORTH, north).setValue(EAST, east).setValue(SOUTH, south).setValue(WEST, west);
     }
 

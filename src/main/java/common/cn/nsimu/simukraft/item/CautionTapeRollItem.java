@@ -1,5 +1,6 @@
 package common.cn.nsimu.simukraft.item;
 
+import common.cn.nsimu.simukraft.block.CautionTapeBlock;
 import common.cn.nsimu.simukraft.block.CautionTapePlacers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -140,7 +141,7 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
             if (!existing.isAir() && !existing.canBeReplaced()) {
                 continue;
             }
-            if (!level.setBlock(pos, tape, 3)) {
+            if (!level.setBlock(pos, tape, Block.UPDATE_ALL)) {
                 continue;
             }
             if (level instanceof ServerLevel serverLevel && player != null) {
