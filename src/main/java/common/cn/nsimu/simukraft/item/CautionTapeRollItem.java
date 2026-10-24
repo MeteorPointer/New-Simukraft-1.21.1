@@ -128,8 +128,8 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
 
     private int placeLine(Level level, BlockPos start, BlockPos end, ItemStack stack, Player player) {
         int placed = 0;
-        BlockState tape = tapeBlock.defaultBlockState();
         boolean bl = player != null && player.hasInfiniteMaterials();
+        List<BlockPos> placedPositions = new ArrayList<>();
         for (BlockPos pos : line(start, end)) {
             if (remainingUses(stack) <= 0 && !bl) {
                 break;
@@ -141,14 +141,19 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
             if (!existing.isAir() && !existing.canBeReplaced()) {
                 continue;
             }
+            BlockState tape = CautionTapeBlock.applyConnections(tapeBlock.defaultBlockState(), level, pos);
             if (!level.setBlock(pos, tape, Block.UPDATE_ALL)) {
                 continue;
             }
+            placedPositions.add(pos.immutable());
             if (level instanceof ServerLevel serverLevel && player != null) {
                 CautionTapePlacers.get(serverLevel).set(pos, player.getUUID());
             }
             if (!bl) consumeUse(stack);
             placed++;
+        }
+        for (BlockPos pos : placedPositions) {
+            CautionTapeBlock.refreshSelf(level, pos);
         }
         return placed;
     }

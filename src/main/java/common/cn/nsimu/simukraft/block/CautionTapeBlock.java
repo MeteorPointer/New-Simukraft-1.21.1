@@ -82,6 +82,19 @@ public final class CautionTapeBlock extends Block {
     }
 
     @Override
+    protected void onPlace(BlockState state, Level level, BlockPos pos, BlockState oldState, boolean movedByPiston) {
+        super.onPlace(state, level, pos, oldState, movedByPiston);
+        if (level.isClientSide() || movedByPiston || oldState.is(this)) {
+            return;
+        }
+        BlockState connected = applyConnections(state, level, pos);
+        if (connected != state) {
+            // UPDATE_ALL：onPlace 里改状态会让外层 setBlock 跳过邻居通知，必须自己补上。
+            level.setBlock(pos, connected, Block.UPDATE_ALL);
+        }
+    }
+
+    @Override
     protected BlockState updateShape(
             BlockState state,
             Direction facing,
@@ -133,9 +146,7 @@ public final class CautionTapeBlock extends Block {
     }
 
     /**
-     * 依据四周的警戒线重算本格自身的连接状态。
-     * 程序化放置（绕过 getStateForPlacement）后需要调用它触发自身更新，
-     * 因为 setBlock 的邻居更新标记只会刷新四周，不会刷新被放置的格子本身。
+     * 依据四周的警戒线重算本格自身的连接状态。只改传入的 BlockState，不写世界、不递归邻居。
      */
     public static BlockState applyConnections(BlockState state, BlockGetter level, BlockPos pos) {
         boolean north = connectsTo(level.getBlockState(pos.north()));
@@ -153,6 +164,24 @@ public final class CautionTapeBlock extends Block {
         east = z || east;
         west = z || west;
         return state.setValue(NORTH, north).setValue(EAST, east).setValue(SOUTH, south).setValue(WEST, west);
+    }
+
+    /**
+     * 整段警戒线都进世界后再调用：补上放置时还看不到后续格子的那一格。
+     * 只写本格、只通知客户端，邻居已经在 setBlock(UPDATE_ALL) 时刷新过。
+     */
+    public static void refreshSelf(LevelAccessor level, BlockPos pos) {
+        if (level == null || pos == null) {
+            return;
+        }
+        BlockState state = level.getBlockState(pos);
+        if (!(state.getBlock() instanceof CautionTapeBlock)) {
+            return;
+        }
+        BlockState connected = applyConnections(state, level, pos);
+        if (connected != state) {
+            level.setBlock(pos, connected, Block.UPDATE_CLIENTS);
+        }
     }
 
     private static int index(BlockState state) {
