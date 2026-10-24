@@ -6,6 +6,7 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemNameBlockItem;
@@ -60,7 +61,7 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
             return InteractionResult.FAIL;
         }
         if (!level.isClientSide()) {
-            int placed = placeLine(level, start, point, stack, player == null ? null : player.getUUID());
+            int placed = placeLine(level, start, point, stack, player);
             clearStart(stack);
             if (player != null) {
                 player.displayClientMessage(Component.translatable("message.simukraft.caution_tape.placed", placed), true);
@@ -126,7 +127,7 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
         return true;
     }
 
-    private int placeLine(Level level, BlockPos start, BlockPos end, ItemStack stack, UUID playerId) {
+    private int placeLine(Level level, BlockPos start, BlockPos end, ItemStack stack, Player player) {
         int placed = 0;
         BlockState tape = tapeBlock.defaultBlockState();
         for (BlockPos pos : line(start, end)) {
@@ -143,10 +144,10 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
             if (!level.setBlock(pos, tape, 3)) {
                 continue;
             }
-            if (level instanceof ServerLevel serverLevel && playerId != null) {
-                CautionTapePlacers.get(serverLevel).set(pos, playerId);
+            if (level instanceof ServerLevel serverLevel && player != null) {
+                CautionTapePlacers.get(serverLevel).set(pos, player.getUUID());
             }
-            consumeUse(stack);
+            if (player != null && !player.hasInfiniteMaterials()) consumeUse(stack);
             placed++;
         }
         return placed;
