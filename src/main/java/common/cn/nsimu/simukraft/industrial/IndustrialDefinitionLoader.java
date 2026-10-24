@@ -66,6 +66,20 @@ public final class IndustrialDefinitionLoader {
         }
     }
 
+    /**
+     * loadForCatalog: 按建筑目录读取工业 JSON，供 JEI 查询，不依赖已放置建筑。
+     */
+    public static LoadResult loadForCatalog(BuildingCatalog.BuildingDefinition definition) {
+        if (definition == null) {
+            return LoadResult.missing("missing_building_definition");
+        }
+        String industrialFile = resolveIndustrialFileName(definition);
+        if (industrialFile == null) {
+            return LoadResult.missing("missing_industrial_json");
+        }
+        return load(definition, industrialFile);
+    }
+
     private static LoadResult loadText(String text, String fallbackId, Path path) {
         JsonObject root = JsonParser.parseString(text).getAsJsonObject();
         List<String> errors = new ArrayList<>();

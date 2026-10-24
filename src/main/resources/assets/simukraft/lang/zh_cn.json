@@ -1576,5 +1576,19 @@
     "screen.simukraft.city_core.map.menu.district": "创建分区",
     "screen.simukraft.city_core.map.mode_3d": "3D地图",
     "screen.simukraft.city_core.map.mode_2d": "平面地图",
-    "screen.simukraft.city_core.map.mode_3d_hint": "左键旋转，右键拖动，滚轮缩放"
+    "screen.simukraft.city_core.map.mode_3d_hint": "左键旋转，右键拖动，滚轮缩放",
+    "jei.simukraft.industrial": "工业配方",
+    "jei.simukraft.industrial.building": "建筑：%s",
+    "jei.simukraft.industrial.not_consumed": "不消耗",
+    "jei.simukraft.industrial.any_of": "任选其一",
+    "jei.simukraft.industrial.chance": "概率：%s%%",
+    "jei.simukraft.industrial.amount_range": "产量：%s～%s",
+    "jei.simukraft.industrial.fixed_amount": "不受员工等级加成",
+    "jei.simukraft.industrial.tag": "标签：#%s",
+    "jei.simukraft.commercial": "商业交易",
+    "jei.simukraft.commercial.building": "建筑：%s",
+    "jei.simukraft.commercial.cost": "花费：%s 元",
+    "jei.simukraft.commercial.pay": "获得：%s 元",
+    "jei.simukraft.commercial.materials": "补货：%s",
+    "jei.simukraft.commercial.npc_only": "仅 NPC"
 }

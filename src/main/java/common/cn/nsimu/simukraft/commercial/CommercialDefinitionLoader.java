@@ -98,6 +98,24 @@ public final class CommercialDefinitionLoader {
     }
 
     /**
+     * loadForCatalog: 按建筑目录读取商业 JSON，供 JEI 查询，不依赖已放置建筑。
+     */
+    public static LoadResult loadForCatalog(BuildingCatalog.BuildingDefinition definition) {
+        if (definition == null) {
+            return LoadResult.missing("missing_building_definition");
+        }
+        String explicit = CommercialDefinitionSourceResolver.explicitCommercialFileName(definition);
+        if (explicit != null) {
+            return load(definition, explicit);
+        }
+        String sibling = CommercialDefinitionSourceResolver.siblingCommercialFileName(definition);
+        if (sibling != null) {
+            return load(definition, sibling);
+        }
+        return LoadResult.missing("missing_commercial_json");
+    }
+
+    /**
      * clearCache: 清理定义缓存。
      */
     public static void clearCache() {

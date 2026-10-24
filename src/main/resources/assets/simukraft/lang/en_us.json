@@ -1576,5 +1576,19 @@
     "screen.simukraft.city_core.map.menu.district": "Create district",
     "screen.simukraft.city_core.map.mode_3d": "3D map",
     "screen.simukraft.city_core.map.mode_2d": "Flat map",
-    "screen.simukraft.city_core.map.mode_3d_hint": "Left-drag to rotate, right-drag to pan, scroll to zoom"
+    "screen.simukraft.city_core.map.mode_3d_hint": "Left-drag to rotate, right-drag to pan, scroll to zoom",
+    "jei.simukraft.industrial": "Industrial Recipes",
+    "jei.simukraft.industrial.building": "Building: %s",
+    "jei.simukraft.industrial.not_consumed": "Not consumed",
+    "jei.simukraft.industrial.any_of": "Any one of these",
+    "jei.simukraft.industrial.chance": "Chance: %s%%",
+    "jei.simukraft.industrial.amount_range": "Amount: %s-%s",
+    "jei.simukraft.industrial.fixed_amount": "Ignores worker level bonus",
+    "jei.simukraft.industrial.tag": "Tag: #%s",
+    "jei.simukraft.commercial": "Commercial Trades",
+    "jei.simukraft.commercial.building": "Building: %s",
+    "jei.simukraft.commercial.cost": "Cost: %s",
+    "jei.simukraft.commercial.pay": "Pays: %s",
+    "jei.simukraft.commercial.materials": "Restock: %s",
+    "jei.simukraft.commercial.npc_only": "NPC only"
 }
