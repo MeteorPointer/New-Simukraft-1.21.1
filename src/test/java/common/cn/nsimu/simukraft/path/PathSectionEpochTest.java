@@ -8,10 +8,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class PathSectionEpochTest {
     private static final ResourceLocation DIMENSION = ResourceLocation.fromNamespaceAndPath("minecraft", "overworld");
@@ -39,7 +36,7 @@ class PathSectionEpochTest {
                 new Vec3(4.5D, 64.0D, 1.5D), MovementIntent.WALK, 0L);
         PathCacheKey key = new PathCacheKey(DIMENSION, request.startPos(), request.targetBlockPos(), request.intent());
         cache.put(key, PathResult.success(request, List.of(
-                new PathWaypoint(new BlockPos(1, 64, 1), new Vec3(1.5D, 64.0D, 1.5D), MovementMode.WALK))),
+                        new PathWaypoint(new BlockPos(1, 64, 1), new Vec3(1.5D, 64.0D, 1.5D), MovementMode.WALK))),
                 0L, 100, stamp);
 
         assertNotNull(cache.get(key, 1L, epochs));

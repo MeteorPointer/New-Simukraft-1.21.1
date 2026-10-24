@@ -77,7 +77,7 @@ public final class ClientToastLayout {
      * create: 根据目标尺寸迭代计算字体缩放和自动换行。
      */
     public static ClientToastLayout create(Font font, Component title, Component message, ItemStack iconStack,
-                                    int targetWidth, int targetHeight) {
+                                           int targetWidth, int targetHeight) {
         return create(
                 font,
                 title,
@@ -93,8 +93,8 @@ public final class ClientToastLayout {
      * create: 按最小字号和扩展模式计算通知布局。
      */
     public static ClientToastLayout create(Font font, Component title, Component message, ItemStack iconStack,
-                                    int targetWidth, int targetHeight, float minTextScale,
-                                    ClientToastConfig.FitMode fitMode) {
+                                           int targetWidth, int targetHeight, float minTextScale,
+                                           ClientToastConfig.FitMode fitMode) {
         float minimumScale = Math.max(0.25F, Math.min(1.0F, minTextScale));
         int[] fitted = ClientToastFit.resolve(
                 targetWidth,

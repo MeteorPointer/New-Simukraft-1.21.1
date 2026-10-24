@@ -2,9 +2,9 @@ package common.cn.nsimu.simukraft.network.commercial;
 
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
-import common.cn.nsimu.simukraft.globalmarket.GlobalMarketControlBoxService;
 import common.cn.nsimu.simukraft.commercial.CommercialTradeAccessValidator;
 import common.cn.nsimu.simukraft.commercial.CommercialTradeService;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketControlBoxService;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteCitizenAccess;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.registry.ModBlocks;

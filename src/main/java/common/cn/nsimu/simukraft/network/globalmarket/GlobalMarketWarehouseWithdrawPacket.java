@@ -24,7 +24,8 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 /**
  * GlobalMarketWarehouseWithdrawPacket: 从商店仓库取出物品到玩家背包。
  */
-public record GlobalMarketWarehouseWithdrawPacket(BlockPos pos, ItemStack template, int count) implements CustomPacketPayload {
+public record GlobalMarketWarehouseWithdrawPacket(BlockPos pos, ItemStack template,
+                                                  int count) implements CustomPacketPayload {
     public static final Type<GlobalMarketWarehouseWithdrawPacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "global_market_warehouse_withdraw"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GlobalMarketWarehouseWithdrawPacket> STREAM_CODEC = StreamCodec.of(GlobalMarketWarehouseWithdrawPacket::encode, GlobalMarketWarehouseWithdrawPacket::decode);
 

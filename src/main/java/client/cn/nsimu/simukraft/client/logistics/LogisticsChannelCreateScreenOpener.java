@@ -112,7 +112,7 @@ public final class LogisticsChannelCreateScreenOpener {
             renderSelectedClientHint(graphics, layout.x() + 12, layout.y() + layout.height() - 18);
             if (filterMode == LogisticsChannelFilterMode.ITEM) {
                 graphics.drawString(this.font, Component.translatable(
-                        "gui.simukraft.logistics.channel.selected_count", itemGrid.selectedItemIds().size()),
+                                "gui.simukraft.logistics.channel.selected_count", itemGrid.selectedItemIds().size()),
                         layout.actionX(), layout.selectedY(), LogisticsNativeStyle.TEXT, false);
                 itemGrid.renderHoverTooltip(graphics, this.font, layout.gridX(), layout.gridY(), mouseX, mouseY);
             } else {

@@ -1,10 +1,6 @@
 package common.cn.nsimu.simukraft.globalmarket;
 
-import common.cn.nsimu.simukraft.building.BuildingCatalog;
-import common.cn.nsimu.simukraft.building.BuildingIntegrityService;
-import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
-import common.cn.nsimu.simukraft.building.PublicBuildingTypes;
+import common.cn.nsimu.simukraft.building.*;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
 import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
 import common.cn.nsimu.simukraft.economy.EconomyService;

@@ -6,7 +6,6 @@ import net.minecraft.core.component.DataComponents;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemNameBlockItem;
@@ -20,7 +19,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * CautionTapeRollItem: 一卷可铺 50 格。右键定起点，再瞄同一高度的直线终点。
@@ -130,8 +128,9 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
     private int placeLine(Level level, BlockPos start, BlockPos end, ItemStack stack, Player player) {
         int placed = 0;
         BlockState tape = tapeBlock.defaultBlockState();
+        boolean bl = player != null && player.hasInfiniteMaterials();
         for (BlockPos pos : line(start, end)) {
-            if (remainingUses(stack) <= 0) {
+            if (remainingUses(stack) <= 0 && !bl) {
                 break;
             }
             BlockState existing = level.getBlockState(pos);
@@ -147,7 +146,7 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
             if (level instanceof ServerLevel serverLevel && player != null) {
                 CautionTapePlacers.get(serverLevel).set(pos, player.getUUID());
             }
-            if (player != null && !player.hasInfiniteMaterials()) consumeUse(stack);
+            if (!bl) consumeUse(stack);
             placed++;
         }
         return placed;
