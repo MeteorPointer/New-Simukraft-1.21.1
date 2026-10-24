@@ -54,15 +54,35 @@ class NonDestructiveSaveAllTest {
         try (SimuSqliteDatabase database = openDatabase(tempDir.resolve("farmland.sqlite"))) {
             FarmlandBoxSqliteRepository repository = new FarmlandBoxSqliteRepository(database);
             try (Connection connection = database.borrowConnection()) {
-                repository.saveAll(connection, boxesTag("Boxes", boxTag(1, 64, 1), boxTag(2, 64, 2)));
+                repository.saveAll(connection, boxesTag("Boxes", boxTag(1, 64, 1), boxTag(2, 64, 2)), "minecraft:overworld");
             }
-            assertEquals(2, listSize(repository.loadAll(), "Boxes"));
+            assertEquals(2, listSize(repository.loadAll("minecraft:overworld"), "Boxes"));
 
             try (Connection connection = database.borrowConnection()) {
-                repository.saveAll(connection, boxesTag("Boxes", boxTag(1, 64, 1)));
+                repository.saveAll(connection, boxesTag("Boxes", boxTag(1, 64, 1)), "minecraft:overworld");
             }
 
-            assertEquals(2, listSize(repository.loadAll(), "Boxes"));
+            assertEquals(2, listSize(repository.loadAll("minecraft:overworld"), "Boxes"));
+        }
+    }
+
+    @Test
+    void farmlandSaveAllDoesNotOverwriteAnotherDimension() throws Exception {
+        try (SimuSqliteDatabase database = openDatabase(tempDir.resolve("farmland-dimensions.sqlite"))) {
+            FarmlandBoxSqliteRepository repository = new FarmlandBoxSqliteRepository(database);
+            CompoundTag overworld = boxesTag("Boxes", runningBox(1, 64, 1, "pumpkin", true));
+            CompoundTag nether = boxesTag("Boxes", runningBox(1, 64, 1, "potatoes", false));
+            try (Connection connection = database.borrowConnection()) {
+                repository.saveAll(connection, overworld, "minecraft:overworld");
+                repository.saveAll(connection, nether, "minecraft:the_nether");
+            }
+
+            CompoundTag loadedOverworld = repository.loadAll("minecraft:overworld");
+            CompoundTag loadedNether = repository.loadAll("minecraft:the_nether");
+            assertEquals("pumpkin", loadedOverworld.getList("Boxes", CompoundTag.TAG_COMPOUND).getCompound(0).getString("Crop"));
+            assertEquals(true, loadedOverworld.getList("Boxes", CompoundTag.TAG_COMPOUND).getCompound(0).getBoolean("Running"));
+            assertEquals("potatoes", loadedNether.getList("Boxes", CompoundTag.TAG_COMPOUND).getCompound(0).getString("Crop"));
+            assertEquals(false, loadedNether.getList("Boxes", CompoundTag.TAG_COMPOUND).getCompound(0).getBoolean("Running"));
         }
     }
 
@@ -148,10 +168,14 @@ class NonDestructiveSaveAllTest {
     }
 
     private static CompoundTag boxTag(int x, int y, int z) {
+        return runningBox(x, y, z, "minecraft:wheat", true);
+    }
+
+    private static CompoundTag runningBox(int x, int y, int z, String crop, boolean running) {
         CompoundTag box = new CompoundTag();
         box.putLong("BoxPos", new BlockPos(x, y, z).asLong());
-        box.putString("Crop", "minecraft:wheat");
-        box.putBoolean("Running", true);
+        box.putString("Crop", crop);
+        box.putBoolean("Running", running);
         return box;
     }
 

@@ -87,7 +87,6 @@ public record FarmlandBoxActionPacket(BlockPos pos, Action action) implements Cu
             case FIRE -> fireFarmer(level, player, pos);
             case DEMOLISH -> {
                 demolish(level, pos);
-                PacketDistributor.sendToPlayer(player, FarmlandBoxOpenResponsePacket.empty(pos));
                 InfoToastService.success(player, Component.translatable("message.simukraft.farmland_box.demolished"));
                 return;
             }
@@ -110,7 +109,7 @@ public record FarmlandBoxActionPacket(BlockPos pos, Action action) implements Cu
         if (farmer != null) {
             CitizenEmploymentService.fire(level, farmer.uuid(), FarmlandBoxService.HIRE_SOURCE_TYPE, FarmlandBoxService.HIRE_ROLE, pos, "farmland_box_demolished");
         }
-        // destroyBlock 会触发破坏事件：注销 FARMLAND POI、清理农田盒配置，并掉落方块。
+        // destroyBlock 不发 BreakEvent。POI 在 FarmlandBoxService.onRemoved 里注销。
         level.destroyBlock(pos, true);
     }
 }

@@ -816,10 +816,10 @@
     "message.simukraft.farmland_box.no_permission":  "你没有管理该农田盒的权限。",
     "message.simukraft.farmland_box.no_chest":  "农田盒附近没有找到仓储容器，请先放置一个箱子。",
     "message.simukraft.farmland_box.started":  "农民已开始耕作这块田。",
-    "message.simukraft.farmland_box.stopped":  "已���止耕作。",
-    "message.simukraft.farmland_box.not_configured":  "开始前请先设置作物、区域和仓储箱。",
+    "message.simukraft.farmland_box.stopped":  "已停止耕作。",
+    "message.simukraft.farmland_box.not_configured":  "开始前请先设置作物和区域。",
     "message.simukraft.farmland_box.no_farmer":  "开始前请先雇佣一名农民。",
-    "message.simukraft.farmland_box.demolished":  "���������田盒已移除。",
+    "message.simukraft.farmland_box.demolished":  "农田盒已移除。",
     "message.simukraft.farmland_box.area_invalid":  "区域无效，或与其它农田重叠。",
     "gui.simukraft.farmland_box.select_crop_title":  "选择作物",
     "gui.simukraft.farmland_box.crop_selected":  "%s（已选）",
@@ -1576,5 +1576,5 @@
     "screen.simukraft.city_core.map.menu.district": "创建分区",
     "screen.simukraft.city_core.map.mode_3d": "3D地图",
     "screen.simukraft.city_core.map.mode_2d": "平面地图",
-    "screen.simukraft.city_core.map.mode_3d_hint": "左键旋���，右键拖动，滚轮缩放"
+    "screen.simukraft.city_core.map.mode_3d_hint": "左键旋转，右键拖动，滚轮缩放"
 }

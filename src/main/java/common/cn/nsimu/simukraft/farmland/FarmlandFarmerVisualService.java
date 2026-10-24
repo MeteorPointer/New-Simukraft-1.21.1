@@ -1,6 +1,7 @@
 package common.cn.nsimu.simukraft.farmland;
 
 import common.cn.nsimu.simukraft.citizen.CitizenData;
+import common.cn.nsimu.simukraft.citizen.CitizenJobVisualService;
 import common.cn.nsimu.simukraft.citizen.CitizenTeleportService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import net.minecraft.server.level.ServerLevel;
@@ -26,9 +27,10 @@ final class FarmlandFarmerVisualService {
 
     static void apply(CitizenEntity entity, ItemStack tool, boolean active) {
         ItemStack normalized = normalize(tool);
+        CitizenJobVisualService.setMainHandOverride(entity.getUUID(), normalized);
         ItemStack current = entity.getItemBySlot(EquipmentSlot.MAINHAND);
         if (!ItemStack.isSameItemSameComponents(current, normalized) || current.getCount() != normalized.getCount()) {
-            entity.setItemSlot(EquipmentSlot.MAINHAND, normalized);
+            entity.setItemSlot(EquipmentSlot.MAINHAND, normalized.copy());
             entity.setDropChance(EquipmentSlot.MAINHAND, 0.0F);
         }
         entity.setHasActiveVisualTask(active);

@@ -109,7 +109,24 @@ final class FarmlandWorkGeometry {
     }
 
     static boolean isTroughSoilReady(BlockState soilState, int lightEmission) {
-        return hasWater(soilState) || isFrozenWater(soilState) || (!soilState.isAir() && lightEmission > 0);
+        return hasWater(soilState) || isFrozenWater(soilState) || (lightEmission > 0 && isKeptTroughLight(soilState));
+    }
+
+    // isKeptTroughLight：只保留用来防冰的灯，熔岩和岩浆块不算水槽已挖完。
+    static boolean isKeptTroughLight(BlockState state) {
+        return state.is(Blocks.GLOWSTONE)
+                || state.is(Blocks.SEA_LANTERN)
+                || state.is(Blocks.LANTERN)
+                || state.is(Blocks.SOUL_LANTERN)
+                || state.is(Blocks.JACK_O_LANTERN)
+                || state.is(Blocks.SHROOMLIGHT)
+                || state.is(Blocks.OCHRE_FROGLIGHT)
+                || state.is(Blocks.VERDANT_FROGLIGHT)
+                || state.is(Blocks.PEARLESCENT_FROGLIGHT)
+                || state.is(Blocks.END_ROD)
+                || state.is(Blocks.TORCH)
+                || state.is(Blocks.SOUL_TORCH)
+                || state.is(Blocks.REDSTONE_LAMP);
     }
 
     // hasWater：水源或含水方块都算灌溉水。

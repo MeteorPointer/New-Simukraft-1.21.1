@@ -63,7 +63,10 @@ public final class FarmlandBoxScreenOpener {
         root.addChild(SimuKraftUiTheme.createShellPanel(screenWidth, screenHeight));
 
         root.addChild(topButton("gui.button.done", 5, 5, 50, FarmlandBoxScreenOpener::close));
-        root.addChild(topButton("gui.button.demolish", -5, 5, 60, () -> action(packet, FarmlandBoxActionPacket.Action.DEMOLISH)));
+        root.addChild(topButton("gui.button.demolish", -5, 5, 60, () -> {
+            action(packet, FarmlandBoxActionPacket.Action.DEMOLISH);
+            close();
+        }));
 
         UIElement panel = new UIElement().layout(layout -> {
             layout.widthPercent(94);

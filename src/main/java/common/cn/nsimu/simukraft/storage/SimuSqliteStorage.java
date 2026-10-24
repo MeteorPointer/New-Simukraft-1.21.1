@@ -365,25 +365,30 @@ public final class SimuSqliteStorage {
 
     public static CompoundTag loadFarmlandBoxes(ServerLevel level) {
         SimuSqliteStorage storage = openSafely(level);
-        return storage != null ? storage.farmlandBoxes.loadAll() : null;
+        return storage != null ? storage.farmlandBoxes.loadAll(dimensionId(level)) : null;
     }
 
     public static void saveFarmlandBoxes(ServerLevel level, CompoundTag tag) {
         if (tag == null) {
             return;
         }
-        writeOrdered(level, (storage, connection) -> storage.farmlandBoxes.saveAll(connection, tag));
+        String dimensionId = dimensionId(level);
+        writeOrdered(level, (storage, connection) -> storage.farmlandBoxes.saveAll(connection, tag, dimensionId));
     }
 
     public static void saveFarmlandBox(ServerLevel level, CompoundTag boxTag) {
         if (boxTag == null) {
             return;
         }
-        write(level, "farmland_boxes:" + boxTag.getLong("BoxPos"), (storage, connection) -> storage.farmlandBoxes.upsert(connection, boxTag));
+        String dimensionId = dimensionId(level);
+        write(level, "farmland_boxes:" + dimensionId + ":" + boxTag.getLong("BoxPos"),
+                (storage, connection) -> storage.farmlandBoxes.upsert(connection, boxTag, dimensionId));
     }
 
     public static void deleteFarmlandBox(ServerLevel level, long boxPosLong) {
-        write(level, "farmland_boxes:" + boxPosLong, (storage, connection) -> storage.farmlandBoxes.delete(connection, boxPosLong));
+        String dimensionId = dimensionId(level);
+        write(level, "farmland_boxes:" + dimensionId + ":" + boxPosLong,
+                (storage, connection) -> storage.farmlandBoxes.delete(connection, boxPosLong, dimensionId));
     }
 
     // ── 工业盒 ────────────────────────────────────────────────────────────────

@@ -7,7 +7,8 @@ enum FarmlandWorkPhase {
     BONEMEAL("bonemeal", "gui.simukraft.farmland.status.bonemeal"),
     HARVEST("harvest", "gui.simukraft.farmland.status.harvest");
 
-    static final FarmlandWorkPhase[] ORDERED = {DIG_WATER, TILL, PLANT, BONEMEAL, HARVEST};
+    // 先收割成熟作物，再给幼苗施骨粉，避免骨粉把刚补种的苗排到收割前面。
+    static final FarmlandWorkPhase[] ORDERED = {DIG_WATER, TILL, PLANT, HARVEST, BONEMEAL};
     private final String id;
     private final String translationKey;
 

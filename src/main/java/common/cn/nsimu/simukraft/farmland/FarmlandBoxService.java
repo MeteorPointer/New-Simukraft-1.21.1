@@ -1,7 +1,11 @@
 package common.cn.nsimu.simukraft.farmland;
 
 import common.cn.nsimu.simukraft.citizen.CitizenData;
+import common.cn.nsimu.simukraft.citizen.CitizenJobVisualService;
+import common.cn.nsimu.simukraft.citizen.CitizenService;
+import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
 import common.cn.nsimu.simukraft.city.CityChunkManager;
+import common.cn.nsimu.simukraft.city.poi.CityPoiService;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
 import common.cn.nsimu.simukraft.job.CityJobType;
 import common.cn.nsimu.simukraft.material.WorkContainerService;
@@ -102,17 +106,17 @@ public final class FarmlandBoxService {
         BlockPos clampedMin = new BlockPos(min.getX(), cropY, min.getZ());
         BlockPos clampedMax = new BlockPos(max.getX(), cropY, max.getZ());
         FarmlandPlot candidate = new FarmlandPlot(clampedMin, clampedMax);
-        // 限制区域尺寸，避免一次性框选超大区域拖慢服务器。
+        // 边长上限仍是 33。配置里的默认半径是 3，拿它限制框选会把正常农田判成无效。
         int maxSide = MAX_AREA_HALF_EXTENT * 2 + 1;
         if (candidate.width() > maxSide || candidate.depth() > maxSide) {
             return false;
         }
-        // 防止两个农田盒的作业区域重叠导致互相抢格子。
+        // 防止两个农田盒的作业区域重叠导致互相抢格子。上下差一层也算重叠，因为土槽在作物下面一格。
         for (FarmlandBoxData other : manager.all()) {
             if (other.boxPos().equals(data.boxPos()) || other.plot() == null) {
                 continue;
             }
-            if (candidate.intersects(other.plot())) {
+            if (candidate.overlapsWork(other.plot())) {
                 return false;
             }
         }
@@ -128,6 +132,7 @@ public final class FarmlandBoxService {
         if (data.running()) {
             data.setRunning(false);
             manager.persist(data);
+            releaseFarmerWorkState(level, boxPos);
             return ToggleResult.STOPPED;
         }
         if (!data.isConfigured()) {
@@ -151,12 +156,31 @@ public final class FarmlandBoxService {
         if (data != null && data.running()) {
             data.setRunning(false);
             manager.persist(data);
+            releaseFarmerWorkState(level, boxPos);
         }
     }
 
-    // 农田盒被移除时清理配置并自动解雇该盒的农民（FARMLAND POI 注销由放置事件处理器负责）。
+    // releaseFarmerWorkState：停止耕作后清掉头顶状态和主手工具，避免锄、桶一直留在手上。
+    public static void releaseFarmerWorkState(ServerLevel level, BlockPos boxPos) {
+        CitizenData farmer = findAssignedWorker(level, boxPos);
+        if (farmer == null) {
+            return;
+        }
+        CitizenJobVisualService.clearMainHandOverride(farmer.uuid());
+        String detail = farmer.workNeedDetail();
+        if (detail != null && detail.startsWith("farm:")) {
+            farmer.setWorkStatus(CitizenWorkStatus.IDLE);
+            farmer.setStatusLabel("");
+            farmer.setWorkNeedDetail("");
+            CitizenService.save(level, farmer.uuid());
+        }
+    }
+
+    // 农田盒被移除时清理配置、注销农田 POI，并自动解雇该盒的农民。
     public static void onRemoved(ServerLevel level, BlockPos boxPos) {
+        releaseFarmerWorkState(level, boxPos);
         FarmlandBoxManager.get(level).remove(boxPos);
+        CityPoiService.deactivatePoi(level, boxPos);
         CitizenData assignedWorker = findAssignedWorker(level, boxPos);
         if (assignedWorker != null) {
             CitizenEmploymentService.fire(level, assignedWorker.uuid(), HIRE_SOURCE_TYPE, HIRE_ROLE, boxPos, "farmland_box_removed");

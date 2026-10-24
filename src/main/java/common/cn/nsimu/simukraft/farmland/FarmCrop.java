@@ -23,8 +23,8 @@ public enum FarmCrop {
     CARROTS(Items.CARROT, Blocks.CARROTS, Layout.FULL),
     POTATOES(Items.POTATO, Blocks.POTATOES, Layout.FULL),
     BEETROOTS(Items.BEETROOT_SEEDS, Blocks.BEETROOTS, Layout.FULL),
-    MELON(Items.MELON_SEEDS, Blocks.MELON_STEM, Layout.STEM, Blocks.MELON),
-    PUMPKIN(Items.PUMPKIN_SEEDS, Blocks.PUMPKIN_STEM, Layout.STEM, Blocks.PUMPKIN);
+    MELON(Items.MELON_SEEDS, Blocks.MELON_STEM, Layout.STEM, Blocks.MELON, Blocks.ATTACHED_MELON_STEM),
+    PUMPKIN(Items.PUMPKIN_SEEDS, Blocks.PUMPKIN_STEM, Layout.STEM, Blocks.PUMPKIN, Blocks.ATTACHED_PUMPKIN_STEM);
 
     public enum Layout {
         FULL,
@@ -35,16 +35,23 @@ public enum FarmCrop {
     private final Block plantBlock;
     private final Layout layout;
     private final Block produceBlock;
+    private final Block attachedStem;
 
     FarmCrop(Item seed, Block plantBlock, Layout layout) {
-        this(seed, plantBlock, layout, null);
+        this(seed, plantBlock, layout, null, null);
     }
 
     FarmCrop(Item seed, Block plantBlock, Layout layout, Block produceBlock) {
+        this(seed, plantBlock, layout, produceBlock, null);
+    }
+
+    // attachedStem：西瓜/南瓜结果后原版会把茎换成附着茎，收割必须认这个方块。
+    FarmCrop(Item seed, Block plantBlock, Layout layout, Block produceBlock, Block attachedStem) {
         this.seed = seed;
         this.plantBlock = plantBlock;
         this.layout = layout;
         this.produceBlock = produceBlock;
+        this.attachedStem = attachedStem;
     }
 
     public Item seed() {
@@ -89,7 +96,7 @@ public enum FarmCrop {
     }
 
     public boolean isOwnPlant(BlockState state) {
-        return state.is(plantBlock);
+        return state.is(plantBlock) || (attachedStem != null && state.is(attachedStem));
     }
 
     // 仅满铺作物(CropBlock)用得到：判断是否长到最大年龄可收。藤蔓作物的成熟以相邻结果方块为准。

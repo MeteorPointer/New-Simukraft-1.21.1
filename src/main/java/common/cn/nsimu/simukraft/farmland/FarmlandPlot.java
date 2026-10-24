@@ -66,6 +66,16 @@ public record FarmlandPlot(BlockPos min, BlockPos max) {
                 && min.getZ() <= other.max.getZ() && max.getZ() >= other.min.getZ();
     }
 
+    // overlapsWork：耕地和它下面一层的土槽会碰到差一层的另一块田，水平重叠且高度差不超过 1 格算冲突。
+    public boolean overlapsWork(FarmlandPlot other) {
+        if (other == null) {
+            return false;
+        }
+        boolean columnsOverlap = min.getX() <= other.max.getX() && max.getX() >= other.min.getX()
+                && min.getZ() <= other.max.getZ() && max.getZ() >= other.min.getZ();
+        return columnsOverlap && Math.abs(min.getY() - other.min.getY()) <= 1;
+    }
+
     public CompoundTag toTag() {
         CompoundTag tag = new CompoundTag();
         tag.putLong("Min", min.asLong());

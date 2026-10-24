@@ -77,9 +77,6 @@ final class LogisticsNativeStyle {
     static void drawStatusBadge(GuiGraphics graphics, Font font, boolean enabled, int x, int y) {
         String text = enabled ? "ON" : "OFF";
         int width = 25;
-        int height = 11;
-        int fill = enabled ? STATUS_ON : STATUS_OFF;
-        int line = enabled ? STATUS_ON_LINE : STATUS_OFF_LINE;
         drawStatusBadgeBackground(graphics, enabled, x, y);
         graphics.drawCenteredString(font, text, x + width / 2, y + 1, TEXT);
     }

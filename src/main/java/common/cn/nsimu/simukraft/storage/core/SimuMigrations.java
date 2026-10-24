@@ -32,7 +32,8 @@ public final class SimuMigrations {
                 new DistrictTables(),
                 new GlobalMarketListingsTable(),
                 new GlobalMarketWarehouseTable(),
-                new ReleaseGlobalMarketEscrow());
+                new ReleaseGlobalMarketEscrow(),
+                new FarmlandBoxesDimensionPrimaryKey());
     }
 
     /**
@@ -427,6 +428,78 @@ public final class SimuMigrations {
                 stacks.forEach(array::add);
             }
             return array.toString();
+        }
+    }
+
+    /**
+     * v12：给农田盒补上 {@code dimension_id}，主键改为 {@code (dimension_id, box_pos_long)}。
+     *
+     * <p>旧表只有坐标主键。三个维度各自把整表读进内存，关服时后保存的维度用启动时的旧作物和运行状态覆盖主世界。
+     * 已有行归入主世界，和商业箱迁移的口径一致。
+     */
+    private static final class FarmlandBoxesDimensionPrimaryKey implements Migration {
+        @Override
+        public int version() {
+            return 12;
+        }
+
+        @Override
+        public String description() {
+            return "rebuild farmland_boxes with dimension_id in the primary key";
+        }
+
+        @Override
+        public void apply(Connection connection) throws SQLException {
+            try (Statement statement = connection.createStatement()) {
+                if (!tableExists(connection, "farmland_boxes")) {
+                    statement.executeUpdate(newTableSql("farmland_boxes"));
+                    return;
+                }
+                if (hasColumn(connection, "farmland_boxes", "dimension_id")) {
+                    return;
+                }
+                statement.executeUpdate(newTableSql("farmland_boxes_v12"));
+                statement.executeUpdate("INSERT OR IGNORE INTO farmland_boxes_v12("
+                        + "dimension_id, box_pos_long, crop, plot_min_long, plot_max_long, chest_pos_long, running) "
+                        + "SELECT 'minecraft:overworld', box_pos_long, crop, plot_min_long, plot_max_long, chest_pos_long, running "
+                        + "FROM farmland_boxes");
+                statement.executeUpdate("DROP TABLE farmland_boxes");
+                statement.executeUpdate("ALTER TABLE farmland_boxes_v12 RENAME TO farmland_boxes");
+            }
+        }
+
+        private static String newTableSql(String tableName) {
+            return "CREATE TABLE " + tableName + "("
+                    + "dimension_id TEXT NOT NULL DEFAULT 'minecraft:overworld', "
+                    + "box_pos_long INTEGER NOT NULL, "
+                    + "crop TEXT, "
+                    + "plot_min_long INTEGER, "
+                    + "plot_max_long INTEGER, "
+                    + "chest_pos_long INTEGER, "
+                    + "running INTEGER NOT NULL DEFAULT 0, "
+                    + "PRIMARY KEY(dimension_id, box_pos_long))";
+        }
+
+        private static boolean tableExists(Connection connection, String tableName) throws SQLException {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")) {
+                statement.setString(1, tableName);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    return resultSet.next();
+                }
+            }
+        }
+
+        private static boolean hasColumn(Connection connection, String tableName, String columnName) throws SQLException {
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery("PRAGMA table_info(" + tableName + ")")) {
+                while (resultSet.next()) {
+                    if (columnName.equalsIgnoreCase(resultSet.getString("name"))) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }
