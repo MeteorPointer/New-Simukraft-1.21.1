@@ -1,20 +1,19 @@
-name:现代中型公寓1
-name_en:Modern Medium Apartment 1
-size:24 x 55 x 24
-amount:865.00元
-author:XiaoFei小非
-description:中型公寓，造价可能较高，但这是您市民一家人最好的居住选择。
-description_en:A mid-size apartment. Expensive, and one of the better homes for a citizen family.
-tags:price_high,material_medium,stage_medium
-unit:201, 22,6,22~2,8,5
-unit:301, 22,10,22~2,12,5
-unit:401, 22,14,22~2,16,5
-unit:501, 22,18,22~2,20,5
-unit:601, 22,22,22~2,24,5
-unit:701, 22,26,22~2,28,5
-unit:801, 22,30,22~2,32,5
-unit:901, 22,34,22~2,36,5
-unit:1001, 22,38,22~2,40,5
-unit:1101, 22,42,22~2,44,5
-unit:1201, 22,46,22~2,48,5
-unlockLevel:
+name: 现代中型公寓1
+name_en: Modern Apartment Middle 1
+author: XiaoFei小非
+size: 24 x 55 x 24
+amount: 865
+description: A medium-sized apartment might be more expensive, but it's the best living option for your family in the city.
+description_en:
+unlockLevel: 
+unit: 201, 1,5,2~21,8,22
+unit: 301, 1,9,2~21,12,22
+unit: 401, 1,13,2~21,16,22
+unit: 501, 1,17,2~21,20,22
+unit: 601, 1,21,2~21,24,22
+unit: 701, 1,25,2~21,28,22
+unit: 801, 1,29,2~21,32,22
+unit: 901, 1,33,2~21,36,22
+unit: 1001, 1,37,2~21,40,22
+unit: 1101, 1,41,2~21,44,22
+unit: 1201, 1,45,2~21,48,22

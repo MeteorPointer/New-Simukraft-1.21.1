@@ -1,11 +1,8 @@
-name:全球市场
-name_en:Global Market
-size:12 x 9 x 6
-amount:15.20元
-author:SimuKraft
-description:把本城货物上架，卖给其他城市。市长和官员可自由定价、下架，并设置出售、收购与交换。
-description_en:List this city's goods for other cities. Mayors and officials can set prices, unlist, and configure sell, buy, and barter offers.
-tags:price_low,material_low,stage_early
-structure:global_market.nbt
-global_market:global_market.json
-unlockLevel:
+name: 全球市场
+name_en: Global Market
+author: -苏晴晴在此-
+size: 32 x 20 x 17
+amount: 212
+description: 您可以在此上架物品，供其他城市的玩家购买。您也可前往其他城市的全球市场购买物品。
+description_en: You can list items here for players from other cities to buy. You can also go to the global market in other cities to purchase items.
+unlockLevel: 3

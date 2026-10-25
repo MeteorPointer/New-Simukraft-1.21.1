@@ -1,10 +1,8 @@
-name:银行 (开发中)
-name_en:Bank (In Development)
-size:0 x 0 x 0
-amount:49.86元
-author:XiaoLiang
-description:建筑开发中...
-description_en:Still in development.
-tags:price_medium,material_medium,stage_mid
-job_type:banker
-unlockLevel:
+name: 银行
+name_en:Bank
+author: XiaoFei小非
+size: 19 x 14 x 14
+amount: 49.86
+description: 这里提供模拟大都市的金融服务。
+description_en: This provides financial services for a Simukraft city.
+unlockLevel: 
