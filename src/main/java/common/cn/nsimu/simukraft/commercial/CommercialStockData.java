@@ -10,6 +10,7 @@ public final class CommercialStockData {
     private int currentStock;
     private int maxStock;
     private long lastRestockGameTime;
+    private long lastReleaseDay = -1L;
     private long updatedAt;
 
     public CommercialStockData(BlockPos boxPos, String itemId, int currentStock, int maxStock, long lastRestockGameTime) {
@@ -64,6 +65,20 @@ public final class CommercialStockData {
         this.lastRestockGameTime = Math.max(0L, lastRestockGameTime);
     }
 
+    /**
+     * lastReleaseDay: 收购库存上次清空的游戏日，-1 表示还没记过。
+     */
+    public long lastReleaseDay() {
+        return lastReleaseDay;
+    }
+
+    /**
+     * setLastReleaseDay: 记下收购库存清空到哪一天。
+     */
+    public void setLastReleaseDay(long lastReleaseDay) {
+        this.lastReleaseDay = lastReleaseDay;
+    }
+
     public long updatedAt() {
         return updatedAt;
     }
@@ -111,6 +126,7 @@ public final class CommercialStockData {
         tag.putInt("CurrentStock", currentStock);
         tag.putInt("MaxStock", maxStock);
         tag.putLong("LastRestockGameTime", lastRestockGameTime);
+        tag.putLong("LastReleaseDay", lastReleaseDay);
         tag.putLong("UpdatedAt", updatedAt);
         return tag;
     }
@@ -127,6 +143,7 @@ public final class CommercialStockData {
                 tag.getLong("LastRestockGameTime")
         );
         data.updatedAt = tag.getLong("UpdatedAt");
+        data.lastReleaseDay = tag.contains("LastReleaseDay") ? tag.getLong("LastReleaseDay") : -1L;
         return data;
     }
 

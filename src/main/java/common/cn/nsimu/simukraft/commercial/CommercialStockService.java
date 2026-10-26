@@ -4,9 +4,13 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 
 public final class CommercialStockService {
+    private static final long DAY_TICKS = 24_000L;
+
     private CommercialStockService() {
     }
 
@@ -44,6 +48,7 @@ public final class CommercialStockService {
             return;
         }
         ensureStock(level, boxPos, definition);
+        releaseAcquiredStock(level, boxPos, definition);
         CommercialStockManager manager = CommercialStockManager.get(level);
         long gameTime = level.getGameTime();
         for (CommercialOffer.StockRule rule : uniqueStockRules(definition).values()) {
@@ -87,6 +92,55 @@ public final class CommercialStockService {
         if (level != null && boxPos != null) {
             CommercialStockManager.get(level).removeBox(boxPos);
         }
+    }
+
+    /**
+     * releaseAcquiredStock: 收购库存每天清零。和出售共用的物品也清，补货计时不改。
+     */
+    private static void releaseAcquiredStock(ServerLevel level, BlockPos boxPos, CommercialDefinition definition) {
+        Set<String> acquired = acquiredItemIds(definition);
+        if (acquired.isEmpty()) {
+            return;
+        }
+        CommercialStockManager manager = CommercialStockManager.get(level);
+        long currentDay = Math.floorDiv(level.getDayTime(), DAY_TICKS);
+        for (String itemId : acquired) {
+            CommercialStockData stock = manager.get(boxPos, itemId);
+            if (stock == null) {
+                continue;
+            }
+            if (stock.lastReleaseDay() < 0L) {
+                stock.setLastReleaseDay(currentDay);
+                manager.persist(stock);
+                continue;
+            }
+            if (stock.lastReleaseDay() >= currentDay) {
+                continue;
+            }
+            stock.setLastReleaseDay(currentDay);
+            if (stock.currentStock() > 0) {
+                stock.setCurrentStock(0);
+            }
+            manager.persist(stock);
+        }
+    }
+
+    /**
+     * acquiredItemIds: 玩家交给商店的物品，包括同时用于出售的那一份。
+     */
+    static Set<String> acquiredItemIds(CommercialDefinition definition) {
+        Set<String> enters = new LinkedHashSet<>();
+        if (definition == null) {
+            return Set.of();
+        }
+        for (CommercialOffer offer : definition.offers()) {
+            CommercialOffer.StockRule rule = offer.stock();
+            if (rule == null || !rule.sqliteBacked() || !offer.itemEntersStock()) {
+                continue;
+            }
+            enters.add(rule.itemId());
+        }
+        return enters;
     }
 
     private static Map<String, CommercialOffer.StockRule> uniqueStockRules(CommercialDefinition definition) {

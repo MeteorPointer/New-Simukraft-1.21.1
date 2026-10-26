@@ -153,6 +153,13 @@ public final class LogisticsManager extends SavedData {
         return List.copyOf(warehouses.values());
     }
 
+    /**
+     * clients: 已保存的手动客户端。自动客户端由建筑现算，不在这里。
+     */
+    public Collection<LogisticsClientData> clients() {
+        return List.copyOf(clients.values());
+    }
+
     public List<LogisticsWarehouseData> warehouses(UUID cityId) {
         Set<UUID> ids = cityId != null ? warehousesByCity.get(cityId) : null;
         if (ids == null || ids.isEmpty()) {
@@ -179,6 +186,51 @@ public final class LogisticsManager extends SavedData {
 
     public List<LogisticsChannelData> allChannels() {
         return List.copyOf(channels.values());
+    }
+
+    /**
+     * relocate: 批量改仓库和客户端坐标。先摘掉旧坐标索引，避免两座盒子对调时互相删路线。
+     */
+    public synchronized void relocate(List<LogisticsWarehouseData> nextWarehouses, List<LogisticsClientData> nextClients) {
+        if (nextWarehouses != null) {
+            for (LogisticsWarehouseData data : nextWarehouses) {
+                LogisticsWarehouseData old = data != null ? warehouses.get(data.warehouseId()) : null;
+                if (old != null) {
+                    warehouseByPos.remove(old.boxPos(), old.warehouseId());
+                }
+            }
+            for (LogisticsWarehouseData data : nextWarehouses) {
+                if (data == null) {
+                    continue;
+                }
+                warehouses.put(data.warehouseId(), data);
+                warehouseByPos.put(data.boxPos().immutable(), data.warehouseId());
+                if (data.cityId() != null) {
+                    warehousesByCity.computeIfAbsent(data.cityId(), ignored -> ConcurrentHashMap.newKeySet()).add(data.warehouseId());
+                }
+                persistWarehouse(data);
+            }
+        }
+        if (nextClients != null) {
+            for (LogisticsClientData data : nextClients) {
+                LogisticsClientData old = data != null ? clients.get(data.clientId()) : null;
+                if (old != null) {
+                    clientByPos.remove(old.boxPos(), old.clientId());
+                }
+            }
+            for (LogisticsClientData data : nextClients) {
+                if (data == null || data.automatic()) {
+                    continue;
+                }
+                clients.put(data.clientId(), data);
+                clientByPos.put(data.boxPos().immutable(), data.clientId());
+                if (data.cityId() != null) {
+                    clientsByCity.computeIfAbsent(data.cityId(), ignored -> ConcurrentHashMap.newKeySet()).add(data.clientId());
+                }
+                persistClient(data);
+            }
+        }
+        setDirty();
     }
 
     public synchronized void updateWarehouse(LogisticsWarehouseData data) {

@@ -3,7 +3,10 @@ package common.cn.nsimu.simukraft.commercial;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -39,6 +42,32 @@ class BakeryNpcSaleStockTest {
 
         assertFalse(timed.stock().materialBacked());
         assertTrue(clerkShouldConsume(timed));
+    }
+
+    @Test
+    void buyOfferStockIsReleasedAndSharedSellStockIsNot() {
+        CommercialOffer sells = new CommercialOffer(
+                "buy_oak_planks",
+                CommercialVisibility.MIXED,
+                List.of(CommercialResource.money(2.24D)),
+                List.of(CommercialResource.item("minecraft:oak_planks", 64)),
+                new CommercialOffer.StockRule("minecraft:oak_planks", 512, 256, 256, 12000L, List.of()));
+        CommercialOffer buys = new CommercialOffer(
+                "sell_oak_planks",
+                CommercialVisibility.PLAYER,
+                List.of(CommercialResource.item("minecraft:oak_planks", 64)),
+                List.of(CommercialResource.money(1.79D)),
+                new CommercialOffer.StockRule("minecraft:oak_planks", 512, 0, 0, 0L, List.of()));
+        CommercialOffer wheat = new CommercialOffer(
+                "shop_buys_wheat",
+                CommercialVisibility.PLAYER,
+                List.of(CommercialResource.item("minecraft:wheat", 16)),
+                List.of(CommercialResource.money(3.2D)),
+                new CommercialOffer.StockRule("minecraft:wheat", 256, 0, 0, 0L, List.of()));
+        CommercialDefinition definition = new CommercialDefinition(
+                "shop", "shop", null, null, Map.of(), List.of(sells, buys, wheat), null);
+
+        assertEquals(Set.of("minecraft:oak_planks", "minecraft:wheat"), CommercialStockService.acquiredItemIds(definition));
     }
 
     private static boolean clerkShouldConsume(CommercialOffer offer) {

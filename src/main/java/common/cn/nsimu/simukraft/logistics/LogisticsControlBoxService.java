@@ -332,7 +332,7 @@ public final class LogisticsControlBoxService {
      * onServerRemoved: 服务器盒被破坏时清理仓库、路线和仓储管理员岗位。
      */
     public static void onServerRemoved(ServerLevel level, BlockPos boxPos) {
-        if (level == null || boxPos == null) {
+        if (level == null || boxPos == null || LogisticsMoveService.isPreserved(boxPos)) {
             return;
         }
         CitizenEmploymentService.fireAssigned(level,
@@ -348,7 +348,7 @@ public final class LogisticsControlBoxService {
      * onClientRemoved: 客户端盒被破坏时清理客户端和相关路线。
      */
     public static void onClientRemoved(ServerLevel level, BlockPos boxPos) {
-        if (level != null && boxPos != null) {
+        if (level != null && boxPos != null && !LogisticsMoveService.isPreserved(boxPos)) {
             LogisticsManager.get(level).removeClient(boxPos);
         }
     }

@@ -1144,6 +1144,7 @@
     "gui.simukraft.exchange.volume":  "Volume",
     "gui.simukraft.exchange.list":  "Stocks",
     "gui.simukraft.exchange.shares":  "Shares: %s",
+    "gui.simukraft.exchange.shift_trade":  "Hold Shift to trade 10",
     "gui.simukraft.exchange.holding_value":  "Value: %s",
     "gui.simukraft.exchange.today_change":  "Change: %s",
     "gui.simukraft.exchange.no_candles":  "Candles start after open",

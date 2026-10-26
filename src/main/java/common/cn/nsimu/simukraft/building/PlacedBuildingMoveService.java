@@ -182,7 +182,12 @@ public final class PlacedBuildingMoveService {
             }
         }
 
+        Map<BlockPos, BlockPos> logisticsMoves = new java.util.HashMap<>();
+        for (MoveBlock block : blocks) {
+            logisticsMoves.put(block.oldPos().immutable(), block.newPos().immutable());
+        }
         ACTIVE_BUILDING_MOVE.set(new MoveContext(level, oldPositions));
+        common.cn.nsimu.simukraft.logistics.LogisticsMoveService.preserve(oldPositions);
         try {
             ResidentialBedPoiService.removeRecordedBeds(level, building);
             MedicalBedPoiService.removeRecordedBeds(level, building);
@@ -220,7 +225,9 @@ public final class PlacedBuildingMoveService {
             if (building.cityId() != null) {
                 CitizenHousingService.fillVacantHomes(level, building.cityId());
             }
+            common.cn.nsimu.simukraft.logistics.LogisticsMoveService.relocate(level, logisticsMoves);
         } finally {
+            common.cn.nsimu.simukraft.logistics.LogisticsMoveService.clearPreserve();
             ACTIVE_BUILDING_MOVE.remove();
         }
         return MoveStatus.SUCCESS_BUILDING;

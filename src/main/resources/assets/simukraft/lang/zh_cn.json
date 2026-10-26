@@ -1164,6 +1164,7 @@
     "gui.simukraft.exchange.volume":  "成交量柱状图",
     "gui.simukraft.exchange.list":  "全城股票",
     "gui.simukraft.exchange.shares":  "持有股数：%s 股",
+    "gui.simukraft.exchange.shift_trade":  "按住 Shift 买入/卖出 10 股",
     "gui.simukraft.exchange.holding_value":  "持仓市值：%s 元",
     "gui.simukraft.exchange.today_change":  "今日涨跌：%s",
     "gui.simukraft.exchange.no_candles":  "开市后开始记录",

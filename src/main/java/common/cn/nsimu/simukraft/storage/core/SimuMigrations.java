@@ -30,7 +30,8 @@ public final class SimuMigrations {
                 new GlobalMarketWarehouseTable(),
                 new ReleaseGlobalMarketEscrow(),
                 new FarmlandBoxesDimensionPrimaryKey(),
-                new GlobalMarketBuildingWarehouse());
+                new GlobalMarketBuildingWarehouse(),
+                new CommercialStockReleaseDay());
     }
 
     /**
@@ -525,17 +526,71 @@ public final class SimuMigrations {
         }
 
         private static void addColumnIfMissing(Connection connection, String tableName, String columnName, String definition) throws SQLException {
-            try (Statement statement = connection.createStatement();
-                 ResultSet resultSet = statement.executeQuery("PRAGMA table_info(" + tableName + ")")) {
-                while (resultSet.next()) {
-                    if (columnName.equalsIgnoreCase(resultSet.getString("name"))) {
-                        return;
-                    }
-                }
+            if (hasColumn(connection, tableName, columnName)) {
+                return;
             }
             try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + definition);
             }
+        }
+
+        private static boolean hasColumn(Connection connection, String tableName, String columnName) throws SQLException {
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery("PRAGMA table_info(" + tableName + ")")) {
+                while (resultSet.next()) {
+                    if (columnName.equalsIgnoreCase(resultSet.getString("name"))) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * v14: 收购库存记下上次清空的游戏日，避免和出售补货计时混用。
+     */
+    private static final class CommercialStockReleaseDay implements Migration {
+        @Override
+        public int version() {
+            return 14;
+        }
+
+        @Override
+        public String description() {
+            return "remember the day acquired commercial stock was cleared";
+        }
+
+        @Override
+        public void apply(Connection connection) throws SQLException {
+            if (!tableExists(connection, "commercial_stock") || hasColumn(connection, "commercial_stock", "last_release_day")) {
+                return;
+            }
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("ALTER TABLE commercial_stock ADD COLUMN last_release_day INTEGER NOT NULL DEFAULT -1");
+            }
+        }
+
+        private static boolean tableExists(Connection connection, String tableName) throws SQLException {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")) {
+                statement.setString(1, tableName);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    return resultSet.next();
+                }
+            }
+        }
+
+        private static boolean hasColumn(Connection connection, String tableName, String columnName) throws SQLException {
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery("PRAGMA table_info(" + tableName + ")")) {
+                while (resultSet.next()) {
+                    if (columnName.equalsIgnoreCase(resultSet.getString("name"))) {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 }
