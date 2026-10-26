@@ -42,6 +42,36 @@ status updates.
 The mod includes English and Simplified Chinese localization, configurable client and
 server options, and optional city highlighting support for Xaero's World Map.
 
+## Sponsor Authorization
+
+Only sponsor-edition builds (`-PsponsorEdition`) enable website-confirmed device-code
+pairing. Public builds do not initialize authorization, register its key binding or command,
+or show its configuration entry. Sponsor builds require a locally verified `sponsor`
+entitlement before gameplay and keep the native authorization screen open until a valid
+License is available. The screen is also available from the NeoForge Mods configuration
+page, the configurable key binding, or the client-only `/nsuk auth` command. Network
+validation remains asynchronous, and a still-valid cached License supports offline use.
+The production issuer/API origin and current RS256 public key are pinned in the client;
+rotating that key requires releasing a transition client that trusts both keys before the
+server switches signers. Legacy v2 token validation is not accepted by current clients.
+Long-lived credentials and cached licenses are OS-bound: Windows uses per-user DPAPI,
+Linux derives an AES-GCM key from machine-id and the OS user, and macOS uses
+IOPlatformUUID and the OS user. File permissions are restricted as well, so copying the
+authorization file to another computer or user account cannot clone authorization.
+
+Sponsor builds hash their final running JAR and submit the SHA-256, Minecraft version,
+and mod version during pairing and refresh. The website only issues a build-bound v3
+License for an enabled official build. `@SponsorFeature` and `SponsorGate` provide the
+framework for future sponsor-only entry points; no existing gameplay feature is gated by
+that framework in this version. The Gradle `verifySponsorFeatureGates` check rejects a
+future annotated source file that omits its gate call.
+
+Sponsor artifacts also embed the private `nsuk-injection-prevention-detection` library as
+JiJ. It checks the authoritative NeoForge mod-file path and explicit JVM injection options
+without scanning arbitrary files or processes. Public builds use a reflection bridge and
+therefore remain compilable without access to the private repository; sponsor builds fail
+their Gradle validation or runtime authorization if the private JiJ is missing.
+
 ## License
 
 New: Sim-U-Kraft is licensed under **GPL 3.0**.

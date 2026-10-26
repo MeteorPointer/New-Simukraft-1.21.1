@@ -1,6 +1,9 @@
 package client.cn.nsimu.simukraft;
 
 import client.cn.nsimu.simukraft.client.CityEntryHud;
+import client.cn.nsimu.simukraft.client.auth.SponsorAuthManager;
+import client.cn.nsimu.simukraft.client.auth.SponsorAuthScreen;
+import client.cn.nsimu.simukraft.client.auth.SponsorEdition;
 import client.cn.nsimu.simukraft.client.ClientHUDOverlay;
 import client.cn.nsimu.simukraft.client.ClientSimukraftData;
 import client.cn.nsimu.simukraft.client.buildbox.BuildingBoundsRenderer;
@@ -13,6 +16,7 @@ import client.cn.nsimu.simukraft.client.exchange.ExchangeControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.farmland.FarmlandHoverPreview;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraManager;
 import client.cn.nsimu.simukraft.client.geology.GeologicalSurveyHintOverlay;
+import client.cn.nsimu.simukraft.client.input.SimuKraftKeyMappings;
 import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsMiniMapRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
@@ -27,9 +31,11 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
+import net.neoforged.neoforge.client.event.RegisterClientCommandsEvent;
 import net.neoforged.neoforge.client.event.RenderGuiEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
+import net.minecraft.commands.Commands;
 
 @OnlyIn(Dist.CLIENT)
 @EventBusSubscriber(modid = SimuKraft.MOD_ID, value = Dist.CLIENT)
@@ -89,6 +95,17 @@ public final class ClientSetup {
 
     @SubscribeEvent
     public static void onClientTickPost(ClientTickEvent.Post event) {
+        if (SponsorEdition.isEnabled()) {
+            SponsorAuthManager.initialize();
+            Minecraft minecraft = Minecraft.getInstance();
+            if (!SponsorAuthManager.hasEntitlement("sponsor")
+                    && (minecraft.screen != null || minecraft.level != null)
+                    && !(minecraft.screen instanceof SponsorAuthScreen)) {
+                minecraft.setScreen(SponsorAuthScreen.required(minecraft.screen));
+            } else if (SimuKraftKeyMappings.AUTH_OPEN.consumeClick() && minecraft.screen == null) {
+                minecraft.setScreen(new SponsorAuthScreen(null));
+            }
+        }
         if (SimuMapManager.isAvailable()) {
             SimuMapManager.getInstance().tick();
         }
@@ -97,6 +114,17 @@ public final class ClientSetup {
         RtsMiniMapRenderer.onClientTick();
         ExchangeControlBoxScreenOpener.onClientTick();
         client.cn.nsimu.simukraft.client.caution.CautionTapePreview.onClientTick();
+    }
+
+    @SubscribeEvent
+    public static void onRegisterClientCommands(RegisterClientCommandsEvent event) {
+        if (!SponsorEdition.isEnabled()) return;
+        event.getDispatcher().register(Commands.literal("nsuk")
+                .then(Commands.literal("auth").executes(context -> {
+                    Minecraft.getInstance().execute(() -> Minecraft.getInstance().setScreen(
+                            new SponsorAuthScreen(Minecraft.getInstance().screen)));
+                    return 1;
+                })));
     }
 
     @SubscribeEvent

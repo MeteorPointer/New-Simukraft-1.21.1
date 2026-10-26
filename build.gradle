@@ -86,6 +86,8 @@ base {
 }
 
 def ntJar = file('E:/Project/NT/build/libs/nt-1.0.1.jar')
+def sponsorGuardJar = file('../NSUK-injection-prevention-detection/build/libs/nsuk-injection-prevention-detection-1.0.0.jar')
+def sponsorEditionBuild = rootProject.hasProperty('sponsorEdition')
 
 // 非正式版构建前校验 NT JiJ 文件存在性，缺失则立即终止构建
 // 正式版（-Prelease）跳过此校验，JiJ 不打入产物
@@ -104,11 +106,22 @@ tasks.register('validateJijFiles') {
     }
 }
 
+tasks.register('validateSponsorGuard') {
+    description = '校验赞助版私有防注入 JiJ 是否已构建'
+    onlyIf { sponsorEditionBuild }
+    doFirst {
+        if (!sponsorGuardJar.isFile()) {
+            throw new GradleException("赞助版防注入 JiJ 缺失: ${sponsorGuardJar.absolutePath}")
+        }
+    }
+}
+
 // jar 与 jarJar 均强制依赖校验，不可绕过
-tasks.named('jar').configure { dependsOn 'validateJijFiles' }
+tasks.named('jar').configure { dependsOn 'validateJijFiles', 'validateSponsorGuard' }
+tasks.named('compileJava').configure { dependsOn 'validateSponsorGuard' }
 tasks.whenTaskAdded { task ->
     if (task.name == 'jarJar') {
-        task.dependsOn 'validateJijFiles'
+        task.dependsOn 'validateJijFiles', 'validateSponsorGuard'
     }
 }
 
@@ -117,8 +130,12 @@ tasks.whenTaskAdded { task ->
 tasks.register('generateBuildMarker', WriteProperties) {
     description = '生成构建类型标记文件（供运行时完整性校验使用）'
     def buildType = rootProject.hasProperty('release') ? 'release' : 'beta' // 配置时求值
+    def sponsorEdition = rootProject.hasProperty('sponsorEdition')
     destinationFile = layout.buildDirectory.file('generated/buildMarker/META-INF/simukraft-build.properties')
     property('build.type', buildType)
+    property('sponsor.edition', sponsorEdition.toString())
+    property('minecraft.version', project.minecraft_version)
+    property('mod.version', project.mod_version)
 }
 sourceSets.main.resources.srcDir(layout.buildDirectory.dir('generated/buildMarker'))
 tasks.named('processResources').configure { dependsOn 'generateBuildMarker' }
@@ -297,6 +314,11 @@ dependencies {
         jarJar files(ntJar)
     }
 
+    if (sponsorEditionBuild) {
+        implementation files(sponsorGuardJar)
+        jarJar files(sponsorGuardJar)
+    }
+
     implementation "curse.maven:ldlib-626676:8152699"
     implementation "dev.vfyjxf:taffy:1.1.4"
     compileOnly "org.appliedenergistics.yoga:yoga:1.0.0"
@@ -430,6 +452,52 @@ tasks.named("processResources").configure {
 tasks.named('test', Test) {
     useJUnitPlatform()
 }
+
+tasks.register('verifySponsorFeatureGates') {
+    description = 'Verify every @SponsorFeature entry point declares a SponsorGate check'
+    group = 'verification'
+    def sources = fileTree('src/main/java') {
+        include '**/*.java'
+        exclude '**/SponsorFeature.java', '**/SponsorGate.java'
+    }
+    def sourceRoot = layout.projectDirectory.asFile.toPath()
+    inputs.files(sources)
+    doLast {
+        def missing = []
+        sources.files.each { file ->
+            def text = file.getText('UTF-8')
+            def matcher = text =~ /@SponsorFeature\b/
+            while (matcher.find()) {
+                int marker = matcher.start()
+                int bodyStart = text.indexOf('{', marker)
+                int declarationEnd = text.indexOf(';', marker)
+                int line = text.substring(0, marker).count('\n') + 1
+                if (bodyStart < 0 || (declarationEnd >= 0 && declarationEnd < bodyStart)) {
+                    missing.add("${sourceRoot.relativize(file.toPath())}:${line}")
+                    continue
+                }
+                int depth = 0
+                int bodyEnd = -1
+                for (int index = bodyStart; index < text.length(); index++) {
+                    char character = text.charAt(index)
+                    if (character == '{') depth++
+                    if (character == '}' && --depth == 0) {
+                        bodyEnd = index
+                        break
+                    }
+                }
+                if (bodyEnd < 0 || !text.substring(bodyStart, bodyEnd + 1).contains('SponsorGate.require(')) {
+                    missing.add("${sourceRoot.relativize(file.toPath())}:${line}")
+                }
+            }
+        }
+        if (!missing.isEmpty()) {
+            throw new GradleException('Sponsor feature entry points without SponsorGate.require: ' +
+                    missing.join(', '))
+        }
+    }
+}
+tasks.named('check').configure { dependsOn 'verifySponsorFeatureGates' }
 
 // IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
 idea {
