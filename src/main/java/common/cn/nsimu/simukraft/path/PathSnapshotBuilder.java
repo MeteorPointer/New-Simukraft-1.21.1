@@ -1,6 +1,8 @@
 package common.cn.nsimu.simukraft.path;
 
-import it.unimi.dsi.fastutil.longs.*;
+import it.unimi.dsi.fastutil.longs.Long2ByteOpenHashMap;
+import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.longs.LongOpenHashSet;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
@@ -11,9 +13,9 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.block.state.properties.DoorHingeSide;
 import net.minecraft.world.level.block.state.properties.DoubleBlockHalf;
+import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.pathfinder.PathComputationType;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -388,7 +390,7 @@ final class PathSnapshotBuilder {
     }
 
     static void addOpenTrapdoorBarriers(BlockDataSource cache, BlockPos trapdoorPos,
-                                                SnapshotBounds bounds, Long2ByteOpenHashMap barriers) {
+                                        SnapshotBounds bounds, Long2ByteOpenHashMap barriers) {
         BlockState state = cache.state(trapdoorPos);
         if (!(state.getBlock() instanceof TrapDoorBlock)
                 || !state.hasProperty(TrapDoorBlock.OPEN)
@@ -410,7 +412,7 @@ final class PathSnapshotBuilder {
      * 跟随直线穿过格子中心时身体会卡在门轴上。只挡住门扇所在的那条边。
      */
     static void addOpenDoorBarriers(BlockDataSource cache, BlockPos doorPos,
-                                            SnapshotBounds bounds, Long2ByteOpenHashMap barriers) {
+                                    SnapshotBounds bounds, Long2ByteOpenHashMap barriers) {
         BlockState state = cache.state(doorPos);
         if (!(state.getBlock() instanceof DoorBlock)
                 || !state.hasProperty(DoorBlock.OPEN)

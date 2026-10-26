@@ -60,7 +60,8 @@ public record IndustrialJeiRecipe(String id,
     /**
      * OutputSlot: 一个输出格。数量、概率和随机范围只影响提示，不改变查询索引。
      */
-    public record OutputSlot(ItemStack stack, int baseAmount, int randomRange, double probability, boolean ignoreMultiplier) {
+    public record OutputSlot(ItemStack stack, int baseAmount, int randomRange, double probability,
+                             boolean ignoreMultiplier) {
         public OutputSlot {
             stack = stack == null ? ItemStack.EMPTY : stack;
             baseAmount = Math.max(1, baseAmount);

@@ -1,5 +1,6 @@
 package common.cn.nsimu.simukraft.item;
 
+import common.cn.nsimu.simukraft.block.CautionTapeBlock;
 import common.cn.nsimu.simukraft.block.CautionTapePlacers;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponents;
@@ -19,7 +20,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * CautionTapeRollItem: 一卷可铺 50 格。右键定起点，再瞄同一高度的直线终点。
@@ -60,7 +60,7 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
             return InteractionResult.FAIL;
         }
         if (!level.isClientSide()) {
-            int placed = placeLine(level, start, point, stack, player == null ? null : player.getUUID());
+            int placed = placeLine(level, start, point, stack, player);
             clearStart(stack);
             if (player != null) {
                 player.displayClientMessage(Component.translatable("message.simukraft.caution_tape.placed", placed), true);
@@ -126,11 +126,12 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
         return true;
     }
 
-    private int placeLine(Level level, BlockPos start, BlockPos end, ItemStack stack, UUID playerId) {
+    private int placeLine(Level level, BlockPos start, BlockPos end, ItemStack stack, Player player) {
         int placed = 0;
-        BlockState tape = tapeBlock.defaultBlockState();
+        boolean bl = player != null && player.hasInfiniteMaterials();
+        List<BlockPos> placedPositions = new ArrayList<>();
         for (BlockPos pos : line(start, end)) {
-            if (remainingUses(stack) <= 0) {
+            if (remainingUses(stack) <= 0 && !bl) {
                 break;
             }
             BlockState existing = level.getBlockState(pos);
@@ -140,14 +141,19 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
             if (!existing.isAir() && !existing.canBeReplaced()) {
                 continue;
             }
-            if (!level.setBlock(pos, tape, 3)) {
+            BlockState tape = CautionTapeBlock.applyConnections(tapeBlock.defaultBlockState(), level, pos);
+            if (!level.setBlock(pos, tape, Block.UPDATE_ALL)) {
                 continue;
             }
-            if (level instanceof ServerLevel serverLevel && playerId != null) {
-                CautionTapePlacers.get(serverLevel).set(pos, playerId);
+            placedPositions.add(pos.immutable());
+            if (level instanceof ServerLevel serverLevel && player != null) {
+                CautionTapePlacers.get(serverLevel).set(pos, player.getUUID());
             }
-            consumeUse(stack);
+            if (!bl) consumeUse(stack);
             placed++;
+        }
+        for (BlockPos pos : placedPositions) {
+            CautionTapeBlock.refreshSelf(level, pos);
         }
         return placed;
     }

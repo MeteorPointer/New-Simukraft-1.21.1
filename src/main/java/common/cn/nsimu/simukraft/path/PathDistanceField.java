@@ -23,7 +23,7 @@ final class PathDistanceField {
     private final Long2ByteOpenHashMap leaveModes;
 
     private PathDistanceField(long goalKey, PathSectionStamp stamp, LongOpenHashSet reached,
-                               Long2LongOpenHashMap parents, Long2ByteOpenHashMap leaveModes) {
+                              Long2LongOpenHashMap parents, Long2ByteOpenHashMap leaveModes) {
         this.goalKey = goalKey;
         this.stamp = stamp;
         this.reached = reached;
@@ -154,9 +154,9 @@ final class PathDistanceField {
     }
 
     private static void relaxPredecessors(PathRequest request, PathSnapshot snapshot, PathCell goal, FieldNode current,
-                                           LongOpenHashSet reached, Long2DoubleOpenHashMap best,
-                                           Long2LongOpenHashMap parents, Long2ByteOpenHashMap leaveModes,
-                                           PriorityQueue<FieldNode> open) {
+                                          LongOpenHashSet reached, Long2DoubleOpenHashMap best,
+                                          Long2LongOpenHashMap parents, Long2ByteOpenHashMap leaveModes,
+                                          PriorityQueue<FieldNode> open) {
         for (int dy = -1; dy <= 3; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
                 for (int dz = -1; dz <= 1; dz++) {
@@ -191,7 +191,7 @@ final class PathDistanceField {
      * edgeInto: 源格正向邻居里指向当前格的那条边。邻居列表是线程临时缓冲，这里先复制。
      */
     private static HybridPathfinder.Neighbor edgeInto(PathSnapshot snapshot, PathCell source, PathCell goal,
-                                                       MovementIntent intent, long currentKey) {
+                                                      MovementIntent intent, long currentKey) {
         HybridPathfinder.Neighbor found = null;
         for (HybridPathfinder.Neighbor neighbor : copyNeighbors(snapshot, source, goal, intent)) {
             if (neighbor.cell().key() != currentKey) {
@@ -205,7 +205,7 @@ final class PathDistanceField {
     }
 
     private static List<HybridPathfinder.Neighbor> copyNeighbors(PathSnapshot snapshot, PathCell source, PathCell goal,
-                                                                  MovementIntent intent) {
+                                                                 MovementIntent intent) {
         return new ArrayList<>(HybridPathfinder.neighbors(snapshot, source, goal, intent));
     }
 

@@ -15,7 +15,7 @@ public final class CoinItems {
     /**
      * 满组时角标上的原始数字，渲染时换成 1k。
      */
-    public static final String MAX_STACK_LABEL = "1000";
+    public static final String MAX_STACK_LABEL = String.valueOf(MAX_STACK);
     /**
      * 满组角标相对原版右下角再向右移的像素，对齐格子右侧。
      */

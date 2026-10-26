@@ -102,7 +102,7 @@ public final class GlobalMarketService {
      * listOffer: 市长或官员挂牌。仓库当箱子，上架不预扣，没货也能上架。
      */
     public static synchronized String listOffer(ServerLevel level, ServerPlayer player, BlockPos boxPos, CommercialTradeOfferTab tab,
-                                               ItemStack costA, ItemStack costB, ItemStack result, double price, int quantity) {
+                                                ItemStack costA, ItemStack costB, ItemStack result, double price, int quantity) {
         PlacedBuildingRecord building = resolveBuilding(level, boxPos);
         if (building == null || building.cityId() == null) {
             return "message.simukraft.global_market.no_building";
@@ -222,7 +222,7 @@ public final class GlobalMarketService {
      * listSelected: 按页签处理选中物品。出售合并同种；交换取前两个付出、最后一个换得。上架不扣仓库。
      */
     public static synchronized String listSelected(ServerLevel level, ServerPlayer player, BlockPos boxPos,
-                                                  CommercialTradeOfferTab tab, List<ItemStack> items, double price, int quantity) {
+                                                   CommercialTradeOfferTab tab, List<ItemStack> items, double price, int quantity) {
         if (items == null || items.isEmpty()) {
             return "message.simukraft.global_market.need_selection";
         }

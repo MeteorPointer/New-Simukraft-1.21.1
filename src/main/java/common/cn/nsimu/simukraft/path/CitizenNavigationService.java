@@ -872,7 +872,7 @@ public final class CitizenNavigationService {
         private CompletableFuture<Boolean> step;
 
         private FieldPump(PathDistanceFieldCache.PathFieldKey key, PathRequest request, UUID cityId,
-                           PathSnapshotBuilder.SnapshotBounds bounds) {
+                          PathSnapshotBuilder.SnapshotBounds bounds) {
             this.key = key;
             this.request = request;
             this.cityId = cityId;
@@ -883,7 +883,7 @@ public final class CitizenNavigationService {
          * start: 记下要覆盖的盒子，采样留到后续 tick。
          */
         static FieldPump start(PathDistanceFieldCache.PathFieldKey key, PathRequest request, UUID cityId,
-                                PathSnapshotBuilder.SnapshotBounds bounds) {
+                               PathSnapshotBuilder.SnapshotBounds bounds) {
             return new FieldPump(key, request, cityId, bounds);
         }
 
