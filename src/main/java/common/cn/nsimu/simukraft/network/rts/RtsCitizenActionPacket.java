@@ -3,8 +3,10 @@ package common.cn.nsimu.simukraft.network.rts;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.citizen.*;
 import common.cn.nsimu.simukraft.city.CityService;
+import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.commercial.CommercialControlBoxService;
 import common.cn.nsimu.simukraft.commercial.CommercialTradeMenuProvider;
+import common.cn.nsimu.simukraft.commercial.CommercialTradeService;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
@@ -142,6 +144,12 @@ public record RtsCitizenActionPacket(Action action, List<UUID> citizenIds,
         }
         BlockPos shopPos = CommercialControlBoxService.resolveWorkerBox(level, target.data());
         if (shopPos == null) {
+            openInfo(level, player, citizenId);
+            return;
+        }
+        PlacedBuildingRecord shop = CommercialControlBoxService.resolveBuilding(level, shopPos);
+        if (!CommercialTradeService.isBuildingCitizen(level, player, shop != null ? shop.cityId() : null)) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.commercial.visitors_use_global_market"));
             openInfo(level, player, citizenId);
             return;
         }

@@ -32,7 +32,7 @@ public final class GlobalMarketSqliteRepository {
         List<GlobalMarketListing> listings = new ArrayList<>();
         try (Connection connection = database.borrowConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT listing_id, city_id, city_name, mode, cost_json, result_json, stock, max_stock "
+                     "SELECT listing_id, city_id, city_name, mode, cost_json, result_json, stock, max_stock, building_id "
                              + "FROM global_market_listings WHERE dimension_id=? ORDER BY created_at DESC")) {
             statement.setString(1, dimensionId);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -54,10 +54,11 @@ public final class GlobalMarketSqliteRepository {
             return;
         }
         try (PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO global_market_listings(listing_id, dimension_id, city_id, city_name, mode, cost_json, result_json, stock, max_stock, created_at) "
-                        + "VALUES(?,?,?,?,?,?,?,?,?,?) "
+                "INSERT INTO global_market_listings(listing_id, dimension_id, city_id, city_name, mode, cost_json, result_json, stock, max_stock, created_at, building_id) "
+                        + "VALUES(?,?,?,?,?,?,?,?,?,?,?) "
                         + "ON CONFLICT(listing_id) DO UPDATE SET city_id=excluded.city_id, city_name=excluded.city_name, mode=excluded.mode, "
-                        + "cost_json=excluded.cost_json, result_json=excluded.result_json, stock=excluded.stock, max_stock=excluded.max_stock")) {
+                        + "cost_json=excluded.cost_json, result_json=excluded.result_json, stock=excluded.stock, max_stock=excluded.max_stock, "
+                        + "building_id=excluded.building_id")) {
             statement.setString(1, listing.id());
             statement.setString(2, dimensionId);
             statement.setString(3, listing.cityId().toString());
@@ -68,6 +69,7 @@ public final class GlobalMarketSqliteRepository {
             statement.setInt(8, listing.stock());
             statement.setInt(9, listing.maxStock());
             statement.setLong(10, System.currentTimeMillis());
+            statement.setString(11, listing.buildingId() != null ? listing.buildingId().toString() : null);
             statement.executeUpdate();
         }
     }
@@ -95,7 +97,7 @@ public final class GlobalMarketSqliteRepository {
         }
         try (Connection connection = database.borrowConnection();
              PreparedStatement statement = connection.prepareStatement(
-                     "SELECT listing_id, city_id, city_name, mode, cost_json, result_json, stock, max_stock "
+                     "SELECT listing_id, city_id, city_name, mode, cost_json, result_json, stock, max_stock, building_id "
                              + "FROM global_market_listings WHERE listing_id=?")) {
             statement.setString(1, listingId);
             try (ResultSet resultSet = statement.executeQuery()) {
@@ -118,7 +120,8 @@ public final class GlobalMarketSqliteRepository {
                 resourcesFromJson(resultSet.getString("cost_json")),
                 resourcesFromJson(resultSet.getString("result_json")),
                 resultSet.getInt("stock"),
-                resultSet.getInt("max_stock"));
+                resultSet.getInt("max_stock"),
+                readBuildingId(resultSet));
     }
 
     private static String resourcesToJson(List<CommercialTradeView.ResourceEntry> resources) {
@@ -155,8 +158,57 @@ public final class GlobalMarketSqliteRepository {
         return resources;
     }
 
+    private static UUID readBuildingId(ResultSet resultSet) throws SQLException {
+        String buildingId = resultSet.getString("building_id");
+        if (buildingId == null || buildingId.isBlank()) {
+            return null;
+        }
+        return UUID.fromString(buildingId);
+    }
+
     /**
-     * loadWarehouse: 读取城市仓库。
+     * loadBuildingWarehouse: 读取一座全球市场自己的仓库。
+     */
+    public List<CommercialTradeView.WarehouseEntry> loadBuildingWarehouse(String dimensionId, String buildingId) {
+        if (buildingId == null || buildingId.isBlank()) {
+            return List.of();
+        }
+        try (Connection connection = database.borrowConnection();
+             PreparedStatement statement = connection.prepareStatement(
+                     "SELECT stacks_json FROM global_market_building_warehouse WHERE dimension_id=? AND building_id=?")) {
+            statement.setString(1, dimensionId);
+            statement.setString(2, buildingId);
+            try (ResultSet resultSet = statement.executeQuery()) {
+                if (resultSet.next()) {
+                    return warehouseFromJson(resultSet.getString("stacks_json"));
+                }
+            }
+        } catch (SQLException | IllegalArgumentException exception) {
+            SimuKraft.LOGGER.warn("Failed to load global market warehouse for building {}", buildingId, exception);
+        }
+        return List.of();
+    }
+
+    /**
+     * saveBuildingWarehouse: 覆盖写入一座全球市场自己的仓库。
+     */
+    public void saveBuildingWarehouse(Connection connection, String dimensionId, String buildingId, List<CommercialTradeView.WarehouseEntry> entries) throws SQLException {
+        if (buildingId == null || buildingId.isBlank()) {
+            return;
+        }
+        try (PreparedStatement statement = connection.prepareStatement(
+                "INSERT INTO global_market_building_warehouse(building_id, dimension_id, stacks_json, updated_at) VALUES(?,?,?,?) "
+                        + "ON CONFLICT(building_id, dimension_id) DO UPDATE SET stacks_json=excluded.stacks_json, updated_at=excluded.updated_at")) {
+            statement.setString(1, buildingId);
+            statement.setString(2, dimensionId);
+            statement.setString(3, warehouseToJson(entries));
+            statement.setLong(4, System.currentTimeMillis());
+            statement.executeUpdate();
+        }
+    }
+
+    /**
+     * loadWarehouse: 读取旧的按城市共用的仓库。
      */
     public List<CommercialTradeView.WarehouseEntry> loadWarehouse(String dimensionId, String cityId) {
         if (cityId == null || cityId.isBlank()) {

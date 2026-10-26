@@ -74,7 +74,7 @@ public final class GlobalMarketControlBoxBlock extends Block {
     }
 
     /**
-     * onRemove: 拆除时解雇职员并注销建筑。
+     * onRemove: 控制箱消失时清理市场，并在没有其他市场时掉落仓库。
      */
     @Override
     protected void onRemove(BlockState state, Level level, BlockPos pos, BlockState newState, boolean movedByPiston) {

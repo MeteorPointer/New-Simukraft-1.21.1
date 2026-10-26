@@ -864,7 +864,30 @@ public final class SimuSqliteStorage {
     }
 
     /**
-     * loadGlobalMarketWarehouse: 读取城市全球市场仓库。
+     * loadGlobalMarketBuildingWarehouse: 读取一座全球市场自己的仓库。
+     */
+    public static List<CommercialTradeView.WarehouseEntry> loadGlobalMarketBuildingWarehouse(ServerLevel level, UUID buildingId) {
+        if (buildingId == null) {
+            return List.of();
+        }
+        SimuSqliteStorage storage = openSafely(level);
+        return storage != null ? storage.globalMarket.loadBuildingWarehouse(dimensionId(level), buildingId.toString()) : List.of();
+    }
+
+    /**
+     * saveGlobalMarketBuildingWarehouse: 写入一座全球市场自己的仓库。
+     */
+    public static void saveGlobalMarketBuildingWarehouse(ServerLevel level, UUID buildingId, List<CommercialTradeView.WarehouseEntry> entries) {
+        if (buildingId == null) {
+            return;
+        }
+        String dimensionId = dimensionId(level);
+        write(level, "global_market_building_warehouse:" + buildingId,
+                (storage, connection) -> storage.globalMarket.saveBuildingWarehouse(connection, dimensionId, buildingId.toString(), entries));
+    }
+
+    /**
+     * loadGlobalMarketWarehouse: 读取旧的按城市共用的仓库。
      */
     public static List<CommercialTradeView.WarehouseEntry> loadGlobalMarketWarehouse(ServerLevel level, UUID cityId) {
         if (cityId == null) {

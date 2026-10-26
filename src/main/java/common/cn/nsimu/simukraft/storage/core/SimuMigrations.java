@@ -29,7 +29,8 @@ public final class SimuMigrations {
                 new GlobalMarketListingsTable(),
                 new GlobalMarketWarehouseTable(),
                 new ReleaseGlobalMarketEscrow(),
-                new FarmlandBoxesDimensionPrimaryKey());
+                new FarmlandBoxesDimensionPrimaryKey(),
+                new GlobalMarketBuildingWarehouse());
     }
 
     /**
@@ -496,6 +497,45 @@ public final class SimuMigrations {
                 }
             }
             return false;
+        }
+    }
+
+    /**
+     * v13：全球市场仓库按建筑分开，报价记下所属建筑。
+     */
+    private static final class GlobalMarketBuildingWarehouse implements Migration {
+        @Override
+        public int version() {
+            return 13;
+        }
+
+        @Override
+        public String description() {
+            return "store each global market warehouse by building id";
+        }
+
+        @Override
+        public void apply(Connection connection) throws SQLException {
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("CREATE TABLE IF NOT EXISTS global_market_building_warehouse("
+                        + "building_id TEXT NOT NULL, dimension_id TEXT NOT NULL, stacks_json TEXT NOT NULL, "
+                        + "updated_at INTEGER NOT NULL, PRIMARY KEY(building_id, dimension_id))");
+            }
+            addColumnIfMissing(connection, "global_market_listings", "building_id", "TEXT");
+        }
+
+        private static void addColumnIfMissing(Connection connection, String tableName, String columnName, String definition) throws SQLException {
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery("PRAGMA table_info(" + tableName + ")")) {
+                while (resultSet.next()) {
+                    if (columnName.equalsIgnoreCase(resultSet.getString("name"))) {
+                        return;
+                    }
+                }
+            }
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + definition);
+            }
         }
     }
 }

@@ -18,7 +18,21 @@ public record GlobalMarketListing(String id,
                                   List<CommercialTradeView.ResourceEntry> cost,
                                   List<CommercialTradeView.ResourceEntry> result,
                                   int stock,
-                                  int maxStock) {
+                                  int maxStock,
+                                  UUID buildingId) {
+    /**
+     * 旧报价没有所属建筑。
+     */
+    public GlobalMarketListing(String id,
+                               UUID cityId,
+                               String cityName,
+                               String mode,
+                               List<CommercialTradeView.ResourceEntry> cost,
+                               List<CommercialTradeView.ResourceEntry> result,
+                               int stock,
+                               int maxStock) {
+        this(id, cityId, cityName, mode, cost, result, stock, maxStock, null);
+    }
     public GlobalMarketListing {
         id = id != null ? id : "";
         cityName = cityName != null ? cityName : "";
@@ -110,6 +124,22 @@ public record GlobalMarketListing(String id,
                                                 CommercialTradeView.ResourceEntry result,
                                                 double price,
                                                 int quantity) {
+        return fromDraft(id, cityId, cityName, tab, costA, costB, result, price, quantity, null);
+    }
+
+    /**
+     * fromDraft: 出售/收购/交换用 quantity 作为总量上限，并记下仓库所属建筑。
+     */
+    public static GlobalMarketListing fromDraft(String id,
+                                                UUID cityId,
+                                                String cityName,
+                                                CommercialTradeOfferTab tab,
+                                                CommercialTradeView.ResourceEntry costA,
+                                                CommercialTradeView.ResourceEntry costB,
+                                                CommercialTradeView.ResourceEntry result,
+                                                double price,
+                                                int quantity,
+                                                UUID buildingId) {
         String error = validateDraft(tab, costA, costB, result, price);
         if (error != null) {
             throw new IllegalArgumentException(error);
@@ -145,7 +175,7 @@ public record GlobalMarketListing(String id,
                 stock = maxStock;
             }
         }
-        return new GlobalMarketListing(id, cityId, cityName, mode, cost, produced, stock, maxStock);
+        return new GlobalMarketListing(id, cityId, cityName, mode, cost, produced, stock, maxStock, buildingId);
     }
 
     private static String validateSell(CommercialTradeView.ResourceEntry result, double price) {

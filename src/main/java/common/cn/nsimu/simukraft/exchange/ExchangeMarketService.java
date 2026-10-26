@@ -316,7 +316,86 @@ public final class ExchangeMarketService {
             applyEconomy(level, state);
             SimuSqliteStorage.saveExchangeMarket(level, state.day, state.regime.name(), state.lastHour);
         }
+        ensureHistory(level, state, level.getDayTime());
         return state;
+    }
+
+    /**
+     * ensureHistory: 第一次打开或中途接上交易所时，补最近若干个交易日里缺的小时柱。
+     */
+    private static void ensureHistory(ServerLevel level, MarketState state, long dayTime) {
+        long today = ExchangeMarketClock.dayIndex(dayTime);
+        int maxHour = ExchangeMarketClock.maxValidHour(dayTime);
+        long endDay = today;
+        int endHour = maxHour;
+        if (endHour < 0) {
+            endDay = today - 1L;
+            endHour = ExchangeMarketClock.HOURS_PER_SESSION - 1;
+        }
+        long startDay = endDay - HISTORY_DAYS + 1L;
+        ExchangeEconomySnapshot economy = state.snapshot != null ? state.snapshot : ExchangeEconomySnapshot.idle();
+        boolean changed = false;
+        for (ExchangeCompany company : ExchangeCompanyLoader.INSTANCE.companies()) {
+            Quote quote = state.quotes.computeIfAbsent(company.id(), ignored -> Quote.seed(company));
+            List<ExchangeCandle> existing = List.copyOf(quote.candles);
+            boolean hadPriorDay = false;
+            for (ExchangeCandle candle : existing) {
+                if (candle.marketDay() < today) {
+                    hadPriorDay = true;
+                    break;
+                }
+            }
+            List<ExchangeCandle> missing = ExchangeHistoryBackfill.missing(
+                    company, economy, state.regime, existing, startDay, endDay, endHour);
+            if (missing.isEmpty()) {
+                continue;
+            }
+            List<ExchangeCandle> merged = new ArrayList<>(existing.size() + missing.size());
+            merged.addAll(existing);
+            merged.addAll(missing);
+            merged.sort((left, right) -> {
+                int day = Long.compare(left.marketDay(), right.marketDay());
+                return day != 0 ? day : Integer.compare(left.hourIndex(), right.hourIndex());
+            });
+            quote.candles.clear();
+            quote.candles.addAll(merged);
+            trimHistory(quote);
+            for (ExchangeCandle candle : missing) {
+                SimuSqliteStorage.saveExchangeCandle(level, company.id(), candle.marketDay(), candle);
+            }
+            if (!hadPriorDay) {
+                ExchangeCandle priorClose = null;
+                for (ExchangeCandle candle : quote.candles) {
+                    if (candle.marketDay() >= today) {
+                        break;
+                    }
+                    priorClose = candle;
+                }
+                if (priorClose != null) {
+                    quote.previousClose = priorClose.close();
+                }
+            }
+            if (existing.isEmpty() && !quote.candles.isEmpty()) {
+                quote.price = quote.candles.get(quote.candles.size() - 1).close();
+                int volume = 0;
+                for (ExchangeCandle candle : quote.candles) {
+                    if (candle.marketDay() == today) {
+                        volume += candle.volume();
+                    }
+                }
+                quote.volume = volume;
+            }
+            SimuSqliteStorage.saveExchangeQuote(level, company.id(), quote.price, quote.previousClose, quote.volume);
+            changed = true;
+        }
+        if (!changed) {
+            return;
+        }
+        int savedHour = latestHour(state, today);
+        if (savedHour > state.lastHour) {
+            state.lastHour = savedHour;
+        }
+        SimuSqliteStorage.saveExchangeMarket(level, state.day, state.regime.name(), state.lastHour);
     }
 
     private static void persistAll(ServerLevel level, MarketState state) {

@@ -44,6 +44,9 @@ public final class CommercialTradeService {
         if (!stateValidation.success()) {
             return stateValidation;
         }
+        if (!isBuildingCitizen(level, player, building.cityId())) {
+            return TradeResult.fail("message.simukraft.commercial.visitors_use_global_market");
+        }
         UUID payerCityId = resolvePayerCityId(level, player, building.cityId());
         CommercialDefinitionLoader.LoadResult loadResult = CommercialDefinitionLoader.loadForBuilding(building);
         if (!loadResult.valid()) {
@@ -103,7 +106,19 @@ public final class CommercialTradeService {
     }
 
     /**
-     * resolvePayerCityId: 成员用建筑城市账户，访客用自己城市账户，无城市为 null。
+     * isBuildingCitizen: 只有商店所属城市的成员能买普通商业建筑。跨城购买走全球市场。
+     */
+    public static boolean isBuildingCitizen(ServerLevel level, ServerPlayer player, UUID buildingCityId) {
+        if (level == null || player == null || buildingCityId == null) {
+            return false;
+        }
+        return CityService.findPlayerCity(level, player.getUUID())
+                .map(city -> buildingCityId.equals(city.cityId()))
+                .orElse(false);
+    }
+
+    /**
+     * resolvePayerCityId: 成员用建筑城市账户。
      */
     public static UUID resolvePayerCityId(ServerLevel level, ServerPlayer player, UUID buildingCityId) {
         if (level == null || player == null || buildingCityId == null) {

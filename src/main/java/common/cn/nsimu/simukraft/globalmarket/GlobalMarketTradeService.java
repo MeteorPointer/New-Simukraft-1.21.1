@@ -82,7 +82,7 @@ public final class GlobalMarketTradeService {
                 : listing.stock() - soldItems;
         GlobalMarketService.updateStock(level, new GlobalMarketListing(
                 listing.id(), listing.cityId(), listing.cityName(), listing.mode(),
-                listing.cost(), listing.result(), nextStock, listing.maxStock()));
+                listing.cost(), listing.result(), nextStock, listing.maxStock(), listing.buildingId()));
         HudSyncService.syncToPlayer(player, true);
         return CommercialTradeService.TradeResult.success(Component.translatable("message.simukraft.commercial.trade_success", times));
     }
@@ -141,9 +141,9 @@ public final class GlobalMarketTradeService {
             }
             ItemStack need = template.copy();
             need.setCount(resource.count() * times);
-            if (!GlobalMarketWarehouseService.take(level, listing.cityId(), need)) {
+            if (!GlobalMarketWarehouseService.take(level, listing, need)) {
                 for (ItemStack stack : taken) {
-                    GlobalMarketWarehouseService.insert(level, listing.cityId(), stack);
+                    GlobalMarketWarehouseService.insert(level, listing, stack);
                 }
                 return false;
             }
@@ -167,7 +167,7 @@ public final class GlobalMarketTradeService {
             }
             ItemStack restored = template.copy();
             restored.setCount(resource.count() * times);
-            GlobalMarketWarehouseService.insert(level, listing.cityId(), restored);
+            GlobalMarketWarehouseService.insert(level, listing, restored);
         }
     }
 
@@ -183,7 +183,7 @@ public final class GlobalMarketTradeService {
             }
             ItemStack deposited = template.copy();
             deposited.setCount(resource.count() * times);
-            GlobalMarketWarehouseService.insert(level, listing.cityId(), deposited);
+            GlobalMarketWarehouseService.insert(level, listing, deposited);
         }
     }
 

@@ -134,17 +134,68 @@ public final class GlobalMarketControlBoxService {
     }
 
     /**
-     * onRemoved: 拆除时解雇职员并注销建筑。
+     * prepareWarehouse: 编号最小的市场承接旧的城市共用仓库，只搬一次。
+     */
+    public static void prepareWarehouse(ServerLevel level, PlacedBuildingRecord building) {
+        if (level == null || building == null || building.cityId() == null || building.buildingId() == null) {
+            return;
+        }
+        boolean legacyOwner = isLegacyOwner(level, building);
+        GlobalMarketWarehouseService.claimLegacy(level, building.cityId(), building.buildingId(), legacyOwner);
+        if (legacyOwner) {
+            GlobalMarketService.assignLegacyListings(level, building.cityId(), building.buildingId());
+        }
+    }
+
+    /**
+     * onRemoved: 拆除时解雇职员，并掉落这座市场自己的仓库。
      */
     public static void onRemoved(ServerLevel level, BlockPos boxPos) {
         if (level == null || boxPos == null) {
             return;
         }
-        PlacedBuildingRecord building = resolveBuilding(level, boxPos);
+        PlacedBuildingRecord building = findMarketBuilding(level, boxPos);
         fireWorker(level, boxPos);
-        if (building != null) {
+        if (building != null && building.buildingId() != null) {
+            prepareWarehouse(level, building);
+            GlobalMarketWarehouseService.dropAll(level, building.buildingId(), boxPos);
+            if (building.cityId() != null && !hasAnotherMarket(level, building.cityId(), building.buildingId())) {
+                GlobalMarketWarehouseService.dropLegacy(level, building.cityId(), boxPos);
+            }
+            GlobalMarketService.removeBuildingListings(level, building.buildingId());
             PlacedBuildingService.unregister(level, building.buildingId());
         }
+    }
+
+    private static PlacedBuildingRecord findMarketBuilding(ServerLevel level, BlockPos boxPos) {
+        PlacedBuildingRecord building = PlacedBuildingService.findByContainedPos(level, boxPos);
+        return PublicBuildingTypes.isGlobalMarket(building) ? building : null;
+    }
+
+    private static boolean isLegacyOwner(ServerLevel level, PlacedBuildingRecord building) {
+        String best = null;
+        for (PlacedBuildingRecord record : PlacedBuildingService.getBuildings(level)) {
+            if (record.cityId() == null || !record.cityId().equals(building.cityId()) || !PublicBuildingTypes.isGlobalMarket(record)) {
+                continue;
+            }
+            String id = record.buildingId().toString();
+            if (best == null || id.compareTo(best) < 0) {
+                best = id;
+            }
+        }
+        return building.buildingId().toString().equals(best);
+    }
+
+    private static boolean hasAnotherMarket(ServerLevel level, UUID cityId, UUID exceptBuildingId) {
+        for (PlacedBuildingRecord record : PlacedBuildingService.getBuildings(level)) {
+            if (exceptBuildingId != null && exceptBuildingId.equals(record.buildingId())) {
+                continue;
+            }
+            if (cityId.equals(record.cityId()) && PublicBuildingTypes.isGlobalMarket(record)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**

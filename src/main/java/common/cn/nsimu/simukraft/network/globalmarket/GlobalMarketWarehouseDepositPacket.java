@@ -2,6 +2,7 @@ package common.cn.nsimu.simukraft.network.globalmarket;
 
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.city.CityService;
+import common.cn.nsimu.simukraft.globalmarket.GlobalMarketControlBoxService;
 import common.cn.nsimu.simukraft.globalmarket.GlobalMarketService;
 import common.cn.nsimu.simukraft.globalmarket.GlobalMarketWarehouseService;
 import common.cn.nsimu.simukraft.network.commercial.CommercialTradeOpenResponsePacket;
@@ -53,7 +54,8 @@ public record GlobalMarketWarehouseDepositPacket(BlockPos pos, ItemStack stack) 
             return;
         }
         var building = GlobalMarketService.resolveBuilding(level, packet.pos());
-        if (building == null || building.cityId() == null || !CityService.canManageCity(level, building.cityId(), player.getUUID())) {
+        if (building == null || building.cityId() == null || building.buildingId() == null
+                || !CityService.canManageCity(level, building.cityId(), player.getUUID())) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.global_market.no_permission"));
             return;
         }
@@ -67,7 +69,8 @@ public record GlobalMarketWarehouseDepositPacket(BlockPos pos, ItemStack stack) 
             InfoToastService.warning(player, Component.translatable("message.simukraft.commercial.not_enough_items"));
             return;
         }
-        GlobalMarketWarehouseService.insert(level, building.cityId(), taken);
+        GlobalMarketControlBoxService.prepareWarehouse(level, building);
+        GlobalMarketWarehouseService.insert(level, building.buildingId(), taken);
         CommercialTradePacket.syncChangedSlots(player, before);
         PacketDistributor.sendToPlayer(player, CommercialTradeOpenResponsePacket.from(GlobalMarketService.buildView(level, player, packet.pos()), player.registryAccess()));
     }

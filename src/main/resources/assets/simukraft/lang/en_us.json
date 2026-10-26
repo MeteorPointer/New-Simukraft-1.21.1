@@ -1006,6 +1006,7 @@
     "message.simukraft.commercial.invalid_trade":  "Invalid trade request.",
     "message.simukraft.commercial.no_building":  "This commercial control box is not linked to a city building.",
     "message.simukraft.commercial.not_city_member":  "You do not belong to this building's city.",
+    "message.simukraft.commercial.visitors_use_global_market":  "Shops in other cities do not sell to visitors. Buy from the global market.",
     "message.simukraft.commercial.visitor_no_city_funds":  "You have no city to draw funds from for this purchase.",
     "message.simukraft.commercial.invalid_definition":  "Commercial JSON config is invalid.",
     "message.simukraft.commercial.offer_unavailable":  "This offer is unavailable.",

@@ -8,8 +8,10 @@ import common.cn.nsimu.simukraft.citizen.CitizenData;
 import common.cn.nsimu.simukraft.citizen.CitizenService;
 import common.cn.nsimu.simukraft.economy.EconomyService;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
+import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 
@@ -108,6 +110,11 @@ public final class CommercialControlBoxService {
             return false;
         }
         if (!CommercialTradeAccessValidator.canUseTradeMenu(level, player, boxPos, worker.uuid())) {
+            return false;
+        }
+        PlacedBuildingRecord building = resolveBuilding(level, boxPos);
+        if (!CommercialTradeService.isBuildingCitizen(level, player, building != null ? building.cityId() : null)) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.commercial.visitors_use_global_market"));
             return false;
         }
         return CommercialTradeMenuProvider.open(player, buildTradeView(level, boxPos, worker.uuid(), player));

@@ -17,6 +17,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -77,6 +78,7 @@ public final class GlobalMarketService {
             return null;
         }
         UUID payerCityId = CityService.findPlayerCity(level, player.getUUID()).map(city -> city.cityId()).orElse(null);
+        GlobalMarketControlBoxService.prepareWarehouse(level, building);
         boolean canList = CityService.canManageCity(level, building.cityId(), player.getUUID());
         CitizenData worker = workerId != null
                 ? CitizenService.findCitizen(level, workerId).orElse(null)
@@ -95,7 +97,7 @@ public final class GlobalMarketService {
                 true,
                 canList,
                 building.cityId(),
-                canList ? GlobalMarketWarehouseService.entries(level, building.cityId()) : List.of());
+                canList ? GlobalMarketWarehouseService.entries(level, building.buildingId()) : List.of());
     }
 
     /**
@@ -134,7 +136,8 @@ public final class GlobalMarketService {
                 costResourceB,
                 resultResource,
                 EconomyService.normalizeAmount(price),
-                listingQuantity);
+                listingQuantity,
+                building.buildingId());
         cache(level).put(listing.id(), listing);
         SimuSqliteStorage.saveGlobalMarketListing(level, listing);
         return null;
@@ -155,7 +158,10 @@ public final class GlobalMarketService {
         if (listing == null) {
             return "message.simukraft.global_market.offer_missing";
         }
-        if (!building.cityId().equals(listing.cityId())) {
+        if (listing.buildingId() != null && !listing.buildingId().equals(building.buildingId())) {
+            return "message.simukraft.global_market.not_owner";
+        }
+        if (listing.buildingId() == null && !building.cityId().equals(listing.cityId())) {
             return "message.simukraft.global_market.not_owner";
         }
         cache(level).remove(listingId);
@@ -191,6 +197,44 @@ public final class GlobalMarketService {
         }
         cache(level).put(listing.id(), listing);
         SimuSqliteStorage.saveGlobalMarketListing(level, listing);
+    }
+
+    /**
+     * removeBuildingListings: 拆除这座市场时下掉它自己的报价。
+     */
+    public static synchronized void removeBuildingListings(ServerLevel level, UUID buildingId) {
+        if (level == null || buildingId == null) {
+            return;
+        }
+        List<String> listingIds = new ArrayList<>();
+        for (GlobalMarketListing listing : cache(level).values()) {
+            if (buildingId.equals(listing.buildingId())) {
+                listingIds.add(listing.id());
+            }
+        }
+        for (String listingId : listingIds) {
+            cache(level).remove(listingId);
+            SimuSqliteStorage.deleteGlobalMarketListing(level, listingId);
+        }
+    }
+
+    /**
+     * assignLegacyListings: 旧的城市共用报价改挂到承接旧仓库的那座市场。
+     */
+    public static synchronized void assignLegacyListings(ServerLevel level, UUID cityId, UUID buildingId) {
+        if (level == null || cityId == null || buildingId == null) {
+            return;
+        }
+        for (GlobalMarketListing listing : List.copyOf(cache(level).values())) {
+            if (listing.buildingId() != null || !cityId.equals(listing.cityId())) {
+                continue;
+            }
+            GlobalMarketListing assigned = new GlobalMarketListing(
+                    listing.id(), listing.cityId(), listing.cityName(), listing.mode(),
+                    listing.cost(), listing.result(), listing.stock(), listing.maxStock(), buildingId);
+            cache(level).put(listing.id(), assigned);
+            SimuSqliteStorage.saveGlobalMarketListing(level, assigned);
+        }
     }
 
     /**
