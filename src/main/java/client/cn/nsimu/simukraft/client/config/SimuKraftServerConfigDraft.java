@@ -63,6 +63,7 @@ final class SimuKraftServerConfigDraft {
     double logisticsStepCost;
     int logisticsMaxWarehouseContainers;
     int logisticsMaxClientPorts;
+    int debugCityPlotsPerTick;
     WorkMode workMode;
     boolean materialCategoryMatching;
     int materialWarningCooldownSeconds;
@@ -139,6 +140,7 @@ final class SimuKraftServerConfigDraft {
         logisticsStepCost = ServerConfig.LOGISTICS_STEP_COST.get();
         logisticsMaxWarehouseContainers = ServerConfig.LOGISTICS_MAX_WAREHOUSE_CONTAINERS.get();
         logisticsMaxClientPorts = ServerConfig.LOGISTICS_MAX_CLIENT_PORTS.get();
+        debugCityPlotsPerTick = ServerConfig.DEBUG_CITY_PLOTS_PER_TICK.get();
         workMode = WorkMode.from(ServerConfig.MATERIALS_CREATIVE_MODE.get(), ServerConfig.MATERIALS_EXPERT_MODE.get());
         materialCategoryMatching = ServerConfig.MATERIALS_CATEGORY_MATCHING.get();
         materialWarningCooldownSeconds = ServerConfig.MATERIAL_WARNING_COOLDOWN_SECONDS.get();
@@ -204,6 +206,7 @@ final class SimuKraftServerConfigDraft {
         logisticsStepCost = 0.01D;
         logisticsMaxWarehouseContainers = 64;
         logisticsMaxClientPorts = 32;
+        debugCityPlotsPerTick = 2;
         workMode = WorkMode.NORMAL;
         materialCategoryMatching = true;
         materialWarningCooldownSeconds = 20;
@@ -236,6 +239,7 @@ final class SimuKraftServerConfigDraft {
                 logisticsChargeEnabled, logisticsFreeDistanceBlocks, logisticsBaseCost,
                 logisticsDistanceStepBlocks, logisticsStepCost,
                 logisticsMaxWarehouseContainers, logisticsMaxClientPorts,
+                debugCityPlotsPerTick,
                 workMode == WorkMode.CREATIVE, workMode == WorkMode.EXPERT,
                 materialCategoryMatching, materialWarningCooldownSeconds,
                 List.copyOf(allModeBlockBlacklist), List.copyOf(basicMaterials),

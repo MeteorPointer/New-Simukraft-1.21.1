@@ -25,6 +25,9 @@ public final class CitizenNavigationService {
     private static final ConcurrentMap<String, LevelRuntime> RUNTIMES = new ConcurrentHashMap<>();
     private static final AtomicInteger THREAD_ID = new AtomicInteger();
     private static final int STALLED_TELEPORT_TICKS = 300;
+    // 同小区上班、逃跑这类开阔短距不进全局队列，避免几百人把采样名额耗光。
+    private static final double DIRECT_MOVE_DISTANCE = 8.0D;
+    private static final double DIRECT_MOVE_DISTANCE_SQR = DIRECT_MOVE_DISTANCE * DIRECT_MOVE_DISTANCE;
     private static final int DEBUG_SYNC_PATH_LIMIT = 96;
     private static final double DEBUG_SYNC_RADIUS = 192.0D;
     private static volatile ExecutorService pathExecutor;
@@ -107,6 +110,10 @@ public final class CitizenNavigationService {
         if (cooldownUntil != null && cooldownUntil > level.getGameTime() && normalizedIntent != MovementIntent.FLEE) {
             return false;
         }
+        if (distanceSqr <= DIRECT_MOVE_DISTANCE_SQR && canWalkStraight(level, current, target)) {
+            startDirectMove(level, runtime, citizen, citizenId, target, normalizedIntent);
+            return true;
+        }
         if (!bypassAdmissionLimits && normalizedIntent != MovementIntent.FLEE) {
             if (!runtime.active.containsKey(citizenId) && runtime.active.size() >= ServerConfig.pathMaxActiveCitizens()) {
                 return false;
@@ -182,7 +189,7 @@ public final class CitizenNavigationService {
         PathRequest queued = runtime.latestRequests.get(citizenId);
         if (queued != null && queued.intent() != keep) {
             runtime.latestRequests.remove(citizenId);
-            runtime.queuedCitizenIds.remove(citizenId);
+            forgetQueued(runtime, citizenId);
         }
     }
 
@@ -203,7 +210,7 @@ public final class CitizenNavigationService {
         PathRequest queued = runtime.latestRequests.get(citizenId);
         if (queued != null && queued.intent() != MovementIntent.SELF_FEEDING) {
             runtime.latestRequests.remove(citizenId);
-            runtime.queuedCitizenIds.remove(citizenId);
+            forgetQueued(runtime, citizenId);
         }
     }
 
@@ -229,7 +236,7 @@ public final class CitizenNavigationService {
         runtime.latestRequests.remove(citizenId);
         runtime.blockedSince.remove(citizenId);
         runtime.pending.remove(citizenId);
-        runtime.queuedCitizenIds.remove(citizenId);
+        forgetQueued(runtime, citizenId);
         runtime.active.remove(citizenId);
         CitizenEntity citizen = CitizenTeleportService.findCitizenEntity(level, citizenId);
         if (citizen != null) {
@@ -262,7 +269,7 @@ public final class CitizenNavigationService {
         PathRequest queued = runtime.latestRequests.get(citizenId);
         if (queued != null && queued.intent() == MovementIntent.RETURN_HOME) {
             runtime.latestRequests.remove(citizenId, queued);
-            runtime.queuedCitizenIds.remove(citizenId);
+            forgetQueued(runtime, citizenId);
             stopped = true;
         }
         if (!stopped) {
@@ -399,7 +406,7 @@ public final class CitizenNavigationService {
             return;
         }
         LevelRuntime runtime = runtime(level);
-        runtime.snapshotCache.beginTick();
+        runtime.snapshotCache.beginTick(level.getGameTime());
         applyCompletedPaths(level, runtime);
         tickActivePaths(level, runtime);
         CitizenDoorService.processOpenedDoors(level, runtime.openedDoors, runtime.active.keySet());
@@ -457,18 +464,18 @@ public final class CitizenNavigationService {
         executorSize = 0;
     }
 
+    /**
+     * processQueuedRequests：采样名额只给正在模拟、离玩家最近的人。某条路没采完时，热区里已经采齐的人仍在这一拍开工。
+     */
     private static void processQueuedRequests(ServerLevel level, LevelRuntime runtime) {
-        int processed = 0;
         int budget = Math.max(0, ServerConfig.pathMaxNewRequestsPerTick());
-        while (processed < budget) {
-            if (runtime.active.size() + runtime.pending.size() >= ServerConfig.pathMaxActiveCitizens()) {
-                return;
-            }
-            UUID citizenId = runtime.queue.poll();
+        int guard = runtime.queue.size() + (runtime.pinnedCitizenId == null ? 0 : 1);
+        List<NearRequest> near = new ArrayList<>(Math.min(guard, 64));
+        for (int examined = 0; examined < guard; examined++) {
+            UUID citizenId = pollQueuedCitizen(runtime);
             if (citizenId == null) {
-                return;
+                break;
             }
-            runtime.queuedCitizenIds.remove(citizenId);
             PathRequest request = runtime.latestRequests.remove(citizenId);
             if (request == null || runtime.pending.containsKey(citizenId)) {
                 continue;
@@ -482,15 +489,22 @@ public final class CitizenNavigationService {
                 continue;
             }
             if (!level.isPositionEntityTicking(citizen.blockPosition())) {
-                runtime.latestRequests.put(citizenId, request);
-                if (runtime.queuedCitizenIds.add(citizenId)) {
-                    runtime.queue.offer(citizenId);
-                }
-                return;
+                requeue(runtime, citizenId, request);
+                continue;
             }
-            PathRequest currentRequest = new PathRequest(citizenId, request.dimensionId(), citizen.blockPosition(), request.target(), request.intent(), level.getGameTime());
+            near.add(new NearRequest(citizenId, request, citizen, nearestPlayerDistanceSqr(level, citizen.position())));
+        }
+        near.sort(Comparator.comparingDouble(NearRequest::distanceSqr));
+        int processed = 0;
+        for (NearRequest item : near) {
+            if (processed >= budget || runtime.active.size() + runtime.pending.size() >= ServerConfig.pathMaxActiveCitizens()) {
+                requeue(runtime, item.citizenId(), item.request());
+                continue;
+            }
+            PathRequest currentRequest = new PathRequest(item.citizenId(), item.request().dimensionId(), item.citizen().blockPosition(),
+                    item.request().target(), item.request().intent(), level.getGameTime());
             PathCacheKey cacheKey = new PathCacheKey(currentRequest.dimensionId(), currentRequest.startPos(), currentRequest.targetBlockPos(), currentRequest.intent());
-            PathResult cached = runtime.blockedSince.containsKey(citizenId)
+            PathResult cached = runtime.blockedSince.containsKey(item.citizenId())
                     ? null
                     : runtime.pathCache.get(cacheKey, level.getGameTime(), runtime.snapshotCache.epochs());
             if (cached != null) {
@@ -498,20 +512,25 @@ public final class CitizenNavigationService {
                 processed++;
                 continue;
             }
-            UUID cityId = cityOf(level, citizenId);
-            PathDistanceFieldCache.PathFieldKey fieldKey = new PathDistanceFieldCache.PathFieldKey(
-                    currentRequest.dimensionId(), cityId, currentRequest.targetBlockPos(), currentRequest.intent());
-            PathDistanceField existingField = runtime.distanceFields.get(fieldKey, runtime.snapshotCache.epochs());
-            List<BlockPos> sharedPoints = sharedFieldPoints(level, runtime, cityId, currentRequest);
-            int radius = ServerConfig.pathLocalRadiusBlocks();
-            if (existingField == null && sharedPoints.size() >= 3 && runtime.fieldPump == null) {
-                runtime.fieldPump = FieldPump.start(fieldKey, currentRequest, cityId,
-                        PathSnapshotBuilder.unionBounds(level, sharedPoints, currentRequest.targetBlockPos(), radius));
+            if (item.distanceSqr() == Double.MAX_VALUE) {
+                requeue(runtime, item.citizenId(), currentRequest);
+                continue;
             }
-            PathSnapshotCache.Acquisition acquired = runtime.snapshotCache.acquire(level, currentRequest.startPos(), currentRequest.targetBlockPos(), radius);
+            PathSnapshotCache.Acquisition acquired = runtime.snapshotCache.acquire(level, currentRequest.startPos(), currentRequest.targetBlockPos(), ServerConfig.pathLocalRadiusBlocks());
             if (!acquired.ready()) {
-                requeue(runtime, citizenId, currentRequest);
-                return;
+                requeue(runtime, item.citizenId(), currentRequest);
+                continue;
+            }
+            UUID cityId = cityOf(level, item.citizenId());
+            PathDistanceField existingField = runtime.distanceFields.get(new PathDistanceFieldCache.PathFieldKey(
+                    currentRequest.dimensionId(), cityId, currentRequest.targetBlockPos(), currentRequest.intent()), runtime.snapshotCache.epochs());
+            if (existingField == null && runtime.fieldPump == null) {
+                List<BlockPos> sharedPoints = sharedFieldPoints(level, runtime, cityId, currentRequest);
+                if (sharedPoints.size() >= 3) {
+                    runtime.fieldPump = FieldPump.start(new PathDistanceFieldCache.PathFieldKey(
+                            currentRequest.dimensionId(), cityId, currentRequest.targetBlockPos(), currentRequest.intent()), currentRequest, cityId,
+                            PathSnapshotBuilder.unionBounds(level, sharedPoints, currentRequest.targetBlockPos(), ServerConfig.pathLocalRadiusBlocks()));
+                }
             }
             CompletableFuture<PathJob> future;
             try {
@@ -519,12 +538,26 @@ public final class CitizenNavigationService {
                         () -> PathExtraCosts.callWithCity(cityId, () -> search(currentRequest, acquired, existingField)),
                         executor());
             } catch (RejectedExecutionException rejected) {
-                requeue(runtime, citizenId, currentRequest);
-                return;
+                requeue(runtime, item.citizenId(), currentRequest);
+                continue;
             }
-            runtime.pending.put(citizenId, new RunningRequest(future, cacheKey, acquired.stamp()));
+            runtime.pending.put(item.citizenId(), new RunningRequest(future, cacheKey, acquired.stamp()));
             processed++;
         }
+    }
+
+    /**
+     * nearestPlayerDistanceSqr：没有玩家时返回最大值，避免没人看的时候还去采新区段。
+     */
+    private static double nearestPlayerDistanceSqr(ServerLevel level, Vec3 pos) {
+        double best = Double.MAX_VALUE;
+        for (ServerPlayer player : level.players()) {
+            if (player == null || player.isSpectator()) {
+                continue;
+            }
+            best = Math.min(best, pos.distanceToSqr(player.position()));
+        }
+        return best;
     }
 
     /**
@@ -586,6 +619,90 @@ public final class CitizenNavigationService {
         } catch (RejectedExecutionException rejected) {
             pump.step = null;
         }
+    }
+
+    /**
+     * pollQueuedCitizen：优先继续上拍没采完的那个人，避免新区段被撒到全城后过期。
+     */
+    private static UUID pollQueuedCitizen(LevelRuntime runtime) {
+        if (runtime.pinnedCitizenId != null) {
+            UUID pinned = runtime.pinnedCitizenId;
+            runtime.pinnedCitizenId = null;
+            runtime.queuedCitizenIds.remove(pinned);
+            return pinned;
+        }
+        UUID citizenId = runtime.queue.poll();
+        if (citizenId != null) {
+            runtime.queuedCitizenIds.remove(citizenId);
+        }
+        return citizenId;
+    }
+
+    /**
+     * forgetQueued：离开队列时同时放下采样钉，避免取消后还占着下拍的名额。
+     */
+    private static void forgetQueued(LevelRuntime runtime, UUID citizenId) {
+        runtime.queuedCitizenIds.remove(citizenId);
+        if (citizenId != null && citizenId.equals(runtime.pinnedCitizenId)) {
+            runtime.pinnedCitizenId = null;
+        }
+    }
+
+    /**
+     * startDirectMove：开阔的近距离直接走到目标，不占用全局寻路名额。
+     */
+    private static void startDirectMove(ServerLevel level, LevelRuntime runtime, CitizenEntity citizen, UUID citizenId,
+                                        Vec3 target, MovementIntent intent) {
+        runtime.latestRequests.remove(citizenId);
+        forgetQueued(runtime, citizenId);
+        RunningRequest running = runtime.pending.remove(citizenId);
+        if (running != null) {
+            running.future().cancel(true);
+        }
+        runtime.cooldowns.remove(citizenId);
+        runtime.blockedSince.remove(citizenId);
+        Vec3 stand = new Vec3(target.x, citizen.getY(), target.z);
+        PathRequest request = new PathRequest(citizenId, level.dimension().location(), citizen.blockPosition(), stand, intent, level.getGameTime());
+        activate(level, runtime, PathResult.success(request, java.util.List.of(
+                new PathWaypoint(citizen.blockPosition(), citizen.position(), MovementMode.WALK),
+                new PathWaypoint(BlockPos.containing(stand), stand, MovementMode.WALK))));
+    }
+
+    /**
+     * canWalkStraight：近距离脚下和头顶都空、地面还在，才允许不寻路直走。
+     */
+    private static boolean canWalkStraight(ServerLevel level, Vec3 from, Vec3 to) {
+        double dx = to.x - from.x;
+        double dz = to.z - from.z;
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        if (horizontal < 1.0E-3D) {
+            return true;
+        }
+        if (Math.abs(to.y - from.y) > 1.0D) {
+            return false;
+        }
+        int steps = Math.max(1, (int) Math.ceil(horizontal));
+        for (int step = 1; step <= steps; step++) {
+            double t = step / (double) steps;
+            BlockPos feet = BlockPos.containing(from.x + dx * t, from.y, from.z + dz * t);
+            if (!isOpenColumn(level, feet)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isOpenColumn(ServerLevel level, BlockPos feet) {
+        BlockPos ground = feet.below();
+        if (!isPassable(level, feet) || !isPassable(level, feet.above())) {
+            return false;
+        }
+        return !level.getBlockState(ground).getCollisionShape(level, ground).isEmpty();
+    }
+
+    private static boolean isPassable(ServerLevel level, BlockPos pos) {
+        net.minecraft.world.level.block.state.BlockState state = level.getBlockState(pos);
+        return state.getFluidState().isEmpty() && state.getCollisionShape(level, pos).isEmpty();
     }
 
     /**
@@ -734,7 +851,7 @@ public final class CitizenNavigationService {
         }
         runtime.latestRequests.remove(citizenId);
         runtime.pending.remove(citizenId);
-        runtime.queuedCitizenIds.remove(citizenId);
+        forgetQueued(runtime, citizenId);
         runtime.blockedSince.remove(citizenId);
         runtime.cooldowns.remove(citizenId);
         if (citizen != null) {
@@ -848,8 +965,12 @@ public final class CitizenNavigationService {
         private final PathSnapshotCache snapshotCache = new PathSnapshotCache();
         private final PathDistanceFieldCache distanceFields = new PathDistanceFieldCache();
         private FieldPump fieldPump;
+        private UUID pinnedCitizenId;
         private long loadedCitizenCountTick = Long.MIN_VALUE;
         private int loadedCitizenCount;
+    }
+
+    private record NearRequest(UUID citizenId, PathRequest request, CitizenEntity citizen, double distanceSqr) {
     }
 
     private record RunningRequest(CompletableFuture<PathJob> future, PathCacheKey cacheKey, PathSectionStamp stamp) {

@@ -59,6 +59,7 @@ public final class ServerConfig {
     public static final ModConfigSpec.DoubleValue LOGISTICS_STEP_COST;
     public static final ModConfigSpec.IntValue LOGISTICS_MAX_WAREHOUSE_CONTAINERS;
     public static final ModConfigSpec.IntValue LOGISTICS_MAX_CLIENT_PORTS;
+    public static final ModConfigSpec.IntValue DEBUG_CITY_PLOTS_PER_TICK;
     public static final ModConfigSpec.IntValue FAMILY_PREGNANCY_DURATION_DAYS;
     public static final ModConfigSpec.IntValue FAMILY_POSTPARTUM_RECOVERY_DAYS;
     public static final ModConfigSpec.DoubleValue FAMILY_MARRIAGE_CHANCE_PER_DAY;
@@ -376,6 +377,12 @@ public final class ServerConfig {
                 .translation("config.simukraft.medical.diseaseTreatmentTicks")
                 .defineInRange("diseaseTreatmentTicks", 24_000, 20, 2_400_000);
         builder.pop();
+        builder.push("debug_city");
+        DEBUG_CITY_PLOTS_PER_TICK = builder
+                .comment("Residents placed per server tick while a debug city world is being built.")
+                .translation("config.simukraft.debug_city.plotsPerTick")
+                .defineInRange("plotsPerTick", 2, 1, 32);
+        builder.pop();
         SPEC = builder.build();
     }
 
@@ -583,6 +590,10 @@ public final class ServerConfig {
 
     public static int logisticsMaxClientPorts() {
         return LOGISTICS_MAX_CLIENT_PORTS.get();
+    }
+
+    public static int debugCityPlotsPerTick() {
+        return DEBUG_CITY_PLOTS_PER_TICK.get();
     }
 
     public static int familyPregnancyDurationDays() {

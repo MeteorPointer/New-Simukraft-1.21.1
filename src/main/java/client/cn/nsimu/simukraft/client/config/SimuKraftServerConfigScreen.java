@@ -145,6 +145,9 @@ public final class SimuKraftServerConfigScreen {
 
     private static UIElement generalPage(SimuKraftServerConfigDraft draft) {
         UIElement page = pageColumn();
+        page.addChild(SimuKraftConfigWidgets.section(Component.translatable("gui.simukraft.config.section.debug_city")));
+        page.addChild(SimuKraftConfigWidgets.row(Component.translatable("config.simukraft.debug_city.plotsPerTick"),
+                SimuKraftConfigWidgets.intField(draft.debugCityPlotsPerTick, 1, 32, value -> draft.debugCityPlotsPerTick = value)));
         page.addChild(SimuKraftConfigWidgets.section(Component.translatable("gui.simukraft.config.section.economy")));
         page.addChild(SimuKraftConfigWidgets.row(Component.translatable("gui.simukraft.config.city_chunk_price"),
                 SimuKraftConfigWidgets.doubleField(draft.cityChunkPrice, 0.0D, 1_000_000.0D, value -> draft.cityChunkPrice = value)));

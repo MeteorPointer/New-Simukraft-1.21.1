@@ -16,8 +16,9 @@ import net.minecraft.server.level.ServerLevel;
  */
 final class PathSnapshotCache {
     private static final int MAX_SECTION_ENTRIES = 512;
-    private static final int MAX_FRESH_SECTIONS_PER_TICK = 8;
-    private static final long REUSE_TTL_TICKS = 40L;
+    private static final int MAX_FRESH_SECTIONS_PER_TICK = 32;
+    // 玩家周围的路要留给下一位市民。方块变化仍会立刻作废对应区段。
+    private static final long REUSE_TTL_TICKS = 200L;
     private final Long2ObjectOpenHashMap<Entry> entries = new Long2ObjectOpenHashMap<>();
     private final PathSectionEpochs epochs = new PathSectionEpochs();
     private int freshThisTick;
@@ -31,8 +32,9 @@ final class PathSnapshotCache {
     /**
      * beginTick: 每个服务器 tick 重置新区段预算，避免一整盒采样堆在同一 tick。
      */
-    void beginTick() {
+    void beginTick(long now) {
         freshThisTick = 0;
+        trim(now);
     }
 
     /**
@@ -47,13 +49,8 @@ final class PathSnapshotCache {
      * captures are reused even when whole request boxes differ.
      */
     Acquisition acquire(ServerLevel level, BlockPos start, BlockPos target, int radius) {
-        BlockPos buildStart = new BlockPos(
-                Math.floorDiv(start.getX(), 16) * 16 + 8,
-                start.getY(),
-                Math.floorDiv(start.getZ(), 16) * 16 + 8);
-        int buildRadius = radius + 16;
-        PathSnapshotBuilder.SnapshotBounds bounds = PathSnapshotBuilder.bounds(level, buildStart, target, buildRadius);
-        return acquire(level, bounds);
+        // 只采起点到目标的走廊。按整段寻路半径扩成街区，会让几百人的采样永远做不完。
+        return acquire(level, PathSnapshotBuilder.bounds(level, start, target, radius));
     }
 
     /**
@@ -88,12 +85,14 @@ final class PathSnapshotCache {
                         entry = new Entry(PathSnapshotBuilder.captureSection(level, sectionX, sectionY, sectionZ), now);
                         entries.put(key, entry);
                         freshThisTick++;
+                    } else if (entry.createdAt() != now) {
+                        entry = new Entry(entry.capture(), now);
+                        entries.put(key, entry);
                     }
                     sections.put(key, entry.capture());
                 }
             }
         }
-        trim(now);
         if (!ready) {
             return new Acquisition(null, null, false);
         }

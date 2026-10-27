@@ -5,6 +5,7 @@ import client.cn.nsimu.simukraft.client.buildbox.BuildingBoundsRenderer;
 import client.cn.nsimu.simukraft.client.citizen.CitizenScreenOpener;
 import client.cn.nsimu.simukraft.client.city.map.SimuMapManager;
 import client.cn.nsimu.simukraft.client.config.ConfigButtonHandler;
+import client.cn.nsimu.simukraft.client.debugcity.DebugCityPresetScreen;
 import client.cn.nsimu.simukraft.client.config.SimuKraftConfigScreen;
 import client.cn.nsimu.simukraft.client.fluid.ClientFluidExtensions;
 import client.cn.nsimu.simukraft.client.input.SimuKraftKeyMappings;
@@ -20,6 +21,7 @@ import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
 import client.cn.nsimu.simukraft.client.selection.TwoPointSelectionRenderer;
 import com.lowdragmc.lowdraglib2.gui.holder.ModularUIContainerScreen;
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.debugcity.DebugCityChunkGenerator;
 import common.cn.nsimu.simukraft.citizen.CitizenInfoUiBridge;
 import common.cn.nsimu.simukraft.clientbridge.ClientInteractionBridge;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingUiBridge;
@@ -34,6 +36,7 @@ import net.neoforged.fml.ModLoadingContext;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterPresetEditorsEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.TextureAtlasStitchedEvent;
@@ -72,6 +75,14 @@ public final class ClientModBusSetup {
         NeoForge.EVENT_BUS.register(new ConfigButtonHandler());
         ModLoadingContext.get().getActiveContainer().registerExtensionPoint(IConfigScreenFactory.class,
                 (container, parent) -> SimuKraftConfigScreen.createRoot(parent));
+    }
+
+    /**
+     * onRegisterPresetEditors：选中调试城市后点亮世界页的自定义按钮。
+     */
+    @SubscribeEvent
+    public static void onRegisterPresetEditors(RegisterPresetEditorsEvent event) {
+        event.register(DebugCityChunkGenerator.PRESET_KEY, DebugCityPresetScreen::create);
     }
 
     /**
