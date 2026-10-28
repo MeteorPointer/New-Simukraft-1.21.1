@@ -18,7 +18,7 @@ final class PathSnapshotCache {
     private static final int MAX_SECTION_ENTRIES = 512;
     private static final int MAX_FRESH_SECTIONS_PER_TICK = 32;
     // 玩家周围的路要留给下一位市民。方块变化仍会立刻作废对应区段。
-    private static final long REUSE_TTL_TICKS = 200L;
+    private static final long REUSE_TTL_TICKS = PathSampleModel.TTL_NORMAL;
     private final Long2ObjectOpenHashMap<Entry> entries = new Long2ObjectOpenHashMap<>();
     private final PathSectionEpochs epochs = new PathSectionEpochs();
     private int freshThisTick;
@@ -54,9 +54,20 @@ final class PathSnapshotCache {
     }
 
     /**
+     * acquireCorridor：按分级余量采样。allowFresh 为 false 时缺区块就停，不占用新区段。
+     */
+    Acquisition acquireCorridor(ServerLevel level, BlockPos start, BlockPos target, int horizontalPadding, long reuseTtlTicks, boolean allowFresh) {
+        return acquire(level, PathSnapshotBuilder.corridorBounds(level, start, target, horizontalPadding), reuseTtlTicks, allowFresh);
+    }
+
+    /**
      * acquire: 按已经算好的包围盒采样。多人同目的地时盒子是几个人起点的并集。
      */
     Acquisition acquire(ServerLevel level, PathSnapshotBuilder.SnapshotBounds bounds) {
+        return acquire(level, bounds, REUSE_TTL_TICKS, true);
+    }
+
+    private Acquisition acquire(ServerLevel level, PathSnapshotBuilder.SnapshotBounds bounds, long reuseTtlTicks, boolean allowFresh) {
         long now = level.getGameTime();
         Long2ObjectOpenHashMap<PathSnapshotBuilder.SectionDataCapture> sections = new Long2ObjectOpenHashMap<>();
         boolean complete = true;
@@ -77,16 +88,16 @@ final class PathSnapshotCache {
                 for (int sectionY = minSectionY; sectionY <= maxSectionY; sectionY++) {
                     long key = SectionPos.asLong(sectionX, sectionY, sectionZ);
                     Entry entry = entries.get(key);
-                    if (entry == null || now - entry.createdAt() > REUSE_TTL_TICKS) {
-                        if (freshThisTick >= MAX_FRESH_SECTIONS_PER_TICK) {
+                    if (entry == null || now - entry.createdAt() > entry.ttlTicks()) {
+                        if (!allowFresh || freshThisTick >= MAX_FRESH_SECTIONS_PER_TICK) {
                             ready = false;
                             break capture;
                         }
-                        entry = new Entry(PathSnapshotBuilder.captureSection(level, sectionX, sectionY, sectionZ), now);
+                        entry = new Entry(PathSnapshotBuilder.captureSection(level, sectionX, sectionY, sectionZ), now, reuseTtlTicks);
                         entries.put(key, entry);
                         freshThisTick++;
                     } else if (entry.createdAt() != now) {
-                        entry = new Entry(entry.capture(), now);
+                        entry = new Entry(entry.capture(), now, Math.max(entry.ttlTicks(), reuseTtlTicks));
                         entries.put(key, entry);
                     }
                     sections.put(key, entry.capture());
@@ -104,8 +115,8 @@ final class PathSnapshotCache {
     /**
      * invalidate: 丢掉变化点周围区段的采样，并抬升版本。其余区段留着。
      */
-    void invalidate(BlockPos pos) {
-        epochs.bumpAround(pos);
+    void invalidate(BlockPos pos, long gameTime) {
+        epochs.bumpAround(pos, gameTime);
         if (pos == null) {
             return;
         }
@@ -136,7 +147,7 @@ final class PathSnapshotCache {
      * trim: 限制短期区段缓存的内存上界并移除过期项。
      */
     private void trim(long now) {
-        entries.long2ObjectEntrySet().removeIf(entry -> now - entry.getValue().createdAt() > REUSE_TTL_TICKS);
+        entries.long2ObjectEntrySet().removeIf(entry -> now - entry.getValue().createdAt() > entry.getValue().ttlTicks());
         while (entries.size() > MAX_SECTION_ENTRIES) {
             long oldestKey = 0L;
             long oldestTick = Long.MAX_VALUE;
@@ -150,6 +161,6 @@ final class PathSnapshotCache {
         }
     }
 
-    private record Entry(PathSnapshotBuilder.SectionDataCapture capture, long createdAt) {
+    private record Entry(PathSnapshotBuilder.SectionDataCapture capture, long createdAt, long ttlTicks) {
     }
 }

@@ -248,6 +248,20 @@ final class PathSnapshotBuilder {
      * <p>Exposed so callers can test box containment for snapshot reuse using exactly the same
      * bounds {@link #build} would produce.
      */
+    /**
+     * corridorBounds：按左右余量包住起点和终点，不把路截短。
+     */
+    static SnapshotBounds corridorBounds(ServerLevel level, BlockPos start, BlockPos target, int horizontalPadding) {
+        int pad = Math.max(PathSampleModel.PAD_NARROW, Math.min(PathSampleModel.PAD_WIDE, horizontalPadding));
+        int minX = Math.min(start.getX(), target.getX()) - pad;
+        int maxX = Math.max(start.getX(), target.getX()) + pad;
+        int minZ = Math.min(start.getZ(), target.getZ()) - pad;
+        int maxZ = Math.max(start.getZ(), target.getZ()) + pad;
+        int minY = Math.max(level.getMinBuildHeight(), Math.min(start.getY(), target.getY()) - VERTICAL_PADDING);
+        int maxY = Math.min(level.getMaxBuildHeight() - 2, Math.max(start.getY(), target.getY()) + VERTICAL_PADDING);
+        return new SnapshotBounds(minX, maxX, minZ, maxZ, minY, maxY);
+    }
+
     static SnapshotBounds bounds(ServerLevel level, BlockPos start, BlockPos target, int radius) {
         int safeRadius = Math.max(16, radius);
         int minX = Math.max(Math.min(start.getX(), target.getX()) - HORIZONTAL_PADDING, start.getX() - safeRadius);

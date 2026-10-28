@@ -1,5 +1,8 @@
 package common.cn.nsimu.simukraft.path;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceLocation;
+
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -11,6 +14,31 @@ final class PathResultCache {
     private static final int MAX_ENTRIES = 512;
     private final LinkedHashMap<PathCacheKey, CacheEntry> entries =
             new LinkedHashMap<>(16, 0.75f, true);
+
+    /**
+     * findNear：起点和终点都差不过 2 格时复用折线。
+     */
+    synchronized PathResult findNear(ResourceLocation dimensionId, BlockPos start, BlockPos target, MovementIntent intent,
+                                     long gameTime, PathSectionEpochs epochs) {
+        if (dimensionId == null || start == null || target == null || intent == null) {
+            return null;
+        }
+        for (Map.Entry<PathCacheKey, CacheEntry> entry : entries.entrySet()) {
+            PathCacheKey key = entry.getKey();
+            CacheEntry cached = entry.getValue();
+            if (key.intent() != intent || !dimensionId.equals(key.dimensionId()) || cached.expiresAt < gameTime
+                    || epochs == null || !epochs.matches(cached.stamp)) {
+                continue;
+            }
+            if (PathSampleModel.withinBlocks(start.getX(), start.getY(), start.getZ(),
+                    key.startPos().getX(), key.startPos().getY(), key.startPos().getZ(), PathSampleModel.PATH_REUSE_BLOCKS)
+                    && PathSampleModel.withinBlocks(target.getX(), target.getY(), target.getZ(),
+                    key.targetPos().getX(), key.targetPos().getY(), key.targetPos().getZ(), PathSampleModel.PATH_REUSE_BLOCKS)) {
+                return cached.result;
+            }
+        }
+        return null;
+    }
 
     synchronized PathResult get(PathCacheKey key, long gameTime, PathSectionEpochs epochs) {
         CacheEntry entry = entries.get(key);

@@ -9,11 +9,19 @@ import net.minecraft.core.SectionPos;
  */
 final class PathSectionEpochs {
     private final Long2LongOpenHashMap epochs = new Long2LongOpenHashMap();
+    private final Long2LongOpenHashMap changedAt = new Long2LongOpenHashMap();
 
     /**
      * bumpAround: 变化方块所在区段及其相邻区段版本加一。门和围栏的碰撞会读到邻格。
      */
     void bumpAround(BlockPos pos) {
+        bumpAround(pos, Long.MIN_VALUE);
+    }
+
+    /**
+     * bumpAround：抬升周围区段版本，并记下这次变化的时间。
+     */
+    void bumpAround(BlockPos pos, long gameTime) {
         if (pos == null) {
             return;
         }
@@ -25,9 +33,20 @@ final class PathSectionEpochs {
                 for (int dz = -1; dz <= 1; dz++) {
                     long key = SectionPos.asLong(sectionX + dx, sectionY + dy, sectionZ + dz);
                     epochs.put(key, epochs.get(key) + 1L);
+                    if (gameTime != Long.MIN_VALUE) {
+                        changedAt.put(key, gameTime);
+                    }
                 }
             }
         }
+    }
+
+    /**
+     * changedSince：这个区段在给定时间之后被改过。
+     */
+    boolean changedSince(int sectionX, int sectionY, int sectionZ, long sinceTick) {
+        long key = SectionPos.asLong(sectionX, sectionY, sectionZ);
+        return changedAt.containsKey(key) && changedAt.get(key) >= sinceTick;
     }
 
     /**

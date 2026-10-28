@@ -407,6 +407,7 @@ public final class CitizenNavigationService {
         }
         LevelRuntime runtime = runtime(level);
         runtime.snapshotCache.beginTick(level.getGameTime());
+        runtime.upgradesThisTick = 0;
         applyCompletedPaths(level, runtime);
         tickActivePaths(level, runtime);
         CitizenDoorService.processOpenedDoors(level, runtime.openedDoors, runtime.active.keySet());
@@ -440,7 +441,7 @@ public final class CitizenNavigationService {
             if (pos == null) {
                 continue;
             }
-            runtime.snapshotCache.invalidate(pos);
+            runtime.snapshotCache.invalidate(pos, level.getGameTime());
             changed = true;
         }
         if (changed) {
@@ -494,56 +495,214 @@ public final class CitizenNavigationService {
             }
             near.add(new NearRequest(citizenId, request, citizen, nearestPlayerDistanceSqr(level, citizen.position())));
         }
-        near.sort(Comparator.comparingDouble(NearRequest::distanceSqr));
+        long now = level.getGameTime();
+        List<SampleCandidate> waiting = new ArrayList<>();
         int processed = 0;
         for (NearRequest item : near) {
-            if (processed >= budget || runtime.active.size() + runtime.pending.size() >= ServerConfig.pathMaxActiveCitizens()) {
-                requeue(runtime, item.citizenId(), item.request());
-                continue;
-            }
-            PathRequest currentRequest = new PathRequest(item.citizenId(), item.request().dimensionId(), item.citizen().blockPosition(),
-                    item.request().target(), item.request().intent(), level.getGameTime());
-            PathCacheKey cacheKey = new PathCacheKey(currentRequest.dimensionId(), currentRequest.startPos(), currentRequest.targetBlockPos(), currentRequest.intent());
-            PathResult cached = runtime.blockedSince.containsKey(item.citizenId())
-                    ? null
-                    : runtime.pathCache.get(cacheKey, level.getGameTime(), runtime.snapshotCache.epochs());
-            if (cached != null) {
-                activate(level, runtime, cached.forRequest(currentRequest));
-                processed++;
-                continue;
-            }
+            PathRequest currentRequest = refreshedRequest(item, now);
             if (item.distanceSqr() == Double.MAX_VALUE) {
                 requeue(runtime, item.citizenId(), currentRequest);
                 continue;
             }
-            PathSnapshotCache.Acquisition acquired = runtime.snapshotCache.acquire(level, currentRequest.startPos(), currentRequest.targetBlockPos(), ServerConfig.pathLocalRadiusBlocks());
-            if (!acquired.ready()) {
-                requeue(runtime, item.citizenId(), currentRequest);
+            if (processed < budget && tryActivateCached(level, runtime, currentRequest)) {
+                processed++;
                 continue;
             }
-            UUID cityId = cityOf(level, item.citizenId());
-            PathDistanceField existingField = runtime.distanceFields.get(new PathDistanceFieldCache.PathFieldKey(
-                    currentRequest.dimensionId(), cityId, currentRequest.targetBlockPos(), currentRequest.intent()), runtime.snapshotCache.epochs());
-            if (existingField == null && runtime.fieldPump == null) {
-                List<BlockPos> sharedPoints = sharedFieldPoints(level, runtime, cityId, currentRequest);
-                if (sharedPoints.size() >= 3) {
-                    runtime.fieldPump = FieldPump.start(new PathDistanceFieldCache.PathFieldKey(
-                            currentRequest.dimensionId(), cityId, currentRequest.targetBlockPos(), currentRequest.intent()), currentRequest, cityId,
-                            PathSnapshotBuilder.unionBounds(level, sharedPoints, currentRequest.targetBlockPos(), ServerConfig.pathLocalRadiusBlocks()));
+            waiting.add(new SampleCandidate(item, currentRequest, corridorKey(currentRequest), 0));
+        }
+        runtime.sampleTier = PathSampleModel.advanceTier(runtime.sampleTier, waiting.size());
+        if (waiting.isEmpty()) {
+            return;
+        }
+        Map<Long, List<SampleCandidate>> groups = new java.util.LinkedHashMap<>();
+        for (SampleCandidate candidate : waiting) {
+            groups.computeIfAbsent(candidate.partitionKey(), key -> new ArrayList<>()).add(candidate);
+        }
+        List<List<SampleCandidate>> partitions = new ArrayList<>(groups.values());
+        partitions.sort(Comparator.comparingDouble(group -> representative(group).item().distanceSqr()));
+        boolean allowFresh = true;
+        PathSampleModel.BuildingSpan[] buildings = null;
+        long recentSince = now - PathSampleModel.RECENT_CHANGE_TICKS;
+        for (List<SampleCandidate> group : partitions) {
+            SampleCandidate lead = representative(group);
+            if (routeStillBlocked(runtime, lead.partitionKey())) {
+                requeueGroup(runtime, group);
+                continue;
+            }
+            if (processed >= budget || runtime.active.size() + runtime.pending.size() >= ServerConfig.pathMaxActiveCitizens()) {
+                requeueGroup(runtime, group);
+                continue;
+            }
+            if (!allowFresh) {
+                requeueGroup(runtime, group);
+                continue;
+            }
+            if (buildings == null) {
+                buildings = buildingSpans(level);
+            }
+            scoreGroup(level, runtime, group, buildings, recentSince);
+            lead = representative(group);
+            int padding = groupPadding(group);
+            PathSnapshotCache.Acquisition acquired = runtime.snapshotCache.acquireCorridor(
+                    level, lead.request().startPos(), lead.request().targetBlockPos(), padding, runtime.sampleTier.ttlTicks, true);
+            if (!acquired.ready()) {
+                requeueGroup(runtime, group);
+                allowFresh = false;
+                continue;
+            }
+            for (SampleCandidate member : group) {
+                if (processed >= budget || runtime.active.size() + runtime.pending.size() >= ServerConfig.pathMaxActiveCitizens()) {
+                    requeue(runtime, member.item().citizenId(), member.request());
+                    continue;
+                }
+                PathSnapshotCache.Acquisition memberCapture = member == lead
+                        ? acquired
+                        : runtime.snapshotCache.acquireCorridor(level, member.request().startPos(), member.request().targetBlockPos(),
+                        padding, runtime.sampleTier.ttlTicks, false);
+                if (!memberCapture.ready()) {
+                    requeue(runtime, member.item().citizenId(), member.request());
+                    continue;
+                }
+                if (submitSearch(level, runtime, member.request(), memberCapture, padding, member.partitionKey())) {
+                    processed++;
+                } else {
+                    requeue(runtime, member.item().citizenId(), member.request());
                 }
             }
-            CompletableFuture<PathJob> future;
-            try {
-                future = CompletableFuture.supplyAsync(
-                        () -> PathExtraCosts.callWithCity(cityId, () -> search(currentRequest, acquired, existingField)),
-                        executor());
-            } catch (RejectedExecutionException rejected) {
-                requeue(runtime, item.citizenId(), currentRequest);
+        }
+    }
+
+    private static PathRequest refreshedRequest(NearRequest item, long now) {
+        return new PathRequest(item.citizenId(), item.request().dimensionId(), item.citizen().blockPosition(),
+                item.request().target(), item.request().intent(), now);
+    }
+
+    private static boolean tryActivateCached(ServerLevel level, LevelRuntime runtime, PathRequest request) {
+        if (runtime.blockedSince.containsKey(request.citizenId())) {
+            return false;
+        }
+        PathCacheKey cacheKey = new PathCacheKey(request.dimensionId(), request.startPos(), request.targetBlockPos(), request.intent());
+        PathResult cached = runtime.pathCache.get(cacheKey, level.getGameTime(), runtime.snapshotCache.epochs());
+        if (cached == null) {
+            cached = runtime.pathCache.findNear(request.dimensionId(), request.startPos(), request.targetBlockPos(),
+                    request.intent(), level.getGameTime(), runtime.snapshotCache.epochs());
+        }
+        if (cached == null) {
+            return false;
+        }
+        activate(level, runtime, cached.forRequest(request));
+        runtime.paddingFloor.remove(request.citizenId());
+        return true;
+    }
+
+    private static long corridorKey(PathRequest request) {
+        return PathSampleModel.corridorKey(request.startPos().getX(), request.startPos().getZ(),
+                request.targetBlockPos().getX(), request.targetBlockPos().getZ());
+    }
+
+    private static SampleCandidate representative(List<SampleCandidate> group) {
+        SampleCandidate best = group.get(0);
+        for (int i = 1; i < group.size(); i++) {
+            SampleCandidate candidate = group.get(i);
+            int distance = Double.compare(candidate.item().distanceSqr(), best.item().distanceSqr());
+            if (distance < 0) {
+                best = candidate;
+            }
+        }
+        return best;
+    }
+
+    /**
+     * scoreGroup：只给这一拍真要采样的分区算复杂度，组内每个人都要算，才能取最大余量。
+     */
+    private static void scoreGroup(ServerLevel level, LevelRuntime runtime, List<SampleCandidate> group,
+                                   PathSampleModel.BuildingSpan[] buildings, long recentSince) {
+        for (int i = 0; i < group.size(); i++) {
+            SampleCandidate candidate = group.get(i);
+            int score = PathSampleModel.complexity(
+                    candidate.request().startPos().getX(), candidate.request().startPos().getY(), candidate.request().startPos().getZ(),
+                    candidate.request().targetBlockPos().getX(), candidate.request().targetBlockPos().getY(), candidate.request().targetBlockPos().getZ(),
+                    buildings, (sectionX, sectionY, sectionZ) -> runtime.snapshotCache.epochs().changedSince(sectionX, sectionY, sectionZ, recentSince));
+            int padding = Math.max(PathSampleModel.paddingForScore(score, runtime.sampleTier), runtime.paddingFloor.getOrDefault(candidate.item().citizenId(), 0));
+            group.set(i, new SampleCandidate(candidate.item(), candidate.request(), candidate.partitionKey(), padding));
+        }
+    }
+
+    private static boolean routeStillBlocked(LevelRuntime runtime, long partitionKey) {
+        PathSectionStamp stamp = runtime.impassableUntilChange.get(partitionKey);
+        if (stamp == null) {
+            return false;
+        }
+        if (runtime.snapshotCache.epochs().matches(stamp)) {
+            return true;
+        }
+        runtime.impassableUntilChange.remove(partitionKey);
+        return false;
+    }
+
+    private static int groupPadding(List<SampleCandidate> group) {
+        int padding = PathSampleModel.PAD_NARROW;
+        for (SampleCandidate candidate : group) {
+            padding = Math.max(padding, candidate.padding());
+        }
+        return padding;
+    }
+
+    private static void requeueGroup(LevelRuntime runtime, List<SampleCandidate> group) {
+        for (SampleCandidate candidate : group) {
+            requeue(runtime, candidate.item().citizenId(), candidate.request());
+        }
+    }
+
+    private static boolean submitSearch(ServerLevel level, LevelRuntime runtime, PathRequest request,
+                                        PathSnapshotCache.Acquisition acquired, int padding, long partitionKey) {
+        UUID cityId = cityOf(level, request.citizenId());
+        PathDistanceField existingField = runtime.distanceFields.get(new PathDistanceFieldCache.PathFieldKey(
+                request.dimensionId(), cityId, request.targetBlockPos(), request.intent()), runtime.snapshotCache.epochs());
+        CompletableFuture<PathJob> future;
+        try {
+            future = CompletableFuture.supplyAsync(
+                    () -> PathExtraCosts.callWithCity(cityId, () -> search(request, acquired, existingField)),
+                    executor());
+        } catch (RejectedExecutionException rejected) {
+            return false;
+        }
+        PathCacheKey cacheKey = new PathCacheKey(request.dimensionId(), request.startPos(), request.targetBlockPos(), request.intent());
+        runtime.pending.put(request.citizenId(), new RunningRequest(future, cacheKey, acquired.stamp(), padding, partitionKey));
+        return true;
+    }
+
+    private static void noteSampleFailure(LevelRuntime runtime, UUID citizenId, RunningRequest running) {
+        if (running.horizontalPadding() >= PathSampleModel.PAD_WIDE) {
+            if (running.stamp() != null) {
+                runtime.impassableUntilChange.put(running.partitionKey(), running.stamp());
+            }
+            return;
+        }
+        if (runtime.upgradesThisTick >= PathSampleModel.MAX_NEW_UPGRADES) {
+            return;
+        }
+        runtime.upgradesThisTick++;
+        runtime.paddingFloor.put(citizenId, PathSampleModel.raisePadding(running.horizontalPadding()));
+    }
+
+    private static PathSampleModel.BuildingSpan[] buildingSpans(ServerLevel level) {
+        List<common.cn.nsimu.simukraft.building.PlacedBuildingRecord> records = common.cn.nsimu.simukraft.building.PlacedBuildingService.getBuildings(level);
+        PathSampleModel.BuildingSpan[] spans = new PathSampleModel.BuildingSpan[records.size()];
+        for (int i = 0; i < records.size(); i++) {
+            common.cn.nsimu.simukraft.building.PlacedBuildingRecord record = records.get(i);
+            if (record.minPos() == null || record.maxPos() == null) {
                 continue;
             }
-            runtime.pending.put(item.citizenId(), new RunningRequest(future, cacheKey, acquired.stamp()));
-            processed++;
+            spans[i] = new PathSampleModel.BuildingSpan(record.buildingId().getMostSignificantBits() ^ record.buildingId().getLeastSignificantBits(),
+                    Math.min(record.minPos().getX(), record.maxPos().getX()),
+                    Math.min(record.minPos().getY(), record.maxPos().getY()),
+                    Math.min(record.minPos().getZ(), record.maxPos().getZ()),
+                    Math.max(record.minPos().getX(), record.maxPos().getX()),
+                    Math.max(record.minPos().getY(), record.maxPos().getY()),
+                    Math.max(record.minPos().getZ(), record.maxPos().getZ()));
         }
+        return spans;
     }
 
     /**
@@ -765,12 +924,14 @@ public final class CitizenNavigationService {
                 if (fresh) {
                     runtime.pathCache.put(running.cacheKey(), result, level.getGameTime(), ServerConfig.pathCacheTtlTicks(), running.stamp());
                 }
+                runtime.paddingFloor.remove(entry.getKey());
                 activate(level, runtime, result);
             } else {
                 UUID citizenId = entry.getKey();
                 runtime.cooldowns.remove(citizenId);
                 runtime.blockedSince.remove(citizenId);
                 if (result != null) {
+                    noteSampleFailure(runtime, citizenId, running);
                     if (running.cacheKey().intent().allowsTeleportFallback()) {
                         CitizenTeleportService.teleportCitizen(level, citizenId, result.target());
                         if (ServerConfig.pathDebugEnabled()) {
@@ -966,6 +1127,10 @@ public final class CitizenNavigationService {
         private final PathDistanceFieldCache distanceFields = new PathDistanceFieldCache();
         private FieldPump fieldPump;
         private UUID pinnedCitizenId;
+        private PathSampleModel.Tier sampleTier = PathSampleModel.Tier.STANDARD;
+        private int upgradesThisTick;
+        private final Map<UUID, Integer> paddingFloor = new java.util.HashMap<>();
+        private final Map<Long, PathSectionStamp> impassableUntilChange = new java.util.HashMap<>();
         private long loadedCitizenCountTick = Long.MIN_VALUE;
         private int loadedCitizenCount;
     }
@@ -973,7 +1138,11 @@ public final class CitizenNavigationService {
     private record NearRequest(UUID citizenId, PathRequest request, CitizenEntity citizen, double distanceSqr) {
     }
 
-    private record RunningRequest(CompletableFuture<PathJob> future, PathCacheKey cacheKey, PathSectionStamp stamp) {
+    private record RunningRequest(CompletableFuture<PathJob> future, PathCacheKey cacheKey, PathSectionStamp stamp,
+                                  int horizontalPadding, long partitionKey) {
+    }
+
+    private record SampleCandidate(NearRequest item, PathRequest request, long partitionKey, int padding) {
     }
 
     private record PathJob(PathResult result) {
