@@ -123,7 +123,13 @@ public final class CityPopulationStats {
     }
 
     private static boolean isLiveResidentialPoi(ServerLevel level, BuildingPoiInstance poi) {
-        return poi.worldPos() != null && CitizenHomeRestService.isResidentialBedHead(level.getBlockState(poi.worldPos()));
+        if (poi.worldPos() == null) {
+            return false;
+        }
+        if (!level.isLoaded(poi.worldPos())) {
+            return true;
+        }
+        return CitizenHomeRestService.isResidentialBedHead(level.getBlockState(poi.worldPos()));
     }
 
     public record Snapshot(int population, int housingCapacity) {

@@ -207,6 +207,9 @@ public class SimuMapManager {
         }
     }
 
+    /**
+     * forceScanArea：只在主线程补中心几块，其余交给每拍 8 块的增量扫描。
+     */
     public void forceScanArea(int centerChunkX, int centerChunkZ, int radius) {
         Minecraft minecraft = Minecraft.getInstance();
         Level level = minecraft.level;
@@ -215,15 +218,18 @@ public class SimuMapManager {
         }
 
         int clampedRadius = Math.max(0, Math.min(radius, getEffectiveScanRadius()));
-        for (int dz = -clampedRadius; dz <= clampedRadius; dz++) {
-            for (int dx = -clampedRadius; dx <= clampedRadius; dx++) {
-                int chunkX = centerChunkX + dx;
-                int chunkZ = centerChunkZ + dz;
-                if (!SimuChunkScanner.isChunkLoaded(level, chunkX, chunkZ)) {
-                    continue;
+        resetScanCursor(clampedRadius);
+        int scanned = 0;
+        for (int ring = 0; ring <= clampedRadius && scanned < ACTIVE_SCAN_BUDGET; ring++) {
+            for (int dz = -ring; dz <= ring && scanned < ACTIVE_SCAN_BUDGET; dz++) {
+                for (int dx = -ring; dx <= ring && scanned < ACTIVE_SCAN_BUDGET; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dz)) != ring) {
+                        continue;
+                    }
+                    if (scanLoadedChunk(level, centerChunkX + dx, centerChunkZ + dz, false)) {
+                        scanned++;
+                    }
                 }
-
-                scanLoadedChunk(level, chunkX, chunkZ, false);
             }
         }
     }

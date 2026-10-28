@@ -19,9 +19,9 @@ public final class CityNetworkViewFactory {
     public static CityCoreOpenResponsePacket buildOpenResponse(ServerLevel level, BlockPos pos, UUID viewerId) {
         DistrictData districtContext = null;
         if (level != null && pos != null) {
-            districtContext = DistrictManager.get(level).all().stream()
+            districtContext = DistrictManager.get(level).byChunk(new ChunkPos(pos))
                     .filter(district -> district.cores().contains(pos.asLong()))
-                    .findFirst().orElse(null);
+                    .orElse(null);
         }
         Optional<CityData> city = districtContext == null
                 ? CityService.findCityByCorePosForPlayer(level, pos, viewerId)
@@ -44,15 +44,10 @@ public final class CityNetworkViewFactory {
             PlacedBuildingService.ensureCityPoisRegistered(level);
         }
         List<CityCoreOpenResponsePacket.FinanceEntry> financeEntries = data.financeTransactions().stream().limit(12).map(CityCoreOpenResponsePacket.FinanceEntry::from).toList();
-        List<CityCoreOpenResponsePacket.PoiStat> poiStats = level == null ? List.of() : CityCoreOpenResponsePacket.PoiStat.from(level, data.cityId());
-        List<CityCoreOpenResponsePacket.JobStat> jobStats = level == null ? List.of() : CityCoreOpenResponsePacket.JobStat.from(level, data.cityId());
         CityPopulationStats.Snapshot stats = level == null ? new CityPopulationStats.Snapshot(0, 0) : CityPopulationStats.snapshot(level, data.cityId());
         int cityChunkCount = 0;
-        int cityEnclaveCount = 0;
         if (level != null) {
-            CityChunkManager chunkManager = CityChunkManager.get(level);
-            cityChunkCount = chunkManager.getCityChunks(data.cityId()).size();
-            cityEnclaveCount = chunkManager.countEnclaves(data.cityId(), new ChunkPos(data.cityCorePos()).toLong());
+            cityChunkCount = CityChunkManager.get(level).getCityChunks(data.cityId()).size();
         }
         List<CityCoreOpenResponsePacket.UpgradeTarget> upgradeTargets = CityCoreOpenResponsePacket.UpgradeTarget.from(
                 CityLevelDefinitionLoader.INSTANCE.futureLevels(data.cityLevel(), CityCoreOpenResponsePacket.MAX_UPGRADE_TARGETS));
@@ -76,7 +71,7 @@ public final class CityNetworkViewFactory {
                 .limit(256)
                 .map(member -> new CityCoreOpenResponsePacket.CityMemberRef(member.playerId(), member.playerName()))
                 .toList();
-        return new CityCoreOpenResponsePacket(pos, true, data.cityId(), data.cityName(), data.funds(), data.cityLevel(), data.members().size(), stats.population(), stats.housingCapacity(), cityChunkCount, cityEnclaveCount, permissionLevel, canCreateCity, canManageCity, financeEntries, poiStats, jobStats, upgradeTargets, upgradeProgress, districtSummaries, cityMembers);
+        return new CityCoreOpenResponsePacket(pos, true, data.cityId(), data.cityName(), data.funds(), data.cityLevel(), data.members().size(), stats.population(), stats.housingCapacity(), cityChunkCount, 0, permissionLevel, canCreateCity, canManageCity, financeEntries, List.of(), List.of(), upgradeTargets, upgradeProgress, districtSummaries, cityMembers);
     }
 
     public static CityCoreOpenResponsePacket buildCreatedCityResponse(ServerLevel level, BlockPos pos, CityData city, UUID viewerId) {

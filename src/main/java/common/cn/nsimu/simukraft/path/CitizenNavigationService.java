@@ -875,29 +875,6 @@ public final class CitizenNavigationService {
     }
 
     /**
-     * sharedFieldPoints: 收集同一城市、同一目标、同一意图的排队起点。只有自己时不建距离场。
-     */
-    private static List<BlockPos> sharedFieldPoints(ServerLevel level, LevelRuntime runtime, UUID cityId, PathRequest current) {
-        List<BlockPos> points = new ArrayList<>();
-        points.add(current.startPos());
-        points.add(current.targetBlockPos());
-        BlockPos target = current.targetBlockPos();
-        for (PathRequest queued : runtime.latestRequests.values()) {
-            if (queued.intent() != current.intent() || !queued.targetBlockPos().equals(target)) {
-                continue;
-            }
-            if (!java.util.Objects.equals(cityId, cityOf(level, queued.citizenId()))) {
-                continue;
-            }
-            points.add(queued.startPos());
-            if (points.size() >= 18) {
-                break;
-            }
-        }
-        return points;
-    }
-
-    /**
      * cityOf: 在主线程解析市民所属城市，搜索线程不再逐边查找。
      */
     private static UUID cityOf(ServerLevel level, UUID citizenId) {
@@ -1167,14 +1144,6 @@ public final class CitizenNavigationService {
             this.request = request;
             this.cityId = cityId;
             this.bounds = bounds;
-        }
-
-        /**
-         * start: 记下要覆盖的盒子，采样留到后续 tick。
-         */
-        static FieldPump start(PathDistanceFieldCache.PathFieldKey key, PathRequest request, UUID cityId,
-                               PathSnapshotBuilder.SnapshotBounds bounds) {
-            return new FieldPump(key, request, cityId, bounds);
         }
 
         /**
