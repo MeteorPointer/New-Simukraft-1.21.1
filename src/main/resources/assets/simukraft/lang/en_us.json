@@ -646,6 +646,7 @@
     "message.simukraft.path_debug.empty":  "NPC path debug route cleared.",
     "message.simukraft.path_debug.synced":  "Synced %1$s / %2$s nearby active path route(s).",
     "message.simukraft.path_status.summary":  "Path status: queued=%1$s, pending=%2$s, active=%3$s, cooldown=%4$s.",
+    "message.simukraft.path_status.metrics":  "Totals: path cache hits=%1$s, section cache hits=%2$s/%3$s, fresh sections=%4$s, path search avg=%5$s ms, worker rejects=%6$s, distance field hits/completed builds=%7$s/%8$s, completed searches=%9$s.",
     "message.simukraft.path_status.issue":  "Nearest issue NPC: %1$s, status %2$s, distance %3$s blocks, waypoint %4$s/%5$s.",
     "message.simukraft.path_status.no_issue":  "No waiting or stalled active path is currently detected.",
     "message.simukraft.build_box.category_pending":  "The %s category is not connected to a building list yet.",

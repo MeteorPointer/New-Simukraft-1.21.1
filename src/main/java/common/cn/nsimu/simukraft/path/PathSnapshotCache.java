@@ -26,7 +26,8 @@ final class PathSnapshotCache {
     /**
      * Acquisition: 区段采样和它当时的版本。ready 为 false 表示这一 tick 的新区段预算用完，盒子还没采齐。
      */
-    record Acquisition(PathSnapshotBuilder.ChunkDataCapture capture, PathSectionStamp stamp, boolean ready) {
+    record Acquisition(PathSnapshotBuilder.ChunkDataCapture capture, PathSectionStamp stamp, boolean ready,
+                       int freshSections) {
     }
 
     /**
@@ -78,6 +79,7 @@ final class PathSnapshotCache {
         int maxSectionY = Math.floorDiv(Math.min(level.getMaxBuildHeight() - 1, bounds.maxY() + 1), 16);
         int minSectionZ = Math.floorDiv(bounds.minZ(), 16);
         int maxSectionZ = Math.floorDiv(bounds.maxZ(), 16);
+        int freshSections = 0;
         capture:
         for (int sectionX = minSectionX; sectionX <= maxSectionX; sectionX++) {
             for (int sectionZ = minSectionZ; sectionZ <= maxSectionZ; sectionZ++) {
@@ -96,6 +98,7 @@ final class PathSnapshotCache {
                         entry = new Entry(PathSnapshotBuilder.captureSection(level, sectionX, sectionY, sectionZ), now, reuseTtlTicks);
                         entries.put(key, entry);
                         freshThisTick++;
+                        freshSections++;
                     } else if (entry.createdAt() != now) {
                         entry = new Entry(entry.capture(), now, Math.max(entry.ttlTicks(), reuseTtlTicks));
                         entries.put(key, entry);
@@ -105,11 +108,12 @@ final class PathSnapshotCache {
             }
         }
         if (!ready) {
-            return new Acquisition(null, null, false);
+            return new Acquisition(null, null, false, freshSections);
         }
         long[] covered = PathSectionEpochs.sectionsIn(bounds.minX(), bounds.maxX(), bounds.minY(), bounds.maxY(),
                 bounds.minZ(), bounds.maxZ());
-        return new Acquisition(PathSnapshotBuilder.composeCapture(level, bounds, sections, complete), epochs.capture(covered), true);
+        return new Acquisition(PathSnapshotBuilder.composeCapture(level, bounds, sections, complete),
+                epochs.capture(covered), true, freshSections);
     }
 
     /**
