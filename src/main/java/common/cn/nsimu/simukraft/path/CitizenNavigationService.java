@@ -470,7 +470,8 @@ public final class CitizenNavigationService {
      */
     private static void processQueuedRequests(ServerLevel level, LevelRuntime runtime) {
         int budget = Math.max(0, ServerConfig.pathMaxNewRequestsPerTick());
-        int guard = runtime.queue.size() + (runtime.pinnedCitizenId == null ? 0 : 1);
+        // 超平坦人多时走廊互不相交。每拍只看队首一小段，避免把两千人的实体和缓存都扫进主线程。
+        int guard = Math.min(runtime.queue.size() + (runtime.pinnedCitizenId == null ? 0 : 1), 24);
         List<NearRequest> near = new ArrayList<>(Math.min(guard, 64));
         for (int examined = 0; examined < guard; examined++) {
             UUID citizenId = pollQueuedCitizen(runtime);
@@ -583,10 +584,6 @@ public final class CitizenNavigationService {
         }
         PathCacheKey cacheKey = new PathCacheKey(request.dimensionId(), request.startPos(), request.targetBlockPos(), request.intent());
         PathResult cached = runtime.pathCache.get(cacheKey, level.getGameTime(), runtime.snapshotCache.epochs());
-        if (cached == null) {
-            cached = runtime.pathCache.findNear(request.dimensionId(), request.startPos(), request.targetBlockPos(),
-                    request.intent(), level.getGameTime(), runtime.snapshotCache.epochs());
-        }
         if (cached == null) {
             return false;
         }

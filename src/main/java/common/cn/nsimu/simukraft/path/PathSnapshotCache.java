@@ -16,7 +16,7 @@ import net.minecraft.server.level.ServerLevel;
  */
 final class PathSnapshotCache {
     private static final int MAX_SECTION_ENTRIES = 512;
-    private static final int MAX_FRESH_SECTIONS_PER_TICK = 32;
+    private static final int MAX_FRESH_SECTIONS_PER_TICK = 8;
     // 玩家周围的路要留给下一位市民。方块变化仍会立刻作废对应区段。
     private static final long REUSE_TTL_TICKS = PathSampleModel.TTL_NORMAL;
     private final Long2ObjectOpenHashMap<Entry> entries = new Long2ObjectOpenHashMap<>();
