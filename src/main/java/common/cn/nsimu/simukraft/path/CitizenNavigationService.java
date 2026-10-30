@@ -31,6 +31,8 @@ public final class CitizenNavigationService {
     private static final double DIRECT_MOVE_DISTANCE = 8.0D;
     private static final double DIRECT_MOVE_DISTANCE_SQR = DIRECT_MOVE_DISTANCE * DIRECT_MOVE_DISTANCE;
     private static final int DEBUG_SYNC_PATH_LIMIT = 96;
+    // 每拍只检查离玩家最近的这么多人。报告用同一个数判断是不是检查上限。
+    private static final int EXAMINE_PER_TICK = 24;
     private static final double DEBUG_SYNC_RADIUS = 192.0D;
     private static volatile ExecutorService pathExecutor;
     private static volatile int executorSize;
@@ -419,14 +421,32 @@ public final class CitizenNavigationService {
         if (level == null || level.isClientSide()) {
             return;
         }
+        long tickStart = System.nanoTime();
         LevelRuntime runtime = runtime(level);
         runtime.snapshotCache.beginTick(level.getGameTime());
         runtime.upgradesThisTick = 0;
+        long mark = System.nanoTime();
         applyCompletedPaths(level, runtime);
+        PathReportSink.time("tick/applyCompleted", System.nanoTime() - mark);
+        mark = System.nanoTime();
         tickActivePaths(level, runtime);
+        PathReportSink.time("tick/activePaths", System.nanoTime() - mark);
+        mark = System.nanoTime();
         CitizenDoorService.processOpenedDoors(level, runtime.openedDoors, runtime.active.keySet());
+        PathReportSink.time("tick/doors", System.nanoTime() - mark);
+        mark = System.nanoTime();
         processQueuedRequests(level, runtime);
+        PathReportSink.time("tick/queue", System.nanoTime() - mark);
+        mark = System.nanoTime();
         pumpFieldBuild(runtime);
+        PathReportSink.time("tick/field", System.nanoTime() - mark);
+        if (PathReportSink.active()) {
+            PathReportSink.label("dimension", level.dimension().location().toString());
+            PathReportSink.gauge("state/queue", runtime.queue.size());
+            PathReportSink.gauge("state/active", runtime.active.size());
+            PathReportSink.gauge("state/pending", runtime.pending.size());
+            PathReportSink.time("tick", System.nanoTime() - tickStart);
+        }
         if (level.getGameTime() % 200L == 0L) {
             runtime.pathCache.cleanup(level.getGameTime());
             runtime.snapshotCache.cleanup(level.getGameTime());
@@ -486,8 +506,8 @@ public final class CitizenNavigationService {
     private static void processQueuedRequests(ServerLevel level, LevelRuntime runtime) {
         int budget = Math.max(0, ServerConfig.pathMaxNewRequestsPerTick());
         refreshQueuedPriorities(level, runtime);
-        // 优先队列已覆盖全部待处理请求；每拍只取最近的 24 人，避免全量查询实体和缓存。
-        int guard = Math.min(runtime.queue.size(), 24);
+        // 优先队列已覆盖全部待处理请求；每拍只取最近的一批，避免全量查询实体和缓存。
+        int guard = Math.min(runtime.queue.size(), EXAMINE_PER_TICK);
         List<NearRequest> near = new ArrayList<>(Math.min(guard, 64));
         for (int examined = 0; examined < guard; examined++) {
             UUID citizenId = pollQueuedCitizen(runtime);
@@ -508,6 +528,8 @@ public final class CitizenNavigationService {
             }
             double distanceSqr = nearestPlayerDistanceSqr(level, citizen.position());
             if (!level.isPositionEntityTicking(citizen.blockPosition())) {
+                // 不在模拟距离里的人不占采样名额。记下来，避免队列变长却看不到原因。
+                PathReportSink.count("flow/notTicking", 1L);
                 requeue(runtime, citizenId, request, distanceSqr);
                 continue;
             }
@@ -527,9 +549,16 @@ public final class CitizenNavigationService {
                 processed++;
                 continue;
             }
-            waiting.add(new SampleCandidate(item, currentRequest, corridorKey(currentRequest), 0));
+            waiting.add(new SampleCandidate(item, currentRequest, corridorKey(currentRequest), 0, 0));
         }
         runtime.sampleTier = PathSampleModel.advanceTier(runtime.sampleTier, waiting.size());
+        if (PathReportSink.active()) {
+            PathReportSink.count("flow/examined", near.size());
+            PathReportSink.count("flow/waiting", waiting.size());
+            PathReportSink.gauge("state/padding", runtime.sampleTier.padding);
+            PathReportSink.gauge("state/requestBudget", budget);
+            PathReportSink.gauge("state/examineCap", EXAMINE_PER_TICK);
+        }
         if (waiting.isEmpty()) {
             return;
         }
@@ -545,10 +574,12 @@ public final class CitizenNavigationService {
         for (List<SampleCandidate> group : partitions) {
             SampleCandidate lead = representative(group);
             if (routeStillBlocked(runtime, lead.partitionKey())) {
+                PathReportSink.count("flow/blocked", group.size());
                 requeueGroup(runtime, group);
                 continue;
             }
             if (processed >= budget || runtime.active.size() + runtime.pending.size() >= ServerConfig.pathMaxActiveCitizens()) {
+                PathReportSink.count("flow/budgetHold", group.size());
                 requeueGroup(runtime, group);
                 continue;
             }
@@ -558,31 +589,42 @@ public final class CitizenNavigationService {
             scoreGroup(level, runtime, group, buildings, recentSince);
             lead = representative(group);
             int padding = groupPadding(group);
-            PathSnapshotCache.Acquisition acquired = runtime.snapshotCache.acquireCorridor(
+            boolean flat = flatGroup(runtime, group);
+            PathSnapshotCache.Acquisition acquired = flat
+                    ? runtime.snapshotCache.acquireFlatBlocks(level, lead.request().startPos(), lead.request().targetBlockPos(),
+                    runtime.sampleTier.ttlTicks, allowFresh)
+                    : runtime.snapshotCache.acquireCorridor(
                     level, lead.request().startPos(), lead.request().targetBlockPos(), padding,
                     runtime.sampleTier.ttlTicks, allowFresh);
             if (!acquired.ready()) {
                 recordSnapshotAcquisition(runtime, acquired);
+                PathReportSink.count("flow/sampleMiss", group.size());
                 requeueGroup(runtime, group);
                 allowFresh = false;
                 continue;
             }
             for (SampleCandidate member : group) {
                 if (processed >= budget || runtime.active.size() + runtime.pending.size() >= ServerConfig.pathMaxActiveCitizens()) {
+                    PathReportSink.count("flow/budgetHold", 1L);
                     requeue(runtime, member.item().citizenId(), member.request(), member.item().distanceSqr());
                     continue;
                 }
                 PathSnapshotCache.Acquisition memberCapture = member == lead
                         ? acquired
+                        : flat
+                        ? runtime.snapshotCache.acquireFlatBlocks(level, member.request().startPos(), member.request().targetBlockPos(),
+                        runtime.sampleTier.ttlTicks, allowFresh)
                         : runtime.snapshotCache.acquireCorridor(level, member.request().startPos(), member.request().targetBlockPos(),
                         padding, runtime.sampleTier.ttlTicks, allowFresh);
                 recordSnapshotAcquisition(runtime, memberCapture);
                 if (!memberCapture.ready()) {
+                    PathReportSink.count("flow/sampleMiss", 1L);
                     requeue(runtime, member.item().citizenId(), member.request(), member.item().distanceSqr());
                     continue;
                 }
                 if (submitSearch(level, runtime, member.request(), memberCapture, padding, member.partitionKey())) {
                     processed++;
+                    PathReportSink.count("flow/started", 1L);
                 } else {
                     requeue(runtime, member.item().citizenId(), member.request(), member.item().distanceSqr());
                 }
@@ -642,6 +684,7 @@ public final class CitizenNavigationService {
         runtime.pathResultCacheHits++;
         activate(level, runtime, cached.forRequest(request));
         runtime.paddingFloor.remove(request.citizenId());
+        PathReportSink.count("flow/cacheHits", 1L);
         return true;
     }
 
@@ -674,7 +717,7 @@ public final class CitizenNavigationService {
                     candidate.request().targetBlockPos().getX(), candidate.request().targetBlockPos().getY(), candidate.request().targetBlockPos().getZ(),
                     buildings, (sectionX, sectionY, sectionZ) -> runtime.snapshotCache.epochs().changedSince(sectionX, sectionY, sectionZ, recentSince));
             int padding = Math.max(PathSampleModel.paddingForScore(score, runtime.sampleTier), runtime.paddingFloor.getOrDefault(candidate.item().citizenId(), 0));
-            group.set(i, new SampleCandidate(candidate.item(), candidate.request(), candidate.partitionKey(), padding));
+            group.set(i, new SampleCandidate(candidate.item(), candidate.request(), candidate.partitionKey(), padding, score));
         }
     }
 
@@ -688,6 +731,18 @@ public final class CitizenNavigationService {
         }
         runtime.impassableUntilChange.remove(partitionKey);
         return false;
+    }
+
+    /**
+     * flatGroup：复杂度为 0、且没有失败加宽过的分区走整块街区。加宽过的人回到走廊盒。
+     */
+    private static boolean flatGroup(LevelRuntime runtime, List<SampleCandidate> group) {
+        for (SampleCandidate candidate : group) {
+            if (candidate.score() != 0 || runtime.paddingFloor.getOrDefault(candidate.item().citizenId(), 0) > 0) {
+                return false;
+            }
+        }
+        return !group.isEmpty();
     }
 
     private static int groupPadding(List<SampleCandidate> group) {
@@ -717,6 +772,7 @@ public final class CitizenNavigationService {
                     executor());
         } catch (RejectedExecutionException rejected) {
             runtime.workerRejections++;
+            PathReportSink.count("flow/rejected", 1L);
             return false;
         }
         if (existingField != null) {
@@ -757,6 +813,7 @@ public final class CitizenNavigationService {
             if (running.stamp() != null) {
                 runtime.impassableUntilChange.put(running.partitionKey(), running.stamp());
             }
+            PathReportSink.count("flow/failures", 1L);
             return;
         }
         if (runtime.upgradesThisTick >= PathSampleModel.MAX_NEW_UPGRADES) {
@@ -764,6 +821,7 @@ public final class CitizenNavigationService {
         }
         runtime.upgradesThisTick++;
         runtime.paddingFloor.put(citizenId, PathSampleModel.raisePadding(running.horizontalPadding()));
+        PathReportSink.count("flow/failures", 1L);
     }
 
     private static PathSampleModel.BuildingSpan[] buildingSpans(ServerLevel level) {
@@ -958,6 +1016,8 @@ public final class CitizenNavigationService {
             if (job != null) {
                 runtime.completedSearches++;
                 runtime.searchNanos += job.elapsedNanos();
+                PathReportSink.time("async/search", job.elapsedNanos());
+                PathReportSink.count("flow/completed", 1L);
             }
             boolean fresh = runtime.snapshotCache.epochs().matches(running.stamp());
             if (result != null && result.success()) {
@@ -1189,7 +1249,7 @@ public final class CitizenNavigationService {
                                   int horizontalPadding, long partitionKey) {
     }
 
-    private record SampleCandidate(NearRequest item, PathRequest request, long partitionKey, int padding) {
+    private record SampleCandidate(NearRequest item, PathRequest request, long partitionKey, int padding, int score) {
     }
 
     private record PathJob(PathResult result, long elapsedNanos) {
@@ -1216,7 +1276,7 @@ public final class CitizenNavigationService {
         }
 
         /**
-         * advance: 在工人线程上创建或推进距离场。目标不可达时返回 false。
+         * advance: 在工人线程上创建或推进距离场。目标不可达时返��� false。
          */
         boolean advance() {
             if (build == null) {

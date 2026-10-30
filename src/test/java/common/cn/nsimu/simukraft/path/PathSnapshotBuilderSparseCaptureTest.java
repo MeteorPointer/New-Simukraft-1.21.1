@@ -5,11 +5,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.EmptyBlockGetter;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -60,5 +63,26 @@ class PathSnapshotBuilderSparseCaptureTest {
 
         assertNotNull(snapshot.cell(0, 64, 0));
         assertTrue(snapshot.bodyPassage(0, 64, 0));
+    }
+
+    @Test
+    void copiedPaletteIsReadOffTheCaptureMap() {
+        PalettedContainer<BlockState> container = new PalettedContainer<>(
+                Block.BLOCK_STATE_REGISTRY, Blocks.AIR.defaultBlockState(), PalettedContainer.Strategy.SECTION_STATES);
+        container.set(0, 15, 0, Blocks.STONE.defaultBlockState());
+        PalettedContainer<BlockState> copy = container.copy();
+        container.set(0, 15, 0, Blocks.DIRT.defaultBlockState());
+
+        Long2ObjectOpenHashMap<PathSnapshotBuilder.SectionDataCapture> sections = new Long2ObjectOpenHashMap<>();
+        sections.put(SectionPos.asLong(0, 3, 0), new PathSnapshotBuilder.SectionDataCapture(null, null, copy));
+        PathSnapshotBuilder.ChunkDataCapture capture = new PathSnapshotBuilder.ChunkDataCapture(
+                null, null, sections, new PathSnapshotBuilder.SnapshotBounds(0, 0, 0, 0, 64, 64),
+                DIMENSION, 0L, true);
+        PathSnapshot snapshot = PathSnapshotBuilder.buildFromCapture(capture,
+                new BlockPos(0, 64, 0), new BlockPos(0, 64, 0));
+
+        assertNotNull(snapshot.cell(0, 64, 0));
+        assertTrue(snapshot.bodyPassage(0, 64, 0));
+        assertEquals(Blocks.STONE.defaultBlockState(), copy.get(0, 15, 0));
     }
 }

@@ -34,6 +34,8 @@ import common.cn.nsimu.simukraft.network.building.BuildingCacheReloadPacket;
 import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
+import common.cn.nsimu.simukraft.path.report.PathReportService;
+import common.cn.nsimu.simukraft.path.report.PathReportWriter;
 import common.cn.nsimu.simukraft.path.CitizenWanderService;
 import common.cn.nsimu.simukraft.path.MovementIntent;
 import net.minecraft.commands.CommandSourceStack;
@@ -184,6 +186,11 @@ public final class SimuKraftCommand {
                                 .executes(context -> matrixHomeCityPath(
                                         context.getSource(),
                                         IntegerArgumentType.getInteger(context, "spacing")))))
+                .then(Commands.literal("report")
+                        .then(Commands.literal("start")
+                                .executes(context -> pathReportStart(context.getSource())))
+                        .then(Commands.literal("stop")
+                                .executes(context -> pathReportStop(context.getSource()))))
                 .then(Commands.literal("status")
                         .executes(context -> pathStatus(context.getSource())))
                 .then(Commands.literal("clear")
@@ -666,6 +673,29 @@ public final class SimuKraftCommand {
         }
         CitizenNavigationService.clearDebugPath(player);
         return Command.SINGLE_SUCCESS;
+    }
+
+    private static int pathReportStart(CommandSourceStack source) {
+        PathReportService.start();
+        source.sendSuccess(() -> Component.translatable("message.simukraft.path_report.started"), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    private static int pathReportStop(CommandSourceStack source) {
+        try {
+            PathReportWriter.Written written = PathReportService.stop(source.getServer());
+            if (written == null) {
+                source.sendFailure(Component.translatable("message.simukraft.path_report.not_running"));
+                return 0;
+            }
+            source.sendSuccess(() -> Component.translatable(
+                    "message.simukraft.path_report.saved", written.csv().toString(), written.html().toString()), false);
+            return Command.SINGLE_SUCCESS;
+        } catch (RuntimeException | java.io.IOException exception) {
+            source.sendFailure(Component.literal(Component.translatable("message.simukraft.path_report.failed").getString()
+                    + " " + exception.getClass().getSimpleName()));
+            return 0;
+        }
     }
 
     private static int pathStatus(CommandSourceStack source) {

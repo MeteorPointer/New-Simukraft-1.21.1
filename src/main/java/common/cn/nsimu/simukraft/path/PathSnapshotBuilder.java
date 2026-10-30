@@ -7,6 +7,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.SectionPos;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.chunk.LevelChunk;
+import net.minecraft.world.level.chunk.LevelChunkSection;
+import net.minecraft.world.level.chunk.PalettedContainer;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.BlockGetter;
@@ -87,9 +90,34 @@ final class PathSnapshotBuilder {
     /**
      * Immutable raw data for one 16x16x16 world section.
      */
+    /**
+     * 区段副本。states 是测试或旧路径用的稀疏表。copiedStates 是主线程复制的调色板，方块在工作线程上按需读取。
+     * 两者都空表示整段是空气。
+     */
     record SectionDataCapture(
             Long2ObjectOpenHashMap<BlockState> states,
-            Long2ObjectOpenHashMap<VoxelShape> shapes) {
+            Long2ObjectOpenHashMap<VoxelShape> shapes,
+            PalettedContainer<BlockState> copiedStates) {
+        SectionDataCapture(Long2ObjectOpenHashMap<BlockState> states, Long2ObjectOpenHashMap<VoxelShape> shapes) {
+            this(states, shapes, null);
+        }
+
+        static SectionDataCapture air() {
+            return new SectionDataCapture(null, null, null);
+        }
+
+        /**
+         * stateAt：工作线程从副本读这一格。没有副本时沿用稀疏表，缺项表示空气。
+         */
+        BlockState stateAt(BlockPos pos) {
+            if (copiedStates != null) {
+                return copiedStates.get(pos.getX() & 15, pos.getY() & 15, pos.getZ() & 15);
+            }
+            if (states == null) {
+                return null;
+            }
+            return states.get(pos.asLong());
+        }
     }
 
     /**
@@ -124,24 +152,23 @@ final class PathSnapshotBuilder {
     }
 
     /**
-     * captureSection: 在主线程冻结一个区段的方块状态。碰撞形状不在这里算。
+     * captureSection：主线程只复制调色板。空区段不复制。4096 次读取留在工作线程。
      */
     static SectionDataCapture captureSection(ServerLevel level, int sectionX, int sectionY, int sectionZ) {
-        Long2ObjectOpenHashMap<BlockState> states = new Long2ObjectOpenHashMap<>();
-        Long2ObjectOpenHashMap<VoxelShape> shapes = new Long2ObjectOpenHashMap<>();
-        BlockPos.MutableBlockPos mutable = new BlockPos.MutableBlockPos();
-        int minX = sectionX << 4;
-        int minY = sectionY << 4;
-        int minZ = sectionZ << 4;
-        for (int x = minX; x < minX + 16; x++) {
-            for (int z = minZ; z < minZ + 16; z++) {
-                for (int y = minY; y < minY + 16; y++) {
-                    mutable.set(x, y, z);
-                    captureBlock(level, mutable, states);
-                }
-            }
+        LevelChunk chunk = level.getChunkSource().getChunkNow(sectionX, sectionZ);
+        if (chunk == null) {
+            return SectionDataCapture.air();
         }
-        return new SectionDataCapture(states, shapes);
+        LevelChunkSection section = chunk.getSection(chunk.getSectionIndex(sectionY << 4));
+        if (section.hasOnlyAir()) {
+            return SectionDataCapture.air();
+        }
+        section.acquire();
+        try {
+            return new SectionDataCapture(null, null, section.getStates().copy());
+        } finally {
+            section.release();
+        }
     }
 
     /**
@@ -248,6 +275,10 @@ final class PathSnapshotBuilder {
      * <p>Exposed so callers can test box containment for snapshot reuse using exactly the same
      * bounds {@link #build} would produce.
      */
+    static int verticalPadding() {
+        return VERTICAL_PADDING;
+    }
+
     /**
      * corridorBounds：按左右余量包住起点和终点，不把路截短。
      */
@@ -662,7 +693,7 @@ final class PathSnapshotBuilder {
                 s = states.get(pos.asLong());
             } else {
                 SectionDataCapture section = sections.get(sectionKey(pos));
-                s = section == null ? null : section.states().get(pos.asLong());
+                s = section == null ? null : section.stateAt(pos);
             }
             return s != null ? s : AIR;
         }
