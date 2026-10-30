@@ -1276,7 +1276,7 @@ public final class CitizenNavigationService {
         }
 
         /**
-         * advance: 在工人线程上创建或推进距离场。目标不可达时返��� false。
+         * advance: 在工人线程上创建或推进距离场。目标不可达时返回 false。
          */
         boolean advance() {
             if (build == null) {
