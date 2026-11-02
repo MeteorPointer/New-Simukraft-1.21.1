@@ -133,6 +133,25 @@ class PathReportSessionTest {
         assertTrue(html.contains("模拟距离外"));
     }
 
+    @Test
+    void tpsMatchesSparkFiveSecondWindow() {
+        assertEquals(20.0D, SparkTps.instant(50_000_000L), 0.001D);
+        assertEquals(10.0D, SparkTps.instant(100_000_000L), 0.001D);
+        assertEquals(100.0D, SparkTps.instant(10_000_000L), 0.001D);
+        SparkTps tps = new SparkTps();
+        for (int i = 0; i < 100; i++) {
+            tps.add(100_000_000L);
+        }
+        assertEquals(10.0D, tps.average(), 0.05D);
+
+        PathReportSession session = new PathReportSession();
+        session.label("dimension", "minecraft:overworld");
+        session.time("tick", 1_000_000L);
+        session.serverTick(50_000_000L);
+        assertEquals(20.0D, session.samples().get(0).tps(), 0.001D);
+        assertEquals(50.0D, session.samples().get(0).serverTickMs(), 0.001D);
+    }
+
     private static PathReportSession.Sample point(long offsetMs, double tick, double capture, double search,
                                                   long queueSize, long pending, long fresh, long examined,
                                                   long failures, long started, long budgetHold, long blocked) {
@@ -140,7 +159,7 @@ class PathReportSessionTest {
                 0, 0, 0, 0,
                 queueSize, 0, pending, 0,
                 fresh, 0, examined, 0, failures,
-                started, 0, budgetHold, blocked, 0, 0, 0, "");
+                started, 0, budgetHold, blocked, 0, 0, 0, 0, 0, "");
     }
 
     private static PathReportSession.Sample named(long offsetMs, String dimension, double tick, double capture, double search,
@@ -149,6 +168,6 @@ class PathReportSessionTest {
                 0, 0, 0, 0,
                 queueSize, 0, 0, 0,
                 fresh, 0, 0, 0, 0,
-                started, sampleMiss, 0, 0, 0, 0, notTicking, dimension);
+                started, sampleMiss, 0, 0, 0, 0, notTicking, 0, 0, dimension);
     }
 }

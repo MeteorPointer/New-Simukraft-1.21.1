@@ -35,12 +35,14 @@ import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingBoxManager;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingDefinitionLoader;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingWorkService;
 import common.cn.nsimu.simukraft.network.ModNetwork;
+import common.cn.nsimu.simukraft.util.NpcForceLoadService;
 import common.cn.nsimu.simukraft.network.city.chunk.CityChunkSyncService;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
 import common.cn.nsimu.simukraft.network.rts.RtsChunkViewService;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteCitizenAccess;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
+import common.cn.nsimu.simukraft.path.PathReportSink;
 import common.cn.nsimu.simukraft.path.CitizenWanderService;
 import common.cn.nsimu.simukraft.planner.PlannerWorkService;
 import common.cn.nsimu.simukraft.protection.NpcBlockProtectionPolicy;
@@ -290,10 +292,13 @@ public final class SimuKraft {
         event.setCanceled(true);
     }
 
+    private long lastReportTickNanos;
+
     private void onServerTick(ServerTickEvent.Post event) {
         DebugCityBootstrapService.tick(event.getServer());
         // 先刷新城市运行状态，保证本 tick 的居民和医疗调度使用最新的激活结果。
         event.getServer().getAllLevels().forEach(CityRuntimeService::tick);
+        event.getServer().getAllLevels().forEach(NpcForceLoadService::tick);
         event.getServer().getAllLevels().forEach(CityUpgradeService::tick);
         // CitizenManager 数据挂主世界，tick 只需对 overworld 执行一次，避免 N-1 次无效调用。
         ServerLevel overworld = event.getServer().overworld();
@@ -320,6 +325,11 @@ public final class SimuKraft {
             CityPermissionInviteService.tick(level);
         });
         PlayerWelcomeService.tick(event.getServer());
+        long now = System.nanoTime();
+        if (lastReportTickNanos != 0L) {
+            PathReportSink.serverTick(now - lastReportTickNanos);
+        }
+        lastReportTickNanos = now;
     }
 
     /**
@@ -355,6 +365,7 @@ public final class SimuKraft {
         LogisticsAutoClientService.clearServerCaches(event.getServer());
         FarmlandFarmingService.clearServerCaches(event.getServer());
         CityRuntimeService.clearServerCaches(event.getServer());
+        NpcForceLoadService.clear(event.getServer());
         PlacedBuildingService.clearServerCaches(event.getServer());
         ResidentialBedPoiService.clearServerCaches(event.getServer());
         MedicalBedPoiService.clearServerCaches(event.getServer());

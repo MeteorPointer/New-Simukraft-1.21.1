@@ -9,6 +9,7 @@ import java.util.List;
 public final class ServerConfig {
     public static final ModConfigSpec SPEC;
     public static final ModConfigSpec.DoubleValue CITY_CHUNK_PRICE;
+    public static final ModConfigSpec.IntValue DAILY_RENT_PERCENT;
     public static final ModConfigSpec.EnumValue<CitizenNameStyle> NPC_NAME_STYLE;
     public static final ModConfigSpec.BooleanValue ENABLE_BLACKLIST_PROTECTION;
     public static final ModConfigSpec.BooleanValue ENABLE_CLAIM_PROTECTION;
@@ -35,6 +36,7 @@ public final class ServerConfig {
     public static final ModConfigSpec.IntValue PATH_REPATH_COOLDOWN_TICKS;
     public static final ModConfigSpec.IntValue PATH_CACHE_TTL_TICKS;
     public static final ModConfigSpec.BooleanValue PATH_DEBUG;
+    public static final ModConfigSpec.BooleanValue FORCE_LOAD_ALL_NPCS;
     public static final ModConfigSpec.IntValue BUILDING_INTEGRITY_AUTO_DEMOLISH_THRESHOLD_PERCENT;
     public static final ModConfigSpec.IntValue BUILDING_INTEGRITY_CHECK_INTERVAL_TICKS;
     public static final ModConfigSpec.DoubleValue BUILDING_INTEGRITY_REPAIR_MONEY_PER_BLOCK;
@@ -74,6 +76,10 @@ public final class ServerConfig {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
         builder.push("economy");
         CITY_CHUNK_PRICE = builder.defineInRange("cityChunkPrice", 10.0D, 0.0D, 1_000_000.0D);
+        DAILY_RENT_PERCENT = builder
+                .comment("Percent of a residential building price collected as daily rent. Other rent figures stay unchanged.")
+                .translation("config.simukraft.economy.dailyRentPercent")
+                .defineInRange("dailyRentPercent", 30, 0, 100);
         builder.pop();
         builder.push("general");
         ENABLE_BLACKLIST_PROTECTION = builder
@@ -232,6 +238,10 @@ public final class ServerConfig {
                 .comment("Whether NPC pathfinding debug logs are enabled.")
                 .translation("config.simukraft.npc_pathfinding.debugPathfinding")
                 .define("debugPathfinding", false);
+        FORCE_LOAD_ALL_NPCS = builder
+                .comment("Debug: force-load every NPC chunk so entities keep ticking. This can stall the server.")
+                .translation("config.simukraft.npc_pathfinding.forceLoadAllNpcs")
+                .define("forceLoadAllNpcs", false);
         builder.pop();
         builder.push("building_integrity");
         BUILDING_INTEGRITY_AUTO_DEMOLISH_THRESHOLD_PERCENT = builder
@@ -394,6 +404,13 @@ public final class ServerConfig {
     }
 
     /**
+     * dailyRentPercent：每日收租占建筑金额的百分比。驱离和界面仍用原金额。
+     */
+    public static int dailyRentPercent() {
+        return DAILY_RENT_PERCENT.get();
+    }
+
+    /**
      * npcNameStyle: 返回新生成 NPC 名字使用的风格。
      */
     public static CitizenNameStyle npcNameStyle() {
@@ -498,6 +515,13 @@ public final class ServerConfig {
 
     public static boolean pathDebugEnabled() {
         return PATH_DEBUG.get();
+    }
+
+    /**
+     * forceLoadAllNpcs：调试开关。为所有居民区块保持实体 tick，可能拖住服务器。
+     */
+    public static boolean forceLoadAllNpcs() {
+        return FORCE_LOAD_ALL_NPCS.get();
     }
 
     public static int buildingIntegrityAutoDemolishThresholdPercent() {

@@ -11,6 +11,7 @@ import common.cn.nsimu.simukraft.city.poi.CityPoiData;
 import common.cn.nsimu.simukraft.city.poi.CityPoiManager;
 import common.cn.nsimu.simukraft.city.poi.CityPoiType;
 import common.cn.nsimu.simukraft.commercial.CommercialTaxService;
+import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.registry.ModSoundEvents;
@@ -151,7 +152,7 @@ public final class ResidentialRentService {
             if (building.cityId() == null || !isResidential(building) || !hasOccupiedHome(poiManager, occupiedHomes, building)) {
                 continue;
             }
-            double rent = rentAmount(building);
+            double rent = dailyCollectedRent(rentAmount(building));
             if (rent > 0.0D) {
                 rentByCity.merge(building.cityId(), rent, Double::sum);
             }
@@ -232,6 +233,14 @@ public final class ResidentialRentService {
      */
     public static double rentForBuilding(PlacedBuildingRecord building) {
         return rentAmount(building);
+    }
+
+    /**
+     * dailyCollectedRent：只缩小每天入账的租金。驱离和界面继续用建筑原金额。
+     */
+    private static double dailyCollectedRent(double buildingAmount) {
+        int percent = Math.clamp(ServerConfig.dailyRentPercent(), 0, 100);
+        return buildingAmount * percent / 100.0D;
     }
 
     private static double rentAmount(PlacedBuildingRecord building) {

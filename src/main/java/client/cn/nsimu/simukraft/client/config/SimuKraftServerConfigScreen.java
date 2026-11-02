@@ -151,6 +151,8 @@ public final class SimuKraftServerConfigScreen {
         page.addChild(SimuKraftConfigWidgets.section(Component.translatable("gui.simukraft.config.section.economy")));
         page.addChild(SimuKraftConfigWidgets.row(Component.translatable("gui.simukraft.config.city_chunk_price"),
                 SimuKraftConfigWidgets.doubleField(draft.cityChunkPrice, 0.0D, 1_000_000.0D, value -> draft.cityChunkPrice = value)));
+        page.addChild(SimuKraftConfigWidgets.row(Component.translatable("config.simukraft.economy.dailyRentPercent"),
+                SimuKraftConfigWidgets.intField(draft.dailyRentPercent, 0, 100, value -> draft.dailyRentPercent = value)));
         page.addChild(SimuKraftConfigWidgets.section(Component.translatable("gui.simukraft.config.section.farming")));
         page.addChild(SimuKraftConfigWidgets.row(Component.translatable("config.simukraft.farming.areaRadius"),
                 SimuKraftConfigWidgets.intField(draft.farmAreaRadius, 1, 16, value -> draft.farmAreaRadius = value)));
@@ -178,6 +180,8 @@ public final class SimuKraftServerConfigScreen {
                 SimuKraftConfigWidgets.intField(draft.pathCacheTtlTicks, 0, 24000, value -> draft.pathCacheTtlTicks = value)));
         page.addChild(SimuKraftConfigWidgets.row(Component.translatable("config.simukraft.npc_pathfinding.debugPathfinding"),
                 SimuKraftConfigWidgets.switchControl(draft.pathDebug, value -> draft.pathDebug = value)));
+        page.addChild(SimuKraftConfigWidgets.warningRow(Component.translatable("config.simukraft.npc_pathfinding.forceLoadAllNpcs"),
+                SimuKraftConfigWidgets.switchControl(draft.forceLoadAllNpcs, value -> draft.forceLoadAllNpcs = value)));
         return SimuKraftConfigWidgets.scroller(page);
     }
 

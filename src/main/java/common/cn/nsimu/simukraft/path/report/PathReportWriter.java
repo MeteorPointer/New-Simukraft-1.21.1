@@ -204,7 +204,7 @@ public final class PathReportWriter {
         page.append("button,label{margin:0 8px 8px 0}button{background:#3a4054;color:#fff;border:0;border-radius:4px;padding:6px 10px;cursor:pointer}");
         page.append("button.on{background:#e38c2d}label i{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 4px}");
         page.append("canvas{width:100%;background:#14161c;border-radius:8px;display:block;margin-bottom:8px}");
-        page.append("#timeChart{height:280px}#searchChart{height:160px}#peopleChart,#flowChart{height:220px}");
+        page.append("#timeChart{height:280px}#searchChart{height:160px}#peopleChart,#flowChart{height:220px}#tpsChart{height:160px}");
         page.append("table{width: 100%;border-collapse:collapse}th,td{padding:7px 10px;text-align:right;border-bottom:1px solid #2c3040}");
         page.append("th{position:sticky;top:0;background:#20232d}td.name,th.name{text-align:left;position:relative}");
         page.append(".bar{position:absolute;left:0;top:0;bottom:0;background:rgba(227,140,45,.28)}td.name span:last-child{position:relative}");
@@ -225,6 +225,7 @@ public final class PathReportWriter {
         page.append("<p class=\"note\">Queue includes sample, and sample includes block capture; do not add those three. Async search is worker time, stamped on the tick the result returns, and is not part of tick.</p>");
         page.append("<h2>维度 / Dimension</h2><p class=\"note\">空维度会把每拍均值拉低。页面默认打开队列最长的维度。Empty dimensions pull per-tick averages down. The page opens on the dimension with the longest queue.</p>");
         page.append("<div id=\"dimensions\"></div><div id=\"ranges\"></div>");
+        page.append("<h2>TPS</h2><p class=\"note\">和 Spark 的 5 秒 TPS 同一算法：两次服务器 tick 结束的间隔里一拍记 1，按间隔加权，不超过 20。整服一条线，不随维度变化。Same formula as Spark's 5s TPS. One server-wide line.</p><div id=\"tpsSeries\"></div><canvas id=\"tpsChart\" width=\"1100\" height=\"160\"></canvas>");
         page.append("<h2>主线程耗时 / Main-thread time</h2><p class=\"note\">折线是每个时间桶的峰值。红色虚线是 50 ms。Peak per bucket. The red dashed line is 50 ms.</p><div id=\"mainSeries\"></div><canvas id=\"timeChart\" width=\"1100\" height=\"280\"></canvas>");
         page.append("<h2>后台寻路 / Async search</h2><p class=\"note\">单独一条轴，避免工作线程耗时把主线程尖峰压扁。Its own axis, so worker time does not flatten main-thread spikes.</p><div id=\"searchSeries\"></div><canvas id=\"searchChart\" width=\"1100\" height=\"160\"></canvas>");
         page.append("<h2>人数 / People</h2><p class=\"note\">折线是每个时间桶的峰值。Peak per bucket.</p><div id=\"peopleSeries\"></div><canvas id=\"peopleChart\" width=\"1100\" height=\"220\"></canvas>");
@@ -625,7 +626,11 @@ public final class PathReportWriter {
                 series("rejected", "线程拒绝", "Worker rejects", "次", "flow", "#ff4d6d", false, false,
                         "线程池拒绝了新搜索", "The worker pool rejected a new search", sample -> sample.rejected()),
                 series("not_ticking", "模拟距离外", "Outside simulation", "次", "flow", "#f0a202", true, false,
-                        "人不在模拟距离里，被放回队列，不占用新区段", "Requeued because the chunk was not entity-ticking", sample -> sample.notTicking()));
+                        "人不在模拟距离里，被放回队列，不占用新区段", "Requeued because the chunk was not entity-ticking", sample -> sample.notTicking()),
+                series("server_tick_ms", "服务器刻", "Server tick", "ms", "table", "", false, false,
+                        "两次服务器 tick 结束之间的间隔，含空等", "Wall time between server tick ends, including idle wait", sample -> sample.serverTickMs()),
+                series("tps", "TPS", "TPS", "tps", "tps", "#8bd17c", true, false,
+                        "Spark 的 5 秒 TPS，按 tick 间隔加权，不超过 20", "Spark 5s TPS, weighted by tick interval, capped at 20", sample -> sample.tps()));
     }
 
     private static Series series(String key, String zh, String en, String unit, String chart, String color, boolean shown, boolean tickShare,
@@ -661,6 +666,7 @@ public final class PathReportWriter {
               mountSeries('searchSeries', 'search');
               mountSeries('peopleSeries', 'people');
               mountSeries('flowSeries', 'flow');
+              mountSeries('tpsSeries', 'tps');
               paintDimensions();
               paintRanges();
               renderPack();
@@ -716,6 +722,7 @@ public final class PathReportWriter {
               return scoped.filter(row => row[0] >= start);
             }
             function drawAll() {
+              draw(document.getElementById('tpsChart'), 'tps', 'last', false);
               draw(document.getElementById('timeChart'), 'main', 'max', true);
               draw(document.getElementById('searchChart'), 'search', 'max', false);
               draw(document.getElementById('peopleChart'), 'people', 'max', false);
@@ -742,6 +749,7 @@ public final class PathReportWriter {
               let max = 0.001;
               buckets.forEach(b => items.forEach(item => { if (b[item.key] > max) max = b[item.key]; }));
               if (markTick) max = Math.max(max, 50);
+              if (group === 'tps') max = Math.max(max, 20);
               ctx.strokeStyle = '#343846';
               ctx.beginPath();
               ctx.moveTo(56, 16);
@@ -751,6 +759,19 @@ public final class PathReportWriter {
               ctx.fillStyle = '#a7adbd';
               ctx.fillText(max >= 100 ? String(Math.round(max)) : max.toFixed(2), 4, 24);
               ctx.fillText('0', 40, h - 32);
+              if (group === 'tps') {
+                const y = h - 28 - (h - 52) * (20 / max);
+                ctx.save();
+                ctx.strokeStyle = '#8bd17c';
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(56, y);
+                ctx.lineTo(w - 12, y);
+                ctx.stroke();
+                ctx.restore();
+                ctx.fillStyle = '#8bd17c';
+                ctx.fillText('20', w - 36, Math.max(16, y - 4));
+              }
               if (markTick) {
                 const y = h - 28 - (h - 52) * (50 / max);
                 ctx.save();
@@ -792,12 +813,15 @@ public final class PathReportWriter {
                 if (!current || current.slot !== slot) {
                   if (current) groups.push(current);
                   current = { slot: slot, t: row[0], values: {} };
-                  items.forEach(item => { current.values[item.key] = 0; });
+                  items.forEach(item => { current.values[item.key] = mode === 'min' ? Infinity : 0; });
                 }
                 current.t = row[0];
                 items.forEach(item => {
                   const value = row[item.i] || 0;
-                  current.values[item.key] = mode === 'max' ? Math.max(current.values[item.key], value) : current.values[item.key] + value;
+                  if (mode === 'max') current.values[item.key] = Math.max(current.values[item.key], value);
+                  else if (mode === 'min') current.values[item.key] = Math.min(current.values[item.key], value);
+                  else if (mode === 'last') current.values[item.key] = value;
+                  else current.values[item.key] += value;
                 });
               });
               if (current) groups.push(current);

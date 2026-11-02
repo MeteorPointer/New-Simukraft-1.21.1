@@ -36,6 +36,7 @@ final class SimuKraftConfigWidgets {
     static final int TEXT_TITLE = 0xFFFFFFFF;
     static final int TEXT_MUTED = 0xFFAAAAAA;
     static final int TEXT_HIGHLIGHT = 0xFF88CCFF;
+    static final int TEXT_WARNING = 0xFFFFCC33;
     static final float TEXT_ROLL_SPEED = 0.35F;
     private static final int SCREEN_MARGIN = 20;
     private static final int NARROW_SCREEN_WIDTH = 420;
@@ -185,6 +186,31 @@ final class SimuKraftConfigWidgets {
             layout.flexShrink(0);
         });
         row.addChild(label(label, Horizontal.LEFT, TEXT, 24, TextWrap.HIDE).layout(layout -> {
+            layout.flex(1);
+            layout.height(24);
+        }));
+        row.addChild(control);
+        return row;
+    }
+
+    /**
+     * warningRow：带警告符号的调试行。符号固定在名称左侧。
+     */
+    static UIElement warningRow(Component label, UIElement control) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.height(30);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(8);
+            layout.flexShrink(0);
+        });
+        row.addChild(label(Component.literal("⚠"), Horizontal.CENTER, TEXT_WARNING, 24, TextWrap.HIDE).layout(layout -> {
+            layout.width(16);
+            layout.height(24);
+            layout.flexShrink(0);
+        }));
+        row.addChild(label(label, Horizontal.LEFT, TEXT_WARNING, 24, TextWrap.HIDE).layout(layout -> {
             layout.flex(1);
             layout.height(24);
         }));

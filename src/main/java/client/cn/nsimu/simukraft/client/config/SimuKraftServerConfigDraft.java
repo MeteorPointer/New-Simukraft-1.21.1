@@ -12,6 +12,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 final class SimuKraftServerConfigDraft {
     double cityChunkPrice;
+    int dailyRentPercent;
     boolean blacklistProtection;
     boolean logBlacklistSkippedBlocks;
     boolean claimProtection;
@@ -37,6 +38,7 @@ final class SimuKraftServerConfigDraft {
     int pathRepathCooldownTicks;
     int pathCacheTtlTicks;
     boolean pathDebug;
+    boolean forceLoadAllNpcs;
     int buildingIntegrityAutoDemolishThresholdPercent;
     int buildingIntegrityCheckIntervalTicks;
     double buildingIntegrityRepairMoneyPerBlock;
@@ -89,6 +91,7 @@ final class SimuKraftServerConfigDraft {
      */
     void reloadFromLive() {
         cityChunkPrice = ServerConfig.CITY_CHUNK_PRICE.get();
+        dailyRentPercent = ServerConfig.DAILY_RENT_PERCENT.get();
         blacklistProtection = ServerConfig.ENABLE_BLACKLIST_PROTECTION.get();
         logBlacklistSkippedBlocks = ServerConfig.LOG_BLACKLIST_SKIPPED_BLOCKS.get();
         claimProtection = ServerConfig.ENABLE_CLAIM_PROTECTION.get();
@@ -114,6 +117,7 @@ final class SimuKraftServerConfigDraft {
         pathRepathCooldownTicks = ServerConfig.PATH_REPATH_COOLDOWN_TICKS.get();
         pathCacheTtlTicks = ServerConfig.PATH_CACHE_TTL_TICKS.get();
         pathDebug = ServerConfig.PATH_DEBUG.get();
+        forceLoadAllNpcs = ServerConfig.FORCE_LOAD_ALL_NPCS.get();
         buildingIntegrityAutoDemolishThresholdPercent = ServerConfig.BUILDING_INTEGRITY_AUTO_DEMOLISH_THRESHOLD_PERCENT.get();
         buildingIntegrityCheckIntervalTicks = ServerConfig.BUILDING_INTEGRITY_CHECK_INTERVAL_TICKS.get();
         buildingIntegrityRepairMoneyPerBlock = ServerConfig.BUILDING_INTEGRITY_REPAIR_MONEY_PER_BLOCK.get();
@@ -155,6 +159,7 @@ final class SimuKraftServerConfigDraft {
      */
     void resetToDefaults() {
         cityChunkPrice = 10.0D;
+        dailyRentPercent = 30;
         blacklistProtection = true;
         logBlacklistSkippedBlocks = true;
         claimProtection = true;
@@ -180,6 +185,7 @@ final class SimuKraftServerConfigDraft {
         pathRepathCooldownTicks = 60;
         pathCacheTtlTicks = 1200;
         pathDebug = false;
+        forceLoadAllNpcs = false;
         buildingIntegrityAutoDemolishThresholdPercent = 30;
         buildingIntegrityCheckIntervalTicks = 200;
         buildingIntegrityRepairMoneyPerBlock = 0.05D;
@@ -221,14 +227,14 @@ final class SimuKraftServerConfigDraft {
      */
     void saveToLive() {
         PacketDistributor.sendToServer(new ServerConfigSavePacket(
-                cityChunkPrice, blacklistProtection, logBlacklistSkippedBlocks, claimProtection,
+                cityChunkPrice, dailyRentPercent, blacklistProtection, logBlacklistSkippedBlocks, claimProtection,
                 npcNameStyle,
                 familyPregnancyDurationDays, familyPostpartumRecoveryDays, familyMarriageChancePerDay, familyPregnancyChancePerDay,
                 medicalLowHealthThreshold, medicalHealIntervalTicks, medicalHealAmount, medicalDiseaseChancePerDay, medicalDiseaseTreatmentTicks,
                 farmAreaRadius, farmWorkIntervalTicks, farmActionsPerCycle,
                 pathMaxLoadedCitizenEntities, pathMaxActiveCitizens, pathMaxNewRequestsPerTick,
                 pathWorkerThreads, pathLocalRadiusBlocks, pathFarMovementTeleportDistance,
-                pathRepathCooldownTicks, pathCacheTtlTicks, pathDebug,
+                pathRepathCooldownTicks, pathCacheTtlTicks, pathDebug, forceLoadAllNpcs,
                 buildingIntegrityAutoDemolishThresholdPercent, buildingIntegrityCheckIntervalTicks,
                 buildingIntegrityRepairMoneyPerBlock, npcMaxLevel,
                 builderXpGain, builderXpPerBlock, plannerXpGain, plannerXpPerBlock,

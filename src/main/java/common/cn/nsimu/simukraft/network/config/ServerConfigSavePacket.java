@@ -18,6 +18,7 @@ import java.util.List;
 
 public record ServerConfigSavePacket(
         double cityChunkPrice,
+        int dailyRentPercent,
         boolean blacklistProtection,
         boolean logBlacklistSkippedBlocks,
         boolean claimProtection,
@@ -43,6 +44,7 @@ public record ServerConfigSavePacket(
         int pathRepathCooldownTicks,
         int pathCacheTtlTicks,
         boolean pathDebug,
+        boolean forceLoadAllNpcs,
         int buildingIntegrityAutoDemolishThresholdPercent,
         int buildingIntegrityCheckIntervalTicks,
         double buildingIntegrityRepairMoneyPerBlock,
@@ -89,6 +91,7 @@ public record ServerConfigSavePacket(
 
     public static void encode(RegistryFriendlyByteBuf buf, ServerConfigSavePacket p) {
         buf.writeDouble(p.cityChunkPrice);
+        buf.writeVarInt(p.dailyRentPercent);
         buf.writeBoolean(p.blacklistProtection);
         buf.writeBoolean(p.logBlacklistSkippedBlocks);
         buf.writeBoolean(p.claimProtection);
@@ -114,6 +117,7 @@ public record ServerConfigSavePacket(
         buf.writeVarInt(p.pathRepathCooldownTicks);
         buf.writeVarInt(p.pathCacheTtlTicks);
         buf.writeBoolean(p.pathDebug);
+        buf.writeBoolean(p.forceLoadAllNpcs);
         buf.writeVarInt(p.buildingIntegrityAutoDemolishThresholdPercent);
         buf.writeVarInt(p.buildingIntegrityCheckIntervalTicks);
         buf.writeDouble(p.buildingIntegrityRepairMoneyPerBlock);
@@ -153,12 +157,12 @@ public record ServerConfigSavePacket(
 
     public static ServerConfigSavePacket decode(RegistryFriendlyByteBuf buf) {
         return new ServerConfigSavePacket(
-                buf.readDouble(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), CitizenNameStyle.fromName(buf.readUtf(16)),
+                buf.readDouble(), buf.readVarInt(), buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), CitizenNameStyle.fromName(buf.readUtf(16)),
                 buf.readVarInt(), buf.readVarInt(), buf.readDouble(), buf.readDouble(),
                 buf.readDouble(), buf.readVarInt(), buf.readDouble(), buf.readDouble(), buf.readVarInt(),
                 buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
                 buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
-                buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean(),
+                buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readBoolean(), buf.readBoolean(),
                 buf.readVarInt(), buf.readVarInt(), buf.readDouble(),
                 buf.readVarInt(), buf.readBoolean(), buf.readVarInt(), buf.readBoolean(), buf.readVarInt(),
                 buf.readDouble(), buf.readVarInt(), buf.readDouble(), buf.readDouble(), buf.readDouble(),
@@ -176,6 +180,7 @@ public record ServerConfigSavePacket(
             return;
         }
         ServerConfig.CITY_CHUNK_PRICE.set(p.cityChunkPrice);
+        ServerConfig.DAILY_RENT_PERCENT.set(Math.clamp(p.dailyRentPercent, 0, 100));
         ServerConfig.ENABLE_BLACKLIST_PROTECTION.set(p.blacklistProtection);
         ServerConfig.LOG_BLACKLIST_SKIPPED_BLOCKS.set(p.logBlacklistSkippedBlocks);
         ServerConfig.ENABLE_CLAIM_PROTECTION.set(p.claimProtection);
@@ -201,6 +206,7 @@ public record ServerConfigSavePacket(
         ServerConfig.PATH_REPATH_COOLDOWN_TICKS.set(p.pathRepathCooldownTicks);
         ServerConfig.PATH_CACHE_TTL_TICKS.set(p.pathCacheTtlTicks);
         ServerConfig.PATH_DEBUG.set(p.pathDebug);
+        ServerConfig.FORCE_LOAD_ALL_NPCS.set(p.forceLoadAllNpcs);
         ServerConfig.BUILDING_INTEGRITY_AUTO_DEMOLISH_THRESHOLD_PERCENT.set(p.buildingIntegrityAutoDemolishThresholdPercent);
         ServerConfig.BUILDING_INTEGRITY_CHECK_INTERVAL_TICKS.set(p.buildingIntegrityCheckIntervalTicks);
         ServerConfig.BUILDING_INTEGRITY_REPAIR_MONEY_PER_BLOCK.set(p.buildingIntegrityRepairMoneyPerBlock);

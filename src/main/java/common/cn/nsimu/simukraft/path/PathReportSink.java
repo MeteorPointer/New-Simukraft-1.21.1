@@ -47,6 +47,13 @@ public final class PathReportSink {
         }
     }
 
+    public static void serverTick(long nanos) {
+        Listener current = listener;
+        if (current != NONE && nanos > 0L) {
+            current.serverTick(nanos);
+        }
+    }
+
     /**
      * 报告模块实现这个接口。寻路包不依赖报告的存储和导出。
      */
@@ -61,6 +68,9 @@ public final class PathReportSink {
         }
 
         default void label(String path, String value) {
+        }
+
+        default void serverTick(long nanos) {
         }
     }
 }

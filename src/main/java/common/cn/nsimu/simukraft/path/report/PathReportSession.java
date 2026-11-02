@@ -19,6 +19,8 @@ public final class PathReportSession implements PathReportSink.Listener {
     private final Map<String, Long> tickCounts = new LinkedHashMap<>();
     private final Map<String, String> tickLabels = new LinkedHashMap<>();
     private final List<Sample> samples = new ArrayList<>();
+    private final SparkTps sparkTps = new SparkTps();
+    private int unstamped;
     private long ticks;
 
     @Override
@@ -28,10 +30,25 @@ public final class PathReportSession implements PathReportSink.Listener {
         if ("tick".equals(path)) {
             ticks++;
             samples.add(snapshot(System.nanoTime() - startedAt));
+            unstamped++;
             tickTimes.clear();
             tickCounts.clear();
             tickLabels.clear();
         }
+    }
+
+    /**
+     * serverTick：用两次服务器 tick 结束的间隔写上 Spark 的 5 秒 TPS。
+     */
+    @Override
+    public void serverTick(long nanos) {
+        double reading = sparkTps.add(nanos);
+        double millis = nanos / 1_000_000.0D;
+        int from = Math.max(0, samples.size() - unstamped);
+        for (int i = from; i < samples.size(); i++) {
+            samples.set(i, samples.get(i).withServerTick(millis, reading));
+        }
+        unstamped = 0;
     }
 
     @Override
@@ -91,6 +108,8 @@ public final class PathReportSession implements PathReportSink.Listener {
                 tickCounts.getOrDefault("flow/completed", 0L),
                 tickCounts.getOrDefault("flow/rejected", 0L),
                 tickCounts.getOrDefault("flow/notTicking", 0L),
+                0.0D,
+                0.0D,
                 tickLabels.getOrDefault("dimension", ""));
     }
 
@@ -262,6 +281,14 @@ public final class PathReportSession implements PathReportSink.Listener {
                          long queueSize, long active, long pending, long padding,
                          long freshSections, long cacheHits, long examined, long waiting, long failures,
                          long started, long sampleMiss, long budgetHold, long blocked, long completedSearches,
-                         long rejected, long notTicking, String dimension) {
+                         long rejected, long notTicking, double serverTickMs, double tps, String dimension) {
+        private Sample withServerTick(double serverTickMs, double tps) {
+            return new Sample(offsetMs, tickMs, captureMs, sampleMs, queueMs, searchMs,
+                    activeMs, doorsMs, fieldMs, completedMs,
+                    queueSize, active, pending, padding,
+                    freshSections, cacheHits, examined, waiting, failures,
+                    started, sampleMiss, budgetHold, blocked, completedSearches,
+                    rejected, notTicking, serverTickMs, tps, dimension);
+        }
     }
 }
