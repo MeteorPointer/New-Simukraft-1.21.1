@@ -72,6 +72,7 @@ public final class BuildingBoundsRenderer {
     // 清理客户端建筑边界显示状态，避免切换存档后仍渲染旧控制盒边界。
     public static void clearAll() {
         DISPLAYED_BUILDING_BOUNDS.clear();
+        BuildingBoundsPreview.clearAll();
         rtsTargetPos = null;
         rtsSelectedPos = null;
         rtsBuildingBounds = List.of();
@@ -80,8 +81,41 @@ public final class BuildingBoundsRenderer {
         clearPreviewDetectionCache();
     }
 
+    public enum BuildingBoundsMode {
+        OFF,
+        BOUNDS,
+        PREVIEW
+    }
+
     public static boolean isBuildingBoundsVisible(BlockPos controlBoxPos) {
-        return controlBoxPos != null && DISPLAYED_BUILDING_BOUNDS.containsKey(controlBoxPos.immutable());
+        return mode(controlBoxPos) != BuildingBoundsMode.OFF;
+    }
+
+    public static BuildingBoundsMode mode(BlockPos controlBoxPos) {
+        if (controlBoxPos == null) {
+            return BuildingBoundsMode.OFF;
+        }
+        DisplayedBuildingBounds shown = DISPLAYED_BUILDING_BOUNDS.get(controlBoxPos.immutable());
+        return shown == null ? BuildingBoundsMode.OFF : shown.mode();
+    }
+
+    /**
+     * cycleDisplayedBounds：关、显示边框、NBT 预览，循环切换。
+     */
+    public static void cycleDisplayedBounds(BlockPos controlBoxPos, AABB bounds, List<DisplayMarker> markers) {
+        if (controlBoxPos == null) {
+            return;
+        }
+        BuildingBoundsMode next = switch (mode(controlBoxPos)) {
+            case OFF -> BuildingBoundsMode.BOUNDS;
+            case BOUNDS -> BuildingBoundsMode.PREVIEW;
+            case PREVIEW -> BuildingBoundsMode.OFF;
+        };
+        if (next == BuildingBoundsMode.OFF || bounds == null) {
+            setBuildingBoundsVisibleWithMarkers(controlBoxPos, null, List.of(), false);
+            return;
+        }
+        putDisplayed(controlBoxPos, bounds, markers, next);
     }
 
     public static void setBuildingBoundsVisible(BlockPos controlBoxPos, AABB bounds, boolean visible) {
@@ -103,16 +137,29 @@ public final class BuildingBoundsRenderer {
         }
         BlockPos key = controlBoxPos.immutable();
         if (visible && bounds != null) {
-            List<DisplayMarker> markerList = markers == null
-                    ? List.of()
-                    : markers.stream()
-                    .filter(marker -> marker != null && marker.pos() != null)
-                    .map(marker -> new DisplayMarker(marker.pos().immutable(), marker.color()))
-                    .distinct()
-                    .toList();
-            DISPLAYED_BUILDING_BOUNDS.put(key, new DisplayedBuildingBounds(bounds, markerList));
+            DisplayedBuildingBounds existing = DISPLAYED_BUILDING_BOUNDS.get(key);
+            BuildingBoundsMode mode = existing == null ? BuildingBoundsMode.BOUNDS : existing.mode();
+            putDisplayed(controlBoxPos, bounds, markers, mode);
         } else {
             DISPLAYED_BUILDING_BOUNDS.remove(key);
+            BuildingBoundsPreview.clear(key);
+        }
+    }
+
+    private static void putDisplayed(BlockPos controlBoxPos, AABB bounds, List<DisplayMarker> markers, BuildingBoundsMode mode) {
+        BlockPos key = controlBoxPos.immutable();
+        List<DisplayMarker> markerList = markers == null
+                ? List.of()
+                : markers.stream()
+                .filter(marker -> marker != null && marker.pos() != null)
+                .map(marker -> new DisplayMarker(marker.pos().immutable(), marker.color()))
+                .distinct()
+                .toList();
+        DISPLAYED_BUILDING_BOUNDS.put(key, new DisplayedBuildingBounds(bounds, markerList, mode));
+        if (mode == BuildingBoundsMode.PREVIEW) {
+            BuildingBoundsPreview.prepare(key, bounds);
+        } else {
+            BuildingBoundsPreview.clear(key);
         }
     }
 
@@ -221,6 +268,7 @@ public final class BuildingBoundsRenderer {
         }
         if (!rtsPreview) {
             renderSelectedBuildingBounds(poseStack, cameraPos);
+            BuildingBoundsPreview.render(event, DISPLAYED_BUILDING_BOUNDS);
             renderRtsTarget(poseStack, cameraPos);
         }
     }
@@ -593,7 +641,7 @@ public final class BuildingBoundsRenderer {
     public record DisplayMarker(BlockPos pos, int color) {
     }
 
-    private record DisplayedBuildingBounds(AABB bounds, List<DisplayMarker> markers) {
+    record DisplayedBuildingBounds(AABB bounds, List<DisplayMarker> markers, BuildingBoundsMode mode) {
     }
 
     /**

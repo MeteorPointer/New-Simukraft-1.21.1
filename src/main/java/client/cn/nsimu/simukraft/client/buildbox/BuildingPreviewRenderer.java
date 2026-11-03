@@ -100,6 +100,30 @@ public final class BuildingPreviewRenderer {
                 || stage == RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS;
     }
 
+    /**
+     * renderFaded：把预览网格画成比实体建筑更透的一层。
+     */
+    public static void renderFaded(PreviewMesh mesh, Matrix4f modelView, Matrix4f projection, Vec3 cameraPos, float alpha) {
+        if (mesh == null || mesh.isEmpty()) {
+            return;
+        }
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableCull();
+        RenderSystem.enableDepthTest();
+        RenderSystem.depthMask(false);
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
+        drawVbo(mesh.solidBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
+        drawVbo(mesh.cutoutMippedBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
+        drawVbo(mesh.cutoutBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
+        drawVbo(mesh.translucentBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
+        drawVbo(mesh.tripwireBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
+        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+        RenderSystem.depthMask(true);
+        RenderSystem.enableCull();
+        RenderSystem.disableBlend();
+    }
+
     private static void drawVbo(VertexBuffer vertexBuffer, RenderType renderType, Matrix4f modelViewMatrix, Matrix4f projection, BlockPos origin, Vec3 cameraPos, ShaderInstance shader) {
         if (vertexBuffer == null) {
             return;

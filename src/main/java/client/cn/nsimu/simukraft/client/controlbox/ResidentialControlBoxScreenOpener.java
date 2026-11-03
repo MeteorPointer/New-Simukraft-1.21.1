@@ -27,6 +27,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 
@@ -238,17 +239,25 @@ public final class ResidentialControlBoxScreenOpener {
     }
 
     private static Component boundsText(ResidentialControlBoxOpenResponsePacket packet) {
-        return Component.translatable("gui.residential_control_box.show_building_bounds", onOffText(BuildingBoundsRenderer.isBuildingBoundsVisible(packet.controlBoxPos())));
+        return Component.translatable("gui.residential_control_box.show_building_bounds", modeText(BuildingBoundsRenderer.mode(packet.controlBoxPos())));
     }
 
-    private static Component onOffText(boolean enabled) {
-        return Component.translatable(enabled ? "gui.switch.on" : "gui.switch.off");
+    private static Component modeText(BuildingBoundsRenderer.BuildingBoundsMode mode) {
+        return switch (mode) {
+            case OFF -> Component.translatable("gui.switch.off");
+            case BOUNDS -> Component.translatable("gui.switch.on");
+            case PREVIEW -> Component.translatable("gui.simukraft.building_bounds.preview");
+        };
     }
 
     private static void toggleBounds(ResidentialControlBoxOpenResponsePacket packet) {
-        boolean next = !BuildingBoundsRenderer.isBuildingBoundsVisible(packet.controlBoxPos());
         AABB bounds = new AABB(packet.boundsMin().getX(), packet.boundsMin().getY(), packet.boundsMin().getZ(), packet.boundsMax().getX() + 1, packet.boundsMax().getY() + 1, packet.boundsMax().getZ() + 1);
-        BuildingBoundsRenderer.setBuildingBoundsVisible(packet.controlBoxPos(), bounds, packet.residentialPoiPositions(), next);
+        List<BuildingBoundsRenderer.DisplayMarker> markers = packet.residentialPoiPositions() == null
+                ? List.of()
+                : packet.residentialPoiPositions().stream()
+                .map(pos -> new BuildingBoundsRenderer.DisplayMarker(pos, 0xAA00FF66))
+                .toList();
+        BuildingBoundsRenderer.cycleDisplayedBounds(packet.controlBoxPos(), bounds, markers);
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
             minecraft.setScreen(new ResidentialControlBoxScreen(createUi(packet), Component.empty()));

@@ -373,20 +373,23 @@ public final class IndustrialControlBoxScreenOpener {
     }
 
     private static Component boundsText(IndustrialControlBoxOpenResponsePacket packet) {
-        return Component.translatable("gui.simukraft.industrial.show_building_bounds", onOffText(BuildingBoundsRenderer.isBuildingBoundsVisible(packet.boxPos())));
+        return Component.translatable("gui.simukraft.industrial.show_building_bounds", modeText(BuildingBoundsRenderer.mode(packet.boxPos())));
     }
 
-    private static Component onOffText(boolean enabled) {
-        return Component.translatable(enabled ? "gui.switch.on" : "gui.switch.off");
+    private static Component modeText(BuildingBoundsRenderer.BuildingBoundsMode mode) {
+        return switch (mode) {
+            case OFF -> Component.translatable("gui.switch.off");
+            case BOUNDS -> Component.translatable("gui.switch.on");
+            case PREVIEW -> Component.translatable("gui.simukraft.building_bounds.preview");
+        };
     }
 
     private static void toggleBounds(IndustrialControlBoxOpenResponsePacket packet) {
-        boolean next = !BuildingBoundsRenderer.isBuildingBoundsVisible(packet.boxPos());
-        if (next) {
-            showBounds(packet);
-        } else {
-            BuildingBoundsRenderer.setBuildingBoundsVisible(packet.boxPos(), null, false);
-        }
+        AABB bounds = packet.hasBuildingBounds()
+                ? new AABB(packet.boundsMin().getX(), packet.boundsMin().getY(), packet.boundsMin().getZ(),
+                packet.boundsMax().getX() + 1, packet.boundsMax().getY() + 1, packet.boundsMax().getZ() + 1)
+                : null;
+        BuildingBoundsRenderer.cycleDisplayedBounds(packet.boxPos(), bounds, markerList(packet));
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
             minecraft.setScreen(new IndustrialControlBoxScreen(createUi(packet), Component.empty()));

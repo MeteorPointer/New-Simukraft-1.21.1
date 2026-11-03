@@ -34,6 +34,13 @@ public final class PreviewMeshBuilder {
     }
 
     public static PreviewMesh build(List<PreviewBlockData> allBlocks) {
+        return build(allBlocks, Map.of());
+    }
+
+    /**
+     * build：occluders 只参与邻面剔除，不画出来。用来挡住贴着已有方块的那一面。
+     */
+    public static PreviewMesh build(List<PreviewBlockData> allBlocks, Map<Long, BlockState> occluders) {
         if (allBlocks == null || allBlocks.isEmpty()) {
             return PreviewMesh.EMPTY;
         }
@@ -51,7 +58,7 @@ public final class PreviewMeshBuilder {
         List<PreviewBlockData> entityBlocks = new ArrayList<>();
         BlockPos meshOrigin = findMeshOrigin(allBlocks);
         // 预览视图只暴露建筑自身方块，避免模型剔除读取真实世界相邻方块。
-        BlockAndTintGetter previewView = new PreviewBlockView(minecraft.level, allBlocks);
+        BlockAndTintGetter previewView = new PreviewBlockView(minecraft.level, allBlocks, occluders);
 
         ModelBlockRenderer modelRenderer = minecraft.getBlockRenderer().getModelRenderer();
 
@@ -170,9 +177,11 @@ public final class PreviewMeshBuilder {
     private static final class PreviewBlockView implements BlockAndTintGetter {
         private final BlockAndTintGetter delegate;
         private final Map<Long, BlockState> states = new HashMap<>();
+        private final Map<Long, BlockState> occluders;
 
-        private PreviewBlockView(BlockAndTintGetter delegate, List<PreviewBlockData> blocks) {
+        private PreviewBlockView(BlockAndTintGetter delegate, List<PreviewBlockData> blocks, Map<Long, BlockState> occluders) {
             this.delegate = delegate;
+            this.occluders = occluders == null ? Map.of() : occluders;
             for (PreviewBlockData block : blocks) {
                 if (!block.state().isAir()) {
                     states.put(block.pos().asLong(), block.state());
@@ -187,8 +196,16 @@ public final class PreviewMeshBuilder {
 
         @Override
         public BlockState getBlockState(BlockPos pos) {
-            // 未在投影内的坐标返回空气，使内部贴合面能被正确剔除。
-            return states.getOrDefault(pos.asLong(), Blocks.AIR.defaultBlockState());
+            long key = pos.asLong();
+            BlockState preview = states.get(key);
+            if (preview != null) {
+                return preview;
+            }
+            BlockState occluder = occluders.get(key);
+            if (occluder != null) {
+                return occluder;
+            }
+            return Blocks.AIR.defaultBlockState();
         }
 
         @Override

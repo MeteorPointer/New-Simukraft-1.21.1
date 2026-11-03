@@ -30,6 +30,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.List;
+
 /**
  * GlobalMarketControlBoxScreenOpener: 仿商业控制箱的全球市场雇佣管理界面。
  */
@@ -196,20 +198,19 @@ public final class GlobalMarketControlBoxScreenOpener {
     }
 
     private static Component boundsText(GlobalMarketControlBoxOpenResponsePacket packet) {
-        return Component.translatable("gui.simukraft.commercial.show_building_bounds", onOffText(BuildingBoundsRenderer.isBuildingBoundsVisible(packet.boxPos())));
+        return Component.translatable("gui.simukraft.commercial.show_building_bounds", modeText(BuildingBoundsRenderer.mode(packet.boxPos())));
     }
 
-    private static Component onOffText(boolean enabled) {
-        return Component.translatable(enabled ? "gui.switch.on" : "gui.switch.off");
+    private static Component modeText(BuildingBoundsRenderer.BuildingBoundsMode mode) {
+        return switch (mode) {
+            case OFF -> Component.translatable("gui.switch.off");
+            case BOUNDS -> Component.translatable("gui.switch.on");
+            case PREVIEW -> Component.translatable("gui.simukraft.building_bounds.preview");
+        };
     }
 
     private static void toggleBounds(GlobalMarketControlBoxOpenResponsePacket packet) {
-        boolean next = !BuildingBoundsRenderer.isBuildingBoundsVisible(packet.boxPos());
-        if (next) {
-            showBounds(packet);
-        } else {
-            BuildingBoundsRenderer.setBuildingBoundsVisible(packet.boxPos(), null, false);
-        }
+        BuildingBoundsRenderer.cycleDisplayedBounds(packet.boxPos(), boundsOf(packet), List.of());
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft != null) {
             minecraft.setScreen(new GlobalMarketControlBoxScreen(createUi(packet), Component.empty()));
@@ -227,17 +228,24 @@ public final class GlobalMarketControlBoxScreenOpener {
         }
     }
 
-    private static void showBounds(GlobalMarketControlBoxOpenResponsePacket packet) {
+    private static AABB boundsOf(GlobalMarketControlBoxOpenResponsePacket packet) {
         if (!packet.hasBuildingBounds()) {
-            return;
+            return null;
         }
-        AABB bounds = new AABB(
+        return new AABB(
                 packet.boundsMin().getX(),
                 packet.boundsMin().getY(),
                 packet.boundsMin().getZ(),
                 packet.boundsMax().getX() + 1,
                 packet.boundsMax().getY() + 1,
                 packet.boundsMax().getZ() + 1);
+    }
+
+    private static void showBounds(GlobalMarketControlBoxOpenResponsePacket packet) {
+        AABB bounds = boundsOf(packet);
+        if (bounds == null) {
+            return;
+        }
         BuildingBoundsRenderer.setBuildingBoundsVisible(packet.boxPos(), bounds, true);
     }
 

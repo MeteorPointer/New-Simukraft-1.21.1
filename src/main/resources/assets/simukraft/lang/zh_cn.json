@@ -708,6 +708,7 @@
     "message.simukraft.construction.outside_city":  "当前预览建筑超出了你所属城市的区块范围。",
     "message.simukraft.building_preview.open_failed":  "建筑 %s 的预览界面打开失败。",
     "gui.button.demolish":  "拆除",
+    "gui.simukraft.building_bounds.preview": "预览",
     "gui.switch.on":  "开",
     "gui.switch.off":  "关",
     "gui.residential_control_box.title":  "住宅控制箱",

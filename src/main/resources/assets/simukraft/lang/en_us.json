@@ -688,6 +688,7 @@
     "message.simukraft.construction.outside_city":  "The current preview building is outside your city's chunks.",
     "message.simukraft.building_preview.open_failed":  "Failed to open preview for building %s.",
     "gui.button.demolish":  "Demolish",
+    "gui.simukraft.building_bounds.preview": "Preview",
     "gui.switch.on":  "On",
     "gui.switch.off":  "Off",
     "gui.residential_control_box.title":  "Residential Control Box",

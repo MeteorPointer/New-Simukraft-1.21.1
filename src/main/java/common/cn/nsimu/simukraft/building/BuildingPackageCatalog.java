@@ -68,6 +68,7 @@ public final class BuildingPackageCatalog {
     public static void clearCache() {
         SNAPSHOTS.clear();
         BuildingBuiltinResourceService.clearCache();
+        BuildingStructureService.clearCache();
     }
 
     public static Path rootDirectory() {

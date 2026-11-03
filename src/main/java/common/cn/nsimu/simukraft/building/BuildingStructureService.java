@@ -21,12 +21,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 public final class BuildingStructureService {
     private static final Map<String, String> LEGACY_BLOCK_REMAPS = Map.of(
             "minecraft:grass", "minecraft:short_grass"
     );
+    private static final Map<String, BuildingStructure> STRUCTURE_CACHE = new ConcurrentHashMap<>();
 
     private BuildingStructureService() {
     }
@@ -53,6 +55,24 @@ public final class BuildingStructureService {
         if (definition == null) {
             return Optional.empty();
         }
+        String cacheKey = definition.category() + "\0" + definition.structureFileName() + "\0" + definition.metaFileName();
+        BuildingStructure cached = STRUCTURE_CACHE.get(cacheKey);
+        if (cached != null) {
+            return Optional.of(cached);
+        }
+        Optional<BuildingStructure> loadedStructure = readStructure(definition);
+        loadedStructure.ifPresent(structure -> STRUCTURE_CACHE.put(cacheKey, structure));
+        return loadedStructure;
+    }
+
+    /**
+     * clearCache：建筑包重新扫描后丢掉已解析的结构，避免预览继续用旧 NBT。
+     */
+    public static void clearCache() {
+        STRUCTURE_CACHE.clear();
+    }
+
+    private static Optional<BuildingStructure> readStructure(BuildingCatalog.BuildingDefinition definition) {
         Optional<BuildingStructureFileLoader.LoadedStructure> loaded = BuildingStructureFileLoader.load(definition);
         if (loaded.isEmpty()) {
             return Optional.empty();
