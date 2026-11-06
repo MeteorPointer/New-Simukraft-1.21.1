@@ -30,6 +30,10 @@ import common.cn.nsimu.simukraft.medical.MedicalDefinitionLoader;
 import common.cn.nsimu.simukraft.medical.MedicalService;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingBoxManager;
 import common.cn.nsimu.simukraft.mineraldrilling.MineralDrillingDefinitionLoader;
+import common.cn.nsimu.simukraft.virtualvein.VirtualVeinDefinitionLoader;
+import common.cn.nsimu.simukraft.virtualvein.VirtualVeinFieldResolver;
+import common.cn.nsimu.simukraft.virtualvein.VirtualVeinLocator;
+import common.cn.nsimu.simukraft.virtualvein.VirtualVeinSlot;
 import common.cn.nsimu.simukraft.network.building.BuildingCacheReloadPacket;
 import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
@@ -45,7 +49,10 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.commands.arguments.coordinates.Vec3Argument;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
+import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.HoverEvent;
+import net.minecraft.ChatFormatting;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -297,7 +304,65 @@ public final class SimuKraftCommand {
                                                         context.getSource(),
                                                         EntityArgument.getEntity(context, "citizen"),
                                                         IntegerArgumentType.getInteger(context, "level"))))))));
+        root.then(Commands.literal("vein")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("find")
+                        .then(Commands.argument("vein", StringArgumentType.word())
+                                .suggests((context, builder) -> SharedSuggestionProvider.suggest(
+                                        VirtualVeinLocator.suggestionIds(), builder))
+                                .executes(context -> findNearestVein(
+                                        context.getSource(),
+                                        StringArgumentType.getString(context, "vein"),
+                                        VirtualVeinLocator.DEFAULT_CELL_RADIUS))
+                                .then(Commands.argument("radius", IntegerArgumentType.integer(1, VirtualVeinLocator.MAX_CELL_RADIUS))
+                                        .executes(context -> findNearestVein(
+                                                context.getSource(),
+                                                StringArgumentType.getString(context, "vein"),
+                                                IntegerArgumentType.getInteger(context, "radius")))))));
         dispatcher.register(root);
+    }
+
+    /**
+     * findNearestVein: 在有限矿区格子里查找最近的指定矿脉。
+     */
+    private static int findNearestVein(CommandSourceStack source, String vein, int radius) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.translatable("message.simukraft.command.vein.player_required"));
+            return 0;
+        }
+        ServerLevel level = player.serverLevel();
+        if (!level.dimension().equals(net.minecraft.world.level.Level.OVERWORLD)) {
+            source.sendFailure(Component.translatable("message.simukraft.command.vein.not_overworld"));
+            return 0;
+        }
+        Optional<VirtualVeinLocator.NearestVein> found = VirtualVeinLocator.findNearest(
+                level, player.blockPosition(), vein, radius);
+        if (found.isEmpty()) {
+            source.sendFailure(Component.translatable(
+                    "message.simukraft.command.vein.not_found",
+                    vein,
+                    radius * VirtualVeinFieldResolver.FIELD_SIZE));
+            return 0;
+        }
+        VirtualVeinLocator.NearestVein nearest = found.get();
+        VirtualVeinSlot slot = nearest.slot();
+        int x = nearest.key().centerX();
+        int z = nearest.key().centerZ();
+        String name = VirtualVeinDefinitionLoader.INSTANCE.localizedName(slot.veinId(), slot.displayName());
+        Component coordinates = Component.literal(x + " " + slot.minY() + " " + z)
+                .withStyle(style -> style.withColor(ChatFormatting.YELLOW)
+                        .withClickEvent(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, "/tp @s " + x + " " + slot.minY() + " " + z))
+                        .withHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT,
+                                Component.translatable("message.simukraft.command.vein.teleport_hint"))));
+        source.sendSuccess(() -> Component.translatable(
+                "message.simukraft.command.vein.found",
+                name,
+                coordinates,
+                nearest.distanceBlocks(),
+                slot.minY(),
+                slot.maxY()), false);
+        return Command.SINGLE_SUCCESS;
     }
 
     /**

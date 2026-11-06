@@ -13,5 +13,5 @@
   },
   "y_range": [64, 128],
   "product": "minecraft:raw_iron",
-  "production": { "min_amount": 2, "max_amount": 11, "period_ticks": 1200 }
+  "production": { "min_amount": 6, "max_amount": 33, "period_ticks": 1200 }
 }

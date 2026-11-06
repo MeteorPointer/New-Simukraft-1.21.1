@@ -78,7 +78,7 @@ tab_index: 1
 
 :item[simukraft:geological_hammer] {spacing=4}
 
-地质锤：右键探测脚下60格内的虚拟矿脉，看看这块地值不值得开发。
+地质锤：右键探测点击处上下256格内的虚拟矿脉，看看这块地值不值得开发。
 
 :::right
 

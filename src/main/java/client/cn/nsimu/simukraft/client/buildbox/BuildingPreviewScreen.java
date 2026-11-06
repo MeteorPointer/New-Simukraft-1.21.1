@@ -1,5 +1,6 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
+import client.cn.nsimu.simukraft.client.ClientSimukraftData;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraManager;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraScreen;
 import client.cn.nsimu.simukraft.client.input.SimuKraftKeyMappings;
@@ -8,6 +9,8 @@ import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
 import client.cn.nsimu.simukraft.client.ui.SlidingInfoPanel;
 import common.cn.nsimu.simukraft.building.BuildingCatalog;
+import common.cn.nsimu.simukraft.building.ConstructionFundsCheck;
+import common.cn.nsimu.simukraft.economy.EconomyService;
 import common.cn.nsimu.simukraft.building.BuildingMetadataReader;
 import common.cn.nsimu.simukraft.building.BuildingStructure;
 import common.cn.nsimu.simukraft.config.ServerConfig;
@@ -48,6 +51,7 @@ public final class BuildingPreviewScreen extends Screen implements FreeCameraScr
     private final int doorCount;
     private boolean replaceWithAir = false;
     private boolean rtsPreviewSession;
+    private boolean retainPreviewOnRemove;
 
     public BuildingPreviewScreen(Screen parent, BuildingCacheService.BuildingMeta building, BlockPos buildBoxPos, BuildingStructure structure) {
         super(Component.translatable("gui.building_preview.title"));
@@ -97,7 +101,10 @@ public final class BuildingPreviewScreen extends Screen implements FreeCameraScr
     @Override
     public void removed() {
         super.removed();
-        // Screen 被任何原因关闭时（含死亡）均需清理预览状态
+        if (retainPreviewOnRemove) {
+            retainPreviewOnRemove = false;
+            return;
+        }
         clearPreviewState();
     }
 
@@ -400,7 +407,21 @@ public final class BuildingPreviewScreen extends Screen implements FreeCameraScr
             }
             return;
         }
+        double cost = constructionCost();
+        double funds = ClientSimukraftData.getCurrentCityFunds();
+        if (ConstructionFundsCheck.isShort(cost, funds)) {
+            retainPreviewOnRemove = true;
+            ConstructionFundsConfirmScreen.open(this, cost, funds, this::startConstruction);
+            return;
+        }
         startConstruction();
+    }
+
+    private double constructionCost() {
+        String amount = structure != null && structure.amount() != null && !structure.amount().isBlank()
+                ? structure.amount()
+                : building.amount();
+        return EconomyService.parseAmount(amount, "construction");
     }
 
     private void exitPreview() {

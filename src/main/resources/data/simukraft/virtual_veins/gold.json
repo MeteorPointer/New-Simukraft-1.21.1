@@ -13,5 +13,5 @@
   },
   "y_range": [-56, -16],
   "product": "minecraft:raw_gold",
-  "production": { "min_amount": 5, "max_amount": 5, "period_ticks": 3600 }
+  "production": { "min_amount": 15, "max_amount": 15, "period_ticks": 3600 }
 }

@@ -10,8 +10,10 @@ import common.cn.nsimu.simukraft.util.SaveScopedCacheKey;
 import common.cn.nsimu.simukraft.virtualvein.*;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -29,6 +31,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public final class MineralDrillingWorkService {
     private static final int MAX_BOXES_PER_TICK = 32;
+    private static final int TICKS_PER_MINUTE = 1200;
+    static final int FILLER_MIN_PER_MINUTE = 40;
+    static final int FILLER_MAX_PER_MINUTE = 100;
+    static final float RARE_DROP_CHANCE = 0.05F;
     private static final ConcurrentMap<String, LevelRuntime> RUNTIMES = new ConcurrentHashMap<>();
 
     private MineralDrillingWorkService() {
@@ -187,6 +193,7 @@ public final class MineralDrillingWorkService {
             runtime.nextProductionTicks.remove(boxPos);
             return;
         }
+        storeByproducts(level, building, data.drillDepth(), productionPeriod(plans));
         boolean drillBitBroken = consumeDrillBitDurability(level, inventory, produced);
         data.setSelectedVeinId(plans.getFirst().slot().veinId());
 
@@ -257,6 +264,127 @@ public final class MineralDrillingWorkService {
      */
     private static int productionPeriod(List<ProductionPlan> plans) {
         return Math.max(1, plans.stream().mapToInt(plan -> plan.slot().periodTicks()).min().orElse(1));
+    }
+
+    /**
+     * storeByproducts: 写入圆石等填充物和低概率珍稀产物。放不下就跳过，不暂停钻井。
+     */
+    private static void storeByproducts(ServerLevel level, PlacedBuildingRecord building, int drillDepth, int periodTicks) {
+        for (ItemStack extra : extraOutputs(level.getRandom(), drillDepth, periodTicks)) {
+            if (extra.isEmpty()) {
+                continue;
+            }
+            if (MineralDrillingOutputService.canStore(level, building, extra)) {
+                MineralDrillingOutputService.store(level, building, extra);
+            }
+        }
+    }
+
+    /**
+     * extraOutputs: 按周期折算每分钟 40~100 的填充物，并各自以 5% 概率附带少量青金石、钻石或粗金。
+     */
+    static List<ItemStack> extraOutputs(RandomSource random, int drillDepth, int periodTicks) {
+        if (random == null) {
+            return List.of();
+        }
+        ArrayList<ItemStack> extras = new ArrayList<>();
+        extras.addAll(fillerStacks(random, drillDepth, periodTicks));
+        extras.addAll(rareStacks(random));
+        return extras;
+    }
+
+    /**
+     * fillerAmount: 把 40~100/分钟 按本轮周期折算成单次件数。
+     */
+    static int fillerAmount(RandomSource random, int periodTicks) {
+        if (random == null) {
+            return 0;
+        }
+        int perMinute = FILLER_MIN_PER_MINUTE + random.nextInt(FILLER_MAX_PER_MINUTE - FILLER_MIN_PER_MINUTE + 1);
+        return Math.max(1, (int) Math.round(perMinute * (Math.max(1, periodTicks) / (double) TICKS_PER_MINUTE)));
+    }
+
+    /**
+     * fillerItemIds: 浅层附带泥土，深层附带深板岩，其余填充物各层都有。
+     */
+    static List<ResourceLocation> fillerItemIds(int drillDepth) {
+        ArrayList<ResourceLocation> ids = new ArrayList<>();
+        ids.add(vanillaItem("cobblestone"));
+        ids.add(vanillaItem("gravel"));
+        ids.add(vanillaItem("granite"));
+        ids.add(vanillaItem("andesite"));
+        ids.add(vanillaItem("diorite"));
+        ids.add(vanillaItem("tuff"));
+        if (drillDepth >= MineralDrillingControlBoxService.SHALLOW_DRILL_MIN_Y) {
+            ids.add(vanillaItem("dirt"));
+        } else {
+            ids.add(vanillaItem("deepslate"));
+        }
+        return List.copyOf(ids);
+    }
+
+    private static List<ItemStack> fillerStacks(RandomSource random, int drillDepth, int periodTicks) {
+        int total = fillerAmount(random, periodTicks);
+        List<ResourceLocation> pool = fillerItemIds(drillDepth);
+        if (total <= 0 || pool.isEmpty()) {
+            return List.of();
+        }
+        int typeCount = 1 + random.nextInt(Math.min(4, pool.size()));
+        ArrayList<ResourceLocation> chosen = new ArrayList<>(pool);
+        for (int index = chosen.size() - 1; index > 0; index--) {
+            int swap = random.nextInt(index + 1);
+            ResourceLocation current = chosen.get(index);
+            chosen.set(index, chosen.get(swap));
+            chosen.set(swap, current);
+        }
+        chosen = new ArrayList<>(chosen.subList(0, typeCount));
+        int[] parts = new int[typeCount];
+        for (int piece = 0; piece < total; piece++) {
+            parts[random.nextInt(typeCount)]++;
+        }
+        ArrayList<ItemStack> stacks = new ArrayList<>();
+        for (int index = 0; index < typeCount; index++) {
+            stacks.addAll(stacksOf(itemOf(chosen.get(index)), parts[index]));
+        }
+        return stacks;
+    }
+
+    private static List<ItemStack> rareStacks(RandomSource random) {
+        ArrayList<ItemStack> stacks = new ArrayList<>();
+        addRare(random, stacks, Items.LAPIS_LAZULI);
+        addRare(random, stacks, Items.DIAMOND);
+        addRare(random, stacks, Items.RAW_GOLD);
+        return stacks;
+    }
+
+    private static void addRare(RandomSource random, List<ItemStack> stacks, Item item) {
+        if (random.nextFloat() >= RARE_DROP_CHANCE) {
+            return;
+        }
+        stacks.addAll(stacksOf(item, 1 + random.nextInt(3)));
+    }
+
+    private static List<ItemStack> stacksOf(Item item, int count) {
+        if (item == null || item == Items.AIR || count <= 0) {
+            return List.of();
+        }
+        ArrayList<ItemStack> stacks = new ArrayList<>();
+        int remaining = count;
+        int maxStack = Math.max(1, item.getDefaultMaxStackSize());
+        while (remaining > 0) {
+            int piece = Math.min(maxStack, remaining);
+            stacks.add(new ItemStack(item, piece));
+            remaining -= piece;
+        }
+        return stacks;
+    }
+
+    private static Item itemOf(ResourceLocation id) {
+        return BuiltInRegistries.ITEM.getOptional(id).orElse(Items.AIR);
+    }
+
+    private static ResourceLocation vanillaItem(String path) {
+        return ResourceLocation.withDefaultNamespace(path);
     }
 
     /**

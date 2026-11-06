@@ -72,7 +72,7 @@ Drill Rod: Consumed when the mine drills downward — the deeper you go, the mor
 
 :item[simukraft:geological_hammer] {spacing=4}
 
-Geological Hammer: Right-click to survey virtual ore veins within 60 blocks below — see if that plot is worth developing.
+Geological Hammer: Right-click to survey virtual ore veins within 256 blocks above and below — see if that plot is worth developing.
 
 :::right
 

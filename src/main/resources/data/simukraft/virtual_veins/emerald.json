@@ -13,5 +13,5 @@
   },
   "y_range": [96, 192],
   "product": "minecraft:emerald",
-  "production": { "min_amount": 8, "max_amount": 8, "period_ticks": 6000 }
+  "production": { "min_amount": 24, "max_amount": 24, "period_ticks": 6000 }
 }

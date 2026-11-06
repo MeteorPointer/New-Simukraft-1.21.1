@@ -13,5 +13,5 @@
   },
   "y_range": [-32, 24],
   "product": "minecraft:lapis_lazuli",
-  "production": { "min_amount": 12, "max_amount": 12, "period_ticks": 1200 }
+  "production": { "min_amount": 36, "max_amount": 36, "period_ticks": 1200 }
 }

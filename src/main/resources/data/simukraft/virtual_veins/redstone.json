@@ -13,5 +13,5 @@
   },
   "y_range": [-64, -32],
   "product": "minecraft:redstone",
-  "production": { "min_amount": 20, "max_amount": 20, "period_ticks": 1200 }
+  "production": { "min_amount": 60, "max_amount": 60, "period_ticks": 1200 }
 }

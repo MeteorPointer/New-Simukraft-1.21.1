@@ -13,5 +13,5 @@
   },
   "y_range": [-48, 0],
   "product": "minecraft:raw_copper",
-  "production": { "min_amount": 1, "max_amount": 20, "period_ticks": 1200 }
+  "production": { "min_amount": 3, "max_amount": 60, "period_ticks": 1200 }
 }

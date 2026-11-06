@@ -13,5 +13,5 @@
   },
   "y_range": [-64, -32],
   "product": "minecraft:diamond",
-  "production": { "min_amount": 3, "max_amount": 6, "period_ticks": 1200 }
+  "production": { "min_amount": 9, "max_amount": 18, "period_ticks": 1200 }
 }

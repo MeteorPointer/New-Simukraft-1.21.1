@@ -45,4 +45,15 @@ class SimuKraftCommandTest {
         assertNotNull(progress.getChild("add").getChild("citizen").getChild("days"));
         assertNotNull(progress.getChild("remove").getChild("citizen").getChild("days"));
     }
+
+    @Test
+    void registersVeinFindCommand() {
+        CommandDispatcher<CommandSourceStack> dispatcher = new CommandDispatcher<>();
+        SimuKraftCommand.register(dispatcher);
+
+        CommandNode<CommandSourceStack> find = dispatcher.getRoot().getChild("simukraft")
+                .getChild("vein").getChild("find");
+        assertNotNull(find.getChild("vein"));
+        assertNotNull(find.getChild("vein").getChild("radius"));
+    }
 }

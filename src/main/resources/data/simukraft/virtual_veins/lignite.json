@@ -13,5 +13,5 @@
   },
   "y_range": [48, 96],
   "product": "minecraft:coal",
-  "production": { "min_amount": 4, "max_amount": 13, "period_ticks": 1200 }
+  "production": { "min_amount": 12, "max_amount": 39, "period_ticks": 1200 }
 }

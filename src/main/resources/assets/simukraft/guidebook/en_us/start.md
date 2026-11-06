@@ -226,7 +226,7 @@ Each transfer costs $0.02; for routes longer than 256 blocks, each additional 64
 
 Late-game material consumption is huge? Build a drilling rig and automate mining too!
 
-Right-click the ground with the Geological Hammer (durability 800, 1 point per survey) to scan for virtual ore veins within 60 blocks below. The ores sleep quietly underground, waiting for the drill to wake them~
+Right-click the ground with the Geological Hammer (durability 800, 1 point per survey) to scan for virtual ore veins within 256 blocks above and below. The ores sleep quietly underground, waiting for the drill to wake them~
 
 Place a Drilling Control Box on the rig and hire a driller to start. Use the shallow bit at Y≥10; the deep bit for anything deeper. Drilling downward consumes drill rods — the deeper you go, the more it costs.
 

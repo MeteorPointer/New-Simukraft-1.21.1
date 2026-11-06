@@ -51,12 +51,16 @@ class GeologicalHammerItemTest {
     }
 
     /**
-     * limitsProspectingToSixtyBlocksBelowClick: 探查范围仅覆盖点击处向下 60 格且不低于世界下限。
+     * limitsProspectingToWorldBounds: 探查覆盖点击处上下 256 格，并夹在世界高度内。
      */
     @Test
-    void limitsProspectingToSixtyBlocksBelowClick() {
-        assertEquals(40, GeologicalHammerItem.scanMinimumY(100, -64));
+    void limitsProspectingToWorldBounds() {
+        assertEquals(-64, GeologicalHammerItem.scanMinimumY(100, -64));
         assertEquals(-64, GeologicalHammerItem.scanMinimumY(-40, -64));
+        assertEquals(44, GeologicalHammerItem.scanMinimumY(300, -64));
+        assertEquals(320, GeologicalHammerItem.scanMaximumY(100, 320));
+        assertEquals(192, GeologicalHammerItem.scanMaximumY(-64, 320));
+        assertEquals(150, GeologicalHammerItem.scanMaximumY(100, 150));
     }
 
     /**
