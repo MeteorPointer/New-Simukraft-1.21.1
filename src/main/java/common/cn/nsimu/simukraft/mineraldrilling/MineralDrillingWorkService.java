@@ -305,7 +305,7 @@ public final class MineralDrillingWorkService {
     }
 
     /**
-     * fillerItemIds: 浅层附带泥土，深层附带深板岩，其余填充物各层都有。
+     * fillerItemIds: Y 轴 0 以下出深板岩圆石，0 及以上出泥土。其余填充物各层都有。
      */
     static List<ResourceLocation> fillerItemIds(int drillDepth) {
         ArrayList<ResourceLocation> ids = new ArrayList<>();
@@ -315,10 +315,10 @@ public final class MineralDrillingWorkService {
         ids.add(vanillaItem("andesite"));
         ids.add(vanillaItem("diorite"));
         ids.add(vanillaItem("tuff"));
-        if (drillDepth >= MineralDrillingControlBoxService.SHALLOW_DRILL_MIN_Y) {
-            ids.add(vanillaItem("dirt"));
+        if (drillDepth < 0) {
+            ids.add(vanillaItem("cobbled_deepslate"));
         } else {
-            ids.add(vanillaItem("deepslate"));
+            ids.add(vanillaItem("dirt"));
         }
         return List.copyOf(ids);
     }

@@ -47,19 +47,19 @@ class MineralDrillingWorkServiceTest {
     }
 
     /**
-     * fillerPoolUsesDirtInShallowAndDeepslateInDeep: 泥土只出现在浅层，深板岩只出现在深层。
+     * fillerPoolUsesDirtAtOrAboveZeroAndCobbledDeepslateBelow: Y 小于 0 出深板岩圆石，0 及以上出泥土。
      */
     @Test
-    void fillerPoolUsesDirtInShallowAndDeepslateInDeep() {
+    void fillerPoolUsesDirtAtOrAboveZeroAndCobbledDeepslateBelow() {
         ResourceLocation dirt = ResourceLocation.withDefaultNamespace("dirt");
-        ResourceLocation deepslate = ResourceLocation.withDefaultNamespace("deepslate");
+        ResourceLocation cobbledDeepslate = ResourceLocation.withDefaultNamespace("cobbled_deepslate");
         ResourceLocation cobblestone = ResourceLocation.withDefaultNamespace("cobblestone");
-        List<ResourceLocation> shallow = MineralDrillingWorkService.fillerItemIds(10);
-        List<ResourceLocation> deep = MineralDrillingWorkService.fillerItemIds(9);
+        List<ResourceLocation> shallow = MineralDrillingWorkService.fillerItemIds(0);
+        List<ResourceLocation> deep = MineralDrillingWorkService.fillerItemIds(-1);
         assertTrue(shallow.contains(dirt));
-        assertFalse(shallow.contains(deepslate));
+        assertFalse(shallow.contains(cobbledDeepslate));
         assertTrue(shallow.contains(cobblestone));
-        assertTrue(deep.contains(deepslate));
+        assertTrue(deep.contains(cobbledDeepslate));
         assertFalse(deep.contains(dirt));
         assertTrue(deep.contains(cobblestone));
     }
