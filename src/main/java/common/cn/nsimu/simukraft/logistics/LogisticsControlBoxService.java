@@ -1,6 +1,10 @@
 package common.cn.nsimu.simukraft.logistics;
 
+import common.cn.nsimu.simukraft.building.BuildingBlockData;
+import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
+import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.citizen.CitizenData;
+import common.cn.nsimu.simukraft.registry.ModBlocks;
 import common.cn.nsimu.simukraft.city.CityChunkManager;
 import common.cn.nsimu.simukraft.city.CityData;
 import common.cn.nsimu.simukraft.city.CityManager;
@@ -376,6 +380,115 @@ public final class LogisticsControlBoxService {
     }
 
     /**
+     * routesAt: 返回光标处物流节点的线路。建筑上只认自带服务端方块和自带端口。
+     */
+    public static List<RouteLine> routesAt(ServerLevel level, BlockPos pos) {
+        if (level == null || pos == null) {
+            return List.of();
+        }
+        LogisticsManager manager = LogisticsManager.get(level);
+        LinkedHashSet<RouteLine> lines = new LinkedHashSet<>();
+        addNodeRoutes(level, manager, lines, manager.warehouseAt(pos), manager.clientAt(pos));
+        PlacedBuildingRecord building = PlacedBuildingService.findByContainedPos(level, pos);
+        if (building != null) {
+            addBuiltInServerRoutes(level, manager, lines, building);
+            addBuiltInPortRoutes(level, manager, lines, building);
+        }
+        if (lines.size() <= RouteLine.MAX_LINES) {
+            return List.copyOf(lines);
+        }
+        return List.copyOf(lines.stream().limit(RouteLine.MAX_LINES).toList());
+    }
+
+    private static void addBuiltInServerRoutes(ServerLevel level, LogisticsManager manager, Set<RouteLine> lines, PlacedBuildingRecord building) {
+        for (BuildingBlockData block : building.blocks()) {
+            if (lines.size() >= RouteLine.MAX_LINES) {
+                return;
+            }
+            if (block == null || block.state() == null || !block.state().is(ModBlocks.LOGISTICS_SERVER_BOX.get())) {
+                continue;
+            }
+            BlockPos worldPos = builtInBlockPos(building, block.relativePos());
+            addNodeRoutes(level, manager, lines, manager.warehouseAt(worldPos), null);
+        }
+    }
+
+    private static void addBuiltInPortRoutes(ServerLevel level, LogisticsManager manager, Set<RouteLine> lines, PlacedBuildingRecord building) {
+        if (building.buildingId() == null || building.cityId() == null || lines.size() >= RouteLine.MAX_LINES) {
+            return;
+        }
+        String sourceId = building.buildingId().toString();
+        for (LogisticsClientData client : LogisticsAutoClientService.clientsForCity(level, building.cityId(), dimensionId(level))) {
+            if (lines.size() >= RouteLine.MAX_LINES) {
+                return;
+            }
+            if (client != null && client.automatic() && sourceId.equals(client.sourceId())) {
+                addNodeRoutes(level, manager, lines, null, client);
+            }
+        }
+    }
+
+    private static BlockPos builtInBlockPos(PlacedBuildingRecord building, BlockPos storedPos) {
+        if (storedPos == null) {
+            return null;
+        }
+        BlockPos min = building.minPos();
+        BlockPos max = building.maxPos();
+        if (min != null && max != null
+                && storedPos.getX() >= Math.min(min.getX(), max.getX()) && storedPos.getX() <= Math.max(min.getX(), max.getX())
+                && storedPos.getY() >= Math.min(min.getY(), max.getY()) && storedPos.getY() <= Math.max(min.getY(), max.getY())
+                && storedPos.getZ() >= Math.min(min.getZ(), max.getZ()) && storedPos.getZ() <= Math.max(min.getZ(), max.getZ())) {
+            return storedPos;
+        }
+        return building.worldOrigin() == null ? storedPos : building.worldOrigin().offset(storedPos);
+    }
+
+    private static void addNodeRoutes(ServerLevel level, LogisticsManager manager, Set<RouteLine> lines,
+                                      LogisticsWarehouseData warehouse, LogisticsClientData client) {
+        if (warehouse != null) {
+            lines.addAll(routeLines(level, manager, manager.channels(warehouse.warehouseId())));
+        }
+        if (client == null || lines.size() >= RouteLine.MAX_LINES) {
+            return;
+        }
+        List<LogisticsChannelData> matched = new ArrayList<>();
+        for (LogisticsChannelData channel : manager.allChannels()) {
+            if (channel != null && client.clientId().equals(channel.clientId())) {
+                matched.add(channel);
+                if (matched.size() >= RouteLine.MAX_LINES) {
+                    break;
+                }
+            }
+        }
+        lines.addAll(routeLines(level, manager, matched));
+    }
+
+    private static List<RouteLine> routeLines(ServerLevel level, LogisticsManager manager, List<LogisticsChannelData> channels) {
+        if (channels == null || channels.isEmpty()) {
+            return List.of();
+        }
+        List<RouteLine> lines = new ArrayList<>();
+        for (LogisticsChannelData channel : channels) {
+            if (channel == null || lines.size() >= RouteLine.MAX_LINES) {
+                break;
+            }
+            LogisticsWarehouseData warehouse = manager.warehouse(channel.warehouseId());
+            LogisticsClientData client = resolveClient(level, channel.clientId());
+            if (warehouse == null || client == null || warehouse.boxPos() == null || client.boxPos() == null) {
+                continue;
+            }
+            if (warehouse.boxPos().equals(client.boxPos())) {
+                continue;
+            }
+            boolean towardClient = channel.direction() != LogisticsDirection.CLIENT_TO_WAREHOUSE;
+            lines.add(towardClient
+                    ? new RouteLine(warehouse.boxPos(), client.boxPos())
+                    : new RouteLine(client.boxPos(), warehouse.boxPos()));
+        }
+        return List.copyOf(lines);
+    }
+
+    /**
      * resolveClient: 同时查找手动客户端和建筑自动客户端。
      */
     public static LogisticsClientData resolveClient(ServerLevel level, UUID clientId) {
@@ -507,6 +620,15 @@ public final class LogisticsControlBoxService {
     }
 
     public record ClientInventoryEntry(UUID clientId, List<LogisticsInventoryEntry> inventory) {
+    }
+
+    public record RouteLine(BlockPos from, BlockPos to) {
+        public static final int MAX_LINES = 256;
+
+        public RouteLine {
+            from = from == null ? BlockPos.ZERO : from.immutable();
+            to = to == null ? BlockPos.ZERO : to.immutable();
+        }
     }
 
     public record ChannelEntry(UUID channelId, UUID clientId, LogisticsDirection direction, String name,

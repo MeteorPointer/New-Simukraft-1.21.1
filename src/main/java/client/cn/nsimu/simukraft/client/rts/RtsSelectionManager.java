@@ -190,6 +190,7 @@ public final class RtsSelectionManager {
         BuildingBoundsRenderer.setRtsSelection(null);
         BuildingBoundsRenderer.setRtsBuildingBounds(null);
         RtsConstructionPreviewManager.clear();
+        RtsLogisticsRouteManager.clear();
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.screen == null && minecraft.player != null) {
             minecraft.mouseHandler.grabMouse();
@@ -214,6 +215,7 @@ public final class RtsSelectionManager {
         BuildingBoundsRenderer.setRtsSelection(null);
         BuildingBoundsRenderer.setRtsBuildingBounds(null);
         RtsConstructionPreviewManager.clear();
+        RtsLogisticsRouteManager.clear();
     }
 
     /**
@@ -267,9 +269,11 @@ public final class RtsSelectionManager {
             setTarget(null);
             clearPlacementTarget();
             setTargetCitizen(null);
+            RtsLogisticsRouteManager.clear();
             return;
         }
         updateTarget(minecraft);
+        RtsLogisticsRouteManager.tick(minecraft);
         RtsMovePreviewManager.update(targetPlacementPos);
         updateMoveHold(minecraft);
         // Vanilla may try to grab the mouse after a click; RTS always needs a visible cursor.

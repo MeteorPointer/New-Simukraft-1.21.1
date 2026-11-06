@@ -3,7 +3,6 @@ package common.cn.nsimu.simukraft.path;
 import net.minecraft.core.BlockPos;
 
 import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.UUID;
 
 /** 按不同市民的同目标请求判断是否值得构建共享距离场。 */

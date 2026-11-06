@@ -27,6 +27,7 @@ import client.cn.nsimu.simukraft.client.manifest.ManifestScreen;
 import client.cn.nsimu.simukraft.client.medical.MedicalControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsConstructionPreviewManager;
+import client.cn.nsimu.simukraft.client.rts.RtsLogisticsRouteManager;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import common.cn.nsimu.simukraft.commercial.CommercialTradeUiRoot;
 import common.cn.nsimu.simukraft.network.bank.BankControlBoxOpenResponsePacket;
@@ -64,6 +65,7 @@ import common.cn.nsimu.simukraft.network.path.NpcPathDebugSyncPacket;
 import common.cn.nsimu.simukraft.network.planner.PlannerMaterialScanResponsePacket;
 import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsSyncPacket;
 import common.cn.nsimu.simukraft.network.rts.RtsConstructionPreviewSyncPacket;
+import common.cn.nsimu.simukraft.network.rts.RtsLogisticsRoutesSyncPacket;
 import common.cn.nsimu.simukraft.network.toast.InfoToastPacket;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -110,6 +112,11 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
     @Override
     public void handleRtsConstructionPreviewSync(RtsConstructionPreviewSyncPacket packet) {
         RtsConstructionPreviewManager.apply(packet.entries());
+    }
+
+    @Override
+    public void handleRtsLogisticsRoutesSync(RtsLogisticsRoutesSyncPacket packet) {
+        RtsLogisticsRouteManager.apply(packet);
     }
 
     @Override

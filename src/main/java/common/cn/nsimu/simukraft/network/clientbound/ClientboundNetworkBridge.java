@@ -34,6 +34,7 @@ import common.cn.nsimu.simukraft.network.path.NpcPathDebugSyncPacket;
 import common.cn.nsimu.simukraft.network.planner.PlannerMaterialScanResponsePacket;
 import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsSyncPacket;
 import common.cn.nsimu.simukraft.network.rts.RtsConstructionPreviewSyncPacket;
+import common.cn.nsimu.simukraft.network.rts.RtsLogisticsRoutesSyncPacket;
 import common.cn.nsimu.simukraft.network.toast.InfoToastPacket;
 
 import java.util.Objects;
@@ -291,6 +292,13 @@ public final class ClientboundNetworkBridge {
      */
     public static void handleRtsConstructionPreviewSync(RtsConstructionPreviewSyncPacket packet) {
         HANDLER.get().handleRtsConstructionPreviewSync(packet);
+    }
+
+    /**
+     * handleRtsLogisticsRoutesSync: 分发 RTS 物流线路同步。
+     */
+    public static void handleRtsLogisticsRoutesSync(RtsLogisticsRoutesSyncPacket packet) {
+        HANDLER.get().handleRtsLogisticsRoutesSync(packet);
     }
 
     /**
