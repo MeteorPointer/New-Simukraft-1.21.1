@@ -21,12 +21,24 @@ public final class CitizenOverheadStatusRegistry {
     private static final CopyOnWriteArrayList<Entry> ENTRIES = new CopyOnWriteArrayList<>();
 
     static {
-        register("name", PRIORITY_NAME, entity -> Optional.of(new StatusLine(entity.getDisplayName(), 0xFFFFFF, 0.025F)));
+        register("name", PRIORITY_NAME, entity -> Optional.of(new StatusLine(nameWithAge(entity), 0xFFFFFF, 0.025F)));
         register("work_status", PRIORITY_WORK_STATUS, entity -> Optional.of(new StatusLine(CitizenWorkStatusDisplayRegistry.resolve(entity), 0xFFFF00, 0.02F)));
         register("hunger", PRIORITY_HUNGER, entity -> Optional.of(new StatusLine(Component.translatable(entity.getHungerLevelKey()), 0xFFFF00, 0.02F)));
     }
 
     private CitizenOverheadStatusRegistry() {
+    }
+
+    /**
+     * nameWithAge: 头顶名字后面用括号带上已同步的年龄。
+     */
+    private static Component nameWithAge(CitizenEntity entity) {
+        Component name = entity.getDisplayName();
+        int age = entity.getAge();
+        if (age < 0) {
+            return name;
+        }
+        return Component.translatable("entity.simukraft.citizen.name_age", name, age);
     }
 
     /**

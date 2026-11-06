@@ -66,6 +66,7 @@
     "fluid.simukraft.milk":  "Milk",
     "entity.simukraft.citizen":  "Citizen",
     "entity.simukraft.citizen.named":  "Citizen %s",
+    "entity.simukraft.citizen.name_age":  "%s (%s)",
     "toast.simukraft.title":  "Sim-U-Kraft",
     "toast.simukraft.money_title":  "Income Settlement",
     "toast.simukraft.material_title":  "Material Request",

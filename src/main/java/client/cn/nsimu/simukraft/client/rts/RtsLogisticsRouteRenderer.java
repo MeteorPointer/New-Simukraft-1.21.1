@@ -21,19 +21,21 @@ import org.lwjgl.opengl.GL11;
 import java.util.List;
 
 /**
- * RTS 物流线路渲染：按屏幕像素宽度画发光金带，缩放不改变粗细，白光沿传输方向移动。
+ * RTS 物流线路渲染：细芯加薄光晕，看起来像光纤，粗细不随 RTS 缩放变化。
  */
 @OnlyIn(Dist.CLIENT)
 public final class RtsLogisticsRouteRenderer {
-    private static final int COLOR_HALO = 0x66FFB22A;
-    private static final int COLOR_CORE = 0xEEFFE08A;
+    private static final int COLOR_HALO = 0x33FFAA22;
+    private static final int COLOR_SHEATH = 0x99FFD56A;
+    private static final int COLOR_CORE = 0xF4FFF6D2;
     private static final int COLOR_FLOW = 0xFFFFFFFF;
-    private static final float HALO_PIXELS = 7.0F;
-    private static final float CORE_PIXELS = 2.6F;
-    private static final float FLOW_PIXELS = 2.2F;
-    private static final long FLOW_PERIOD_MS = 1200L;
-    private static final double FLOW_SPACING = 4.0D;
-    private static final double FLOW_LENGTH = 1.15D;
+    private static final float HALO_PIXELS = 3.2F;
+    private static final float SHEATH_PIXELS = 1.7F;
+    private static final float CORE_PIXELS = 0.9F;
+    private static final float FLOW_PIXELS = 1.15F;
+    private static final long FLOW_PERIOD_MS = 900L;
+    private static final double FLOW_SPACING = 3.2D;
+    private static final double FLOW_LENGTH = 0.55D;
 
     private RtsLogisticsRouteRenderer() {
     }
@@ -68,6 +70,7 @@ public final class RtsLogisticsRouteRenderer {
                 continue;
             }
             drawRibbon(buffer, matrix, camera, look, from, to, worldPerPixel * HALO_PIXELS * 0.5D, COLOR_HALO);
+            drawRibbon(buffer, matrix, camera, look, from, to, worldPerPixel * SHEATH_PIXELS * 0.5D, COLOR_SHEATH);
             drawRibbon(buffer, matrix, camera, look, from, to, worldPerPixel * CORE_PIXELS * 0.5D, COLOR_CORE);
             drawFlow(buffer, matrix, camera, look, from, to, worldPerPixel * FLOW_PIXELS * 0.5D, phase);
         }
