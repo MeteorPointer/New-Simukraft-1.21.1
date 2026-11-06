@@ -181,19 +181,20 @@ class GuideBookMarkdownParserTest {
         assertEquals("directory", start.parentId());
         assertEquals("tab_city", start.tabIcon());
         assertEquals(2, start.tabIndex());
-        assertEquals(12, start.spreads().size());
+        assertEquals(19, start.spreads().size());
         assertEquals("simukraft:city_core", start.spreads().get(0).left().get(1).itemId());
-        assertEquals("routan.png", start.spreads().get(5).right().get(1).imageUrl());
-        assertEquals(256, start.spreads().get(6).right().get(0).imageWidth());
-        assertEquals("simukraft:logistics_server_box", start.spreads().get(8).left().get(3).itemId());
+        assertEquals("industry.png", start.spreads().get(9).right().get(0).imageUrl());
+        assertEquals(256, start.spreads().get(9).right().get(0).imageWidth());
+        assertEquals("simukraft:logistics_server_box", start.spreads().get(11).left().get(3).itemId());
+        assertEquals("save.png", start.spreads().get(11).right().get(0).imageUrl());
 
         GuideBookMarkdownDocument items = parseResource("assets/simukraft/guidebook/zh_cn/items.md");
-        assertEquals(7, items.spreads().size());
+        assertEquals(8, items.spreads().size());
         assertEquals("tab_commerce", items.tabIcon());
-        assertEquals("simukraft:mineral_drilling_control_box", items.spreads().get(2).right().get(0).itemId());
-        assertEquals("simukraft:drill_rod_segment", items.spreads().get(2).right().get(2).itemId());
-        assertEquals("simukraft:shallow_drill_bit", items.spreads().get(3).left().get(0).itemId());
-        assertEquals("simukraft:guide_book", items.spreads().get(4).right().get(0).itemId());
+        assertEquals("simukraft:mineral_drilling_control_box", items.spreads().get(3).left().get(0).itemId());
+        assertEquals("simukraft:drill_rod_segment", items.spreads().get(3).left().get(2).itemId());
+        assertEquals("simukraft:shallow_drill_bit", items.spreads().get(3).right().get(0).itemId());
+        assertEquals("simukraft:guide_book", items.spreads().get(5).right().get(0).itemId());
 
         GuideBookMarkdownDocument directory = parseResource("assets/simukraft/guidebook/zh_cn/directory.md");
         assertNull(directory.parentId());
