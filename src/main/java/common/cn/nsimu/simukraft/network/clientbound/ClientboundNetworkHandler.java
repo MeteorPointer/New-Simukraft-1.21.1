@@ -33,6 +33,7 @@ import common.cn.nsimu.simukraft.network.npc.state.EmploymentStateResponsePacket
 import common.cn.nsimu.simukraft.network.path.NpcPathDebugSyncPacket;
 import common.cn.nsimu.simukraft.network.planner.PlannerMaterialScanResponsePacket;
 import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsSyncPacket;
+import common.cn.nsimu.simukraft.network.rts.RtsConstructionPreviewSyncPacket;
 import common.cn.nsimu.simukraft.network.toast.InfoToastPacket;
 
 /**
@@ -232,6 +233,12 @@ public interface ClientboundNetworkHandler {
      * handleRtsBuildingBoundsSync: 更新 RTS 客户端建筑边界快照。
      */
     default void handleRtsBuildingBoundsSync(RtsBuildingBoundsSyncPacket packet) {
+    }
+
+    /**
+     * handleRtsConstructionPreviewSync: 更新 RTS 施工中建筑的预览快照。
+     */
+    default void handleRtsConstructionPreviewSync(RtsConstructionPreviewSyncPacket packet) {
     }
 
     /**

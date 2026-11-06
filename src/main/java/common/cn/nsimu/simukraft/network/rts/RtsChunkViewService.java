@@ -155,6 +155,13 @@ public final class RtsChunkViewService {
         return view == null ? player.chunkPosition() : view.focus();
     }
 
+    /**
+     * isActive: 当前玩家是否正用 RTS 焦点视窗。
+     */
+    public static boolean isActive(ServerLevel level, ServerPlayer player) {
+        return currentView(level, player) != null;
+    }
+
     private static RtsView currentView(ServerLevel level, ServerPlayer player) {
         if (level == null || player == null) {
             return null;

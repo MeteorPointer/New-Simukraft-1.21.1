@@ -26,6 +26,7 @@ import client.cn.nsimu.simukraft.client.logistics.LogisticsServerBoxScreenOpener
 import client.cn.nsimu.simukraft.client.manifest.ManifestScreen;
 import client.cn.nsimu.simukraft.client.medical.MedicalControlBoxScreenOpener;
 import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
+import client.cn.nsimu.simukraft.client.rts.RtsConstructionPreviewManager;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import common.cn.nsimu.simukraft.commercial.CommercialTradeUiRoot;
 import common.cn.nsimu.simukraft.network.bank.BankControlBoxOpenResponsePacket;
@@ -62,6 +63,7 @@ import common.cn.nsimu.simukraft.network.npc.state.EmploymentStateResponsePacket
 import common.cn.nsimu.simukraft.network.path.NpcPathDebugSyncPacket;
 import common.cn.nsimu.simukraft.network.planner.PlannerMaterialScanResponsePacket;
 import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsSyncPacket;
+import common.cn.nsimu.simukraft.network.rts.RtsConstructionPreviewSyncPacket;
 import common.cn.nsimu.simukraft.network.toast.InfoToastPacket;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -97,8 +99,17 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
                                 Math.max(entry.min().getX(), entry.max().getX()) + 1.0D,
                                 Math.max(entry.min().getY(), entry.max().getY()) + 1.0D,
                                 Math.max(entry.min().getZ(), entry.max().getZ()) + 1.0D),
-                        entry.displayName()))
+                        entry.displayName(),
+                        entry.category(),
+                        entry.buildingFileName(),
+                        entry.amount(),
+                        entry.bedCount()))
                 .toList());
+    }
+
+    @Override
+    public void handleRtsConstructionPreviewSync(RtsConstructionPreviewSyncPacket packet) {
+        RtsConstructionPreviewManager.apply(packet.entries());
     }
 
     @Override

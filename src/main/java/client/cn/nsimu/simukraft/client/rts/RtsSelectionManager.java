@@ -164,6 +164,7 @@ public final class RtsSelectionManager {
         clearMoveState();
         FreeCameraManager.activateRts();
         minecraft.mouseHandler.releaseMouse();
+        PacketDistributor.sendToServer(new RtsConstructionPreviewRequestPacket());
     }
 
     /**
@@ -188,6 +189,7 @@ public final class RtsSelectionManager {
         BuildingBoundsRenderer.setRtsTarget(null);
         BuildingBoundsRenderer.setRtsSelection(null);
         BuildingBoundsRenderer.setRtsBuildingBounds(null);
+        RtsConstructionPreviewManager.clear();
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.screen == null && minecraft.player != null) {
             minecraft.mouseHandler.grabMouse();
@@ -211,6 +213,32 @@ public final class RtsSelectionManager {
         BuildingBoundsRenderer.setRtsTarget(null);
         BuildingBoundsRenderer.setRtsSelection(null);
         BuildingBoundsRenderer.setRtsBuildingBounds(null);
+        RtsConstructionPreviewManager.clear();
+    }
+
+    /**
+     * clearBlockSelection: 拆除确认后清掉同一位置的选中高亮。
+     */
+    public static void clearBlockSelection(BlockPos pos) {
+        if (pos == null || selectedPos == null || !selectedPos.equals(pos)) {
+            return;
+        }
+        selectedPos = null;
+        BuildingBoundsRenderer.setRtsSelection(null);
+    }
+
+    /**
+     * currentCursorRay: 返回当前系统光标对应的世界射线。
+     */
+    public static CursorRay currentCursorRay() {
+        return cursorRay(Minecraft.getInstance());
+    }
+
+    /**
+     * currentCursorBlockHit: 返回当前光标射线命中的方块。
+     */
+    public static BlockHitResult currentCursorBlockHit() {
+        return rayTraceCursor(Minecraft.getInstance());
     }
 
     /**
@@ -228,11 +256,12 @@ public final class RtsSelectionManager {
             deactivate();
             return;
         }
+        if (minecraft.player.tickCount % 20 == 0) {
+            PacketDistributor.sendToServer(new RtsConstructionPreviewRequestPacket());
+        }
         if (minecraft.screen == null && SimuKraftKeyMappings.RTS_DELETE.consumeClick() && selectedPos != null) {
             clearMoveState();
-            PacketDistributor.sendToServer(new RtsDemolishPacket(selectedPos));
-            selectedPos = null;
-            BuildingBoundsRenderer.setRtsSelection(null);
+            RtsDemolishConfirmScreen.open(selectedPos);
         }
         if (minecraft.screen != null) {
             setTarget(null);
@@ -881,6 +910,6 @@ public final class RtsSelectionManager {
     /**
      * CursorRay: 保存已按当前投影换算的光标世界射线端点。
      */
-    private record CursorRay(Vec3 from, Vec3 to) {
+    public record CursorRay(Vec3 from, Vec3 to) {
     }
 }

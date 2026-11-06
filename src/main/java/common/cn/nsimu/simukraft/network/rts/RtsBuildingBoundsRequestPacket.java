@@ -1,8 +1,10 @@
 package common.cn.nsimu.simukraft.network.rts;
 
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.building.BuildingPoiInstance;
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
+import common.cn.nsimu.simukraft.city.poi.CityPoiType;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
@@ -50,7 +52,14 @@ public record RtsBuildingBoundsRequestPacket() implements CustomPacketPayload {
                 .filter(record -> isNear(player, record, MAX_DISTANCE_SQR))
                 .sorted(Comparator.comparingDouble(record -> distanceToBoundsSqr(player, record)))
                 .limit(RtsBuildingBoundsSyncPacket.MAX_ENTRIES)
-                .map(record -> new RtsBuildingBoundsSyncPacket.Entry(record.minPos(), record.maxPos(), record.displayName()))
+                .map(record -> new RtsBuildingBoundsSyncPacket.Entry(
+                        record.minPos(),
+                        record.maxPos(),
+                        record.displayName(),
+                        record.category(),
+                        record.buildingFileName(),
+                        record.amount(),
+                        bedCount(record)))
                 .toList();
         PacketDistributor.sendToPlayer(player, new RtsBuildingBoundsSyncPacket(entries));
     }
@@ -67,6 +76,19 @@ public record RtsBuildingBoundsRequestPacket() implements CustomPacketPayload {
                 sendNearbyBounds(player, level);
             }
         }
+    }
+
+    private static int bedCount(PlacedBuildingRecord record) {
+        if (record.poiInstances() == null) {
+            return 0;
+        }
+        int count = 0;
+        for (BuildingPoiInstance poi : record.poiInstances()) {
+            if (poi != null && poi.poiType() == CityPoiType.RESIDENTIAL) {
+                count++;
+            }
+        }
+        return count;
     }
 
     private static boolean isNear(ServerPlayer player, PlacedBuildingRecord record, double maxDistanceSqr) {

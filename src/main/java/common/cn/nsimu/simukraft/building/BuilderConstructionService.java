@@ -14,6 +14,7 @@ import common.cn.nsimu.simukraft.material.*;
 import common.cn.nsimu.simukraft.medical.MedicalService;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
 import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsRequestPacket;
+import common.cn.nsimu.simukraft.network.rts.RtsConstructionPreviewRequestPacket;
 import common.cn.nsimu.simukraft.protection.NpcBlockProtectionPolicy;
 import common.cn.nsimu.simukraft.registry.ModBlocks;
 import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
@@ -93,6 +94,7 @@ public final class BuilderConstructionService {
         taskRuntime.lastSavedIndex = task.currentBlockIndex();
         NpcWorkChunkLoadService.acquire(level, task.taskId(), task.buildBoxPos());
         primeStructureLoad(task);
+        RtsConstructionPreviewRequestPacket.refreshNear(level, task.origin());
     }
 
     public static void cancelTask(ServerLevel level, UUID citizenId) {
@@ -100,7 +102,10 @@ public final class BuilderConstructionService {
             return;
         }
         TaskRuntime removed = runtime(level).tasksByCitizen.remove(citizenId);
-        if (removed != null) NpcWorkChunkLoadService.release(level, removed.task.taskId());
+        if (removed != null) {
+            NpcWorkChunkLoadService.release(level, removed.task.taskId());
+            RtsConstructionPreviewRequestPacket.refreshNear(level, removed.task.origin());
+        }
         SimuSqliteStorage.deleteBuildingTask(level, citizenId);
     }
 
@@ -129,6 +134,47 @@ public final class BuilderConstructionService {
         return taskRuntime != null && taskRuntime.task != null ? taskRuntime.task.buildBoxPos() : null;
     }
 
+    /**
+     * nearbyPreviews: 返回视野中心附近仍未完工的施工快照，不读数据库。
+     */
+    public static List<ConstructionPreviewSnapshot> nearbyPreviews(ServerLevel level, double centerX, double centerZ,
+                                                                   double maxDistanceSqr, int limit) {
+        if (level == null || limit <= 0) {
+            return List.of();
+        }
+        int cappedLimit = Math.min(limit, 32);
+        return runtime(level).tasksByCitizen.values().stream()
+                .map(taskRuntime -> taskRuntime.task)
+                .filter(task -> task != null && task.origin() != null && task.taskId() != null)
+                .filter(task -> {
+                    BuildingTaskStatus status = BuildingTaskStatus.from(task.status());
+                    return status != BuildingTaskStatus.COMPLETED && status != BuildingTaskStatus.INTERRUPTED;
+                })
+                .filter(task -> {
+                    double deltaX = task.origin().getX() + 0.5D - centerX;
+                    double deltaZ = task.origin().getZ() + 0.5D - centerZ;
+                    return deltaX * deltaX + deltaZ * deltaZ <= maxDistanceSqr;
+                })
+                .sorted(Comparator.comparingDouble(task -> {
+                    double deltaX = task.origin().getX() + 0.5D - centerX;
+                    double deltaZ = task.origin().getZ() + 0.5D - centerZ;
+                    return deltaX * deltaX + deltaZ * deltaZ;
+                }))
+                .limit(cappedLimit)
+                .map(task -> new ConstructionPreviewSnapshot(
+                        task.taskId(),
+                        task.category(),
+                        task.buildingFileName(),
+                        task.structureFileName(),
+                        task.origin(),
+                        task.rotationDegrees(),
+                        task.currentBlockIndex(),
+                        task.totalBlocks(),
+                        CitizenService.findCitizen(level, task.citizenId()).map(CitizenData::name).orElse(""),
+                        task.displayName()))
+                .toList();
+    }
+
     public static void interruptTask(ServerLevel level, UUID citizenId, String reason) {
         if (level == null || citizenId == null) {
             return;
@@ -142,6 +188,7 @@ public final class BuilderConstructionService {
             // 原来先写入 INTERRUPTED 状态再立刻删除同一行，落库结果只有"删除"，写入是无效动作。
             // 直接在调用线程入队删除，顺序才和 persistTask 的写入可比。
             SimuSqliteStorage.deleteBuildingTask(level, citizenId);
+            RtsConstructionPreviewRequestPacket.refreshNear(level, removed.task.origin());
         }
         SimuKraft.LOGGER.info("Simukraft: Building task interrupted for {} ({})", citizenId, reason != null ? reason : "unknown");
     }
@@ -403,6 +450,7 @@ public final class BuilderConstructionService {
         NpcWorkChunkLoadService.release(level, task.taskId());
         runtime.tasksByCitizen.remove(citizen.uuid(), taskRuntime);
         SimuSqliteStorage.deleteBuildingTask(level, citizen.uuid());
+        RtsConstructionPreviewRequestPacket.refreshNear(level, task.origin());
         CitizenEmploymentService.clearAfterJobFinished(level, citizen.uuid());
         SimuKraft.LOGGER.info("Simukraft: Building completed by {} for {}", citizen.name(), task.displayName());
     }

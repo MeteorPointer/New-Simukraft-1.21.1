@@ -45,13 +45,20 @@ public final class BuildingPreviewRenderer {
         }
         loggedOnce = false;
 
-        renderPreviewMesh(mesh, event);
+        renderPreviewMesh(mesh, event, false);
     }
 
     /**
      * renderPreviewMesh: 按世界渲染阶段绘制一个已构建的预览网格。
      */
     public static void renderPreviewMesh(PreviewMesh mesh, RenderLevelStageEvent event) {
+        renderPreviewMesh(mesh, event, false);
+    }
+
+    /**
+     * renderPreviewMesh: favorPreview 为真时让网格压过同一位置已放下方块，避免施工预览闪烁。
+     */
+    public static void renderPreviewMesh(PreviewMesh mesh, RenderLevelStageEvent event, boolean favorPreview) {
         if (mesh == null || mesh.isEmpty()
                 || (!isPreviewRenderStage(event.getStage()) && event.getStage() != RenderLevelStageEvent.Stage.AFTER_BLOCK_ENTITIES)) {
             return;
@@ -76,17 +83,17 @@ public final class BuildingPreviewRenderer {
 
         RenderLevelStageEvent.Stage stage = event.getStage();
         if (stage == RenderLevelStageEvent.Stage.AFTER_SOLID_BLOCKS) {
-            drawVbo(mesh.solidBuffer(), RenderType.solid(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeSolidShader());
+            drawVbo(mesh.solidBuffer(), RenderType.solid(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeSolidShader(), favorPreview);
         } else if (stage == RenderLevelStageEvent.Stage.AFTER_CUTOUT_MIPPED_BLOCKS_BLOCKS) {
-            drawVbo(mesh.cutoutMippedBuffer(), RenderType.cutoutMipped(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeCutoutMippedShader());
+            drawVbo(mesh.cutoutMippedBuffer(), RenderType.cutoutMipped(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeCutoutMippedShader(), favorPreview);
         } else if (stage == RenderLevelStageEvent.Stage.AFTER_CUTOUT_BLOCKS) {
-            drawVbo(mesh.cutoutBuffer(), RenderType.cutout(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeCutoutShader());
+            drawVbo(mesh.cutoutBuffer(), RenderType.cutout(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeCutoutShader(), favorPreview);
         } else if (stage == RenderLevelStageEvent.Stage.AFTER_TRANSLUCENT_BLOCKS) {
             RenderSystem.depthMask(false);
-            drawVbo(mesh.translucentBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
+            drawVbo(mesh.translucentBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader(), favorPreview);
             RenderSystem.depthMask(true);
         } else if (stage == RenderLevelStageEvent.Stage.AFTER_TRIPWIRE_BLOCKS) {
-            drawVbo(mesh.tripwireBuffer(), RenderType.tripwire(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTripwireShader());
+            drawVbo(mesh.tripwireBuffer(), RenderType.tripwire(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTripwireShader(), favorPreview);
         }
 
         RenderSystem.enableCull();
@@ -104,6 +111,13 @@ public final class BuildingPreviewRenderer {
      * renderFaded：把预览网格画成比实体建筑更透的一层。
      */
     public static void renderFaded(PreviewMesh mesh, Matrix4f modelView, Matrix4f projection, Vec3 cameraPos, float alpha) {
+        renderFaded(mesh, modelView, projection, cameraPos, alpha, false);
+    }
+
+    /**
+     * renderFaded：favorPreview 为真时让半透明网格压过同一位置已放下方块。
+     */
+    public static void renderFaded(PreviewMesh mesh, Matrix4f modelView, Matrix4f projection, Vec3 cameraPos, float alpha, boolean favorPreview) {
         if (mesh == null || mesh.isEmpty()) {
             return;
         }
@@ -113,22 +127,26 @@ public final class BuildingPreviewRenderer {
         RenderSystem.enableDepthTest();
         RenderSystem.depthMask(false);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
-        drawVbo(mesh.solidBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
-        drawVbo(mesh.cutoutMippedBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
-        drawVbo(mesh.cutoutBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
-        drawVbo(mesh.translucentBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
-        drawVbo(mesh.tripwireBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader());
+        drawVbo(mesh.solidBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader(), favorPreview);
+        drawVbo(mesh.cutoutMippedBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader(), favorPreview);
+        drawVbo(mesh.cutoutBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader(), favorPreview);
+        drawVbo(mesh.translucentBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader(), favorPreview);
+        drawVbo(mesh.tripwireBuffer(), RenderType.translucent(), modelView, projection, mesh.origin(), cameraPos, GameRenderer.getRendertypeTranslucentShader(), favorPreview);
         RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         RenderSystem.depthMask(true);
         RenderSystem.enableCull();
         RenderSystem.disableBlend();
     }
 
-    private static void drawVbo(VertexBuffer vertexBuffer, RenderType renderType, Matrix4f modelViewMatrix, Matrix4f projection, BlockPos origin, Vec3 cameraPos, ShaderInstance shader) {
+    private static void drawVbo(VertexBuffer vertexBuffer, RenderType renderType, Matrix4f modelViewMatrix, Matrix4f projection, BlockPos origin, Vec3 cameraPos, ShaderInstance shader, boolean favorPreview) {
         if (vertexBuffer == null) {
             return;
         }
         renderType.setupRenderState();
+        if (favorPreview) {
+            RenderSystem.enablePolygonOffset();
+            RenderSystem.polygonOffset(-1.0F, -10.0F);
+        }
 
         RenderSystem.setShader(() -> shader);
         initShader(shader, renderType, modelViewMatrix, projection);
@@ -147,6 +165,10 @@ public final class BuildingPreviewRenderer {
             shader.CHUNK_OFFSET.upload();
         }
 
+        if (favorPreview) {
+            RenderSystem.polygonOffset(0.0F, 0.0F);
+            RenderSystem.disablePolygonOffset();
+        }
         shader.clear();
         renderType.clearRenderState();
     }

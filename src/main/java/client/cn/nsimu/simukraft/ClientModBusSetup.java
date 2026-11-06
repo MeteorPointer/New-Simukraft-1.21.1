@@ -15,6 +15,7 @@ import client.cn.nsimu.simukraft.client.network.ClientboundNetworkHandlerImpl;
 import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
 import client.cn.nsimu.simukraft.client.renderer.CitizenRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsCitizenSelectionRenderer;
+import client.cn.nsimu.simukraft.client.rts.RtsConstructionPreviewRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsHandRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsMovePreviewRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
@@ -67,6 +68,7 @@ public final class ClientModBusSetup {
         NeoForge.EVENT_BUS.addListener(TwoPointSelectionRenderer::onRender);
         NeoForge.EVENT_BUS.addListener(NpcPathDebugRenderer::onRender);
         NeoForge.EVENT_BUS.addListener(RtsMovePreviewRenderer::onRender);
+        NeoForge.EVENT_BUS.addListener(RtsConstructionPreviewRenderer::onRender);
         NeoForge.EVENT_BUS.addListener(RtsCitizenSelectionRenderer::onRender);
         NeoForge.EVENT_BUS.addListener(RtsHandRenderer::onRenderHand);
         NeoForge.EVENT_BUS.addListener(RtsHandRenderer::onRenderGuiLayer);

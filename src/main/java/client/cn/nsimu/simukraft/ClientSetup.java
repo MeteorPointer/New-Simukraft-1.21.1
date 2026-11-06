@@ -18,6 +18,7 @@ import client.cn.nsimu.simukraft.client.freecamera.FreeCameraManager;
 import client.cn.nsimu.simukraft.client.geology.GeologicalSurveyHintOverlay;
 import client.cn.nsimu.simukraft.client.input.SimuKraftKeyMappings;
 import client.cn.nsimu.simukraft.client.path.NpcPathDebugRenderer;
+import client.cn.nsimu.simukraft.client.rts.RtsConstructionPreviewRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsMiniMapRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
 import client.cn.nsimu.simukraft.client.selection.TwoPointSelectionManager;
@@ -52,6 +53,7 @@ public final class ClientSetup {
         GeologicalSurveyHintOverlay.render(event);
         CityEntryHud.render(event.getGuiGraphics(), event.getPartialTick().getGameTimeDeltaPartialTick(true));
         RtsMiniMapRenderer.render(event.getGuiGraphics());
+        RtsConstructionPreviewRenderer.renderHover(event.getGuiGraphics());
         RtsSelectionManager.renderHoldProgress(event.getGuiGraphics());
         if (Minecraft.getInstance().screen == null) {
             ClientInfoToast.render(event.getGuiGraphics());

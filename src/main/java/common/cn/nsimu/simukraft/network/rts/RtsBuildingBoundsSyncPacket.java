@@ -45,6 +45,10 @@ public record RtsBuildingBoundsSyncPacket(List<Entry> entries) implements Custom
             buffer.writeBlockPos(entry.min());
             buffer.writeBlockPos(entry.max());
             buffer.writeUtf(entry.displayName(), MAX_DISPLAY_NAME_LENGTH);
+            buffer.writeUtf(entry.category(), MAX_DISPLAY_NAME_LENGTH);
+            buffer.writeUtf(entry.buildingFileName(), MAX_DISPLAY_NAME_LENGTH);
+            buffer.writeUtf(entry.amount(), MAX_DISPLAY_NAME_LENGTH);
+            buffer.writeVarInt(entry.bedCount());
         }
     }
 
@@ -55,7 +59,14 @@ public record RtsBuildingBoundsSyncPacket(List<Entry> entries) implements Custom
         int count = Math.min(Math.max(0, buffer.readVarInt()), MAX_ENTRIES);
         java.util.ArrayList<Entry> entries = new java.util.ArrayList<>(count);
         for (int index = 0; index < count; index++) {
-            entries.add(new Entry(buffer.readBlockPos(), buffer.readBlockPos(), buffer.readUtf(MAX_DISPLAY_NAME_LENGTH)));
+            entries.add(new Entry(
+                    buffer.readBlockPos(),
+                    buffer.readBlockPos(),
+                    buffer.readUtf(MAX_DISPLAY_NAME_LENGTH),
+                    buffer.readUtf(MAX_DISPLAY_NAME_LENGTH),
+                    buffer.readUtf(MAX_DISPLAY_NAME_LENGTH),
+                    buffer.readUtf(MAX_DISPLAY_NAME_LENGTH),
+                    buffer.readVarInt()));
         }
         return new RtsBuildingBoundsSyncPacket(entries);
     }
@@ -67,12 +78,21 @@ public record RtsBuildingBoundsSyncPacket(List<Entry> entries) implements Custom
         context.enqueueWork(() -> ClientboundNetworkBridge.handleRtsBuildingBoundsSync(packet));
     }
 
-    public record Entry(BlockPos min, BlockPos max, String displayName) {
+    public record Entry(BlockPos min, BlockPos max, String displayName, String category, String buildingFileName, String amount, int bedCount) {
         public Entry {
-            displayName = displayName == null ? "" : displayName.trim();
-            if (displayName.length() > MAX_DISPLAY_NAME_LENGTH) {
-                displayName = displayName.substring(0, MAX_DISPLAY_NAME_LENGTH);
+            displayName = trim(displayName);
+            category = trim(category);
+            buildingFileName = trim(buildingFileName);
+            amount = trim(amount);
+            bedCount = Math.max(0, Math.min(bedCount, 4096));
+        }
+
+        private static String trim(String value) {
+            if (value == null) {
+                return "";
             }
+            String trimmed = value.trim();
+            return trimmed.length() > MAX_DISPLAY_NAME_LENGTH ? trimmed.substring(0, MAX_DISPLAY_NAME_LENGTH) : trimmed;
         }
     }
 }

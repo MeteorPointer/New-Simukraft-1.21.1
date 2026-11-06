@@ -1,6 +1,7 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
 import client.cn.nsimu.simukraft.client.city.ClientCityChunkCache;
+import client.cn.nsimu.simukraft.client.rts.RtsConstructionPreviewManager;
 import client.cn.nsimu.simukraft.client.rts.RtsMovePreviewManager;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
 import client.cn.nsimu.simukraft.client.selection.TwoPointSelectionManager;
@@ -215,6 +216,23 @@ public final class BuildingBoundsRenderer {
     }
 
     /**
+     * hoveredPlacedBuilding: 返回 RTS 光标方块所在的已建成建筑快照。
+     */
+    public static RtsBuildingBounds hoveredPlacedBuilding() {
+        BlockPos target = rtsTargetPos;
+        if (target == null) {
+            return null;
+        }
+        Vec3 center = Vec3.atCenterOf(target);
+        for (RtsBuildingBounds boundsEntry : rtsBuildingBounds) {
+            if (boundsEntry.bounds().contains(center)) {
+                return boundsEntry;
+            }
+        }
+        return null;
+    }
+
+    /**
      * knownRtsBuildingNameAt: 查找 RTS 快照中包含指定方块的建筑名称。
      */
     public static String knownRtsBuildingNameAt(BlockPos pos) {
@@ -275,8 +293,12 @@ public final class BuildingBoundsRenderer {
 
     private static void renderRtsTarget(PoseStack poseStack, Vec3 cameraPos) {
         BlockPos target = rtsTargetPos;
+        RtsConstructionPreviewManager.HoverLabel construction = RtsConstructionPreviewManager.hovered();
         AABB targetBuildingBounds = target == null ? null : knownBuildingBoundsAt(target);
-        if (target != null) {
+        if (construction != null && construction.bounds() != null) {
+            targetBuildingBounds = construction.bounds();
+            renderWireBox(poseStack, cameraPos, construction.bounds().inflate(SELECTED_BOUNDS_INFLATE), COLOR_RTS_TARGET, true);
+        } else if (target != null) {
             AABB targetBounds = targetBuildingBounds == null
                     ? new AABB(target).inflate(0.002D)
                     : targetBuildingBounds.inflate(SELECTED_BOUNDS_INFLATE);
@@ -647,9 +669,13 @@ public final class BuildingBoundsRenderer {
     /**
      * RtsBuildingBounds: 客户端 RTS 建筑边界与显示名称快照。
      */
-    public record RtsBuildingBounds(AABB bounds, String displayName) {
+    public record RtsBuildingBounds(AABB bounds, String displayName, String category, String buildingFileName, String amount, int bedCount) {
         public RtsBuildingBounds {
             displayName = displayName == null ? "" : displayName;
+            category = category == null ? "" : category;
+            buildingFileName = buildingFileName == null ? "" : buildingFileName;
+            amount = amount == null ? "" : amount;
+            bedCount = Math.max(0, bedCount);
         }
     }
 

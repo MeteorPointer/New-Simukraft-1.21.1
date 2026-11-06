@@ -1,7 +1,6 @@
 package client.cn.nsimu.simukraft.client.rts;
 
 import client.cn.nsimu.simukraft.client.buildbox.BuildingBoundsRenderer;
-import common.cn.nsimu.simukraft.network.rts.RtsDemolishPacket;
 import common.cn.nsimu.simukraft.network.rts.RtsOpenTargetPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -75,8 +74,7 @@ public final class RtsContextMenuScreen extends Screen {
     }
 
     private void demolish() {
-        PacketDistributor.sendToServer(new RtsDemolishPacket(targetPos));
-        closeMenu();
+        RtsDemolishConfirmScreen.open(targetPos);
     }
 
     /**

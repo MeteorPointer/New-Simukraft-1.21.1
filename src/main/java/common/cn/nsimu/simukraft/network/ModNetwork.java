@@ -130,6 +130,7 @@ public final class ModNetwork {
         registrar.playToServer(CreatePlanningTaskPacket.TYPE, CreatePlanningTaskPacket.STREAM_CODEC, CreatePlanningTaskPacket::handle);
         registrar.playToServer(NpcPathDebugRequestPacket.TYPE, NpcPathDebugRequestPacket.STREAM_CODEC, NpcPathDebugRequestPacket::handle);
         registrar.playToServer(RtsBuildingBoundsRequestPacket.TYPE, RtsBuildingBoundsRequestPacket.STREAM_CODEC, RtsBuildingBoundsRequestPacket::handle);
+        registrar.playToServer(RtsConstructionPreviewRequestPacket.TYPE, RtsConstructionPreviewRequestPacket.STREAM_CODEC, RtsConstructionPreviewRequestPacket::handle);
         registrar.playToServer(RtsChunkViewPacket.TYPE, RtsChunkViewPacket.STREAM_CODEC, RtsChunkViewPacket::handle);
         registrar.playToServer(RtsCitizenActionPacket.TYPE, RtsCitizenActionPacket.STREAM_CODEC, RtsCitizenActionPacket::handle);
         registrar.playToServer(RtsDemolishPacket.TYPE, RtsDemolishPacket.STREAM_CODEC, RtsDemolishPacket::handle);
@@ -172,6 +173,7 @@ public final class ModNetwork {
         registrar.playToClient(GeologicalSurveyHintPacket.TYPE, GeologicalSurveyHintPacket.STREAM_CODEC, GeologicalSurveyHintPacket::handle);
         registrar.playToClient(ReloadGuideBookPacket.TYPE, ReloadGuideBookPacket.STREAM_CODEC, ReloadGuideBookPacket::handle);
         registrar.playToClient(RtsBuildingBoundsSyncPacket.TYPE, RtsBuildingBoundsSyncPacket.STREAM_CODEC, RtsBuildingBoundsSyncPacket::handle);
+        registrar.playToClient(RtsConstructionPreviewSyncPacket.TYPE, RtsConstructionPreviewSyncPacket.STREAM_CODEC, RtsConstructionPreviewSyncPacket::handle);
         registrar.playToClient(ManifestOpenResponsePacket.TYPE, ManifestOpenResponsePacket.STREAM_CODEC, ManifestOpenResponsePacket::handle);
         registrar.playToClient(ManifestHeldOpenResponsePacket.TYPE, ManifestHeldOpenResponsePacket.STREAM_CODEC, ManifestHeldOpenResponsePacket::handle);
     }

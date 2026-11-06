@@ -54,6 +54,7 @@ public record RtsChunkViewPacket(boolean active, int chunkX, int chunkZ) impleme
             if (packet.active()) {
                 RtsChunkViewService.activate(player, new ChunkPos(packet.chunkX(), packet.chunkZ()));
                 RtsBuildingBoundsRequestPacket.sendNearbyBounds(player, level);
+                RtsConstructionPreviewRequestPacket.sendNearby(player, level);
             } else {
                 RtsChunkViewService.deactivate(player);
             }
