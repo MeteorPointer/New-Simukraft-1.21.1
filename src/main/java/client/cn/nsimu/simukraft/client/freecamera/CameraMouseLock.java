@@ -18,13 +18,18 @@ public final class CameraMouseLock {
         if (minecraft == null) {
             return;
         }
-        minecraft.execute(() -> {
+        Runnable apply = () -> {
             long window = minecraft.getWindow().getWindow();
             if (window == 0L) {
                 return;
             }
             GLFW.glfwSetInputMode(window, GLFW.GLFW_CURSOR, locked ? GLFW.GLFW_CURSOR_DISABLED : GLFW.GLFW_CURSOR_NORMAL);
-        });
+        };
+        if (minecraft.isSameThread()) {
+            apply.run();
+        } else {
+            minecraft.execute(apply);
+        }
     }
 
     public static boolean isLocked() {

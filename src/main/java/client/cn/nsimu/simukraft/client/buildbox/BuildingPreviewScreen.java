@@ -1,6 +1,7 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
 import client.cn.nsimu.simukraft.client.ClientSimukraftData;
+import client.cn.nsimu.simukraft.client.freecamera.CameraMouseLock;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraManager;
 import client.cn.nsimu.simukraft.client.freecamera.FreeCameraScreen;
 import client.cn.nsimu.simukraft.client.input.SimuKraftKeyMappings;
@@ -93,8 +94,10 @@ public final class BuildingPreviewScreen extends Screen implements FreeCameraScr
             BuildingPreviewManager.beginRtsPreview(rtsPlacement);
             rtsPreviewSession = true;
             releasePreviewMouse();
-        } else {
+        } else if (!FreeCameraManager.isActive()) {
             FreeCameraManager.activate();
+        } else {
+            CameraMouseLock.setLocked(true);
         }
     }
 

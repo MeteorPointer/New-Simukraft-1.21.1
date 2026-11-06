@@ -103,7 +103,7 @@ public final class MixinMouseHandler {
 
     @Inject(method = "grabMouse()V", at = @At("HEAD"), cancellable = true)
     private void simukraft$grabMouse(CallbackInfo callbackInfo) {
-        if (RtsSelectionManager.isActive()) {
+        if (RtsSelectionManager.isActive() || simukraft$uiWantsCursor()) {
             mouseGrabbed = false;
             callbackInfo.cancel();
             return;
@@ -116,12 +116,21 @@ public final class MixinMouseHandler {
 
     @Inject(method = "releaseMouse()V", at = @At("HEAD"), cancellable = true)
     private void simukraft$releaseMouse(CallbackInfo callbackInfo) {
-        if (RtsSelectionManager.isActive()) {
+        if (RtsSelectionManager.isActive() || simukraft$uiWantsCursor()) {
             return;
         }
         if (FreeCameraManager.isActive()) {
             mouseGrabbed = true;
             callbackInfo.cancel();
         }
+    }
+
+    /**
+     * simukraft$uiWantsCursor: 资金确认这类普通界面需要系统光标，不能继续抓住鼠标。
+     */
+    @Unique
+    private static boolean simukraft$uiWantsCursor() {
+        Screen screen = Minecraft.getInstance().screen;
+        return screen != null && !(screen instanceof FreeCameraScreen);
     }
 }

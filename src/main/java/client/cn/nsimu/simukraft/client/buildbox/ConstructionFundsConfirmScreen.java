@@ -1,5 +1,6 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
+import client.cn.nsimu.simukraft.client.freecamera.CameraMouseLock;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftFlexLayout;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
 import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
@@ -87,6 +88,16 @@ public final class ConstructionFundsConfirmScreen extends ModularUIScreen {
             }
         }
         return null;
+    }
+
+    @Override
+    public void init() {
+        super.init();
+        CameraMouseLock.setLocked(false);
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.mouseHandler.isMouseGrabbed()) {
+            minecraft.mouseHandler.releaseMouse();
+        }
     }
 
     @Override
