@@ -74,6 +74,7 @@ public record NpcHireAssignPacket(BlockPos sourcePos, String sourceType, String 
                 return;
             }
             CitizenEmploymentService.hireForSource(level, citizen.uuid(), access.sourceType(), access.role(), access.sourcePos(), "");
+            common.cn.nsimu.simukraft.advancement.StoryAdvancementService.grant(player, "story/someone_arrived", "hired");
             if (IndustrialConstants.HIRE_SOURCE_TYPE.equals(access.sourceType())) {
                 IndustrialControlBoxService.synchronizeAssignedWorkerMetadata(level, access.sourcePos());
             }

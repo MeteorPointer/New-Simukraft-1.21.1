@@ -1,0 +1,28 @@
+{
+  "parent": "simukraft:story/build_box",
+  "display": {
+    "icon": {
+      "id": "simukraft:industrial_control_box"
+    },
+    "title": {
+      "translate": "advancement.simukraft.factory.title"
+    },
+    "description": {
+      "translate": "advancement.simukraft.factory.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "industrial": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "industrial"
+    ]
+  ]
+}

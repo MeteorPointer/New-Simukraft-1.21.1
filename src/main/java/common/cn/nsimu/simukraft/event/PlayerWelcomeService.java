@@ -30,8 +30,7 @@ public final class PlayerWelcomeService {
     private static final String FIRST_DREAM_PLAYED_TAG = "simukraft_first_dream_played";
     private static final String GUIDE_BOOK_GRANTED_TAG = "simukraft_guide_book_granted";
     private static final int FIRST_DREAM_START_DELAY_TICKS = 40;
-    private static final int FIRST_DREAM_GRANT_DELAY_TICKS = 220;
-    private static final Map<UUID, FirstDreamPendingState> PENDING_FIRST_DREAM = new ConcurrentHashMap<>();
+    private static final Map<UUID, Integer> PENDING_FIRST_DREAM_SOUND = new ConcurrentHashMap<>();
 
     private PlayerWelcomeService() {
     }
@@ -43,38 +42,28 @@ public final class PlayerWelcomeService {
         }
         sendWelcomeMessages(player);
         grantGuideBookOnFirstWorldJoin(player);
-        scheduleFirstDreamSequence(player);
+        grantFirstDreamAdvancement(player);
+        scheduleFirstDreamSound(player);
     }
 
-    // tick：延迟播放首次梦境音效并授予成就，避开玩家刚登录时客户端还没稳定的阶段。
+    // tick：稍等再播首次梦境音效，避开玩家刚登录时客户端还没稳定的阶段。
     public static void tick(MinecraftServer server) {
-        if (server == null || PENDING_FIRST_DREAM.isEmpty()) {
+        if (server == null || PENDING_FIRST_DREAM_SOUND.isEmpty()) {
             return;
         }
-        for (Map.Entry<UUID, FirstDreamPendingState> entry : PENDING_FIRST_DREAM.entrySet()) {
-            FirstDreamPendingState state = entry.getValue();
-            int remainingTicks = state.remainingTicks() - 1;
+        for (Map.Entry<UUID, Integer> entry : PENDING_FIRST_DREAM_SOUND.entrySet()) {
+            int remainingTicks = entry.getValue() - 1;
             if (remainingTicks > 0) {
-                PENDING_FIRST_DREAM.put(entry.getKey(), state.withRemainingTicks(remainingTicks));
+                PENDING_FIRST_DREAM_SOUND.put(entry.getKey(), remainingTicks);
                 continue;
             }
-
+            PENDING_FIRST_DREAM_SOUND.remove(entry.getKey());
             ServerPlayer player = server.getPlayerList().getPlayer(entry.getKey());
             if (player == null) {
-                PENDING_FIRST_DREAM.remove(entry.getKey());
                 continue;
             }
-
-            if (state.stage() == FirstDreamStage.WAITING_TO_PLAY_SOUND) {
-                player.playNotifySound(ModSoundEvents.FIRST_DREAM.get(), SoundSource.RECORDS, 1.0F, 1.0F);
-                PENDING_FIRST_DREAM.put(entry.getKey(),
-                        new FirstDreamPendingState(FirstDreamStage.WAITING_TO_GRANT_ADVANCEMENT,
-                                FIRST_DREAM_GRANT_DELAY_TICKS));
-                continue;
-            }
-
-            PENDING_FIRST_DREAM.remove(entry.getKey());
-            grantFirstDreamAdvancement(player);
+            player.playNotifySound(ModSoundEvents.FIRST_DREAM.get(), SoundSource.RECORDS, 1.0F, 1.0F);
+            markFirstDreamPlayed(player);
         }
     }
 
@@ -82,7 +71,7 @@ public final class PlayerWelcomeService {
         if (server == null) {
             return;
         }
-        PENDING_FIRST_DREAM.clear();
+        PENDING_FIRST_DREAM_SOUND.clear();
     }
 
     private static void sendWelcomeMessages(ServerPlayer player) {
@@ -125,17 +114,11 @@ public final class PlayerWelcomeService {
                                         Component.literal(cmd))))));
     }
 
-    private static void scheduleFirstDreamSequence(ServerPlayer player) {
-        if (hasPlayedFirstDream(player) || PENDING_FIRST_DREAM.containsKey(player.getUUID())) {
+    private static void scheduleFirstDreamSound(ServerPlayer player) {
+        if (hasPlayedFirstDream(player) || PENDING_FIRST_DREAM_SOUND.containsKey(player.getUUID())) {
             return;
         }
-        AdvancementHolder advancement = player.getServer().getAdvancements().get(FIRST_DREAM_ADVANCEMENT_ID);
-        if (advancement != null && player.getAdvancements().getOrStartProgress(advancement).isDone()) {
-            markFirstDreamPlayed(player);
-            return;
-        }
-        PENDING_FIRST_DREAM.put(player.getUUID(),
-                new FirstDreamPendingState(FirstDreamStage.WAITING_TO_PLAY_SOUND, FIRST_DREAM_START_DELAY_TICKS));
+        PENDING_FIRST_DREAM_SOUND.put(player.getUUID(), FIRST_DREAM_START_DELAY_TICKS);
     }
 
     private static void grantFirstDreamAdvancement(ServerPlayer player) {
@@ -145,12 +128,8 @@ public final class PlayerWelcomeService {
             return;
         }
         AdvancementProgress progress = player.getAdvancements().getOrStartProgress(advancement);
-        if (progress.isDone()) {
-            markFirstDreamPlayed(player);
-            return;
-        }
-        if (player.getAdvancements().award(advancement, FIRST_DREAM_CRITERION)) {
-            markFirstDreamPlayed(player);
+        if (!progress.isDone()) {
+            player.getAdvancements().award(advancement, FIRST_DREAM_CRITERION);
         }
     }
 
@@ -179,14 +158,4 @@ public final class PlayerWelcomeService {
         player.getPersistentData().put(Player.PERSISTED_NBT_TAG, persistedData);
     }
 
-    private enum FirstDreamStage {
-        WAITING_TO_PLAY_SOUND,
-        WAITING_TO_GRANT_ADVANCEMENT
-    }
-
-    private record FirstDreamPendingState(FirstDreamStage stage, int remainingTicks) {
-        private FirstDreamPendingState withRemainingTicks(int updatedTicks) {
-            return new FirstDreamPendingState(stage, updatedTicks);
-        }
-    }
 }

@@ -111,6 +111,7 @@ public final class NpcChildbirthService {
             manager.syncEntity(wifeEntity);
         }
 
+        common.cn.nsimu.simukraft.advancement.StoryAdvancementService.grantCity(level, wife.cityId(), "story/child", "born");
         if (wife.cityId() != null) {
             CityGroupMessageService.successToCity(level, wife.cityId(),
                     Component.translatable("message.simukraft.citizen.born", child.name(), wife.name()));

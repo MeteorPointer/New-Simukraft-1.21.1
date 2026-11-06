@@ -12,10 +12,9 @@ tab_index: 1
 
 城市核心：创建城市的必备物品，放置后右键可创建城市~{spacing=1}
 
-:item[simukraft:build_box]
+:item[simukraft:portable_city_core]
 
-建筑盒：雇佣建筑师建造不同类别的建筑，或雇佣规划师规划区域！{spacing=1}
-
+便携城市核心：随身携带的远程管家，右键即可打开您城市的核心菜单，走到哪管到哪！{spacing=1}
 
 :::right
 
@@ -27,22 +26,37 @@ tab_index: 1
 
 商业控制箱：在商业类建筑中出现，可在此处雇佣NPC店员。{spacing=1}
 
-
 # 控制箱 | 控制箱
 
 :item[simukraft:industrial_control_box]
 
 工业控制箱：在工业类建筑中出现，可在此处雇佣工人进行生产。{spacing=8}
 
-:item[simukraft:exchange_control_box]
-交易所建筑类控制箱：在公共类建筑中出现，可以卖出买入股票
-
-:::right
-
 :item[simukraft:nsuk_farmland_box]
 
 农田盒：自动化农业生产的核心，在这里可以雇佣农民进行耕种。{spacing=8}
-#  物流 | 新工业原件
+
+:::right
+
+:item[simukraft:medical_control_box] {spacing=1}
+
+医疗控制箱：医院的心脏，配套病床雇佣医生后，市民看病住院全靠它。
+
+:item[simukraft:bank_control_box] {spacing=1}
+
+银行控制箱：雇佣柜员后，官员可在银行存取硬币、转账给其他城市。
+
+# 公共建筑 | 物流网络
+
+:item[simukraft:exchange_control_box]
+
+交易所控制箱：雇佣经纪人后，官员可用城市资金在开市时间（8:00~20:00）买卖股票。{spacing=8}
+
+:item[simukraft:global_market_control_box]
+
+全球市场控制箱：雇佣贸易商后，官员挂牌定价，与全维度的城市做买卖。{spacing=8}
+
+:::right
 
 :item[simukraft:logistics_server_box]
 
@@ -52,28 +66,49 @@ tab_index: 1
 
 物流客户端：放置在城市需要物品的地方，将容器接入物流网络。
 
-:::right
+# 新工业原件 | 新物品
+
 :item[simukraft:mineral_drilling_control_box] {spacing=1}
 
-钻井控制器：工业建筑类里可以看到,位于新增矿井建筑里
+钻井控制器：放进钻井平台建筑里，雇佣钻井工即可自动采矿。
+
 :item[simukraft:drill_rod_segment] {spacing=1}
 
-钻杆:用于矿井钻探时的消耗品
+钻杆：矿井向下钻探时的消耗品，钻得越深耗得越多。{spacing=1}
+
 :item[simukraft:geological_hammer] {spacing=4}
 
-地质锤:右键可以看看区块有没有虚拟矿石
-#  新工业原件 | 新物品
-:item[simukraft:shallow_drill_bit] {spacing=4}
-浅层钻头:矿井浅层钻探使用
-:item[simukraft:deep_drill_bit] {spacing=4}
-深层钻头:矿井钻透浅层后钻探深板岩层钻探使用
+地质锤：右键探测脚下60格内的虚拟矿脉，看看这块地值不值得开发。
 
 :::right
 
+:item[simukraft:shallow_drill_bit] {spacing=4}
+
+浅层钻头：Y≥10的浅层钻探用钻头，耐久500。
+
+:item[simukraft:deep_drill_bit] {spacing=4}
+
+深层钻头：钻透浅层进入深板岩层用的钻头，耐久900，更经久耐用。
+
 :item[simukraft:caution_tape] {spacing=4}
-一卷警戒线:警示你掉下悬崖的好东西
-:item[simukraft:gold_coin] {spacing=4}
-金币:用来参与交易的好物品
+
+一卷警戒线：围出闭合区域后，市民寻路会自动绕开，悬崖边的守护神~
+
+# 货币 | 提示
+
+:item[simukraft:gold_coin]
+
+金币：面值1元的流通货币，市民交易、物流计费都用它结算~{spacing=1}
+
+:::right
+
+:item[simukraft:silver_coin]
+
+银币：面值0.1元，零钱找补全靠它。{spacing=1}
+
+:item[simukraft:copper_coin]
+
+铜币：面值0.01元，最小面额的辅币。{spacing=1}
 
 # 其他物品 | 提示
 
@@ -81,8 +116,7 @@ tab_index: 1
 
 :item[simukraft:manifest]
 
-清单:对着建筑盒或控制箱潜行右键读取材料列表。对着其他方块潜行右键可贴在地面或墙上，右键打开。
-
+清单：对着建筑盒或控制箱潜行右键读取材料列表。对着其他方块潜行右键可贴在地面或墙上，右键打开。
 
 :::right
 

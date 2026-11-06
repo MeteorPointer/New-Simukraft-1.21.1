@@ -1,0 +1,28 @@
+{
+  "parent": "simukraft:story/first_dream",
+  "display": {
+    "icon": {
+      "id": "minecraft:emerald"
+    },
+    "title": {
+      "translate": "advancement.simukraft.someone_arrived.title"
+    },
+    "description": {
+      "translate": "advancement.simukraft.someone_arrived.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "hired": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "hired"
+    ]
+  ]
+}

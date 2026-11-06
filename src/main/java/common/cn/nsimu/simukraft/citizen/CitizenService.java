@@ -72,7 +72,11 @@ public final class CitizenService {
             if (data.dead() && homeId != null) {
                 return;
             }
+            boolean firstHome = data.homeId() == null && homeId != null;
             data.setHomeId(homeId);
+            if (firstHome) {
+                common.cn.nsimu.simukraft.advancement.StoryAdvancementService.grantCity(level, data.cityId(), "story/moved_in", "moved_in");
+            }
             DistrictOwnershipSync.applyCitizen(level, data);
             manager.saveCitizenNow(citizenId);
             if (homeId != null) {

@@ -161,6 +161,7 @@ public final class LogisticsWorkService {
                     refund(level, warehouse.cityId(), cost);
                     continue;
                 }
+                common.cn.nsimu.simukraft.advancement.StoryAdvancementService.grantCity(level, warehouse.cityId(), "story/delivery", "delivered");
                 return true;
             }
         }

@@ -1,0 +1,28 @@
+{
+  "parent": "simukraft:story/someone_arrived",
+  "display": {
+    "icon": {
+      "id": "minecraft:egg"
+    },
+    "title": {
+      "translate": "advancement.simukraft.child.title"
+    },
+    "description": {
+      "translate": "advancement.simukraft.child.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": false,
+    "hidden": false
+  },
+  "criteria": {
+    "born": {
+      "trigger": "minecraft:impossible"
+    }
+  },
+  "requirements": [
+    [
+      "born"
+    ]
+  ]
+}

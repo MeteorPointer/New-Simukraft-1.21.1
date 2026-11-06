@@ -66,8 +66,9 @@ public final class GuideBookScreen extends Screen {
     private static final int RETURN_TOP_OVERLAP = 7;
     private static final int PAGE_BUTTON_WIDTH = 16;
     private static final int PAGE_BUTTON_HEIGHT = 16;
-    private static final int PAGE_BUTTON_OFFSET_X = 20;
     private static final int PAGE_BUTTON_OFFSET_Y = 180;
+    private static final int OPEN_COVER_WIDTH = 18;
+    private static final int OPEN_COVER_OUTSET = 4;
 
     private final ItemStack previewStack;
     private float alpha;
@@ -112,12 +113,15 @@ public final class GuideBookScreen extends Screen {
 
         int bookX = this.width / 2 - BOOK_WIDTH / 2;
         int bookY = this.height / 2 - BOOK_HEIGHT / 2;
+        int coverButtonInset = (OPEN_COVER_WIDTH - PAGE_BUTTON_WIDTH) / 2;
+        int leftCoverX = bookX - OPEN_COVER_OUTSET;
+        int rightCoverX = bookX + BOOK_WIDTH - OPEN_COVER_WIDTH + OPEN_COVER_OUTSET;
         this.prevPageButton = Button.builder(Component.literal(GuideBookLang.get("guidebook.button.prev")), button -> turnPage(-1))
-                .pos(bookX + PAGE_BUTTON_OFFSET_X, bookY + PAGE_BUTTON_OFFSET_Y)
+                .pos(leftCoverX + coverButtonInset, bookY + PAGE_BUTTON_OFFSET_Y)
                 .size(PAGE_BUTTON_WIDTH, PAGE_BUTTON_HEIGHT)
                 .build();
         this.nextPageButton = Button.builder(Component.literal(GuideBookLang.get("guidebook.button.next")), button -> turnPage(1))
-                .pos(bookX + BOOK_WIDTH - PAGE_BUTTON_OFFSET_X - PAGE_BUTTON_WIDTH, bookY + PAGE_BUTTON_OFFSET_Y)
+                .pos(rightCoverX + coverButtonInset, bookY + PAGE_BUTTON_OFFSET_Y)
                 .size(PAGE_BUTTON_WIDTH, PAGE_BUTTON_HEIGHT)
                 .build();
         this.addRenderableWidget(this.prevPageButton);

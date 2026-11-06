@@ -438,6 +438,13 @@ public final class BuilderConstructionService {
         PlacedBuildingRecord placedBuilding = new PlacedBuildingRecord(UUID.randomUUID(), cityId, task.dimensionId(), task.category(), task.buildingFileName(), task.displayName(), task.amount(), task.structureFileName(), BuildingTransform.directionFromRotation(task.rotationDegrees()).getSerializedName(), task.origin(), BlockPos.ZERO, minPos, maxPos, System.currentTimeMillis(), cached.blocks(), task.poiDefinitions(), poiInstances, unitDefs, unitInsts)
                 .withDistrictId(common.cn.nsimu.simukraft.city.DistrictOwnershipSync.districtAt(level, task.origin(), cityId));
         PlacedBuildingService.register(level, placedBuilding);
+        common.cn.nsimu.simukraft.advancement.StoryAdvancementService.grantCity(level, cityId, "story/building_done", "completed");
+        String builtCategory = task.category() == null ? "" : task.category().toLowerCase(java.util.Locale.ROOT);
+        if ("commercial".equals(builtCategory) || "commerce".equals(builtCategory)) {
+            common.cn.nsimu.simukraft.advancement.StoryAdvancementService.grantCity(level, cityId, "story/open_shop", "commercial");
+        } else if ("industrial".equals(builtCategory) || "industry".equals(builtCategory)) {
+            common.cn.nsimu.simukraft.advancement.StoryAdvancementService.grantCity(level, cityId, "story/factory", "industrial");
+        }
         NeoForge.EVENT_BUS.post(new BuildingConstructionEvent.Complete(level, task, citizen, placedBuilding));
         RtsBuildingBoundsRequestPacket.refreshNearbyPlayers(level, placedBuilding);
         ResidentialBedPoiService.addRecordedBeds(level, placedBuilding);

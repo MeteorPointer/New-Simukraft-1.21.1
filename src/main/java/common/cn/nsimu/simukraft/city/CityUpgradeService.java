@@ -94,6 +94,7 @@ public final class CityUpgradeService {
                 CityGroupMessageService.successToCity(level, city.cityId(), Component.translatable(
                         "message.simukraft.city_core.upgrade.success", completed.targetLevel(), displayName));
                 HudSyncService.syncToCityGroup(level, city.cityId(), true);
+                common.cn.nsimu.simukraft.advancement.StoryAdvancementService.grantCity(level, city.cityId(), "story/city_grew", "upgraded");
             } catch (RuntimeException exception) {
                 SimuKraft.LOGGER.warn("City upgrade completed but notification failed for {}", city.cityId(), exception);
             }
