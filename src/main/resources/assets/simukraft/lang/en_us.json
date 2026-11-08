@@ -787,7 +787,7 @@
     "config.simukraft.npc_pathfinding.localPathRadiusBlocks":  "Local Path Radius",
     "config.simukraft.npc_pathfinding.farMovementTeleportDistance":  "Far Movement Teleport Distance",
     "config.simukraft.npc_pathfinding.repathCooldownTicks":  "Repath Cooldown Ticks",
-    "config.simukraft.npc_pathfinding.pathCacheTtlTicks":  "Path Cache TTL Ticks",
+    "config.simukraft.npc_pathfinding.pathCacheTtlTicks":  "Path Cache Lifetime (Ticks)",
     "config.simukraft.npc_pathfinding.debugPathfinding":  "Debug Pathfinding",
     "config.simukraft.npc_pathfinding.forceLoadAllNpcs": "Force-load All NPCs",
     "config.simukraft.building_integrity.autoDemolishThresholdPercent":  "Building Auto-Demolish Integrity Threshold (%)",

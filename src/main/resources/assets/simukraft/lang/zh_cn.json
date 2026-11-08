@@ -807,7 +807,7 @@
     "config.simukraft.npc_pathfinding.localPathRadiusBlocks":  "局部寻路半径",
     "config.simukraft.npc_pathfinding.farMovementTeleportDistance":  "远距离传送阈值",
     "config.simukraft.npc_pathfinding.repathCooldownTicks":  "重新寻路冷却 tick",
-    "config.simukraft.npc_pathfinding.pathCacheTtlTicks":  "路径缓���存活 tick",
+    "config.simukraft.npc_pathfinding.pathCacheTtlTicks":  "路径缓存有效期（游戏刻）",
     "config.simukraft.npc_pathfinding.debugPathfinding":  "寻路调试日志",
     "config.simukraft.npc_pathfinding.forceLoadAllNpcs": "强加载所有NPC",
     "config.simukraft.building_integrity.autoDemolishThresholdPercent":  "建筑自动拆除完整性阈值(%)",
