@@ -48,6 +48,7 @@ public class SimuMapManager {
     private final Map<Long, SimuMapRegion> regions = new ConcurrentHashMap<>();
     private final Set<Long> renderingKeys = ConcurrentHashMap.newKeySet();
     private final Map<Long, Long> scannedAtTick = new ConcurrentHashMap<>();
+    private final LinkedHashSet<Long> pendingChunkScans = new LinkedHashSet<>();
 
     private int scanRadius = DEFAULT_SCAN_RADIUS;
     private long tickCount = 0L;
@@ -157,6 +158,7 @@ public class SimuMapManager {
         regions.clear();
         renderingKeys.clear();
         scannedAtTick.clear();
+        pendingChunkScans.clear();
         renderExecutor.shutdownNow();
 
         instance = null;
@@ -193,8 +195,15 @@ public class SimuMapManager {
         tickCount++;
         boolean active = hasActiveConsumer();
 
-        if (shouldScanThisTick(active)) {
-            incrementalScan(active ? ACTIVE_SCAN_BUDGET : PASSIVE_SCAN_BUDGET);
+        int scanBudget = active ? ACTIVE_SCAN_BUDGET : PASSIVE_SCAN_BUDGET;
+        // 新加载的区块优先处理，并与增量扫描共用本拍额度。
+        while (scanBudget > 0 && !pendingChunkScans.isEmpty()) {
+            long chunk = pendingChunkScans.removeFirst();
+            scanLoadedChunk(level, ChunkPos.getX(chunk), ChunkPos.getZ(chunk), false);
+            scanBudget--;
+        }
+        if (scanBudget > 0 && shouldScanThisTick(active)) {
+            incrementalScan(scanBudget);
         }
         if (active && tickCount % DIRTY_RENDER_INTERVAL_TICKS == 0) {
             renderDirtyRegions();
@@ -259,7 +268,7 @@ public class SimuMapManager {
     }
 
     /**
-     * 客户端 chunk 一加载就立即采样，避免地图按螺旋慢慢补。
+     * 客户端区块加载时只登记坐标，采样由客户端 tick 限额处理。
      */
     public void onClientChunkLoaded(Level level, ChunkAccess chunk) {
         if (!initialized || level == null || chunk == null) {
@@ -267,7 +276,7 @@ public class SimuMapManager {
         }
 
         updateScope(SimuMapStorage.getCurrentWorldId(), level.dimension());
-        scanLoadedChunk(level, chunk, chunk.getPos().x, chunk.getPos().z, false);
+        pendingChunkScans.add(chunk.getPos().toLong());
     }
 
     /**
@@ -277,7 +286,9 @@ public class SimuMapManager {
         if (chunkPos == null) {
             return;
         }
-        scannedAtTick.remove(chunkPos.toLong());
+        long chunk = chunkPos.toLong();
+        pendingChunkScans.remove(chunk);
+        scannedAtTick.remove(chunk);
     }
 
     private void updateScope(String worldId, ResourceKey<Level> dimension) {
@@ -297,6 +308,7 @@ public class SimuMapManager {
                 regions.clear();
                 renderingKeys.clear();
                 scannedAtTick.clear();
+                pendingChunkScans.clear();
                 resetScanCursor();
             }
         } else if (previousDimension == null) {
@@ -378,6 +390,7 @@ public class SimuMapManager {
             boolean scanned = SimuChunkScanner.scanChunk(level, chunk, chunkX, chunkZ, region);
             if (scanned) {
                 scannedAtTick.put(chunkLong, tickCount);
+                pendingChunkScans.remove(chunkLong);
             }
             return scanned;
         } catch (Exception e) {
