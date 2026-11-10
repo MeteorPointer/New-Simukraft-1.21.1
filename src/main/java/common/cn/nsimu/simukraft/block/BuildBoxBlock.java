@@ -1,8 +1,6 @@
 package common.cn.nsimu.simukraft.block;
 
 import common.cn.nsimu.simukraft.building.BuilderConstructionService;
-import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
-import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.clientbridge.ClientInteractionBridge;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
 import common.cn.nsimu.simukraft.registry.ModSoundEvents;
@@ -54,10 +52,7 @@ public class BuildBoxBlock extends Block {
             common.cn.nsimu.simukraft.planner.PlannerWorkService.interruptTasksByBuildBox(serverLevel, pos, "build_box_removed");
             releaseAssignedCitizen(serverLevel, pos, "builder");
             releaseAssignedCitizen(serverLevel, pos, "planner");
-            PlacedBuildingRecord building = PlacedBuildingService.findByContainedPos(serverLevel, pos);
-            if (building != null) {
-                PlacedBuildingService.unregister(serverLevel, building.buildingId());
-            }
+            // 建筑盒只锚本盒的施工和规划。包围盒里的已登记建筑由控制箱拆除，敲掉盒子不注销。
         }
         super.onRemove(state, level, pos, newState, movedByPiston);
     }
