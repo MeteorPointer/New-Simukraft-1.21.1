@@ -44,9 +44,12 @@ class SponsorAuthStorageTest {
             try (var input = Files.newInputStream(file)) {
                 encoded.load(input);
             }
-            assertTrue(encoded.values().stream().anyMatch(
-                    value -> String.valueOf(value).startsWith(SponsorSecretProtector.DPAPI_PREFIX)
-            ));
+            // protect() 依平台选用后端：Windows 写 dpapi:v1:，macOS/Linux 写 bound:v1:
+            assertTrue(encoded.values().stream().anyMatch(value -> {
+                String stored = String.valueOf(value);
+                return stored.startsWith(SponsorSecretProtector.DPAPI_PREFIX)
+                        || stored.startsWith(SponsorSecretProtector.BOUND_PREFIX);
+            }));
         }
 
         SponsorAuthStorage.StoredState reloaded = new SponsorAuthStorage(file).load();
