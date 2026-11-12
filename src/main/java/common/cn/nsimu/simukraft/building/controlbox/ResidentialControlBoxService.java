@@ -18,8 +18,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 
+import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -175,6 +179,10 @@ public final class ResidentialControlBoxService {
 
     private static PlacedBuildingRecord findByRecordedControlBox(ServerLevel level, BlockPos controlBoxPos) {
         for (PlacedBuildingRecord building : PlacedBuildingService.getBuildings(level)) {
+            // 控制箱一定落在所属建筑的包围盒内，先按边界筛掉无关建筑，避免遍历全维度体素。
+            if (!intersects(building, controlBoxPos)) {
+                continue;
+            }
             boolean containsControlBoxBlock = building.blocks().stream()
                     .anyMatch(block -> controlBoxPos.equals(block.relativePos()) && block.state().is(ModBlocks.RESIDENTIAL_CONTROL_BOX.get()));
             if (containsControlBoxBlock) {
@@ -184,48 +192,51 @@ public final class ResidentialControlBoxService {
         return null;
     }
 
+    private static boolean intersects(PlacedBuildingRecord building, BlockPos pos) {
+        BlockPos min = building.minPos();
+        BlockPos max = building.maxPos();
+        return min != null && max != null
+                && pos.getX() >= Math.min(min.getX(), max.getX()) && pos.getX() <= Math.max(min.getX(), max.getX())
+                && pos.getY() >= Math.min(min.getY(), max.getY()) && pos.getY() <= Math.max(min.getY(), max.getY())
+                && pos.getZ() >= Math.min(min.getZ(), max.getZ()) && pos.getZ() <= Math.max(min.getZ(), max.getZ());
+    }
+
     private static List<ResidentialControlBoxView.UnitView> buildUnitViews(
             PlacedBuildingRecord building, List<CityPoiData> bedPois, ServerLevel level) {
         if (building == null || building.unitInstances().isEmpty()) return List.of();
-        java.util.Map<UUID, String> poiToUnit = new java.util.HashMap<>();
-        java.util.Map<UUID, String> unitLabels = new java.util.LinkedHashMap<>();
-        for (BuildingUnitInstance unit : building.unitInstances()) {
+        Map<UUID, String> unitLabels = new LinkedHashMap<>();
+        Map<UUID, UUID> unitIdByPoi = new HashMap<>();
+        Map<UUID, List<ResidentialControlBoxView.ResidentEntry>> residentsByUnit = new LinkedHashMap<>();
+        Map<UUID, Integer> bedCountByUnit = new HashMap<>();
+        for (var unit : building.unitInstances()) {
             unitLabels.put(unit.unitId(), unit.label());
+            residentsByUnit.put(unit.unitId(), new ArrayList<>());
+            // 床位数按单元定义计，与下面只统计在用床位无关。
+            bedCountByUnit.put(unit.unitId(), unit.poiIds().size());
             for (UUID poiId : unit.poiIds()) {
-                poiToUnit.put(poiId, unit.label());
+                unitIdByPoi.put(poiId, unit.unitId());
             }
         }
-        java.util.Map<UUID, List<ResidentialControlBoxView.ResidentEntry>> residentsByUnit = new java.util.LinkedHashMap<>();
-        java.util.Map<UUID, java.util.concurrent.atomic.AtomicInteger> bedCountByUnit = new java.util.LinkedHashMap<>();
-        for (UUID unitId : unitLabels.keySet()) {
-            residentsByUnit.put(unitId, new java.util.ArrayList<>());
-            bedCountByUnit.put(unitId, new java.util.concurrent.atomic.AtomicInteger(0));
-        }
-        // 计算每户的床位数和入住居民
-        java.util.Set<UUID> unitPoiIds = new java.util.HashSet<>();
-        for (BuildingUnitInstance unit : building.unitInstances()) {
-            unit.poiIds().forEach(unitPoiIds::add);
-            bedCountByUnit.get(unit.unitId()).addAndGet(unit.poiIds().size());
+        // 居民按床位 POI 归一次组，避免每张床都重扫一遍全城居民。
+        Map<UUID, List<ResidentialControlBoxView.ResidentEntry>> residentsByPoi = new HashMap<>();
+        for (var citizen : CitizenManager.get(level).allCitizens()) {
+            if (citizen.dead() || citizen.homeId() == null || !unitIdByPoi.containsKey(citizen.homeId())) {
+                continue;
+            }
+            residentsByPoi.computeIfAbsent(citizen.homeId(), ignored -> new ArrayList<>())
+                    .add(new ResidentialControlBoxView.ResidentEntry(citizen.uuid(), citizen.name()));
         }
         for (CityPoiData poi : bedPois) {
-            UUID unitId = null;
-            for (var unit : building.unitInstances()) {
-                if (unit.poiIds().contains(poi.poiId())) {
-                    unitId = unit.unitId();
-                    break;
-                }
+            UUID unitId = unitIdByPoi.get(poi.poiId());
+            List<ResidentialControlBoxView.ResidentEntry> found = unitId == null ? null : residentsByPoi.get(poi.poiId());
+            if (found != null) {
+                residentsByUnit.get(unitId).addAll(found);
             }
-            if (unitId == null) continue;
-            final UUID unitIdFinal = unitId;
-            CitizenManager.get(level).allCitizens().stream()
-                    .filter(c -> !c.dead() && poi.poiId().equals(c.homeId()))
-                    .forEach(c -> residentsByUnit.get(unitIdFinal).add(
-                            new ResidentialControlBoxView.ResidentEntry(c.uuid(), c.name())));
         }
         return unitLabels.entrySet().stream()
                 .map(e -> new ResidentialControlBoxView.UnitView(
                         e.getKey(), e.getValue(),
-                        bedCountByUnit.get(e.getKey()).get(),
+                        bedCountByUnit.get(e.getKey()),
                         residentsByUnit.get(e.getKey())))
                 .toList();
     }

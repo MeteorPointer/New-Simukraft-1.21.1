@@ -367,6 +367,7 @@ public final class SimuKraft {
         CityRuntimeService.clearServerCaches(event.getServer());
         NpcForceLoadService.clear(event.getServer());
         PlacedBuildingService.clearServerCaches(event.getServer());
+        BuildingIntegrityService.clearServerCaches(event.getServer());
         ResidentialBedPoiService.clearServerCaches(event.getServer());
         MedicalBedPoiService.clearServerCaches(event.getServer());
         MedicalDefinitionLoader.clearCache();

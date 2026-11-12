@@ -24,15 +24,20 @@ public final class LogisticsWarehouseInventoryService {
         if (warehouse == null || warehouse.containers().isEmpty()) {
             return List.of();
         }
-        List<ItemCounter> counters = new ArrayList<>();
+        // 以数量归一的原型栈为键累加，避免逐槽线性比对已有种类在大仓库里退化成平方级开销。
+        Map<ItemStack, Long> counters = new LinkedHashMap<>();
         for (BlockPos container : usableContainers(level, warehouse.containers())) {
             for (GenericContainerAccess.SlotSnapshot snapshot : GenericContainerAccess.snapshotSlots(level, container)) {
-                merge(counters, snapshot.stack());
+                ItemStack stack = snapshot.stack();
+                if (stack == null || stack.isEmpty()) {
+                    continue;
+                }
+                counters.merge(stack.copyWithCount(1), (long) stack.getCount(), Long::sum);
             }
         }
-        return counters.stream()
-                .sorted(Comparator.comparing(counter -> itemId(counter.prototype)))
-                .map(LogisticsWarehouseInventoryService::toWarehouseItem)
+        return counters.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey(Comparator.comparing(LogisticsWarehouseInventoryService::itemId)))
+                .map(entry -> toWarehouseItem(entry.getKey(), entry.getValue()))
                 .toList();
     }
 
@@ -164,22 +169,9 @@ public final class LogisticsWarehouseInventoryService {
         return LogisticsManager.get(level).warehouseAt(boxPos);
     }
 
-    private static void merge(List<ItemCounter> counters, ItemStack stack) {
-        if (stack == null || stack.isEmpty()) {
-            return;
-        }
-        for (ItemCounter counter : counters) {
-            if (stacksMatchExactly(counter.prototype, stack)) {
-                counter.count += stack.getCount();
-                return;
-            }
-        }
-        counters.add(new ItemCounter(stack.copyWithCount(1), stack.getCount()));
-    }
-
-    private static WarehouseItem toWarehouseItem(ItemCounter counter) {
-        int safeCount = counter.count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) counter.count;
-        ItemStack display = counter.prototype.copyWithCount(Math.min(safeCount, counter.prototype.getMaxStackSize()));
+    private static WarehouseItem toWarehouseItem(ItemStack prototype, long count) {
+        int safeCount = count > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) count;
+        ItemStack display = prototype.copyWithCount(Math.min(safeCount, prototype.getMaxStackSize()));
         return new WarehouseItem(display, safeCount);
     }
 
@@ -248,16 +240,6 @@ public final class LogisticsWarehouseInventoryService {
     public record WarehouseSlotAddress(BlockPos pos, int slot) {
         public WarehouseSlotAddress {
             pos = pos == null ? BlockPos.ZERO : pos.immutable();
-        }
-    }
-
-    private static final class ItemCounter {
-        private final ItemStack prototype;
-        private long count;
-
-        private ItemCounter(ItemStack prototype, long count) {
-            this.prototype = prototype;
-            this.count = count;
         }
     }
 }
