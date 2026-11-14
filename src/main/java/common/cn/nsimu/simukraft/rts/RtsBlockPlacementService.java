@@ -69,7 +69,10 @@ public final class RtsBlockPlacementService {
     /**
      * isInPlayerCityTerritory: 确认目标区块归当前玩家所属城市所有。
      */
-    private static boolean isInPlayerCityTerritory(ServerLevel level, ServerPlayer player, BlockPos targetPos) {
+    public static boolean isInPlayerCityTerritory(ServerLevel level, ServerPlayer player, BlockPos targetPos) {
+        if (level == null || player == null || targetPos == null) {
+            return false;
+        }
         CityData city = CityService.findPlayerCity(level, player.getUUID()).orElse(null);
         if (city == null) {
             return false;

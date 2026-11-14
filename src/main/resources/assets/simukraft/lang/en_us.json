@@ -1254,6 +1254,7 @@
     "config.simukraft.client.rts.targetOtherModBlocks":  "RTS target other mod blocks",
     "config.simukraft.client.rts.moveHoldSeconds":  "RTS move hold seconds",
     "message.simukraft.rts.too_far":  "The RTS target is too far away.",
+    "message.simukraft.rts.demolish.outside_city":  "You can only demolish targets inside your city's territory.",
     "message.simukraft.rts.building_demolished":  "The selected building was demolished.",
     "message.simukraft.rts.block_demolished":  "The selected block was demolished.",
     "message.simukraft.rts.building_moved":  "The selected building was moved.",

@@ -7,8 +7,10 @@ import common.cn.nsimu.simukraft.building.PlacedBuildingService;
 import common.cn.nsimu.simukraft.city.CityData;
 import common.cn.nsimu.simukraft.city.CityManager;
 import common.cn.nsimu.simukraft.city.CityPermissionLevel;
+import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.network.toast.InfoToastService;
 import common.cn.nsimu.simukraft.protection.NpcBlockProtectionPolicy;
+import common.cn.nsimu.simukraft.rts.RtsBlockPlacementService;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -66,6 +68,10 @@ public record RtsDemolishPacket(BlockPos pos) implements CustomPacketPayload {
     private static void demolish(ServerLevel level, ServerPlayer player, BlockPos pos) {
         if (pos == null || !RtsChunkViewService.isTargetReachable(level, player, pos, MAX_DISTANCE)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.rts.too_far"));
+            return;
+        }
+        if (ServerConfig.claimProtectionEnabled() && !RtsBlockPlacementService.isInPlayerCityTerritory(level, player, pos)) {
+            InfoToastService.warning(player, Component.translatable("message.simukraft.rts.demolish.outside_city"));
             return;
         }
         PlacedBuildingRecord building = PlacedBuildingService.findByContainedPos(level, pos);

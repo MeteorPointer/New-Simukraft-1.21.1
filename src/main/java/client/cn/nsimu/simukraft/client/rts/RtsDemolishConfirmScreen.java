@@ -1,6 +1,10 @@
 package client.cn.nsimu.simukraft.client.rts;
 
 import client.cn.nsimu.simukraft.client.buildbox.BuildingBoundsRenderer;
+import client.cn.nsimu.simukraft.client.city.ClientCityChunkCache;
+import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
+import common.cn.nsimu.simukraft.building.BuildingTerritoryValidator;
+import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.network.rts.RtsDemolishPacket;
 import it.unimi.dsi.fastutil.booleans.BooleanConsumer;
 import net.minecraft.client.Minecraft;
@@ -34,6 +38,16 @@ public final class RtsDemolishConfirmScreen extends ConfirmScreen {
             return;
         }
         BlockPos pos = targetPos.immutable();
+        if (ServerConfig.claimProtectionEnabled() && !isInCurrentCityTerritory(pos)) {
+            ClientInfoToast.show(
+                    Component.translatable("toast.simukraft.title"),
+                    Component.translatable("message.simukraft.rts.demolish.outside_city"),
+                    "warning");
+            if (minecraft.screen instanceof RtsContextMenuScreen) {
+                minecraft.setScreen(null);
+            }
+            return;
+        }
         minecraft.setScreen(new RtsDemolishConfirmScreen(confirmed -> {
             if (confirmed) {
                 PacketDistributor.sendToServer(new RtsDemolishPacket(pos));
@@ -48,6 +62,10 @@ public final class RtsDemolishConfirmScreen extends ConfirmScreen {
     @Override
     public boolean isPauseScreen() {
         return false;
+    }
+
+    private static boolean isInCurrentCityTerritory(BlockPos pos) {
+        return BuildingTerritoryValidator.isPositionInChunks(pos, ClientCityChunkCache.getInstance().getCurrentCityChunks());
     }
 
     private static Component confirmMessage(BlockPos pos) {
