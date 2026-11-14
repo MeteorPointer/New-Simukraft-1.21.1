@@ -243,6 +243,12 @@ public interface ClientboundNetworkHandler {
     }
 
     /**
+     * handleBuildingBoundsPreviewSync: 用建筑身份在客户端重建界限预览。
+     */
+    default void handleBuildingBoundsPreviewSync(common.cn.nsimu.simukraft.network.building.controlbox.BuildingBoundsPreviewSyncPacket packet) {
+    }
+
+    /**
      * handleRtsLogisticsRoutesSync: 更新 RTS 悬浮物流节点的线路。
      */
     default void handleRtsLogisticsRoutesSync(RtsLogisticsRoutesSyncPacket packet) {

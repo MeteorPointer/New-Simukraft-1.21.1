@@ -1,6 +1,7 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
 import client.cn.nsimu.simukraft.client.selection.TwoPointSelectionScreen;
+import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftFlexLayout;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
 import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
@@ -18,6 +19,7 @@ import common.cn.nsimu.simukraft.network.planner.CreatePlanningTaskPacket;
 import common.cn.nsimu.simukraft.network.planner.PlannerMaterialScanRequestPacket;
 import common.cn.nsimu.simukraft.planner.PlanOperation;
 import common.cn.nsimu.simukraft.planner.PlannerBilling;
+import common.cn.nsimu.simukraft.planner.PlanningTaskData;
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
@@ -62,6 +64,14 @@ public final class PlannerOperationScreenOpener {
     }
 
     public static void afterAreaSelected(BlockPos buildBoxPos, PlanOperation operation, BlockPos min, BlockPos max) {
+        if (areaTooLarge(min, max)) {
+            ClientInfoToast.show(
+                    Component.translatable("toast.simukraft.title"),
+                    Component.translatable("message.simukraft.plan_area.too_big", ServerConfig.plannerMaxVolume()),
+                    "warning");
+            open(buildBoxPos);
+            return;
+        }
         if (operation == PlanOperation.REMOVE) {
             openRemoveConfirm(buildBoxPos, min, max);
             return;
@@ -238,8 +248,13 @@ public final class PlannerOperationScreenOpener {
         });
     }
 
+    private static boolean areaTooLarge(BlockPos min, BlockPos max) {
+        int volume = PlanningTaskData.volume(min, max);
+        return volume <= 0 || volume > ServerConfig.plannerMaxVolume();
+    }
+
     private static int volume(BlockPos min, BlockPos max) {
-        return Math.max(0, (max.getX() - min.getX() + 1) * (max.getY() - min.getY() + 1) * (max.getZ() - min.getZ() + 1));
+        return PlanningTaskData.volume(min, max);
     }
 
     private static int clamp(int value, int min, int max) {

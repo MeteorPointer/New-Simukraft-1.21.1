@@ -295,6 +295,13 @@ public final class ClientboundNetworkBridge {
     }
 
     /**
+     * handleBuildingBoundsPreviewSync: 分发建筑界限预览身份。
+     */
+    public static void handleBuildingBoundsPreviewSync(common.cn.nsimu.simukraft.network.building.controlbox.BuildingBoundsPreviewSyncPacket packet) {
+        HANDLER.get().handleBuildingBoundsPreviewSync(packet);
+    }
+
+    /**
      * handleRtsLogisticsRoutesSync: 分发 RTS 物流线路同步。
      */
     public static void handleRtsLogisticsRoutesSync(RtsLogisticsRoutesSyncPacket packet) {

@@ -1,6 +1,8 @@
 package client.cn.nsimu.simukraft.client.buildbox;
 
 import client.cn.nsimu.simukraft.client.city.ClientCityChunkCache;
+import common.cn.nsimu.simukraft.network.building.controlbox.BuildingBoundsPreviewRequestPacket;
+import common.cn.nsimu.simukraft.network.building.controlbox.BuildingBoundsPreviewSyncPacket;
 import client.cn.nsimu.simukraft.client.rts.RtsConstructionPreviewManager;
 import client.cn.nsimu.simukraft.client.rts.RtsMovePreviewManager;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
@@ -21,6 +23,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.joml.Matrix4f;
 
 import java.util.List;
@@ -117,6 +120,16 @@ public final class BuildingBoundsRenderer {
             return;
         }
         putDisplayed(controlBoxPos, bounds, markers, next);
+        if (next == BuildingBoundsMode.PREVIEW) {
+            PacketDistributor.sendToServer(new BuildingBoundsPreviewRequestPacket(controlBoxPos.immutable()));
+        }
+    }
+
+    /**
+     * applyPreviewIdentity: 用服务端建筑身份重建当前控制盒的预览网格。
+     */
+    public static void applyPreviewIdentity(BuildingBoundsPreviewSyncPacket packet) {
+        BuildingBoundsPreview.applyIdentity(packet);
     }
 
     public static void setBuildingBoundsVisible(BlockPos controlBoxPos, AABB bounds, boolean visible) {

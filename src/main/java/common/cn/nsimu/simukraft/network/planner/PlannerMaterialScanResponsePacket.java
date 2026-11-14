@@ -18,7 +18,8 @@ public record PlannerMaterialScanResponsePacket(BlockPos buildBoxPos,
                                                 BlockPos max,
                                                 PlanOperation operation,
                                                 List<ContainerBlocks> containers,
-                                                Map<String, Integer> sourceBlocks) implements CustomPacketPayload {
+                                                Map<String, Integer> sourceBlocks,
+                                                boolean accepted) implements CustomPacketPayload {
     public static final Type<PlannerMaterialScanResponsePacket> TYPE = new Type<>(ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "planner_material_scan_response"));
     public static final StreamCodec<RegistryFriendlyByteBuf, PlannerMaterialScanResponsePacket> STREAM_CODEC = StreamCodec.of(PlannerMaterialScanResponsePacket::encode, PlannerMaterialScanResponsePacket::decode);
     private static final int MAX_CONTAINERS = 6;
@@ -31,6 +32,10 @@ public record PlannerMaterialScanResponsePacket(BlockPos buildBoxPos,
         max = max.immutable();
         containers = containers == null ? List.of() : List.copyOf(containers.stream().limit(MAX_CONTAINERS).toList());
         sourceBlocks = immutableLimitedMap(sourceBlocks);
+    }
+
+    public static PlannerMaterialScanResponsePacket rejected(BlockPos buildBoxPos, BlockPos min, BlockPos max, PlanOperation operation) {
+        return new PlannerMaterialScanResponsePacket(buildBoxPos, min, max, operation, List.of(), Map.of(), false);
     }
 
     @Override
@@ -49,6 +54,7 @@ public record PlannerMaterialScanResponsePacket(BlockPos buildBoxPos,
             writeCountMap(buffer, container.blocks());
         }
         writeCountMap(buffer, packet.sourceBlocks());
+        buffer.writeBoolean(packet.accepted());
     }
 
     public static PlannerMaterialScanResponsePacket decode(RegistryFriendlyByteBuf buffer) {
@@ -61,7 +67,9 @@ public record PlannerMaterialScanResponsePacket(BlockPos buildBoxPos,
         for (int index = 0; index < containerCount; index++) {
             containers.add(new ContainerBlocks(buffer.readBlockPos(), readCountMap(buffer)));
         }
-        return new PlannerMaterialScanResponsePacket(buildBoxPos, min, max, operation, containers, readCountMap(buffer));
+        Map<String, Integer> sourceBlocks = readCountMap(buffer);
+        boolean accepted = buffer.readBoolean();
+        return new PlannerMaterialScanResponsePacket(buildBoxPos, min, max, operation, containers, sourceBlocks, accepted);
     }
 
     public static void handle(PlannerMaterialScanResponsePacket packet, IPayloadContext context) {

@@ -8,12 +8,14 @@ import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
 import client.cn.nsimu.simukraft.client.ui.SlidingInfoPanel;
+import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.logistics.LogisticsDirection;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxOpenRequestPacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.farmland.FarmlandBoxSetAreaPacket;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsBoxActionPacket;
 import common.cn.nsimu.simukraft.planner.PlanOperation;
+import common.cn.nsimu.simukraft.planner.PlanningTaskData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
@@ -324,6 +326,13 @@ public final class TwoPointSelectionScreen extends Screen implements FreeCameraS
             return;
         }
         if (operation != null) {
+            int volume = PlanningTaskData.volume(min, max);
+            if (volume <= 0 || volume > ServerConfig.plannerMaxVolume()) {
+                ClientInfoToast.show(Component.translatable("toast.simukraft.title"),
+                        Component.translatable("message.simukraft.plan_area.too_big", ServerConfig.plannerMaxVolume()),
+                        "warning");
+                return;
+            }
             closeSelection(() -> PlannerOperationScreenOpener.afterAreaSelected(ownerPos, operation, min, max));
         }
     }

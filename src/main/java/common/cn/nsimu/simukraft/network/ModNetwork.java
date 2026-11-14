@@ -57,7 +57,7 @@ import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 
 
 public final class ModNetwork {
-    private static final String NETWORK_VERSION = "42";
+    private static final String NETWORK_VERSION = "44";
 
     private ModNetwork() {
     }
@@ -85,6 +85,7 @@ public final class ModNetwork {
         registrar.playToServer(NpcHireAssignPacket.TYPE, NpcHireAssignPacket.STREAM_CODEC, NpcHireAssignPacket::handle);
         registrar.playToServer(NpcHireFirePacket.TYPE, NpcHireFirePacket.STREAM_CODEC, NpcHireFirePacket::handle);
         registrar.playToServer(BuildBoxStartConstructionPacket.TYPE, BuildBoxStartConstructionPacket.STREAM_CODEC, BuildBoxStartConstructionPacket::handle);
+        registrar.playToServer(BuildingBoundsPreviewRequestPacket.TYPE, BuildingBoundsPreviewRequestPacket.STREAM_CODEC, BuildingBoundsPreviewRequestPacket::handle);
         registrar.playToServer(ResidentialControlBoxOpenRequestPacket.TYPE, ResidentialControlBoxOpenRequestPacket.STREAM_CODEC, ResidentialControlBoxOpenRequestPacket::handle);
         registrar.playToServer(ResidentialControlBoxDemolishPacket.TYPE, ResidentialControlBoxDemolishPacket.STREAM_CODEC, ResidentialControlBoxDemolishPacket::handle);
         registrar.playToServer(ResidentialControlBoxOccupancyPacket.TYPE, ResidentialControlBoxOccupancyPacket.STREAM_CODEC, ResidentialControlBoxOccupancyPacket::handle);
@@ -152,6 +153,7 @@ public final class ModNetwork {
         registrar.playToClient(HudSyncPacket.TYPE, HudSyncPacket.STREAM_CODEC, HudSyncPacket::handle);
         registrar.playToClient(BuildingCacheReloadPacket.TYPE, BuildingCacheReloadPacket.STREAM_CODEC, BuildingCacheReloadPacket::handle);
         registrar.playToClient(ResidentialControlBoxBoundsUpdatePacket.TYPE, ResidentialControlBoxBoundsUpdatePacket.STREAM_CODEC, ResidentialControlBoxBoundsUpdatePacket::handle);
+        registrar.playToClient(BuildingBoundsPreviewSyncPacket.TYPE, BuildingBoundsPreviewSyncPacket.STREAM_CODEC, BuildingBoundsPreviewSyncPacket::handle);
         registrar.playToClient(ResidentialControlBoxViewUpdatePacket.TYPE, ResidentialControlBoxViewUpdatePacket.STREAM_CODEC, ResidentialControlBoxViewUpdatePacket::handle);
         registrar.playToClient(ResidentialControlBoxOpenResponsePacket.TYPE, ResidentialControlBoxOpenResponsePacket.STREAM_CODEC, ResidentialControlBoxOpenResponsePacket::handle);
         registrar.playToClient(FarmlandBoxOpenResponsePacket.TYPE, FarmlandBoxOpenResponsePacket.STREAM_CODEC, FarmlandBoxOpenResponsePacket::handle);

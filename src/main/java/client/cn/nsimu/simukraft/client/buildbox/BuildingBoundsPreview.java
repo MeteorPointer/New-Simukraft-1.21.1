@@ -11,6 +11,7 @@ import common.cn.nsimu.simukraft.building.BuildingBlockData;
 import common.cn.nsimu.simukraft.building.BuildingStructureService;
 import common.cn.nsimu.simukraft.building.PlacedBuildingRecord;
 import common.cn.nsimu.simukraft.building.PlacedBuildingService;
+import common.cn.nsimu.simukraft.network.building.controlbox.BuildingBoundsPreviewSyncPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.GameRenderer;
@@ -44,6 +45,7 @@ final class BuildingBoundsPreview {
     private static final int COLOR_STATE = 0x48FF8800;
     private static final long CHECK_INTERVAL_TICKS = 2L;
     private static final Map<BlockPos, Cache> CACHES = new ConcurrentHashMap<>();
+    private static final Map<BlockPos, PreviewIdentity> IDENTITIES = new ConcurrentHashMap<>();
 
     private BuildingBoundsPreview() {
     }
@@ -56,8 +58,9 @@ final class BuildingBoundsPreview {
         if (controlBoxPos == null || bounds == null || minecraft.level == null) {
             return;
         }
-        Cache cache = CACHES.computeIfAbsent(controlBoxPos.immutable(), ignored -> new Cache());
-        rebuild(minecraft, bounds, cache);
+        BlockPos key = controlBoxPos.immutable();
+        Cache cache = CACHES.computeIfAbsent(key, ignored -> new Cache());
+        rebuild(minecraft, bounds, cache, key);
     }
 
     static void render(RenderLevelStageEvent event, Map<BlockPos, BuildingBoundsRenderer.DisplayedBuildingBounds> displayed) {
@@ -78,9 +81,9 @@ final class BuildingBoundsPreview {
             }
             Cache cache = CACHES.computeIfAbsent(entry.getKey(), ignored -> new Cache());
             if (cache.mesh == null) {
-                rebuild(minecraft, shown.bounds(), cache);
+                rebuild(minecraft, shown.bounds(), cache, entry.getKey());
             } else if (gameTime - cache.checkedAt >= CHECK_INTERVAL_TICKS && signatureChanged(minecraft.level, cache)) {
-                rebuild(minecraft, shown.bounds(), cache);
+                rebuild(minecraft, shown.bounds(), cache, entry.getKey());
             } else if (gameTime - cache.checkedAt >= CHECK_INTERVAL_TICKS) {
                 cache.checkedAt = gameTime;
             }
@@ -89,8 +92,39 @@ final class BuildingBoundsPreview {
         }
     }
 
+    /**
+     * applyIdentity: 服务端发来建筑身份后立刻重建预览网格。
+     */
+    public static void applyIdentity(BuildingBoundsPreviewSyncPacket packet) {
+        if (packet == null || packet.controlBoxPos() == null) {
+            return;
+        }
+        BlockPos key = packet.controlBoxPos().immutable();
+        IDENTITIES.put(key, new PreviewIdentity(
+                packet.category(),
+                packet.buildingFileName(),
+                packet.structureFileName(),
+                packet.origin(),
+                packet.facing(),
+                packet.min(),
+                packet.max()));
+        Cache cache = CACHES.get(key);
+        if (cache != null) {
+            cache.expected = List.of();
+            Minecraft minecraft = Minecraft.getInstance();
+            AABB bounds = new AABB(
+                    packet.min().getX(), packet.min().getY(), packet.min().getZ(),
+                    packet.max().getX() + 1.0D, packet.max().getY() + 1.0D, packet.max().getZ() + 1.0D);
+            rebuild(minecraft, bounds, cache, key);
+        }
+    }
+
     static void clear(BlockPos controlBoxPos) {
-        Cache removed = controlBoxPos == null ? null : CACHES.remove(controlBoxPos.immutable());
+        BlockPos key = controlBoxPos == null ? null : controlBoxPos.immutable();
+        Cache removed = key == null ? null : CACHES.remove(key);
+        if (key != null) {
+            IDENTITIES.remove(key);
+        }
         if (removed != null) {
             closeMesh(removed);
         }
@@ -99,6 +133,7 @@ final class BuildingBoundsPreview {
     static void clearAll() {
         CACHES.values().forEach(BuildingBoundsPreview::closeMesh);
         CACHES.clear();
+        IDENTITIES.clear();
     }
 
     private static void closeMesh(Cache cache) {
@@ -108,18 +143,20 @@ final class BuildingBoundsPreview {
         cache.mesh = PreviewMesh.EMPTY;
     }
 
-    private static void rebuild(Minecraft minecraft, AABB bounds, Cache cache) {
+    private static void rebuild(Minecraft minecraft, AABB bounds, Cache cache, BlockPos controlBoxPos) {
         closeMesh(cache);
         cache.checkedAt = minecraft.level == null ? 0L : minecraft.level.getGameTime();
         cache.marks = List.of();
         cache.mesh = PreviewMesh.EMPTY;
-        PlacedBuildingRecord building = findBuilding(minecraft, bounds);
-        if (building == null || minecraft.level == null) {
+        if (minecraft.level == null) {
             return;
         }
         List<BuildingBlockData> expected = cache.expected == null || cache.expected.isEmpty()
-                ? List.copyOf(resolveExpected(building))
+                ? List.copyOf(resolveExpected(minecraft, bounds, controlBoxPos))
                 : cache.expected;
+        if (expected.isEmpty()) {
+            return;
+        }
         List<Mark> marks = new ArrayList<>();
         List<PreviewBlockData> ghosts = new ArrayList<>();
         Set<Long> covered = new HashSet<>();
@@ -175,6 +212,38 @@ final class BuildingBoundsPreview {
         return Math.max(min, Math.min(max, value));
     }
 
+    private static List<BuildingBlockData> resolveExpected(Minecraft minecraft, AABB bounds, BlockPos controlBoxPos) {
+        PreviewIdentity identity = controlBoxPos == null ? null : IDENTITIES.get(controlBoxPos.immutable());
+        if (identity != null) {
+            return loadFromIdentity(identity);
+        }
+        PlacedBuildingRecord building = findIntegratedBuilding(minecraft, bounds);
+        if (building == null) {
+            return List.of();
+        }
+        return resolveExpected(building);
+    }
+
+    private static List<BuildingBlockData> loadFromIdentity(PreviewIdentity identity) {
+        var structure = BuildingStructureService.loadStructure(identity.category(), identity.buildingFileName());
+        if (structure.isEmpty() && identity.structureFileName() != null && !identity.structureFileName().isBlank()) {
+            structure = BuildingStructureService.loadStructure(identity.category(), identity.structureFileName());
+        }
+        if (structure.isEmpty()) {
+            return List.of();
+        }
+        List<BuildingBlockData> placed = BuildingStructureService.resolvePlacedBlocks(
+                structure.get(), identity.origin(), rotation(identity.facing()));
+        ArrayList<BuildingBlockData> expected = new ArrayList<>();
+        for (BuildingBlockData block : placed) {
+            if (block.state() == null || block.state().isAir()) {
+                continue;
+            }
+            expected.add(block);
+        }
+        return expected;
+    }
+
     private static List<BuildingBlockData> resolveExpected(PlacedBuildingRecord building) {
         List<BuildingBlockData> resolved = new ArrayList<>();
         for (BuildingBlockData block : expectedBlocks(building)) {
@@ -198,7 +267,7 @@ final class BuildingBoundsPreview {
                 .orElse(List.of());
     }
 
-    private static PlacedBuildingRecord findBuilding(Minecraft minecraft, AABB bounds) {
+    private static PlacedBuildingRecord findIntegratedBuilding(Minecraft minecraft, AABB bounds) {
         if (!(minecraft.level instanceof ClientLevel clientLevel) || minecraft.getSingleplayerServer() == null) {
             return null;
         }
@@ -351,6 +420,15 @@ final class BuildingBoundsPreview {
         buffer.addVertex(matrix, (float) x2, (float) y2, (float) z2).setColor(r, g, b, a);
         buffer.addVertex(matrix, (float) x3, (float) y3, (float) z3).setColor(r, g, b, a);
         buffer.addVertex(matrix, (float) x4, (float) y4, (float) z4).setColor(r, g, b, a);
+    }
+
+    private record PreviewIdentity(String category,
+                                   String buildingFileName,
+                                   String structureFileName,
+                                   BlockPos origin,
+                                   String facing,
+                                   BlockPos min,
+                                   BlockPos max) {
     }
 
     private static final class Cache {

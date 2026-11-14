@@ -53,19 +53,21 @@ public record PlannerMaterialScanRequestPacket(BlockPos buildBoxPos,
         if (packet.operation() == PlanOperation.REMOVE) {
             return;
         }
-        PlannerNetworkValidation.PlannerContext plannerContext = PlannerNetworkValidation.validatePlanner(player, level, packet.buildBoxPos());
-        if (plannerContext == null) {
-            return;
-        }
         BlockPos min = PlannerNetworkValidation.min(packet.min(), packet.max());
         BlockPos max = PlannerNetworkValidation.max(packet.min(), packet.max());
+        if (PlannerNetworkValidation.validatePlanner(player, level, packet.buildBoxPos()) == null) {
+            reject(player, packet, min, max);
+            return;
+        }
         int volume = PlanningTaskData.volume(min, max);
         if (volume <= 0 || volume > ServerConfig.plannerMaxVolume()) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.plan_area.too_big", ServerConfig.plannerMaxVolume()));
+            reject(player, packet, min, max);
             return;
         }
         if (!PlannerNetworkValidation.selectionNearBuildBox(packet.buildBoxPos(), min, max)) {
             InfoToastService.warning(player, Component.translatable("message.simukraft.plan_area.too_far"));
+            reject(player, packet, min, max);
             return;
         }
 
@@ -77,7 +79,11 @@ public record PlannerMaterialScanRequestPacket(BlockPos buildBoxPos,
         containers.sort(Comparator.comparing(container -> container.pos().asLong()));
 
         Map<String, Integer> sourceBlocks = packet.operation() == PlanOperation.REPLACE ? scanSelectionBlocks(level, min, max) : Map.of();
-        PacketDistributor.sendToPlayer(player, new PlannerMaterialScanResponsePacket(packet.buildBoxPos(), min, max, packet.operation(), containers, sourceBlocks));
+        PacketDistributor.sendToPlayer(player, new PlannerMaterialScanResponsePacket(packet.buildBoxPos(), min, max, packet.operation(), containers, sourceBlocks, true));
+    }
+
+    private static void reject(ServerPlayer player, PlannerMaterialScanRequestPacket packet, BlockPos min, BlockPos max) {
+        PacketDistributor.sendToPlayer(player, PlannerMaterialScanResponsePacket.rejected(packet.buildBoxPos(), min, max, packet.operation()));
     }
 
     private static Map<String, Integer> scanContainerBlocks(ServerLevel level, BlockPos containerPos) {
