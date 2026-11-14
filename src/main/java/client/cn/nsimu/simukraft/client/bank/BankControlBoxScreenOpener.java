@@ -1,6 +1,7 @@
 package client.cn.nsimu.simukraft.client.bank;
 
 import client.cn.nsimu.simukraft.client.hire.NpcHireScreen;
+import client.cn.nsimu.simukraft.client.ui.SimuKraftNameSearch;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
 import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
@@ -10,6 +11,7 @@ import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
 import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Button;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.Label;
+import com.lowdragmc.lowdraglib2.gui.ui.elements.SearchComponent;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.TextField;
 import common.cn.nsimu.simukraft.bank.BankControlBoxService;
 import common.cn.nsimu.simukraft.bank.BankService;
@@ -83,7 +85,8 @@ public final class BankControlBoxScreenOpener {
         }).addClass("simukraft_panel");
 
         TextField amountField = amountField();
-        TextField targetField = targetField();
+        SearchComponent<String> targetSearch = SimuKraftNameSearch.cities(
+                Component.translatable("gui.simukraft.bank.transfer_target_placeholder"), packet.cityId());
         boolean canOperate = packet.hasBuilding() && packet.hasTeller();
 
         panel.addChild(titleBar(packet, metrics));
@@ -100,14 +103,14 @@ public final class BankControlBoxScreenOpener {
         panel.addChild(infoLineRaw(Component.translatable("gui.simukraft.bank.cash_line",
                 CoinDenominations.formatYuan(packet.playerCash())), 0xFFFFD37C, metrics));
         panel.addChild(labeledField(Component.translatable("gui.simukraft.bank.amount"), amountField, metrics));
-        panel.addChild(labeledField(Component.translatable("gui.simukraft.bank.transfer_target"), targetField, metrics));
+        panel.addChild(labeledField(Component.translatable("gui.simukraft.bank.transfer_target"), targetSearch, metrics));
         panel.addChild(buttonRow(metrics,
                 actionButton(Component.translatable("gui.simukraft.bank.deposit"),
                         () -> sendAction(packet, BankService.Action.DEPOSIT, parseAmount(amountField), ""), canOperate, metrics),
                 actionButton(Component.translatable("gui.simukraft.bank.withdraw"),
                         () -> sendAction(packet, BankService.Action.WITHDRAW, parseAmount(amountField), ""), canOperate, metrics),
                 actionButton(Component.translatable("gui.simukraft.bank.transfer"),
-                        () -> sendAction(packet, BankService.Action.TRANSFER, parseAmount(amountField), targetField.getValue()),
+                        () -> sendAction(packet, BankService.Action.TRANSFER, parseAmount(amountField), SimuKraftNameSearch.typed(targetSearch)),
                         canOperate, metrics)));
         panel.addChild(buttonRow(metrics,
                 actionButton(Component.translatable("gui.simukraft.bank.hire"),
@@ -143,7 +146,7 @@ public final class BankControlBoxScreenOpener {
         return bar;
     }
 
-    private static UIElement labeledField(Component title, TextField field, LayoutMetrics metrics) {
+    private static UIElement labeledField(Component title, UIElement field, LayoutMetrics metrics) {
         UIElement row = new UIElement().layout(layout -> {
             layout.widthPercent(100);
             layout.height(metrics.fieldHeight());
@@ -191,18 +194,6 @@ public final class BankControlBoxScreenOpener {
         TextField field = new TextField();
         field.setNumbersOnlyDouble(0.0D, 1_000_000_000.0D);
         field.setText("0", false);
-        field.layout(layout -> {
-            layout.flex(1);
-            layout.heightPercent(100);
-            layout.minWidth(60);
-        });
-        return field;
-    }
-
-    private static TextField targetField() {
-        TextField field = new TextField();
-        field.setAnyString();
-        field.setText("", false);
         field.layout(layout -> {
             layout.flex(1);
             layout.heightPercent(100);

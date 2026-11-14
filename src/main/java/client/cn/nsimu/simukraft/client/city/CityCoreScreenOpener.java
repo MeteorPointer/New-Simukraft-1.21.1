@@ -4,6 +4,7 @@ import client.cn.nsimu.simukraft.client.citizen.CitizenAvatarFactory;
 import client.cn.nsimu.simukraft.client.citizen.CitizenFamilyGraphCanvas;
 import client.cn.nsimu.simukraft.client.city.map.*;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftFlexLayout;
+import client.cn.nsimu.simukraft.client.ui.SimuKraftNameSearch;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftWindowFrame;
 import com.lowdragmc.lowdraglib2.editor.ui.View;
@@ -14,7 +15,10 @@ import com.lowdragmc.lowdraglib2.gui.texture.IGuiTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.Icons;
 import com.lowdragmc.lowdraglib2.gui.ui.ModularUI;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
+import com.lowdragmc.lowdraglib2.gui.ui.data.Horizontal;
 import com.lowdragmc.lowdraglib2.gui.ui.data.ScrollerMode;
+import com.lowdragmc.lowdraglib2.gui.ui.data.TextWrap;
+import com.lowdragmc.lowdraglib2.gui.ui.data.Vertical;
 import com.lowdragmc.lowdraglib2.gui.ui.elements.*;
 import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
@@ -36,7 +40,7 @@ import common.cn.nsimu.simukraft.network.city.map.CityCoreMapResponsePacket;
 import common.cn.nsimu.simukraft.network.city.member.CityCoreMemberActionPacket;
 import common.cn.nsimu.simukraft.network.city.member.CityCoreMembersRequestPacket;
 import common.cn.nsimu.simukraft.network.city.member.CityCoreMembersResponsePacket;
-import common.cn.nsimu.simukraft.ui.RecipeBookSearchUi;
+
 import dev.vfyjxf.taffy.style.AlignContent;
 import dev.vfyjxf.taffy.style.AlignItems;
 import dev.vfyjxf.taffy.style.FlexDirection;
@@ -366,14 +370,11 @@ public final class CityCoreScreenOpener {
         UIElement panel = basePanel();
         panel.addChild(line(Component.translatable("screen.simukraft.city_core.finance.title")));
         panel.addChild(line(Component.translatable("screen.simukraft.city_core.funds", String.format(Locale.ROOT, "%.2f", packet.funds()))));
-        panel.addChild(contentSpacer());
         panel.addChild(line(Component.translatable("screen.simukraft.city_core.finance.recent")));
         if (packet.financeEntries().isEmpty()) {
             panel.addChild(line(Component.translatable("screen.simukraft.city_core.finance.empty")));
         } else {
-            for (MergedFinance group : mergeFinance(packet.financeEntries())) {
-                panel.addChild(line(financeRow(group)));
-            }
+            panel.addChild(financeTable(sortFinanceNewestFirst(packet.financeEntries())));
         }
         return scrollable(panel);
     }
@@ -481,48 +482,91 @@ public final class CityCoreScreenOpener {
         return Component.translatable(key);
     }
 
-    private record MergedFinance(CityCoreOpenResponsePacket.FinanceEntry newest, double amount, int count) {
-    }
-
     /**
-     * mergeFinance: 相同类型、原因和操作者的流水合成一行，金额相加。
+     * sortFinanceNewestFirst: 按记录时间从新到旧排列，不合并次数。
      */
-    private static List<MergedFinance> mergeFinance(List<CityCoreOpenResponsePacket.FinanceEntry> entries) {
-        java.util.LinkedHashMap<String, MergedFinance> groups = new java.util.LinkedHashMap<>();
-        for (CityCoreOpenResponsePacket.FinanceEntry entry : entries) {
-            String reason = entry.reason() == null ? "" : entry.reason();
-            String actor = entry.actorName() == null ? "" : entry.actorName();
-            String key = entry.type().name() + "\0" + reason + "\0" + actor;
-            MergedFinance existing = groups.get(key);
-            if (existing == null) {
-                groups.put(key, new MergedFinance(entry, entry.amount(), 1));
-            } else {
-                groups.put(key, new MergedFinance(existing.newest(), existing.amount() + entry.amount(), existing.count() + 1));
-            }
-        }
-        return List.copyOf(groups.values());
+    private static List<CityCoreOpenResponsePacket.FinanceEntry> sortFinanceNewestFirst(
+            List<CityCoreOpenResponsePacket.FinanceEntry> entries) {
+        return entries.stream()
+                .sorted(Comparator.comparingLong(CityCoreOpenResponsePacket.FinanceEntry::time).reversed())
+                .toList();
     }
 
-    private static Component financeRow(MergedFinance group) {
-        CityCoreOpenResponsePacket.FinanceEntry entry = group.newest();
-        String actor = entry.actorName().isBlank()
-                ? Component.translatable("screen.simukraft.city_core.finance.system").getString()
-                : entry.actorName();
-        String amount = financeAmountText(entry.type(), group.amount());
-        if (group.count() <= 1) {
-            return Component.translatable("screen.simukraft.city_core.finance.row",
-                    financeTypeText(entry),
-                    amount,
-                    String.format(Locale.ROOT, "%.2f", entry.balanceAfter()),
-                    financeReasonText(entry),
-                    actor);
+    private static UIElement financeTable(List<CityCoreOpenResponsePacket.FinanceEntry> entries) {
+        UIElement table = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.flexDirection(FlexDirection.COLUMN);
+            layout.gapAll(1);
+        });
+        table.addChild(financeTableRow(true, 0,
+                Component.translatable("screen.simukraft.city_core.finance.col.type"),
+                Component.translatable("screen.simukraft.city_core.finance.col.amount"),
+                Component.translatable("screen.simukraft.city_core.finance.col.reason"),
+                Component.translatable("screen.simukraft.city_core.finance.col.actor"),
+                Component.translatable("screen.simukraft.city_core.finance.col.balance"),
+                SimuKraftUiTheme.TEXT_MUTED_COLOR,
+                SimuKraftUiTheme.TEXT_MUTED_COLOR));
+        int index = 0;
+        for (CityCoreOpenResponsePacket.FinanceEntry entry : entries) {
+            String actor = entry.actorName().isBlank()
+                    ? Component.translatable("screen.simukraft.city_core.finance.system").getString()
+                    : entry.actorName();
+            int amountColor = entry.type() == FinanceTransactionData.Type.INCOME
+                    ? SimuKraftUiTheme.TEXT_SUCCESS_COLOR
+                    : entry.type() == FinanceTransactionData.Type.EXPENSE
+                    ? SimuKraftUiTheme.TEXT_ERROR_COLOR
+                    : SimuKraftUiTheme.TEXT_PRIMARY_COLOR;
+            table.addChild(financeTableRow(false, index++,
+                    Component.literal(financeTypeText(entry)),
+                    Component.literal(financeAmountText(entry.type(), entry.amount())),
+                    Component.literal(financeReasonText(entry)),
+                    Component.literal(actor),
+                    Component.literal(String.format(Locale.ROOT, "%.2f", entry.balanceAfter())),
+                    SimuKraftUiTheme.TEXT_PRIMARY_COLOR,
+                    amountColor));
         }
-        return Component.translatable("screen.simukraft.city_core.finance.row_merged",
-                financeTypeText(entry),
-                amount,
-                group.count(),
-                financeReasonText(entry),
-                actor);
+        return table;
+    }
+
+    private static UIElement financeTableRow(boolean header, int index, Component type, Component amount,
+                                             Component reason, Component actor, Component balance,
+                                             int textColor, int amountColor) {
+        UIElement row = new UIElement().layout(layout -> {
+            layout.widthPercent(100);
+            layout.height(header ? 18 : 16);
+            layout.flexDirection(FlexDirection.ROW);
+            layout.alignItems(AlignItems.CENTER);
+            layout.gapAll(4);
+            layout.paddingLeft(6);
+            layout.paddingRight(6);
+        });
+        int background = header ? 0xFF2F2F2F : (index % 2 == 0 ? 0xFF3A3A3A : 0xFF333333);
+        row.style(style -> style.backgroundTexture(new ColorRectTexture(background)));
+        row.addChild(financeCell(type, 0.8F, textColor, Horizontal.LEFT));
+        row.addChild(financeCell(amount, 1.1F, amountColor, Horizontal.LEFT));
+        row.addChild(financeCell(reason, 2.1F, textColor, Horizontal.LEFT));
+        row.addChild(financeCell(actor, 1.0F, textColor, Horizontal.LEFT));
+        row.addChild(financeCell(balance, 1.1F, textColor, Horizontal.LEFT));
+        return row;
+    }
+
+    private static Label financeCell(Component text, float flex, int color, Horizontal align) {
+        Label label = new Label();
+        label.setText(text);
+        label.setOverflowVisible(false);
+        label.layout(layout -> {
+            layout.flex(flex);
+            layout.height(14);
+            layout.minWidth(28);
+        });
+        label.textStyle(style -> style
+                .textColor(color)
+                .textShadow(true)
+                .textWrap(TextWrap.HOVER_ROLL)
+                .rollSpeed(0.22F)
+                .textAlignHorizontal(align)
+                .textAlignVertical(Vertical.CENTER));
+        return label;
     }
 
     private static String financeTypeText(CityCoreOpenResponsePacket.FinanceEntry entry) {
@@ -722,110 +766,24 @@ public final class CityCoreScreenOpener {
     }
 
     private static UIElement manualAddRow(CityCoreMembersResponsePacket packet) {
-        UIElement wrapper = new UIElement().layout(layout -> {
-            layout.widthPercent(100);
-            layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(0);
-        });
-
         UIElement row = addRow();
-        UIElement searchContainer = new UIElement() {
-            @Override
-            public void drawBackgroundAdditional(@Nonnull GUIContext guiContext) {
-                int w = Math.round(getSizeWidth());
-                int h = Math.round(getSizeHeight());
-                RecipeBookSearchUi.renderFrame(guiContext,
-                        Math.round(getPositionX()), Math.round(getPositionY()),
-                        w, Math.min(RecipeBookSearchUi.FRAME_TEXTURE_WIDTH, w), h,
-                        RecipeBookSearchUi.TEXT_OFFSET_X,
-                        Math.max(1, (h - RecipeBookSearchUi.TEXT_HEIGHT) / 2),
-                        Math.max(RecipeBookSearchUi.TEXT_WIDTH, w - RecipeBookSearchUi.TEXT_OFFSET_X - 4),
-                        RecipeBookSearchUi.TEXT_HEIGHT);
-            }
-        };
-        searchContainer.layout(layout -> {
+        SearchComponent<String> playerSearch = SimuKraftNameSearch.players(
+                Component.translatable("screen.simukraft.city_core.members.add_placeholder"),
+                packet.onlineCandidates().stream().map(CityCoreMembersResponsePacket.CandidateEntry::playerName).toList());
+        playerSearch.layout(layout -> {
             layout.flex(1);
-            layout.height(RecipeBookSearchUi.FRAME_HEIGHT);
+            layout.height(22);
+            layout.minWidth(80);
         });
-
-        TextField addField = new TextField();
-        addField.setAnyString();
-        addField.style(s -> s.backgroundTexture(IGuiTexture.EMPTY));
-        addField.textFieldStyle(s -> s
-                .textColor(0xFFFFFFFF)
-                .cursorColor(0xFFFFFFFF)
-                .textShadow(false)
-                .fontSize(9.0F)
-                .placeholder(Component.translatable("screen.simukraft.city_core.members.add_placeholder"))
-                .focusOverlay(IGuiTexture.EMPTY));
-        addField.layout(layout -> {
-            layout.widthPercent(100);
-            layout.height(RecipeBookSearchUi.FRAME_HEIGHT);
-            layout.paddingLeft(RecipeBookSearchUi.TEXT_OFFSET_X);
-            layout.paddingRight(4);
-            layout.paddingTop(Math.max(1, (RecipeBookSearchUi.FRAME_HEIGHT - RecipeBookSearchUi.TEXT_HEIGHT) / 2));
-        });
-        searchContainer.addChild(addField);
-        row.addChild(searchContainer);
-
+        row.addChild(playerSearch);
         if (packet.viewerPermission() == CityPermissionLevel.MAYOR) {
             row.addChild(memberActionButton("screen.simukraft.city_core.members.add_official", 72,
-                    () -> sendAddMember(packet.pos(), CityCoreMemberActionPacket.EMPTY_PLAYER_ID, addField.getValue(), CityPermissionLevel.OFFICIAL)));
+                    () -> sendAddMember(packet.pos(), CityCoreMemberActionPacket.EMPTY_PLAYER_ID,
+                            SimuKraftNameSearch.typed(playerSearch), CityPermissionLevel.OFFICIAL)));
             row.addChild(memberActionButton("screen.simukraft.city_core.members.add_mayor", 72,
-                    () -> sendAddMember(packet.pos(), CityCoreMemberActionPacket.EMPTY_PLAYER_ID, addField.getValue(), CityPermissionLevel.MAYOR)));
+                    () -> sendAddMember(packet.pos(), CityCoreMemberActionPacket.EMPTY_PLAYER_ID,
+                            SimuKraftNameSearch.typed(playerSearch), CityPermissionLevel.MAYOR)));
         }
-        wrapper.addChild(row);
-
-        UIElement suggestionPanel = new UIElement().layout(layout -> {
-            layout.widthPercent(100);
-            layout.flexDirection(FlexDirection.COLUMN);
-            layout.gapAll(1);
-            layout.paddingTop(1);
-        });
-
-        Runnable rebuildSuggestions = () -> {
-            suggestionPanel.clearAllChildren();
-            String q = addField.getValue().trim().toLowerCase(java.util.Locale.ROOT);
-            List<CityCoreMembersResponsePacket.CandidateEntry> matches = packet.onlineCandidates().stream()
-                    .filter(c -> q.isEmpty() || c.playerName().toLowerCase(java.util.Locale.ROOT).contains(q))
-                    .limit(3)
-                    .toList();
-            for (CityCoreMembersResponsePacket.CandidateEntry candidate : matches) {
-                suggestionPanel.addChild(candidateSuggestionRow(candidate, addField, suggestionPanel));
-            }
-        };
-
-        addField.setTextResponder(t -> rebuildSuggestions.run());
-        rebuildSuggestions.run();
-        wrapper.addChild(suggestionPanel);
-        return wrapper;
-    }
-
-    private static UIElement candidateSuggestionRow(CityCoreMembersResponsePacket.CandidateEntry candidate, TextField targetField, UIElement panel) {
-        UIElement row = new UIElement().layout(layout -> {
-            layout.widthPercent(100);
-            layout.height(14);
-            layout.flexDirection(FlexDirection.ROW);
-            layout.alignItems(AlignItems.CENTER);
-            layout.gapAll(4);
-            layout.paddingLeft(6);
-            layout.paddingRight(4);
-        });
-        row.style(s -> s.backgroundTexture(new ColorRectTexture(0xCC101010)));
-        UIElement dot = new UIElement().layout(l -> l.width(4).height(4).flexShrink(0));
-        dot.style(s -> s.backgroundTexture(new ColorRectTexture(0xFF888888)));
-        row.addChild(dot);
-        Label nameLabel = new Label();
-        nameLabel.setText(Component.literal(candidate.playerName()));
-        nameLabel.layout(l -> l.flex(1).height(9));
-        row.addChild(nameLabel);
-        row.addEventListener(UIEvents.MOUSE_DOWN, e -> {
-            if (e.button == 0) {
-                targetField.setValue(candidate.playerName());
-                panel.clearAllChildren();
-                e.stopPropagation();
-            }
-        });
         return row;
     }
 
@@ -1214,7 +1172,7 @@ public final class CityCoreScreenOpener {
         }
 
         /**
-         * showMapTab：在现有窗口里打开或切到地图，避免整窗重建。
+         * showMapTab：在现��窗口里打开或切到地图，避免整窗重建。
          */
         private void showMapTab(CityCoreMapResponsePacket mapPacket) {
             View existing = openedTabs.get("map");
