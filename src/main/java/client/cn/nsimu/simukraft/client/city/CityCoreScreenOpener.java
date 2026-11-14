@@ -20,8 +20,10 @@ import com.lowdragmc.lowdraglib2.gui.ui.event.UIEvents;
 import com.lowdragmc.lowdraglib2.gui.ui.rendering.GUIContext;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
+import common.cn.nsimu.simukraft.city.CityCoreMigrationService;
 import common.cn.nsimu.simukraft.city.CityPermissionLevel;
 import common.cn.nsimu.simukraft.city.FinanceTransactionData;
+import common.cn.nsimu.simukraft.economy.CoinDenominations;
 import common.cn.nsimu.simukraft.network.citizen.manage.*;
 import common.cn.nsimu.simukraft.network.city.chunk.CityChunkBatchPurchasePacket;
 import common.cn.nsimu.simukraft.network.city.chunk.CityChunkBatchReleasePacket;
@@ -279,6 +281,9 @@ public final class CityCoreScreenOpener {
         });
         if (!packet.hasCity()) {
             menu.addChild(menuButton("screen.simukraft.city_core.create", () -> window.openTab("create", "screen.simukraft.city_core.create", createPanel(packet))));
+            if (canMigrate(packet)) {
+                menu.addChild(menuButton("screen.simukraft.city_core.menu.migrate", () -> window.openTab("migrate", "screen.simukraft.city_core.menu.migrate", migratePanel(packet))));
+            }
         } else if (packet.canManageCity()) {
             String editMenuKey = packet.districtContext()
                     ? "screen.simukraft.city_core.menu.edit_district"
@@ -308,6 +313,29 @@ public final class CityCoreScreenOpener {
         UIElement panel = basePanel();
         addCreateContent(panel, packet);
         return scrollable(panel);
+    }
+
+    private static UIElement migratePanel(CityCoreOpenResponsePacket packet) {
+        UIElement panel = basePanel();
+        panel.addChild(line(Component.translatable("screen.simukraft.city_core.migrate.title")));
+        panel.addChild(line(Component.translatable("screen.simukraft.city_core.migrate.tip",
+                packet.cityName(), CoinDenominations.formatYuan(CityCoreMigrationService.COST))));
+        TextField confirmField = textField("", 200);
+        confirmField.getTextFieldStyle().placeholder(Component.translatable("screen.simukraft.city_core.migrate.placeholder"));
+        panel.addChild(confirmField);
+        panel.addChild(contentButton("screen.simukraft.city_core.migrate.confirm", () -> PacketDistributor.sendToServer(
+                new CityCoreManageCityPacket(packet.pos(), CityCoreManageCityPacket.Action.MIGRATE, confirmField.getValue()))));
+        return scrollable(panel);
+    }
+
+    private static boolean canMigrate(CityCoreOpenResponsePacket packet) {
+        return packet != null
+                && !packet.hasCity()
+                && packet.cityId() != null
+                && !CityCoreOpenResponsePacket.EMPTY_CITY_ID.equals(packet.cityId())
+                && packet.permissionLevel() == CityPermissionLevel.MAYOR
+                && packet.cityName() != null
+                && !packet.cityName().isBlank();
     }
 
     private static UIElement editPanel(CityCoreOpenResponsePacket packet) {

@@ -21,6 +21,13 @@ public final class CityService {
         return CityManager.get(level).createCity(cityName, mayorId, mayorName, cityCorePos, dimensionId(level));
     }
 
+    public static boolean moveCityCore(ServerLevel level, UUID cityId, UUID operatorId, BlockPos newPos) {
+        if (level == null || cityId == null || operatorId == null || newPos == null) {
+            return false;
+        }
+        return CityManager.get(level).moveCityCore(cityId, operatorId, newPos);
+    }
+
     public static boolean renameCity(ServerLevel level, UUID cityId, UUID operatorId, String cityName) {
         if (level == null || cityId == null || operatorId == null) {
             return false;

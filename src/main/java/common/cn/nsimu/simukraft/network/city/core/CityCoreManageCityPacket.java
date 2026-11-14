@@ -58,6 +58,10 @@ public record CityCoreManageCityPacket(BlockPos pos, Action action, String value
         if (!CityCoreAccessValidator.requireAccess(level, player, packet.pos())) {
             return;
         }
+        if (packet.action() == Action.MIGRATE) {
+            CityCoreMigrationService.migrate(level, player, packet.pos(), packet.value());
+            return;
+        }
         Optional<DistrictData> district = DistrictManager.get(level).all().stream()
                 .filter(value -> value.cores().contains(packet.pos().asLong()))
                 .findFirst();
@@ -199,7 +203,8 @@ public record CityCoreManageCityPacket(BlockPos pos, Action action, String value
 
     public enum Action {
         RENAME,
-        DELETE;
+        DELETE,
+        MIGRATE;
 
         public static Action fromName(String name) {
             if (name == null || name.isBlank()) {

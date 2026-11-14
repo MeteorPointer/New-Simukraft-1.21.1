@@ -120,6 +120,12 @@ public final class CityData {
         return cityCorePos;
     }
 
+    void setCityCorePos(BlockPos cityCorePos) {
+        if (cityCorePos != null) {
+            this.cityCorePos = cityCorePos.immutable();
+        }
+    }
+
     public synchronized double funds() {
         return funds;
     }

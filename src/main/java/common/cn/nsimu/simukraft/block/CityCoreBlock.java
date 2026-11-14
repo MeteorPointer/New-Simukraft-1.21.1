@@ -51,9 +51,13 @@ public final class CityCoreBlock extends Block {
         if (level instanceof ServerLevel serverLevel && player instanceof ServerPlayer serverPlayer) {
             level.playSound(null, pos, ModSoundEvents.CITY_CORE_OPEN.get(), SoundSource.BLOCKS, 1.0F, 1.0F);
             DistrictData district = DistrictManager.get(serverLevel).byChunk(new net.minecraft.world.level.ChunkPos(pos)).orElse(null);
-            if (district != null && district.cores().stream().noneMatch(v -> v == pos.asLong())
-                    && !CityService.hasCityAtCorePos(serverLevel, pos)) {
-                boolean allowed = CityService.hasPermission(serverLevel, district.parentCityId(), serverPlayer.getUUID(), common.cn.nsimu.simukraft.city.CityPermissionLevel.MAYOR)
+            boolean unclaimed = district != null
+                    && district.cores().stream().noneMatch(core -> core == pos.asLong())
+                    && !CityService.hasCityAtCorePos(serverLevel, pos);
+            boolean mayorMigrating = unclaimed
+                    && CityService.hasPermission(serverLevel, district.parentCityId(), serverPlayer.getUUID(), CityPermissionLevel.MAYOR);
+            if (unclaimed && !mayorMigrating) {
+                boolean allowed = CityService.hasPermission(serverLevel, district.parentCityId(), serverPlayer.getUUID(), CityPermissionLevel.MAYOR)
                         || district.hasPermission(serverPlayer.getUUID(), DistrictRole.OFFICIAL);
                 if (allowed && PlacedBuildingService.findByContainedPos(serverLevel, pos) == null
                         && DistrictManager.get(serverLevel).bindCore(district.districtId(), new net.minecraft.world.level.ChunkPos(pos), pos.asLong())) {

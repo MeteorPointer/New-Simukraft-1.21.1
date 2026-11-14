@@ -195,6 +195,25 @@ public final class CityManager extends SavedData {
         return cities.values();
     }
 
+    public boolean moveCityCore(UUID cityId, UUID operatorId, BlockPos newPos) {
+        CityData city = cities.get(cityId);
+        if (city == null || operatorId == null || newPos == null
+                || !city.hasPermission(operatorId, CityPermissionLevel.MAYOR)) {
+            return false;
+        }
+        BlockPos next = newPos.immutable();
+        BlockPos previous = city.cityCorePos();
+        if (previous.equals(next) || hasCityAtCorePos(city.dimensionId(), next)) {
+            return false;
+        }
+        corePosIndex.remove(coreKey(city.dimensionId(), previous));
+        city.setCityCorePos(next);
+        corePosIndex.put(coreKey(city.dimensionId(), city.cityCorePos()), cityId);
+        saveCityIncremental(city);
+        setDirty();
+        return true;
+    }
+
     public boolean renameCity(UUID cityId, UUID operatorId, String cityName) {
         CityData city = cities.get(cityId);
         if (city == null || !city.hasPermission(operatorId, CityPermissionLevel.MAYOR) || hasCityNamedExcept(cityName, cityId)) {

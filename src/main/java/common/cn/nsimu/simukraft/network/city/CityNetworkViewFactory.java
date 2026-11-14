@@ -30,6 +30,15 @@ public final class CityNetworkViewFactory {
         CityPermissionLevel permissionLevel = city.map(data -> CityService.getPlayerPermission(data, viewerId)).orElse(CityPermissionLevel.CITIZEN);
         boolean canCreateCity = city.isEmpty() && playerCity.isEmpty();
         boolean canManageCity = city.map(data -> CityService.canManageCity(data, viewerId)).orElse(false);
+        if (city.isEmpty()) {
+            Optional<CityData> migrateCity = CityCoreMigrationService.migrateTarget(level, pos, viewerId);
+            if (migrateCity.isPresent()) {
+                CityData data = migrateCity.get();
+                return new CityCoreOpenResponsePacket(pos, false, data.cityId(), data.cityName(), data.funds(),
+                        data.cityLevel(), data.members().size(), 0, 0, CityPermissionLevel.MAYOR, false, false,
+                        List.of(), List.of(), List.of(), List.of());
+            }
+        }
         CityCoreOpenResponsePacket response = buildOpenResponse(level, pos, city, permissionLevel, canCreateCity, canManageCity);
         if (districtContext == null || !response.hasCity()) return response;
         return new CityCoreOpenResponsePacket(response.pos(), true, response.cityId(), response.cityName() + " " + districtContext.name(), response.funds(), response.cityLevel(), response.memberCount(), response.cityPopulation(), response.housingCapacity(), response.cityChunkCount(), response.cityEnclaveCount(), response.permissionLevel(), response.canCreateCity(), response.canManageCity(), response.financeEntries(), response.poiStats(), response.jobStats(), response.upgradeTargets(), response.upgradeProgress(), response.districts(), true, districtContext.name(), response.cityMembers());
