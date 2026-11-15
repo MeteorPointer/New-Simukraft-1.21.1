@@ -1172,7 +1172,7 @@ public final class CityCoreScreenOpener {
         }
 
         /**
-         * showMapTab：在现��窗口里打开或切到地图，避免整窗重建。
+         * showMapTab：在现有窗口里打开或切到地图，避免整窗重建。
          */
         private void showMapTab(CityCoreMapResponsePacket mapPacket) {
             View existing = openedTabs.get("map");
@@ -1318,7 +1318,7 @@ public final class CityCoreScreenOpener {
             // 地图控件打开时才激活地图系统，避免常驻扫描占用客户端性能。
             mapManager.init();
             mapManager.acquireConsumer();
-            centerMapOnCityCore();
+            centerMapOnView();
             layout(layout -> {
                 layout.widthPercent(100);
                 layout.heightPercent(100);
@@ -1395,6 +1395,7 @@ public final class CityCoreScreenOpener {
             renderBatchClaimPreview(guiContext, startX, startY, width, height, centerX, centerY, chunkSize);
             renderCoreMarker(guiContext, startX, startY, width, height, centerX, centerY, chunkSize);
             renderHoverBox(guiContext, startX, startY, width, height, centerX, centerY, chunkSize);
+            renderPlayerPointer(guiContext, startX, startY, width, height, centerX, centerY);
             renderContextMenu(guiContext, startX, startY, width, height);
         }
 
@@ -1566,6 +1567,61 @@ public final class CityCoreScreenOpener {
                 guiContext.graphics.fill((int) markerScreenX - 3, (int) markerScreenY - 3, (int) markerScreenX + 3, (int) markerScreenY + 3, 0xFF0000FF);
                 guiContext.graphics.fill((int) markerScreenX - 2, (int) markerScreenY - 2, (int) markerScreenX + 2, (int) markerScreenY + 2, CORE_MARKER_COLOR);
             }
+        }
+
+        /**
+         * renderPlayerPointer: 用一整块三角画玩家指针，避免逐行填充的锯齿。
+         */
+        private void renderPlayerPointer(GUIContext guiContext, int startX, int startY, int width, int height, double centerX, double centerY) {
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.player == null) {
+                return;
+            }
+            double screenX = centerX + offsetX + minecraft.player.getX() * zoomLevel;
+            double screenY = centerY + offsetY + minecraft.player.getZ() * zoomLevel;
+            if (screenX < startX - 14 || screenX > startX + width + 14 || screenY < startY - 14 || screenY > startY + height + 14) {
+                return;
+            }
+            double radians = Math.toRadians(minecraft.player.getYRot());
+            double cos = Math.cos(radians);
+            double sin = Math.sin(radians);
+            guiContext.graphics.flush();
+            RenderSystem.enableBlend();
+            RenderSystem.disableCull();
+            RenderSystem.setShader(GameRenderer::getPositionColorShader);
+            Matrix4f matrix = guiContext.graphics.pose().last().pose();
+            BufferBuilder buffer = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+            addPointerTriangle(buffer, matrix, screenX, screenY, cos, sin, 11.0D, 7.5D, 0xFF111111);
+            addPointerTriangle(buffer, matrix, screenX, screenY, cos, sin, 8.0D, 5.0D, 0xFFFFF4C2);
+            BufferUploader.drawWithShader(buffer.buildOrThrow());
+        }
+
+        private void addPointerTriangle(BufferBuilder buffer, Matrix4f matrix, double originX, double originY,
+                                        double cos, double sin, double length, double halfWidth, int color) {
+            int alpha = color >>> 24;
+            int red = (color >> 16) & 0xFF;
+            int green = (color >> 8) & 0xFF;
+            int blue = color & 0xFF;
+            float tipX = (float) (originX + rotatePointerX(0, length, cos, sin));
+            float tipY = (float) (originY + rotatePointerY(0, length, cos, sin));
+            float leftX = (float) (originX + rotatePointerX(-halfWidth, -length * 0.72D, cos, sin));
+            float leftY = (float) (originY + rotatePointerY(-halfWidth, -length * 0.72D, cos, sin));
+            float rightX = (float) (originX + rotatePointerX(halfWidth, -length * 0.72D, cos, sin));
+            float rightY = (float) (originY + rotatePointerY(halfWidth, -length * 0.72D, cos, sin));
+            buffer.addVertex(matrix, tipX, tipY, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, leftX, leftY, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, rightX, rightY, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, tipX, tipY, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, rightX, rightY, 0).setColor(red, green, blue, alpha);
+            buffer.addVertex(matrix, leftX, leftY, 0).setColor(red, green, blue, alpha);
+        }
+
+        private double rotatePointerX(double localX, double localY, double cos, double sin) {
+            return localX * cos - localY * sin;
+        }
+
+        private double rotatePointerY(double localX, double localY, double cos, double sin) {
+            return localX * sin + localY * cos;
         }
 
         private void renderHoveredChunk(GUIContext guiContext, int startX, int startY, int width, int height, double centerX, double centerY, double chunkSize) {
@@ -2162,8 +2218,18 @@ public final class CityCoreScreenOpener {
             event.stopPropagation();
         }
 
-        private void centerMapOnCityCore() {
+        /**
+         * centerMapOnView: 人在城市核心旁时仍以核心为中心；便携核心等远程打开时以玩家为中心。
+         */
+        private void centerMapOnView() {
             double chunkSize = 16.0D * zoomLevel;
+            Minecraft minecraft = Minecraft.getInstance();
+            if (minecraft.player != null && !minecraft.player.blockPosition().closerThan(packet.pos(), 16.0D)) {
+                BlockPos playerPos = minecraft.player.blockPosition();
+                offsetX = -playerPos.getX() * zoomLevel;
+                offsetY = -playerPos.getZ() * zoomLevel;
+                return;
+            }
             offsetX = -packet.centerChunkX() * chunkSize;
             offsetY = -packet.centerChunkZ() * chunkSize;
         }
