@@ -31,7 +31,8 @@ public final class SimuMigrations {
                 new ReleaseGlobalMarketEscrow(),
                 new FarmlandBoxesDimensionPrimaryKey(),
                 new GlobalMarketBuildingWarehouse(),
-                new CommercialStockReleaseDay());
+                new CommercialStockReleaseDay(),
+                new LegacyColumnCatchUp());
     }
 
     /**
@@ -568,6 +569,77 @@ public final class SimuMigrations {
             }
             try (Statement statement = connection.createStatement()) {
                 statement.executeUpdate("ALTER TABLE commercial_stock ADD COLUMN last_release_day INTEGER NOT NULL DEFAULT -1");
+            }
+        }
+
+        private static boolean tableExists(Connection connection, String tableName) throws SQLException {
+            try (PreparedStatement statement = connection.prepareStatement(
+                    "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?")) {
+                statement.setString(1, tableName);
+                try (ResultSet resultSet = statement.executeQuery()) {
+                    return resultSet.next();
+                }
+            }
+        }
+
+        private static boolean hasColumn(Connection connection, String tableName, String columnName) throws SQLException {
+            try (Statement statement = connection.createStatement();
+                 ResultSet resultSet = statement.executeQuery("PRAGMA table_info(" + tableName + ")")) {
+                while (resultSet.next()) {
+                    if (columnName.equalsIgnoreCase(resultSet.getString("name"))) {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * v15：补上只写进基线 {@code addColumnIfMissing}、没有版本化迁移的列。
+     *
+     * <p>{@code user_version} 已经大于 0 的存档不会再跑基线。物流通道因此缺 {@code filter_mode}，
+     * 加载失败后整库进入降级，后续写入（包括钻井快照）也被拒绝。
+     */
+    private static final class LegacyColumnCatchUp implements Migration {
+        private static final String[][] COLUMNS = {
+                {"logistics_channels", "keep_quantity", "INTEGER NOT NULL DEFAULT 0"},
+                {"logistics_channels", "keep_source", "INTEGER NOT NULL DEFAULT 0"},
+                {"logistics_channels", "filter_mode", "TEXT NOT NULL DEFAULT 'ITEM'"},
+                {"building_tasks", "replace_with_air", "INTEGER NOT NULL DEFAULT 0"},
+                {"city_pois", "unit_id", "TEXT"},
+                {"citizens", "dimension_id", "TEXT NOT NULL DEFAULT 'minecraft:overworld'"},
+                {"citizens", "family_id", "TEXT"},
+                {"citizens", "origin_family_id", "TEXT"},
+                {"citizens", "pregnant", "INTEGER NOT NULL DEFAULT 0"},
+                {"citizens", "pregnant_since", "INTEGER NOT NULL DEFAULT 0"},
+                {"industrial_boxes", "step_elapsed_ticks", "INTEGER NOT NULL DEFAULT 0"},
+                {"industrial_boxes", "worker_work_pos_long", "INTEGER NOT NULL DEFAULT -9223372036854775808"}
+        };
+
+        @Override
+        public int version() {
+            return 15;
+        }
+
+        @Override
+        public String description() {
+            return "add columns that older saves missed after the schema baseline stopped rerunning";
+        }
+
+        @Override
+        public void apply(Connection connection) throws SQLException {
+            for (String[] column : COLUMNS) {
+                addColumnIfMissing(connection, column[0], column[1], column[2]);
+            }
+        }
+
+        private static void addColumnIfMissing(Connection connection, String tableName, String columnName, String definition) throws SQLException {
+            if (!tableExists(connection, tableName) || hasColumn(connection, tableName, columnName)) {
+                return;
+            }
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("ALTER TABLE " + tableName + " ADD COLUMN " + columnName + " " + definition);
             }
         }
 
