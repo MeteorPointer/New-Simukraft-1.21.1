@@ -3,8 +3,8 @@
     {
       "type": "ttf",
       "file": "simukraft:black.ttf",
-      "size": 8,
-      "oversample": 2.0
+      "size": 7,
+      "oversample": 4.0
     },
     {
       "type": "reference",
