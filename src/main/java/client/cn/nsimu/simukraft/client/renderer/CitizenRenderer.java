@@ -1,5 +1,6 @@
 package client.cn.nsimu.simukraft.client.renderer;
 
+import client.cn.nsimu.simukraft.client.ClientFontSelection;
 import com.mojang.blaze3d.vertex.PoseStack;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
@@ -129,7 +130,7 @@ public class CitizenRenderer extends MobRenderer<CitizenEntity, CitizenModel> {
         float x = (float) (-font.width(component) / 2);
         int argbColor = color | 0xFF000000;
         font.drawInBatch(component, x, 0.0F, argbColor, false, matrix, bufferSource, visible ? Font.DisplayMode.SEE_THROUGH : Font.DisplayMode.NORMAL, backgroundColor, packedLight);
-        if (visible) {
+        if (visible && !ClientFontSelection.isCustomFont()) {
             font.drawInBatch(component, x, 0.0F, argbColor, false, matrix, bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
         }
         poseStack.popPose();

@@ -1,6 +1,7 @@
 package client.cn.nsimu.simukraft.client.config;
 
 import client.cn.nsimu.simukraft.client.ClientHUDOverlay;
+import client.cn.nsimu.simukraft.client.ClientFontSelection;
 import com.lowdragmc.lowdraglib2.gui.holder.ModularUIScreen;
 import com.lowdragmc.lowdraglib2.gui.ui.UIElement;
 import common.cn.nsimu.simukraft.config.ClientConfig;
@@ -43,6 +44,10 @@ public final class SimuKraftClientConfigScreen {
         body.addChild(SimuKraftConfigWidgets.row(
                 Component.translatable("gui.simukraft.config.client.glass_ui"),
                 SimuKraftConfigWidgets.switchControl(ClientConfig.GLASS_UI_ENABLED.get(), ClientConfig.GLASS_UI_ENABLED::set)));
+        body.addChild(SimuKraftConfigWidgets.row(
+                Component.translatable("gui.simukraft.config.client.glass_color"),
+                SimuKraftConfigWidgets.textField(String.format("#%06X", ClientConfig.glassColor()), SimuKraftClientConfigScreen::setGlassColor)));
+        body.addChild(fontRow(parent));
         body.addChild(openHudEditorRow());
         body.addChild(openToastEditorRow());
         body.addChild(SimuKraftConfigWidgets.row(
@@ -79,6 +84,20 @@ public final class SimuKraftClientConfigScreen {
         footer.addChild(footerButton("gui.simukraft.config.reset", () -> reset(parent)));
         footer.addChild(footerButton("gui.button.back", () -> Minecraft.getInstance().setScreen(SimuKraftConfigSelectionScreen.create(parent))));
         return footer;
+    }
+
+    /** fontRow: 提供全客户端字体循环选择，英语环境额外显示 Beautiful ES。 */
+    private static UIElement fontRow(Screen parent) {
+        return SimuKraftConfigWidgets.row(
+                Component.translatable("gui.simukraft.config.client.font"),
+                SimuKraftConfigWidgets.button(Component.translatable(ClientFontSelection.labelKey()), () -> {
+                    ClientConfig.FONT.set(ClientFontSelection.nextName(ClientConfig.fontName()));
+                    Minecraft.getInstance().setScreen(create(parent));
+                }, true).layout(layout -> {
+                    layout.width(120);
+                    layout.height(24);
+                    layout.flexShrink(0);
+                }));
     }
 
     private static UIElement footerButton(String key, Runnable action) {
@@ -121,11 +140,21 @@ public final class SimuKraftClientConfigScreen {
     }
 
     /**
+     * setGlassColor: 只接受 #RRGGBB，输入过程中的半截文本先不写配置。
+     */
+    private static void setGlassColor(String value) {
+        if (value != null && value.matches("#[0-9A-Fa-f]{6}")) {
+            ClientConfig.GLASS_COLOR.set(value.toUpperCase(java.util.Locale.ROOT));
+        }
+    }
+
+    /**
      * save: 保存客户端配置并清理 HUD 缓存。
      */
     private static void save() {
         ClientConfig.SPEC.save();
         ClientHUDOverlay.resetCache();
+        Minecraft.getInstance().reloadResourcePacks();
     }
 
     /**
@@ -143,6 +172,8 @@ public final class SimuKraftClientConfigScreen {
         ClientConfig.TOAST_WIDTH.set(ClientConfig.DEFAULT_TOAST_WIDTH);
         ClientConfig.TOAST_HEIGHT.set(ClientConfig.DEFAULT_TOAST_HEIGHT);
         ClientConfig.GLASS_UI_ENABLED.set(false);
+        ClientConfig.GLASS_COLOR.set(ClientConfig.DEFAULT_GLASS_COLOR);
+        ClientConfig.FONT.set(ClientConfig.DEFAULT_FONT);
         ClientConfig.PATH_DEBUG_REQUEST_ON_TOGGLE.set(true);
         ClientConfig.RTS_TARGET_SIMUKRAFT_BLOCKS.set(true);
         ClientConfig.RTS_TARGET_VANILLA_BLOCKS.set(true);

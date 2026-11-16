@@ -10,6 +10,7 @@
         { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
         { "name": "GlassSize", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
         { "name": "GlassRadius", "type": "float", "count": 1, "values": [ 8.0 ] },
-        { "name": "SampleUv", "type": "float", "count": 4, "values": [ 0.0, 1.0, 1.0, 0.0 ] }
+        { "name": "SampleUv", "type": "float", "count": 4, "values": [ 0.0, 1.0, 1.0, 0.0 ] },
+        { "name": "GlassTint", "type": "float", "count": 4, "values": [ 0.063, 0.094, 0.157, 0.40 ] }
     ]
 }

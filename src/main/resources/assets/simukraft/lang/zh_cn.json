@@ -1292,6 +1292,7 @@
     "config.simukraft.client.rts.targetOtherModBlocks":  "RTS 目标：其他模组方块",
     "config.simukraft.client.rts.moveHoldSeconds":  "RTS 移动长按秒数",
     "config.simukraft.client.ui.glass":  "圆角半透明毛玻璃界面",
+    "config.simukraft.client.ui.glassColor":  "毛玻璃颜色",
     "message.simukraft.rts.too_far":  "RTS 目标距离过远。",
     "message.simukraft.rts.demolish.outside_city":  "只能拆除你所属城市领地内的目标。",
     "message.simukraft.rts.building_demolished":  "选中的建筑已拆除。",
@@ -1359,6 +1360,7 @@
     "gui.simukraft.config.delete":  "删除",
     "gui.simukraft.config.client.hud_enabled":  "HUD 显示",
     "gui.simukraft.config.client.glass_ui":  "圆角毛玻璃界面",
+    "gui.simukraft.config.client.glass_color":  "毛玻璃颜色",
     "gui.simukraft.config.client.hud_position":  "HUD 位置",
     "gui.simukraft.config.client.toast_position":  "通知弹窗位置",
     "gui.simukraft.config.client.rts.target_simukraft_blocks":  "RTS 目标本模组方块",
@@ -1693,5 +1695,14 @@
     "jei.simukraft.commercial.cost": "花费：%s 元",
     "jei.simukraft.commercial.pay": "获得：%s 元",
     "jei.simukraft.commercial.materials": "补货：%s",
-    "jei.simukraft.commercial.npc_only": "仅 NPC"
+    "jei.simukraft.commercial.npc_only": "仅 NPC",
+    "config.simukraft.client.ui.font": "全客户端字体",
+    "gui.simukraft.config.client.font": "全客户端字体",
+    "gui.simukraft.config.client.font.default": "默认",
+    "gui.simukraft.config.client.font.jingluo": "网红经络体",
+    "gui.simukraft.config.client.font.kaishu": "楷书",
+    "gui.simukraft.config.client.font.song": "宋体",
+    "gui.simukraft.config.client.font.heiti": "黑体",
+    "gui.simukraft.config.client.font.xingkai": "行楷",
+    "gui.simukraft.config.client.font.beautiful_es": "Beautiful ES"
 }

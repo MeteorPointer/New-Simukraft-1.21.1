@@ -35,13 +35,13 @@ import org.lwjgl.opengl.GL30;
  */
 @OnlyIn(Dist.CLIENT)
 public final class SimuKraftGlassTextures {
-    static final float PANEL_RADIUS = 8.0F;
-    static final float CARD_RADIUS = 5.0F;
-    private static final int PANEL_TINT = 0xB01C2430;
-    private static final int CARD_TINT = 0x8C2A3442;
-    private static final int BORDER = 0x66D7E6F2;
-    private static final int BLUR_RADIUS = 2;
-    private static final int DOWNSCALE = 4;
+    static final float PANEL_RADIUS = 14.0F;
+    static final float CARD_RADIUS = 8.0F;
+    private static final int PANEL_ALPHA = 0x66;
+    private static final int CARD_ALPHA = 0x4A;
+    private static final int BORDER = 0x331C2A40;
+    private static final int BLUR_RADIUS = 6;
+    private static final int DOWNSCALE = 2;
     private static final ResourceLocation SHADER_LOCATION = ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "rounded_glass");
     private static int sourceTexture = -1;
     private static int blurredTexture = -1;
@@ -84,7 +84,7 @@ public final class SimuKraftGlassTextures {
         if (!enabled()) {
             return new ColorRectTexture(fallbackColor);
         }
-        return layered(PANEL_RADIUS, PANEL_TINT, BORDER, 1.0F);
+        return layered(PANEL_RADIUS, tint(PANEL_ALPHA), BORDER, 1.0F);
     }
 
     /**
@@ -94,7 +94,7 @@ public final class SimuKraftGlassTextures {
         if (!enabled()) {
             return new ColorRectTexture(fallbackColor);
         }
-        return layered(CARD_RADIUS, CARD_TINT, BORDER, 1.0F);
+        return layered(CARD_RADIUS, tint(CARD_ALPHA), BORDER, 1.0F);
     }
 
     /**
@@ -108,7 +108,7 @@ public final class SimuKraftGlassTextures {
             graphics.fill(x, y, x + width, y + height, color);
             return;
         }
-        new FrostedGlassTexture(Math.min(PANEL_RADIUS, Math.min(width, height) / 2.0F))
+        new FrostedGlassTexture(Math.min(PANEL_RADIUS, Math.min(width, height) / 2.0F), tint(PANEL_ALPHA))
                 .draw(graphics, 0, 0, x, y, width, height, 0);
         new SDFRectTexture()
                 .setRadius(Math.min(PANEL_RADIUS, Math.min(width, height) / 2.0F))
@@ -137,7 +137,7 @@ public final class SimuKraftGlassTextures {
             return texture;
         }
         if (texture instanceof ColorRectTexture rect) {
-            return layered(role.radius, soften(rect.color), BORDER, role.stroke);
+            return layered(role.radius, tint(role == Role.PANEL ? PANEL_ALPHA : CARD_ALPHA), BORDER, role.stroke);
         }
         if (texture instanceof GuiTextureGroup group) {
             IGuiTexture[] textures = group.getTextures();
@@ -153,7 +153,7 @@ public final class SimuKraftGlassTextures {
             return changed ? new GuiTextureGroup(replaced) : texture;
         }
         if (texture instanceof SpriteTexture && role != Role.CONTENT) {
-            return layered(role.radius, PANEL_TINT, BORDER, role.stroke);
+            return layered(role.radius, tint(PANEL_ALPHA), BORDER, role.stroke);
         }
         return texture;
     }
@@ -174,9 +174,13 @@ public final class SimuKraftGlassTextures {
         return Role.PANEL;
     }
 
+    private static int tint(int alpha) {
+        return (alpha << 24) | ClientConfig.glassColor();
+    }
+
     private static IGuiTexture layered(float radius, int tint, int border, float stroke) {
         return new GuiTextureGroup(
-                new FrostedGlassTexture(radius),
+                new FrostedGlassTexture(radius, tint),
                 new SDFRectTexture().setRadius(radius).setStroke(stroke).setColor(tint).setBorderColor(border));
     }
 
@@ -186,7 +190,7 @@ public final class SimuKraftGlassTextures {
 
     private static int soften(int color) {
         int alpha = (color >>> 24) & 0xFF;
-        int softened = alpha == 0xFF ? 0xB0 : Math.max(0x55, Math.min(0xC8, alpha));
+        int softened = alpha >= 0xE0 ? 0x66 : Math.min(alpha, 0x80);
         return (softened << 24) | (color & 0x00FFFFFF);
     }
 
@@ -362,9 +366,11 @@ public final class SimuKraftGlassTextures {
      */
     private static final class FrostedGlassTexture implements IGuiTexture {
         private final float radius;
+        private final int tint;
 
-        private FrostedGlassTexture(float radius) {
+        private FrostedGlassTexture(float radius, int tint) {
             this.radius = radius;
+            this.tint = tint;
         }
 
         @Override
@@ -390,6 +396,11 @@ public final class SimuKraftGlassTextures {
                 roundedShader.safeGetUniform("GlassSize").set(width, height);
                 roundedShader.safeGetUniform("GlassRadius").set(radius);
                 roundedShader.safeGetUniform("SampleUv").set(u0, vTop, u1, vBottom);
+                roundedShader.safeGetUniform("GlassTint").set(
+                        ((tint >> 16) & 0xFF) / 255.0F,
+                        ((tint >> 8) & 0xFF) / 255.0F,
+                        (tint & 0xFF) / 255.0F,
+                        ((tint >>> 24) & 0xFF) / 255.0F);
                 RenderSystem.setShader(() -> roundedShader);
             } else {
                 leftU = u0;

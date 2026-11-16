@@ -6,6 +6,8 @@
   "client": [
     "MixinCamera",
     "MixinEntity",
+    "MixinFontManager",
+    "MixinGuiGraphicsShadow",
     "MixinFrustum",
     "MixinGameRenderer",
     "MixinGameRendererProjection",
