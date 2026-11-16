@@ -20,7 +20,8 @@ import java.util.zip.ZipFile;
 
 public final class BuildingPackageCatalog {
     public static final String ROOT_DIR = "simukraftbuilding";
-    public static final String OFFICIAL_PACKAGE_NAME = "official_building";
+    public static final String OFFICIAL_PACKAGE_NAME = "official_building.zip";
+    public static final String EXTRACTED_OFFICIAL_DIR = "official_building";
     private static final String BUILDING_ROOT = "buildings/";
     private static final String MANIFEST_FILE = "_files.txt";
     private static final List<String> CATEGORIES = List.of("residential", "commercial", "industry", "public", "other");
@@ -88,11 +89,6 @@ public final class BuildingPackageCatalog {
         if (copyOfficialPackage) {
             BuildingBuiltinResourceService.ensureCopied(rootDirectory);
         }
-        BuildingZipMerger.MergeResult merged = BuildingZipMerger.mergeDroppedZips(rootDirectory);
-        if (merged.zipCount() > 0) {
-            SimuKraft.LOGGER.info("Simukraft: Merged {} dropped building zip(s) ({} files) into {}: {}",
-                    merged.zipCount(), merged.fileCount(), OFFICIAL_PACKAGE_NAME, merged.zipNames());
-        }
         List<Path> packages = listPackages(rootDirectory);
         Map<String, Map<String, BuildingCatalog.BuildingDefinition>> byCategory = new HashMap<>();
         for (String category : CATEGORIES) {
@@ -126,9 +122,8 @@ public final class BuildingPackageCatalog {
             return List.of();
         }
         try (var stream = Files.list(rootDirectory)) {
-            boolean officialDirectory = Files.isDirectory(rootDirectory.resolve(OFFICIAL_PACKAGE_NAME));
             return stream
-                    .filter(path -> isPackagePath(path, officialDirectory))
+                    .filter(BuildingPackageCatalog::isPackagePath)
                     .sorted(Comparator.comparing(path -> path.getFileName().toString().toLowerCase(Locale.ROOT)))
                     .toList();
         } catch (IOException exception) {
@@ -138,17 +133,18 @@ public final class BuildingPackageCatalog {
     }
 
     /**
-     * isPackagePath: 目录包含 buildings/，压缩包仍兼容。官方目录存在时忽略同名旧 zip。
+     * isPackagePath: zip 是建筑包。自定义目录里有 buildings/ 时也加载。
+     * 官方 zip 已存在时，不再把以前解压出来的 official_building 目录当成第二份官方包。
      */
-    public static boolean isPackagePath(Path path, boolean officialDirectoryPresent) {
+    public static boolean isPackagePath(Path path) {
         if (path == null || !Files.exists(path)) {
             return false;
         }
         String name = path.getFileName().toString().toLowerCase(Locale.ROOT);
-        if (officialDirectoryPresent && (OFFICIAL_PACKAGE_NAME + ".zip").equals(name)) {
-            return false;
-        }
         if (Files.isDirectory(path)) {
+            if (EXTRACTED_OFFICIAL_DIR.equals(name) && Files.isRegularFile(path.getParent().resolve(OFFICIAL_PACKAGE_NAME))) {
+                return false;
+            }
             return Files.isDirectory(path.resolve("buildings"));
         }
         return Files.isRegularFile(path) && name.endsWith(".zip");

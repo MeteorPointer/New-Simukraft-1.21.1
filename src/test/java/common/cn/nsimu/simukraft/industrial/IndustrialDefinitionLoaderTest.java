@@ -8,6 +8,9 @@ import org.junit.jupiter.api.io.TempDir;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -85,12 +88,21 @@ class IndustrialDefinitionLoaderTest {
 
     @Test
     void bundledIndustrialJsonFilesLoad() throws Exception {
-        var marker = IndustrialDefinitionLoaderTest.class.getResource("/assets/simukraft/building/buildings/industry/brick_kiln.json");
-        assertNotNull(marker);
-        Path industry = Path.of(marker.toURI()).getParent();
-        try (var files = Files.list(industry)) {
-            for (Path source : files.filter(path -> path.getFileName().toString().endsWith(".json")).toList()) {
-                byte[] jsonBytes = Files.readAllBytes(source);
+        Path zipPath = tempDir.resolve("official_building.zip");
+        try (var input = IndustrialDefinitionLoaderTest.class.getResourceAsStream("/assets/simukraft/building/official_building.zip")) {
+            assertNotNull(input);
+            Files.copy(input, zipPath);
+        }
+        int checked = 0;
+        try (ZipFile zipFile = new ZipFile(zipPath.toFile())) {
+            Enumeration<? extends ZipEntry> entries = zipFile.entries();
+            while (entries.hasMoreElements()) {
+                ZipEntry entry = entries.nextElement();
+                String name = entry.getName().replace('\\', '/');
+                if (entry.isDirectory() || !name.startsWith("buildings/industry/") || !name.endsWith(".json")) {
+                    continue;
+                }
+                byte[] jsonBytes = zipFile.getInputStream(entry).readAllBytes();
                 var json = JsonParser.parseString(new String(jsonBytes, StandardCharsets.UTF_8)).getAsJsonObject();
                 if ((json.has("buildingType")
                         && "drilling_platform".equalsIgnoreCase(json.get("buildingType").getAsString()))
@@ -99,7 +111,8 @@ class IndustrialDefinitionLoaderTest {
                         || "simukraft:drilling".equalsIgnoreCase(json.get("type").getAsString())))) {
                     continue;
                 }
-                Path file = tempDir.resolve(source.getFileName().toString());
+                String fileName = name.substring(name.lastIndexOf('/') + 1);
+                Path file = tempDir.resolve(fileName);
                 Files.write(file, jsonBytes);
                 IndustrialDefinitionLoader.LoadResult result = IndustrialDefinitionLoader.load(file);
 
@@ -107,8 +120,10 @@ class IndustrialDefinitionLoaderTest {
                 assertNotNull(result.definition(), file.getFileName().toString());
                 assertFalse(result.definition().recipes().isEmpty(), file.getFileName().toString());
                 assertTrue(result.definition().recipes().stream().allMatch(recipe -> !recipe.steps().isEmpty()), file.getFileName().toString());
+                checked++;
             }
         }
+        assertTrue(checked > 0);
     }
 
     @Test

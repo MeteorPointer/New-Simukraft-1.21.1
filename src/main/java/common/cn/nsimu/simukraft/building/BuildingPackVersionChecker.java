@@ -24,18 +24,19 @@ public final class BuildingPackVersionChecker {
     }
 
     /**
-     * 读取 JAR 内置官方建筑目录里的 pack.json version 字段。
+     * 读取 JAR 内置 official_building.zip 里的 pack.json version 字段。
      */
     public static Optional<String> builtinVersion() {
         ClassLoader cl = BuildingPackVersionChecker.class.getClassLoader();
+        String resource = "assets/simukraft/building/" + BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME;
         InputStream stream = cl != null
-                ? cl.getResourceAsStream("assets/simukraft/building/pack.json")
-                : ClassLoader.getSystemResourceAsStream("assets/simukraft/building/pack.json");
+                ? cl.getResourceAsStream(resource)
+                : ClassLoader.getSystemResourceAsStream(resource);
         if (stream == null) {
             return Optional.empty();
         }
         try (InputStream inputStream = stream) {
-            return readVersion(inputStream);
+            return readVersionFromZip(inputStream);
         } catch (IOException e) {
             SimuKraft.LOGGER.warn("Simukraft: Failed to read builtin building pack version", e);
             return Optional.empty();
@@ -43,22 +44,22 @@ public final class BuildingPackVersionChecker {
     }
 
     /**
-     * 读取本地官方建筑目录的 pack.json；旧的 official_building.zip 仍可读取。
+     * 读取本地 official_building.zip 的版本。还没有 zip 时，读以前解压目录里的 pack.json。
      */
     public static Optional<String> localVersion() {
-        Path directoryPack = BuildingPackageCatalog.rootDirectory()
-                .resolve(BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME)
+        Path officialZip = BuildingPackageCatalog.rootDirectory().resolve(BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME);
+        Path extractedPack = BuildingPackageCatalog.rootDirectory()
+                .resolve(BuildingPackageCatalog.EXTRACTED_OFFICIAL_DIR)
                 .resolve(PACK_JSON);
-        Path legacyZip = BuildingPackageCatalog.rootDirectory().resolve(BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME + ".zip");
         try {
-            if (Files.isRegularFile(directoryPack)) {
-                try (InputStream inputStream = Files.newInputStream(directoryPack)) {
-                    return readVersion(inputStream);
+            if (Files.isRegularFile(officialZip)) {
+                try (InputStream inputStream = Files.newInputStream(officialZip)) {
+                    return readVersionFromZip(inputStream);
                 }
             }
-            if (Files.isRegularFile(legacyZip)) {
-                try (InputStream inputStream = Files.newInputStream(legacyZip)) {
-                    return readVersionFromZip(inputStream);
+            if (Files.isRegularFile(extractedPack)) {
+                try (InputStream inputStream = Files.newInputStream(extractedPack)) {
+                    return readVersion(inputStream);
                 }
             }
         } catch (IOException e) {

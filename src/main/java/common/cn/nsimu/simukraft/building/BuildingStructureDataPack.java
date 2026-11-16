@@ -85,17 +85,15 @@ public final class BuildingStructureDataPack {
         Path root = FMLPaths.GAMEDIR.get().resolve(BuildingPackageCatalog.ROOT_DIR);
         try {
             BuildingBuiltinResourceService.ensureCopied(root);
-            BuildingZipMerger.mergeDroppedZips(root);
         } catch (RuntimeException exception) {
             SimuKraft.LOGGER.error("Simukraft: Failed to prepare building packages; kept the files already in {}", root, exception);
         }
         if (!Files.isDirectory(root)) {
             return structures;
         }
-        boolean officialDirectory = Files.isDirectory(root.resolve(BuildingPackageCatalog.OFFICIAL_PACKAGE_NAME));
         try (var stream = Files.list(root)) {
             List<Path> packages = stream
-                    .filter(path -> BuildingPackageCatalog.isPackagePath(path, officialDirectory))
+                    .filter(BuildingPackageCatalog::isPackagePath)
                     .sorted(Comparator.comparing(path -> path.getFileName().toString().toLowerCase(Locale.ROOT)))
                     .toList();
             for (Path packagePath : packages) {

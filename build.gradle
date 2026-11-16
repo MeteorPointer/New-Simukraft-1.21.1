@@ -38,6 +38,26 @@ sourceSets.main.resources {
     // Exclude common development only resources from finalized outputs
     exclude("**/*.bbmodel") // BlockBench project files
     exclude("src/generated/**/.cache") // datagen cache files
+    // Building files ship only inside official_building.zip.
+    exclude("assets/simukraft/building/**/*.sk")
+    exclude("assets/simukraft/building/**/*.nbt")
+    exclude("assets/simukraft/building/**/*.json")
+    exclude("assets/simukraft/building/**/_files.txt")
+}
+
+def buildingPackSource = file("src/main/resources/assets/simukraft/building")
+def zipOfficialBuildings = tasks.register("zipOfficialBuildings", Zip) {
+    group = "build"
+    description = "Pack the built-in building sources into official_building.zip."
+    archiveFileName = "official_building.zip"
+    destinationDirectory = layout.buildDirectory.dir("generated/official-building")
+    from(fileTree(buildingPackSource) {
+        exclude("official_building.zip")
+    })
+}
+tasks.named("processResources") {
+    dependsOn(zipOfficialBuildings)
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 
 repositories {
