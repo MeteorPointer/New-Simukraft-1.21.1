@@ -1,5 +1,6 @@
 package client.cn.nsimu.simukraft.client.logistics;
 
+import client.cn.nsimu.simukraft.client.ui.SimuKraftGlassTextures;
 import common.cn.nsimu.simukraft.logistics.menu.LogisticsWarehouseGridMenu;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsWarehouseGridRequestPacket;
 import net.minecraft.client.Minecraft;
@@ -110,6 +111,7 @@ public final class LogisticsWarehouseGridScreen extends AbstractContainerScreen<
      */
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        SimuKraftGlassTextures.captureBackdrop();
         LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
         renderBg(graphics, partialTick, mouseX, mouseY);
     }

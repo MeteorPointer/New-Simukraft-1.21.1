@@ -1,6 +1,7 @@
 package client.cn.nsimu.simukraft.client.logistics;
 
 import client.cn.nsimu.simukraft.client.city.map.SimuMapManager;
+import client.cn.nsimu.simukraft.client.ui.SimuKraftGlassTextures;
 import client.cn.nsimu.simukraft.client.city.map.SimuMapRegion;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -81,6 +82,9 @@ final class LogisticsNetworkMapScreen extends Screen {
      */
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        if (SimuKraftGlassTextures.enabled()) {
+            SimuKraftGlassTextures.captureBackdrop();
+        }
         graphics.fill(0, 0, this.width, this.height, 0xFF0A0A0A);
         int mapWidth = mapWidth();
         updateHover(mouseX, mouseY, mapWidth);

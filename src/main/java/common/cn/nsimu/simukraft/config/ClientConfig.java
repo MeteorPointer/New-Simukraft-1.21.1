@@ -40,6 +40,7 @@ public final class ClientConfig {
     public static final ModConfigSpec.BooleanValue RTS_TARGET_VANILLA_BLOCKS;
     public static final ModConfigSpec.BooleanValue RTS_TARGET_OTHER_MOD_BLOCKS;
     public static final ModConfigSpec.IntValue RTS_MOVE_HOLD_SECONDS;
+    public static final ModConfigSpec.BooleanValue GLASS_UI_ENABLED;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -119,6 +120,12 @@ public final class ClientConfig {
                 .translation("config.simukraft.client.rts.moveHoldSeconds")
                 .defineInRange("moveHoldSeconds", DEFAULT_RTS_MOVE_HOLD_SECONDS, 1, 10);
         builder.pop();
+        builder.push("ui");
+        GLASS_UI_ENABLED = builder
+                .comment("Use rounded translucent frosted-glass panels for Sim-U-Kraft screens.")
+                .translation("config.simukraft.client.ui.glass")
+                .define("glass", false);
+        builder.pop();
         SPEC = builder.build();
     }
 
@@ -183,6 +190,13 @@ public final class ClientConfig {
      */
     public static int rtsMoveHoldSeconds() {
         return Math.max(1, Math.min(10, RTS_MOVE_HOLD_SECONDS.get()));
+    }
+
+    /**
+     * glassUiEnabled: 判断是否使用圆角半透明毛玻璃界面。
+     */
+    public static boolean glassUiEnabled() {
+        return GLASS_UI_ENABLED.get();
     }
 
     /**

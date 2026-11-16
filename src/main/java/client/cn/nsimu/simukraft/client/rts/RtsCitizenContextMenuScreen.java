@@ -1,5 +1,6 @@
 package client.cn.nsimu.simukraft.client.rts;
 
+import client.cn.nsimu.simukraft.client.ui.SimuKraftGlassTextures;
 import common.cn.nsimu.simukraft.network.rts.RtsCitizenActionPacket;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -99,8 +100,13 @@ public final class RtsCitizenContextMenuScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.fill(menuX, menuY, menuX + MENU_WIDTH, menuY + 1, COLOR_BORDER);
-        graphics.fill(menuX, menuY + 1, menuX + MENU_WIDTH, menuY + MENU_HEIGHT, COLOR_BACKGROUND);
+        if (SimuKraftGlassTextures.enabled()) {
+            SimuKraftGlassTextures.captureBackdrop();
+            SimuKraftGlassTextures.fill(graphics, menuX, menuY, MENU_WIDTH, MENU_HEIGHT, COLOR_BACKGROUND);
+        } else {
+            graphics.fill(menuX, menuY, menuX + MENU_WIDTH, menuY + 1, COLOR_BORDER);
+            graphics.fill(menuX, menuY + 1, menuX + MENU_WIDTH, menuY + MENU_HEIGHT, COLOR_BACKGROUND);
+        }
         graphics.drawString(font, fitTitle(citizenName.getString()), menuX + 6, menuY + 6, COLOR_TITLE, false);
 
         int rowY = menuY + HEADER_HEIGHT;

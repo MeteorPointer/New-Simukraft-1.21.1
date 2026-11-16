@@ -40,6 +40,9 @@ public final class SimuKraftClientConfigScreen {
         body.addChild(SimuKraftConfigWidgets.row(
                 Component.translatable("gui.simukraft.config.client.hud_enabled"),
                 SimuKraftConfigWidgets.switchControl(ClientConfig.HUD_ENABLED.get(), ClientConfig.HUD_ENABLED::set)));
+        body.addChild(SimuKraftConfigWidgets.row(
+                Component.translatable("gui.simukraft.config.client.glass_ui"),
+                SimuKraftConfigWidgets.switchControl(ClientConfig.GLASS_UI_ENABLED.get(), ClientConfig.GLASS_UI_ENABLED::set)));
         body.addChild(openHudEditorRow());
         body.addChild(openToastEditorRow());
         body.addChild(SimuKraftConfigWidgets.row(
@@ -139,6 +142,7 @@ public final class SimuKraftClientConfigScreen {
         ClientConfig.TOAST_POS_Y.set(ClientConfig.DEFAULT_TOAST_POS_Y);
         ClientConfig.TOAST_WIDTH.set(ClientConfig.DEFAULT_TOAST_WIDTH);
         ClientConfig.TOAST_HEIGHT.set(ClientConfig.DEFAULT_TOAST_HEIGHT);
+        ClientConfig.GLASS_UI_ENABLED.set(false);
         ClientConfig.PATH_DEBUG_REQUEST_ON_TOGGLE.set(true);
         ClientConfig.RTS_TARGET_SIMUKRAFT_BLOCKS.set(true);
         ClientConfig.RTS_TARGET_VANILLA_BLOCKS.set(true);

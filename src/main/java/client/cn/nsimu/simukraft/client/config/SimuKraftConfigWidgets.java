@@ -1,6 +1,7 @@
 package client.cn.nsimu.simukraft.client.config;
 
 import client.cn.nsimu.simukraft.client.ui.SimuKraftClientUiPreferences;
+import client.cn.nsimu.simukraft.client.ui.SimuKraftGlassTextures;
 import client.cn.nsimu.simukraft.client.ui.SimuKraftUiTheme;
 import com.lowdragmc.lowdraglib2.gui.texture.ColorBorderTexture;
 import com.lowdragmc.lowdraglib2.gui.texture.ColorRectTexture;
@@ -107,7 +108,9 @@ final class SimuKraftConfigWidgets {
      */
     static UIElement panel(int width, int height, int color, int border) {
         return new UIElement()
-                .style(style -> style.backgroundTexture(new GuiTextureGroup(new ColorRectTexture(color), new ColorBorderTexture(2, border))))
+                .style(style -> style.backgroundTexture(SimuKraftGlassTextures.enabled()
+                        ? SimuKraftGlassTextures.panel(color, border)
+                        : new GuiTextureGroup(new ColorRectTexture(color), new ColorBorderTexture(2, border))))
                 .layout(layout -> {
                     layout.width(width);
                     layout.height(height);
@@ -338,7 +341,9 @@ final class SimuKraftConfigWidgets {
             layout.paddingAll(2);
             layout.flexShrink(1);
         });
-        field.style(style -> style.backgroundTexture(new GuiTextureGroup(new ColorRectTexture(0xFF101010), new ColorBorderTexture(1, 0xFF808080))));
+        field.style(style -> style.backgroundTexture(SimuKraftGlassTextures.enabled()
+                ? SimuKraftGlassTextures.card(0xFF101010, 0xFF808080)
+                : new GuiTextureGroup(new ColorRectTexture(0xFF101010), new ColorBorderTexture(1, 0xFF808080))));
         field.textFieldStyle(style -> style.textColor(TEXT_TITLE)
                 .cursorColor(TEXT_TITLE)
                 .textShadow(false)

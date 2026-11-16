@@ -1,5 +1,6 @@
 package client.cn.nsimu.simukraft.client.logistics;
 
+import client.cn.nsimu.simukraft.client.ui.SimuKraftGlassTextures;
 import common.cn.nsimu.simukraft.logistics.LogisticsDirection;
 import common.cn.nsimu.simukraft.logistics.LogisticsPortData;
 import common.cn.nsimu.simukraft.network.logistics.LogisticsBoxActionPacket;
@@ -59,6 +60,7 @@ final class LogisticsClientPortManageScreen extends Screen {
      */
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        SimuKraftGlassTextures.captureBackdrop();
         LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
     }
 

@@ -1,5 +1,6 @@
 package client.cn.nsimu.simukraft.client.logistics;
 
+import client.cn.nsimu.simukraft.client.ui.SimuKraftGlassTextures;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
@@ -43,6 +44,10 @@ final class LogisticsNativeStyle {
      * drawPanel: 绘制旧版直角信息面板。
      */
     static void drawPanel(GuiGraphics graphics, int x, int y, int width, int height) {
+        if (SimuKraftGlassTextures.enabled()) {
+            SimuKraftGlassTextures.fill(graphics, x, y, width, height, PANEL);
+            return;
+        }
         graphics.fill(x, y, x + width, y + height, PANEL);
         graphics.fill(x, y, x + width, y + 1, PANEL_LINE);
         graphics.fill(x, y + height - 1, x + width, y + height, PANEL_LINE);

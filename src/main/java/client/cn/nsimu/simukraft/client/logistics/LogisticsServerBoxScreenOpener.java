@@ -1,6 +1,7 @@
 package client.cn.nsimu.simukraft.client.logistics;
 
 import client.cn.nsimu.simukraft.client.hire.NpcHireScreen;
+import client.cn.nsimu.simukraft.client.ui.SimuKraftGlassTextures;
 import client.cn.nsimu.simukraft.client.selection.TwoPointSelectionScreen;
 import common.cn.nsimu.simukraft.logistics.LogisticsConstants;
 import common.cn.nsimu.simukraft.logistics.LogisticsControlBoxService;
@@ -183,6 +184,7 @@ public final class LogisticsServerBoxScreenOpener {
          */
         @Override
         public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            SimuKraftGlassTextures.captureBackdrop();
             LogisticsNativeStyle.drawBackdrop(graphics, this.width, this.height);
         }
 

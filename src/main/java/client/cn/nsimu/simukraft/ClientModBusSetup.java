@@ -20,6 +20,7 @@ import client.cn.nsimu.simukraft.client.rts.RtsLogisticsRouteRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsHandRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsMovePreviewRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
+import client.cn.nsimu.simukraft.client.ui.SimuKraftGlassTextures;
 import client.cn.nsimu.simukraft.client.selection.TwoPointSelectionRenderer;
 import com.lowdragmc.lowdraglib2.gui.holder.ModularUIContainerScreen;
 import common.cn.nsimu.simukraft.SimuKraft;
@@ -39,6 +40,7 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterPresetEditorsEvent;
+import net.neoforged.neoforge.client.event.RegisterShadersEvent;
 import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.event.TextureAtlasStitchedEvent;
@@ -79,6 +81,14 @@ public final class ClientModBusSetup {
         NeoForge.EVENT_BUS.register(new ConfigButtonHandler());
         ModLoadingContext.get().getActiveContainer().registerExtensionPoint(IConfigScreenFactory.class,
                 (container, parent) -> SimuKraftConfigScreen.createRoot(parent));
+    }
+
+    /**
+     * onRegisterShaders: 注册圆角毛玻璃裁切着色器。
+     */
+    @SubscribeEvent
+    public static void onRegisterShaders(RegisterShadersEvent event) {
+        SimuKraftGlassTextures.onRegisterShaders(event);
     }
 
     /**

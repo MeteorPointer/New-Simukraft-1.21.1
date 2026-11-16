@@ -33,7 +33,7 @@ public final class SimuKraftWindowFrame {
             layout.paddingAll(ROOT_PADDING);
             layout.flexDirection(FlexDirection.COLUMN);
             layout.alignItems(AlignItems.STRETCH);
-        }).style(style -> style.backgroundTexture(new ColorRectTexture(SimuKraftUiTheme.CITY_CORE_BACKGROUND_COLOR)));
+        }).style(style -> style.backgroundTexture(SimuKraftGlassTextures.panel(SimuKraftUiTheme.CITY_CORE_BACKGROUND_COLOR, 0xFF5A5A5A)));
 
         window.addChild(titleBar(screenSize, title, closeAction));
         window.addChild(content.layout(layout -> {
@@ -54,7 +54,7 @@ public final class SimuKraftWindowFrame {
             layout.flexDirection(FlexDirection.ROW);
             layout.alignItems(AlignItems.CENTER);
             layout.justifyContent(AlignContent.SPACE_BETWEEN);
-        }).style(style -> style.backgroundTexture(new ColorRectTexture(TITLE_BAR_COLOR)));
+        }).style(style -> style.backgroundTexture(SimuKraftGlassTextures.card(TITLE_BAR_COLOR, TITLE_BAR_COLOR)));
 
         int titleWidth = Math.max(80, screenSize.width() - ROOT_PADDING * 2 - CLOSE_BUTTON_SIZE - 24);
         UIElement titleText = SimuKraftFlexLayout.text(title, titleWidth, TITLE_COLOR, TextTexture.TextType.LEFT, true);

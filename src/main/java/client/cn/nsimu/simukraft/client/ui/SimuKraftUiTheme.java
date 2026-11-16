@@ -85,7 +85,7 @@ public final class SimuKraftUiTheme {
                     layout.width(width);
                     layout.height(height);
                 })
-                .style(style -> style.backgroundTexture(new ColorRectTexture(CITY_CORE_BACKGROUND_COLOR)));
+                .style(style -> style.backgroundTexture(SimuKraftGlassTextures.panel(CITY_CORE_BACKGROUND_COLOR, 0xFF5A5A5A)));
     }
 
     /** 创建选中白框：按钮外侧留 1px 间隔，白框自身 1px。 */
