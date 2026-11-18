@@ -8,6 +8,7 @@ import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemNameBlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -26,6 +27,8 @@ import java.util.List;
  */
 public final class CautionTapeRollItem extends ItemNameBlockItem {
     public static final int USES_PER_ROLL = 50;
+    /** 一格警戒线占用（也即回收）的使用次数，与铺设时 consumeUse 的步长一致。 */
+    public static final int USES_PER_SEGMENT = 1;
 
     private final Block tapeBlock;
 
@@ -124,6 +127,41 @@ public final class CautionTapeRollItem extends ItemNameBlockItem {
             stack.setDamageValue(next);
         }
         return true;
+    }
+
+    /**
+     * applySegmentDamage：破坏一格警戒线只回收当初铺它用掉的次数，把掉落卷设成相应耐久，
+     * 避免每次破坏都掉一整卷导致刷耐久。
+     */
+    public static void applySegmentDamage(ItemStack stack) {
+        if (stack.getItem() instanceof CautionTapeRollItem) {
+            stack.setDamageValue(Math.max(0, stack.getMaxDamage() - USES_PER_SEGMENT));
+        }
+    }
+
+    /**
+     * absorbIntoInventory：拾取掉落卷时，把它的剩余使用次数并进背包里已有的半旧卷（已用且没铺满的卷）。
+     * 返回没能并进去的剩余次数；调用方据此丢弃掉落物或改写成残卷。只在服务端玩家线程调用。
+     */
+    public static int absorbIntoInventory(Inventory inventory, ItemStack drop) {
+        int leftover = remainingUses(drop);
+        if (leftover <= 0 || inventory == null) {
+            return leftover;
+        }
+        for (int slot = 0; slot < inventory.getContainerSize() && leftover > 0; slot++) {
+            ItemStack existing = inventory.getItem(slot);
+            if (!(existing.getItem() instanceof CautionTapeRollItem)) {
+                continue;
+            }
+            int room = existing.getDamageValue();
+            if (room <= 0) {
+                continue;
+            }
+            int moved = Math.min(room, leftover);
+            existing.setDamageValue(existing.getDamageValue() - moved);
+            leftover -= moved;
+        }
+        return leftover;
     }
 
     private int placeLine(Level level, BlockPos start, BlockPos end, ItemStack stack, Player player) {

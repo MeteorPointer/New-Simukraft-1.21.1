@@ -1,8 +1,10 @@
 package common.cn.nsimu.simukraft.block;
 
+import common.cn.nsimu.simukraft.item.CautionTapeRollItem;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -16,9 +18,12 @@ import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.DirectionProperty;
 import net.minecraft.world.level.material.MapColor;
 import net.minecraft.world.level.material.PushReaction;
+import net.minecraft.world.level.storage.loot.LootParams;
 import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+
+import java.util.List;
 
 /**
  * 警戒线：无碰撞薄带。单独放置时贴着方块四边围成一圈，和相邻警戒线连接时改成直线或拐角。
@@ -220,6 +225,18 @@ public final class CautionTapeBlock extends Block {
             shapes[i] = shape.isEmpty() ? RING : shape;
         }
         return shapes;
+    }
+
+    /**
+     * getDrops: 破坏一格警戒线掉出的卷只值当初铺它的用量，按耐久掉落，避免刷整卷。
+     */
+    @Override
+    protected List<ItemStack> getDrops(BlockState state, LootParams.Builder params) {
+        List<ItemStack> drops = super.getDrops(state, params);
+        for (ItemStack drop : drops) {
+            CautionTapeRollItem.applySegmentDamage(drop);
+        }
+        return drops;
     }
 
     @Override

@@ -23,6 +23,7 @@ import common.cn.nsimu.simukraft.guard.NtIntegrityGuard;
 import common.cn.nsimu.simukraft.industrial.IndustrialBoxManager;
 import common.cn.nsimu.simukraft.industrial.IndustrialDefinitionLoader;
 import common.cn.nsimu.simukraft.industrial.IndustrialWorkService;
+import common.cn.nsimu.simukraft.item.CautionTapeRollItem;
 import common.cn.nsimu.simukraft.job.CityJobAssignmentService;
 import common.cn.nsimu.simukraft.logistics.LogisticsAutoClientService;
 import common.cn.nsimu.simukraft.logistics.LogisticsManager;
@@ -54,6 +55,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.piston.PistonStructureResolver;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.bus.api.IEventBus;
@@ -62,8 +65,10 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.event.config.ModConfigEvent;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.common.util.TriState;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.event.entity.living.LivingDeathEvent;
+import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
@@ -112,6 +117,7 @@ public final class SimuKraft {
         NeoForge.EVENT_BUS.addListener(this::onLivingDeath);
         NeoForge.EVENT_BUS.addListener(this::onBlockBreak);
         NeoForge.EVENT_BUS.addListener(this::onBlockPlace);
+        NeoForge.EVENT_BUS.addListener(this::onItemPickup);
         NeoForge.EVENT_BUS.addListener(this::onNeighborNotify);
         NeoForge.EVENT_BUS.addListener(this::onFluidPlaceBlock);
         NeoForge.EVENT_BUS.addListener(this::onPistonPre);
@@ -181,6 +187,37 @@ public final class SimuKraft {
     private void onBlockPlace(BlockEvent.EntityPlaceEvent event) {
         if (event.getLevel() instanceof net.minecraft.server.level.ServerLevel level) {
             CitizenNavigationService.invalidate(level, event.getPos());
+        }
+    }
+
+    /**
+     * onItemPickup: 拾取警戒线掉落卷时先并进背包已有的半旧卷，回收使用次数并减少散落的一格残卷。
+     * 只在服务端触发；全部并完时补一次原版拾取音效并立即移除掉落物，避免静默消失。
+     */
+    private void onItemPickup(ItemEntityPickupEvent.Pre event) {
+        if (!(event.getPlayer() instanceof net.minecraft.server.level.ServerPlayer player)) {
+            return;
+        }
+        ItemEntity itemEntity = event.getItemEntity();
+        ItemStack drop = itemEntity.getItem();
+        if (!(drop.getItem() instanceof CautionTapeRollItem)) {
+            return;
+        }
+        int uses = CautionTapeRollItem.remainingUses(drop);
+        if (uses <= 0) {
+            return;
+        }
+        int leftover = CautionTapeRollItem.absorbIntoInventory(player.getInventory(), drop);
+        if (leftover == uses) {
+            return; // 没并进去，交给原版正常拾取（音效和反馈照常）
+        }
+        if (leftover <= 0) {
+            // 阻止原版重复入包，自己走一次 Player#take 补齐拾取音效与统计，再立即移除。
+            event.setCanPickup(TriState.FALSE);
+            player.take(itemEntity, uses);
+            itemEntity.discard();
+        } else {
+            drop.setDamageValue(drop.getMaxDamage() - leftover);
         }
     }
 
