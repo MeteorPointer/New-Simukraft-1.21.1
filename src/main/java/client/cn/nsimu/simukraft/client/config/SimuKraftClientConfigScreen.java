@@ -41,12 +41,6 @@ public final class SimuKraftClientConfigScreen {
         body.addChild(SimuKraftConfigWidgets.row(
                 Component.translatable("gui.simukraft.config.client.hud_enabled"),
                 SimuKraftConfigWidgets.switchControl(ClientConfig.HUD_ENABLED.get(), ClientConfig.HUD_ENABLED::set)));
-        body.addChild(SimuKraftConfigWidgets.row(
-                Component.translatable("gui.simukraft.config.client.glass_ui"),
-                SimuKraftConfigWidgets.switchControl(ClientConfig.GLASS_UI_ENABLED.get(), ClientConfig.GLASS_UI_ENABLED::set)));
-        body.addChild(SimuKraftConfigWidgets.row(
-                Component.translatable("gui.simukraft.config.client.glass_color"),
-                SimuKraftConfigWidgets.textField(String.format("#%06X", ClientConfig.glassColor()), SimuKraftClientConfigScreen::setGlassColor)));
         body.addChild(fontRow(parent));
         body.addChild(openHudEditorRow());
         body.addChild(openToastEditorRow());
@@ -86,7 +80,7 @@ public final class SimuKraftClientConfigScreen {
         return footer;
     }
 
-    /** fontRow: 提供全客户端字体循环选择，英语环境额外显示 Beautiful ES。 */
+    /** fontRow: 提供全客户端字体循环选择。 */
     private static UIElement fontRow(Screen parent) {
         return SimuKraftConfigWidgets.row(
                 Component.translatable("gui.simukraft.config.client.font"),
@@ -140,15 +134,6 @@ public final class SimuKraftClientConfigScreen {
     }
 
     /**
-     * setGlassColor: 只接受 #RRGGBB，输入过程中的半截文本先不写配置。
-     */
-    private static void setGlassColor(String value) {
-        if (value != null && value.matches("#[0-9A-Fa-f]{6}")) {
-            ClientConfig.GLASS_COLOR.set(value.toUpperCase(java.util.Locale.ROOT));
-        }
-    }
-
-    /**
      * save: 保存客户端配置并清理 HUD 缓存。
      */
     private static void save() {
@@ -171,8 +156,6 @@ public final class SimuKraftClientConfigScreen {
         ClientConfig.TOAST_POS_Y.set(ClientConfig.DEFAULT_TOAST_POS_Y);
         ClientConfig.TOAST_WIDTH.set(ClientConfig.DEFAULT_TOAST_WIDTH);
         ClientConfig.TOAST_HEIGHT.set(ClientConfig.DEFAULT_TOAST_HEIGHT);
-        ClientConfig.GLASS_UI_ENABLED.set(false);
-        ClientConfig.GLASS_COLOR.set(ClientConfig.DEFAULT_GLASS_COLOR);
         ClientConfig.FONT.set(ClientConfig.DEFAULT_FONT);
         ClientConfig.PATH_DEBUG_REQUEST_ON_TOGGLE.set(true);
         ClientConfig.RTS_TARGET_SIMUKRAFT_BLOCKS.set(true);

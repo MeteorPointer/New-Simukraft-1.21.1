@@ -22,7 +22,6 @@ public final class ClientConfig {
     public static final String DEFAULT_TOAST_FIT_MODE = "HEIGHT";
     public static final int DEFAULT_RTS_MOVE_HOLD_SECONDS = 1;
     public static final String DEFAULT_FONT = "default";
-    public static final String DEFAULT_GLASS_COLOR = "#101828";
 
     public static final ModConfigSpec SPEC;
     public static final ModConfigSpec.BooleanValue HUD_ENABLED;
@@ -42,8 +41,6 @@ public final class ClientConfig {
     public static final ModConfigSpec.BooleanValue RTS_TARGET_VANILLA_BLOCKS;
     public static final ModConfigSpec.BooleanValue RTS_TARGET_OTHER_MOD_BLOCKS;
     public static final ModConfigSpec.IntValue RTS_MOVE_HOLD_SECONDS;
-    public static final ModConfigSpec.BooleanValue GLASS_UI_ENABLED;
-    public static final ModConfigSpec.ConfigValue<String> GLASS_COLOR;
     public static final ModConfigSpec.ConfigValue<String> FONT;
 
     static {
@@ -125,16 +122,8 @@ public final class ClientConfig {
                 .defineInRange("moveHoldSeconds", DEFAULT_RTS_MOVE_HOLD_SECONDS, 1, 10);
         builder.pop();
         builder.push("ui");
-        GLASS_UI_ENABLED = builder
-                .comment("Use rounded translucent frosted-glass panels for Sim-U-Kraft screens.")
-                .translation("config.simukraft.client.ui.glass")
-                .define("glass", false);
-        GLASS_COLOR = builder
-                .comment("Frosted glass tint as #RRGGBB.")
-                .translation("config.simukraft.client.ui.glassColor")
-                .define("glassColor", DEFAULT_GLASS_COLOR, ClientConfig::isGlassColor);
         FONT = builder
-                .comment("Global client font: default, jingluo, kaishu, song, heiti, xingkai or beautiful_es (English only).")
+                .comment("Global client font: default or heiti.")
                 .translation("config.simukraft.client.ui.font")
                 .define("font", DEFAULT_FONT, ClientConfig::isFont);
         builder.pop();
@@ -202,21 +191,6 @@ public final class ClientConfig {
      */
     public static int rtsMoveHoldSeconds() {
         return Math.max(1, Math.min(10, RTS_MOVE_HOLD_SECONDS.get()));
-    }
-
-    /**
-     * glassUiEnabled: 判断是否使用圆角半透明毛玻璃界面。
-     */
-    public static boolean glassUiEnabled() {
-        return GLASS_UI_ENABLED.get();
-    }
-
-    /**
-     * glassColor: 返回规范化的毛玻璃色值。非法输入回退默认色。
-     */
-    public static int glassColor() {
-        String value = GLASS_COLOR.get();
-        return isGlassColor(value) ? Integer.parseInt(value.substring(1), 16) : 0x101828;
     }
 
     /** fontName: 返回规范化的客户端字体名称。 */
@@ -334,28 +308,11 @@ public final class ClientConfig {
         };
     }
 
-    /** isGlassColor: 校验 #RRGGBB 色值。 */
-    private static boolean isGlassColor(Object value) {
-        if (!(value instanceof String string) || string.length() != 7 || string.charAt(0) != '#') {
-            return false;
-        }
-        for (int index = 1; index < string.length(); index++) {
-            char character = string.charAt(index);
-            boolean hex = (character >= '0' && character <= '9')
-                    || (character >= 'a' && character <= 'f')
-                    || (character >= 'A' && character <= 'F');
-            if (!hex) {
-                return false;
-            }
-        }
-        return true;
-    }
-
     /** isFont: 校验字体配置值。 */
     private static boolean isFont(Object value) {
         if (!(value instanceof String string) || string.isBlank()) return false;
         return switch (string.toLowerCase(Locale.ROOT)) {
-            case "default", "jingluo", "kaishu", "song", "heiti", "xingkai", "beautiful_es" -> true;
+            case "default", "heiti" -> true;
             default -> false;
         };
     }

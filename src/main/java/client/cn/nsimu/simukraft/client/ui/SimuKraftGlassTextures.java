@@ -16,7 +16,6 @@ import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import common.cn.nsimu.simukraft.SimuKraft;
-import common.cn.nsimu.simukraft.config.ClientConfig;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
@@ -74,7 +73,7 @@ public final class SimuKraftGlassTextures {
      * enabled: 读取客户端配置，判断是否启用毛玻璃。
      */
     public static boolean enabled() {
-        return ClientConfig.glassUiEnabled();
+        return false;
     }
 
     /**
@@ -175,7 +174,7 @@ public final class SimuKraftGlassTextures {
     }
 
     private static int tint(int alpha) {
-        return (alpha << 24) | ClientConfig.glassColor();
+        return (alpha << 24) | 0x101828;
     }
 
     private static IGuiTexture layered(float radius, int tint, int border, float stroke) {

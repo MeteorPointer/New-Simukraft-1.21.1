@@ -1271,8 +1271,6 @@
     "config.simukraft.client.rts.targetVanillaBlocks":  "RTS target vanilla blocks",
     "config.simukraft.client.rts.targetOtherModBlocks":  "RTS target other mod blocks",
     "config.simukraft.client.rts.moveHoldSeconds":  "RTS move hold seconds",
-    "config.simukraft.client.ui.glass":  "Rounded translucent frosted-glass UI",
-    "config.simukraft.client.ui.glassColor":  "Frosted glass color",
     "message.simukraft.rts.too_far":  "The RTS target is too far away.",
     "message.simukraft.rts.demolish.outside_city":  "You can only demolish targets inside your city's territory.",
     "message.simukraft.rts.building_demolished":  "The selected building was demolished.",
@@ -1339,8 +1337,6 @@
     "gui.simukraft.config.update":  "Update",
     "gui.simukraft.config.delete":  "Delete",
     "gui.simukraft.config.client.hud_enabled":  "HUD Enabled",
-    "gui.simukraft.config.client.glass_ui":  "Rounded Glass UI",
-    "gui.simukraft.config.client.glass_color":  "Glass Color",
     "gui.simukraft.config.client.hud_position":  "HUD Position",
     "gui.simukraft.config.client.toast_position":  "Toast Position",
     "gui.simukraft.config.client.rts.target_simukraft_blocks":  "RTS target Sim-U-Kraft blocks",
@@ -1699,10 +1695,5 @@
     "config.simukraft.client.ui.font": "Global Client Font",
     "gui.simukraft.config.client.font": "Global Client Font",
     "gui.simukraft.config.client.font.default": "Default",
-    "gui.simukraft.config.client.font.jingluo": "Jingluo",
-    "gui.simukraft.config.client.font.kaishu": "Kaishu",
-    "gui.simukraft.config.client.font.song": "Song",
-    "gui.simukraft.config.client.font.heiti": "Heiti",
-    "gui.simukraft.config.client.font.xingkai": "Xingkai",
-    "gui.simukraft.config.client.font.beautiful_es": "Beautiful ES"
+    "gui.simukraft.config.client.font.heiti": "Black"
 }
