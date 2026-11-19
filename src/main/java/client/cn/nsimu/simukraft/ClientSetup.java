@@ -23,6 +23,8 @@ import client.cn.nsimu.simukraft.client.rts.RtsMiniMapRenderer;
 import client.cn.nsimu.simukraft.client.rts.RtsSelectionManager;
 import client.cn.nsimu.simukraft.client.selection.TwoPointSelectionManager;
 import client.cn.nsimu.simukraft.client.toast.ClientInfoToast;
+import client.cn.nsimu.simukraft.client.mail.MailClientState;
+import client.cn.nsimu.simukraft.client.mail.MailHudRenderer;
 import common.cn.nsimu.simukraft.SimuKraft;
 import net.minecraft.client.Minecraft;
 import net.neoforged.api.distmarker.Dist;
@@ -50,6 +52,7 @@ public final class ClientSetup {
             return;
         }
         ClientHUDOverlay.render(event);
+        MailHudRenderer.render(event);
         GeologicalSurveyHintOverlay.render(event);
         CityEntryHud.render(event.getGuiGraphics(), event.getPartialTick().getGameTimeDeltaPartialTick(true));
         RtsMiniMapRenderer.render(event.getGuiGraphics());
@@ -78,6 +81,7 @@ public final class ClientSetup {
     @SubscribeEvent
     public static void onPlayerLoggedOut(ClientPlayerNetworkEvent.LoggingOut event) {
         ClientInfoToast.clear();
+        MailClientState.reset();
         RtsMiniMapRenderer.clear();
         BuildingPreviewManager.clearPreview();
         BuildingBoundsRenderer.clearAll();
@@ -107,6 +111,11 @@ public final class ClientSetup {
             } else if (SimuKraftKeyMappings.AUTH_OPEN.consumeClick() && minecraft.screen == null) {
                 minecraft.setScreen(new SponsorAuthScreen(null));
             }
+        }
+        Minecraft minecraft = Minecraft.getInstance();
+        if (SimuKraftKeyMappings.MAIL_OPEN.consumeClick()
+                && minecraft.player != null && minecraft.screen == null) {
+            MailClientState.open();
         }
         if (SimuMapManager.isAvailable()) {
             SimuMapManager.getInstance().tick();

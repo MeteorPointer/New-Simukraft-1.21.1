@@ -36,6 +36,7 @@ import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsSyncPacket;
 import common.cn.nsimu.simukraft.network.rts.RtsConstructionPreviewSyncPacket;
 import common.cn.nsimu.simukraft.network.rts.RtsLogisticsRoutesSyncPacket;
 import common.cn.nsimu.simukraft.network.toast.InfoToastPacket;
+import common.cn.nsimu.simukraft.network.mail.MailStatePacket;
 
 /**
  * ClientboundNetworkHandler: 客户端网络响应处理抽象，避免 common 网络包直接依赖客户端实现。
@@ -216,6 +217,10 @@ public interface ClientboundNetworkHandler {
      * handleInfoToast: 处理客户端提示消息。
      */
     default void handleInfoToast(InfoToastPacket packet) {
+    }
+
+    /** 处理邮件未读状态同步。 */
+    default void handleMailState(MailStatePacket packet) {
     }
 
     /**

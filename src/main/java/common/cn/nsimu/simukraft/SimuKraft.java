@@ -39,6 +39,7 @@ import common.cn.nsimu.simukraft.network.ModNetwork;
 import common.cn.nsimu.simukraft.util.NpcForceLoadService;
 import common.cn.nsimu.simukraft.network.city.chunk.CityChunkSyncService;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
+import common.cn.nsimu.simukraft.network.mail.MailStateService;
 import common.cn.nsimu.simukraft.network.rts.RtsChunkViewService;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteCitizenAccess;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
@@ -157,6 +158,7 @@ public final class SimuKraft {
         if (event.getEntity() instanceof net.minecraft.server.level.ServerPlayer player) {
             PlayerWelcomeService.handleLogin(player);
             CityChunkSyncService.syncToPlayer(player);
+            MailStateService.syncToPlayer(player);
         }
     }
 
@@ -168,6 +170,7 @@ public final class SimuKraft {
             RtsRemoteMenuAccess.clear(player);
             RtsRemoteCitizenAccess.clear(player);
             RtsChunkViewService.clear(player);
+            MailStateService.clearPlayer(player);
         }
     }
 
@@ -434,6 +437,7 @@ public final class SimuKraft {
         VirtualVeinService.clearServerCache(event.getServer());
         CityPoiManager.clearGlobalCache();
         common.cn.nsimu.simukraft.util.SaveScopedCacheKey.clearServerCache(event.getServer());
+        MailStateService.clearAll();
     }
 
     /**

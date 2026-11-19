@@ -30,6 +30,8 @@ import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncPacket;
 import common.cn.nsimu.simukraft.network.industrial.*;
 import common.cn.nsimu.simukraft.network.logistics.*;
+import common.cn.nsimu.simukraft.network.mail.MailMarkReadPacket;
+import common.cn.nsimu.simukraft.network.mail.MailStatePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestBlockTogglePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestHeldOpenResponsePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestOpenResponsePacket;
@@ -141,6 +143,7 @@ public final class ModNetwork {
         registrar.playToServer(RtsPlaceBlockPacket.TYPE, RtsPlaceBlockPacket.STREAM_CODEC, RtsPlaceBlockPacket::handle);
         registrar.playToServer(ManifestTogglePacket.TYPE, ManifestTogglePacket.STREAM_CODEC, ManifestTogglePacket::handle);
         registrar.playToServer(ManifestBlockTogglePacket.TYPE, ManifestBlockTogglePacket.STREAM_CODEC, ManifestBlockTogglePacket::handle);
+        registrar.playToServer(MailMarkReadPacket.TYPE, MailMarkReadPacket.STREAM_CODEC, MailMarkReadPacket::handle);
         registrar.playToServer(ServerConfigSavePacket.TYPE, ServerConfigSavePacket.STREAM_CODEC, ServerConfigSavePacket::handle);
         registrar.playToClient(CityCoreOpenResponsePacket.TYPE, CityCoreOpenResponsePacket.STREAM_CODEC, CityCoreOpenResponsePacket::handle);
         registrar.playToClient(CityCoreMembersResponsePacket.TYPE, CityCoreMembersResponsePacket.STREAM_CODEC, CityCoreMembersResponsePacket::handle);
@@ -180,5 +183,6 @@ public final class ModNetwork {
         registrar.playToClient(RtsLogisticsRoutesSyncPacket.TYPE, RtsLogisticsRoutesSyncPacket.STREAM_CODEC, RtsLogisticsRoutesSyncPacket::handle);
         registrar.playToClient(ManifestOpenResponsePacket.TYPE, ManifestOpenResponsePacket.STREAM_CODEC, ManifestOpenResponsePacket::handle);
         registrar.playToClient(ManifestHeldOpenResponsePacket.TYPE, ManifestHeldOpenResponsePacket.STREAM_CODEC, ManifestHeldOpenResponsePacket::handle);
+        registrar.playToClient(MailStatePacket.TYPE, MailStatePacket.STREAM_CODEC, MailStatePacket::handle);
     }
 }
