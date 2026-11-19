@@ -25,7 +25,8 @@ public final class MailScreen extends Screen {
     /** 将邮件背景图直接拉伸到整个 GUI，不叠加任何控件或遮罩。 */
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        graphics.blit(BACKGROUND, 0, 0, 0.0F, 0.0F, width, height,
+        graphics.blit(BACKGROUND, 0, 0, width, height,
+                0.0F, 0.0F, BACKGROUND_WIDTH, BACKGROUND_HEIGHT,
                 BACKGROUND_WIDTH, BACKGROUND_HEIGHT);
     }
 
