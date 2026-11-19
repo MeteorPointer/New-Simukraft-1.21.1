@@ -1698,10 +1698,6 @@
     "gui.simukraft.config.client.font.heiti": "Black",
     "key.categories.simukraft": "Sim-U-Kraft",
     "key.simukraft.mail.open": "Open Mail",
-    "screen.simukraft.mail.title": "Mail",
-    "screen.simukraft.mail.empty": "No mail",
-    "screen.simukraft.mail.unread": "Unread mail: %s",
-    "gui.simukraft.mail.close": "Close",
     "message.simukraft.mail.test.sent": "Test mail sent. Unread mail: %s",
     "message.simukraft.mail.test.player_only": "This command can only be used by a player."
 }
