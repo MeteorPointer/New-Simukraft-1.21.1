@@ -36,6 +36,7 @@ import common.cn.nsimu.simukraft.network.rts.RtsBuildingBoundsSyncPacket;
 import common.cn.nsimu.simukraft.network.rts.RtsConstructionPreviewSyncPacket;
 import common.cn.nsimu.simukraft.network.rts.RtsLogisticsRoutesSyncPacket;
 import common.cn.nsimu.simukraft.network.toast.InfoToastPacket;
+import common.cn.nsimu.simukraft.network.mail.MailStatePacket;
 
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
@@ -264,6 +265,11 @@ public final class ClientboundNetworkBridge {
      */
     public static void handleInfoToast(InfoToastPacket packet) {
         HANDLER.get().handleInfoToast(packet);
+    }
+
+    /** 分发邮件未读状态同步。 */
+    public static void handleMailState(MailStatePacket packet) {
+        HANDLER.get().handleMailState(packet);
     }
 
     /**

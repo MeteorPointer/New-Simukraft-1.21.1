@@ -1695,5 +1695,9 @@
     "config.simukraft.client.ui.font": "Global Client Font",
     "gui.simukraft.config.client.font": "Global Client Font",
     "gui.simukraft.config.client.font.default": "Default",
-    "gui.simukraft.config.client.font.heiti": "Black"
+    "gui.simukraft.config.client.font.heiti": "Black",
+    "key.categories.simukraft": "Sim-U-Kraft",
+    "key.simukraft.mail.open": "Open Mail",
+    "message.simukraft.mail.test.sent": "Test mail sent. Unread mail: %s",
+    "message.simukraft.mail.test.player_only": "This command can only be used by a player."
 }

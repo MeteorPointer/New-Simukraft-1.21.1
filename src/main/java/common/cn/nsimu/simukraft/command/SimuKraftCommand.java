@@ -37,6 +37,7 @@ import common.cn.nsimu.simukraft.virtualvein.VirtualVeinSlot;
 import common.cn.nsimu.simukraft.network.building.BuildingCacheReloadPacket;
 import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
+import common.cn.nsimu.simukraft.network.mail.MailStateService;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import common.cn.nsimu.simukraft.path.report.PathReportService;
 import common.cn.nsimu.simukraft.path.report.PathReportWriter;
@@ -320,6 +321,23 @@ public final class SimuKraftCommand {
                                                 StringArgumentType.getString(context, "vein"),
                                                 IntegerArgumentType.getInteger(context, "radius")))))));
         dispatcher.register(root);
+        dispatcher.register(Commands.literal("youjian")
+                .then(Commands.literal("mail")
+                        .then(Commands.literal("test")
+                                .requires(source -> source.hasPermission(2))
+                                .executes(context -> testMail(context.getSource())))));
+    }
+
+    /** 发送一封测试邮件，验证服务端状态同步和客户端 HUD 提示。 */
+    private static int testMail(CommandSourceStack source) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.translatable("message.simukraft.mail.test.player_only"));
+            return 0;
+        }
+        int unread = MailStateService.receiveTest(player);
+        source.sendSuccess(() -> Component.translatable("message.simukraft.mail.test.sent", unread), false);
+        return Command.SINGLE_SUCCESS;
     }
 
     /**

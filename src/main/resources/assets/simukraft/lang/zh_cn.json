@@ -1695,5 +1695,9 @@
     "config.simukraft.client.ui.font": "全客户端字体",
     "gui.simukraft.config.client.font": "全客户端字体",
     "gui.simukraft.config.client.font.default": "默认",
-    "gui.simukraft.config.client.font.heiti": "黑体"
+    "gui.simukraft.config.client.font.heiti": "黑体",
+    "key.categories.simukraft": "Sim-U-Kraft",
+    "key.simukraft.mail.open": "打开邮件",
+    "message.simukraft.mail.test.sent": "测试邮件已发送，当前未读邮件：%s",
+    "message.simukraft.mail.test.player_only": "该指令只能由玩家执行。"
 }
