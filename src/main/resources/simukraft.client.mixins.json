@@ -14,7 +14,6 @@
     "MixinGuiGraphicsCoinCount",
     "MixinKeyboardHandler",
     "MixinLdlibTextField",
-    "MixinModularUiGlass",
     "MixinLevelRenderer",
     "MixinLevelRendererClouds",
     "MixinMinecraftGlassBackdrop",

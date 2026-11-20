@@ -207,7 +207,7 @@ public final class ClientboundNetworkHandlerImpl implements ClientboundNetworkHa
 
     @Override
     public void handleMailState(MailStatePacket packet) {
-        MailClientState.apply(packet.unreadCount());
+        MailClientState.apply(packet.unreadCount(), packet.senderDimension(), packet.senderX(), packet.senderZ());
     }
 
     @Override

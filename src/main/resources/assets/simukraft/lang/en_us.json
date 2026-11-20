@@ -1699,5 +1699,16 @@
     "key.categories.simukraft": "Sim-U-Kraft",
     "key.simukraft.mail.open": "Open Mail",
     "message.simukraft.mail.test.sent": "Test mail sent. Unread mail: %s",
-    "message.simukraft.mail.test.player_only": "This command can only be used by a player."
+    "message.simukraft.mail.test.player_only": "This command can only be used by a player.",
+    "screen.simukraft.mail.empty": "No mail",
+    "screen.simukraft.mail.tab.inbox": "Inbox",
+    "screen.simukraft.mail.tab.sent": "Sent",
+    "screen.simukraft.mail.tab.drafts": "Drafts",
+    "screen.simukraft.mail.summary.title": "Message details",
+    "screen.simukraft.mail.message.incoming": "Test message %s",
+    "screen.simukraft.mail.message.outgoing": "Sent message %s",
+    "screen.simukraft.mail.message.subject": "Subject: Test mail %s",
+    "screen.simukraft.mail.message.sender": "From: Sim-U-Kraft",
+    "screen.simukraft.mail.message.test_body": "This test message checks the mail interface and unread status.",
+    "screen.simukraft.mail.input_hint": "Type a reply"
 }

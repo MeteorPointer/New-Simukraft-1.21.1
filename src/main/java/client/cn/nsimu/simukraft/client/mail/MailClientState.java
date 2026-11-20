@@ -2,20 +2,27 @@ package client.cn.nsimu.simukraft.client.mail;
 
 import common.cn.nsimu.simukraft.network.mail.MailMarkReadPacket;
 import net.minecraft.client.Minecraft;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 /** 保存客户端邮件缓存，并提供打开邮件界面的入口。 */
 public final class MailClientState {
     private static volatile int unreadCount;
     private static volatile long shakeStartedAt = -1L;
+    private static volatile ResourceLocation senderDimension;
+    private static volatile int senderX;
+    private static volatile int senderZ;
 
     private MailClientState() {
     }
 
     /** 接收服务端状态；未读状态每次同步都重新触发一秒提示动画。 */
-    public static void apply(int count) {
+    public static void apply(int count, ResourceLocation dimension, int x, int z) {
         int safeCount = Math.max(0, count);
         unreadCount = safeCount;
+        senderDimension = dimension;
+        senderX = x;
+        senderZ = z;
         shakeStartedAt = safeCount > 0 ? System.currentTimeMillis() : -1L;
     }
 
@@ -48,14 +55,18 @@ public final class MailClientState {
         if (minecraft.player == null) {
             return;
         }
+        int openedUnreadCount = unreadCount;
         unreadCount = 0;
         shakeStartedAt = -1L;
         PacketDistributor.sendToServer(new MailMarkReadPacket());
-        minecraft.setScreen(new MailScreen());
+        minecraft.setScreen(new MailScreen(openedUnreadCount, senderDimension, senderX, senderZ));
     }
 
     public static void reset() {
         unreadCount = 0;
         shakeStartedAt = -1L;
+        senderDimension = null;
+        senderX = 0;
+        senderZ = 0;
     }
 }

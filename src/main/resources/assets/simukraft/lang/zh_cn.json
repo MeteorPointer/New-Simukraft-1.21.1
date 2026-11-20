@@ -1699,5 +1699,16 @@
     "key.categories.simukraft": "Sim-U-Kraft",
     "key.simukraft.mail.open": "打开邮件",
     "message.simukraft.mail.test.sent": "测试邮件已发送，当前未读邮件：%s",
-    "message.simukraft.mail.test.player_only": "该指令只能由玩家执行。"
+    "message.simukraft.mail.test.player_only": "该指令只能由玩家执行。",
+    "screen.simukraft.mail.empty": "暂无邮件",
+    "screen.simukraft.mail.tab.inbox": "收件箱",
+    "screen.simukraft.mail.tab.sent": "已发送",
+    "screen.simukraft.mail.tab.drafts": "草稿箱",
+    "screen.simukraft.mail.summary.title": "邮件信息",
+    "screen.simukraft.mail.message.incoming": "测试来信 %s",
+    "screen.simukraft.mail.message.outgoing": "已发送邮件 %s",
+    "screen.simukraft.mail.message.subject": "主题：测试邮件 %s",
+    "screen.simukraft.mail.message.sender": "发件人：Sim-U-Kraft",
+    "screen.simukraft.mail.message.test_body": "这是一封用于检查邮件界面和未读状态的测试来信。",
+    "screen.simukraft.mail.input_hint": "输入回复内容"
 }

@@ -9,7 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 
 /** 同步玩家当前邮件未读数量到客户端。 */
-public record MailStatePacket(int unreadCount) implements CustomPacketPayload {
+public record MailStatePacket(int unreadCount, ResourceLocation senderDimension, int senderX, int senderZ) implements CustomPacketPayload {
     public static final Type<MailStatePacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "mail_state"));
     public static final StreamCodec<RegistryFriendlyByteBuf, MailStatePacket> STREAM_CODEC =
@@ -26,10 +26,20 @@ public record MailStatePacket(int unreadCount) implements CustomPacketPayload {
 
     private static void encode(RegistryFriendlyByteBuf buffer, MailStatePacket packet) {
         buffer.writeVarInt(packet.unreadCount());
+        buffer.writeBoolean(packet.senderDimension() != null);
+        if (packet.senderDimension() != null) {
+            buffer.writeResourceLocation(packet.senderDimension());
+            buffer.writeInt(packet.senderX());
+            buffer.writeInt(packet.senderZ());
+        }
     }
 
     private static MailStatePacket decode(RegistryFriendlyByteBuf buffer) {
-        return new MailStatePacket(buffer.readVarInt());
+        int unreadCount = buffer.readVarInt();
+        if (!buffer.readBoolean()) {
+            return new MailStatePacket(unreadCount, null, 0, 0);
+        }
+        return new MailStatePacket(unreadCount, buffer.readResourceLocation(), buffer.readInt(), buffer.readInt());
     }
 
     public static void handle(MailStatePacket packet, IPayloadContext context) {

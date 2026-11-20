@@ -1,6 +1,7 @@
 package common.cn.nsimu.simukraft.network.mail;
 
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.UUID;
@@ -9,6 +10,7 @@ import java.util.concurrent.ConcurrentHashMap;
 /** 管理服务端邮件未读状态，并把结果同步给对应玩家。 */
 public final class MailStateService {
     private static final ConcurrentHashMap<UUID, Integer> UNREAD_COUNTS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<UUID, SenderLocation> LAST_SENDER_LOCATIONS = new ConcurrentHashMap<>();
 
     private MailStateService() {
     }
@@ -26,6 +28,8 @@ public final class MailStateService {
             return 0;
         }
         int count = UNREAD_COUNTS.merge(player.getUUID(), 1, Integer::sum);
+        LAST_SENDER_LOCATIONS.put(player.getUUID(), new SenderLocation(
+                player.level().dimension().location(), player.blockPosition().getX(), player.blockPosition().getZ()));
         send(player, count);
         return count;
     }
@@ -43,12 +47,14 @@ public final class MailStateService {
     public static void clearPlayer(ServerPlayer player) {
         if (player != null) {
             UNREAD_COUNTS.remove(player.getUUID());
+            LAST_SENDER_LOCATIONS.remove(player.getUUID());
         }
     }
 
     /** 服务器关闭时清理全部在线状态。 */
     public static void clearAll() {
         UNREAD_COUNTS.clear();
+        LAST_SENDER_LOCATIONS.clear();
     }
 
     private static int count(ServerPlayer player) {
@@ -56,6 +62,12 @@ public final class MailStateService {
     }
 
     private static void send(ServerPlayer player, int count) {
-        PacketDistributor.sendToPlayer(player, new MailStatePacket(count));
+        SenderLocation location = LAST_SENDER_LOCATIONS.get(player.getUUID());
+        PacketDistributor.sendToPlayer(player, location == null
+                ? new MailStatePacket(count, null, 0, 0)
+                : new MailStatePacket(count, location.dimension(), location.x(), location.z()));
+    }
+
+    private record SenderLocation(ResourceLocation dimension, int x, int z) {
     }
 }
