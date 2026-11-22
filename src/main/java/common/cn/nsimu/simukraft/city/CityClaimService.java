@@ -2,7 +2,7 @@ package common.cn.nsimu.simukraft.city;
 
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.economy.EconomyService;
-import common.cn.nsimu.simukraft.economy.FinanceLedgerService;
+import common.cn.nsimu.simukraft.economy.FinanceGateway;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -55,17 +55,17 @@ public final class CityClaimService {
             if (!EconomyService.canAfford(level, city.cityId(), chunkPrice)) {
                 return ClaimResult.failed(Component.translatable("message.simukraft.city_chunk.not_enough_funds", chunkPrice));
             }
-            if (!CityService.withdrawFunds(level, city.cityId(), chunkPrice)) {
+            if (!FinanceGateway.withdraw(level, city.cityId(), player, chunkPrice, "claim_chunk")) {
                 return ClaimResult.failed(Component.translatable("message.simukraft.city_chunk.not_enough_funds", chunkPrice));
             }
         }
         if (!chunkManager.claimChunk(city.cityId(), chunkLong)) {
             if (chunkPrice > 0) {
-                CityService.depositFunds(level, city.cityId(), chunkPrice);
+                FinanceGateway.deposit(level, city.cityId(), player, chunkPrice, "claim_chunk_refund");
             }
             return ClaimResult.failed(Component.translatable("message.simukraft.city_chunk.claim_failed"));
         }
-        FinanceLedgerService.record(level, city.cityId(), player, -chunkPrice, EconomyService.getCityBalance(level, city.cityId()), FinanceTransactionData.Type.EXPENSE, "claim_chunk");
+        // 扣款已由 FinanceGateway 统一记录。
         return ClaimResult.success(Component.translatable("message.simukraft.city_chunk.claimed", chunkX, chunkZ, chunkPrice), chunkPrice);
     }
 

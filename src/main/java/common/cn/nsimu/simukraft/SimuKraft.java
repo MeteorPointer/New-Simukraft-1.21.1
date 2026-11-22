@@ -335,6 +335,7 @@ public final class SimuKraft {
     private long lastReportTickNanos;
 
     private void onServerTick(ServerTickEvent.Post event) {
+        MailStateService.tickWeeklyReports(event.getServer());
         DebugCityBootstrapService.tick(event.getServer());
         // 先刷新城市运行状态，保证本 tick 的居民和医疗调度使用最新的激活结果。
         event.getServer().getAllLevels().forEach(CityRuntimeService::tick);

@@ -37,13 +37,7 @@ public final class EconomyService {
         if (level == null || cityId == null || normalized <= 0.0D) {
             return false;
         }
-        if (!CityService.depositFunds(level, cityId, normalized)) {
-            return false;
-        }
-        if (recordLedger) {
-            FinanceLedgerService.record(level, cityId, actor, normalized, getCityBalance(level, cityId), FinanceTransactionData.Type.INCOME, reason);
-        }
-        return true;
+        return FinanceGateway.deposit(level, cityId, actor, normalized, reason, recordLedger);
     }
 
     /**
@@ -61,13 +55,7 @@ public final class EconomyService {
         if (level == null || cityId == null || normalized <= 0.0D) {
             return false;
         }
-        if (!CityService.withdrawFunds(level, cityId, normalized)) {
-            return false;
-        }
-        if (recordLedger) {
-            FinanceLedgerService.record(level, cityId, actor, normalized, getCityBalance(level, cityId), FinanceTransactionData.Type.EXPENSE, reason);
-        }
-        return true;
+        return FinanceGateway.withdraw(level, cityId, actor, normalized, reason, recordLedger);
     }
 
     public static double normalizeAmount(double amount) {

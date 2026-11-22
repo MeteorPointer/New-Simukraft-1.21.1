@@ -1,9 +1,12 @@
 package client.cn.nsimu.simukraft.client.mail;
 
 import common.cn.nsimu.simukraft.network.mail.MailMarkReadPacket;
+import common.cn.nsimu.simukraft.network.mail.MailMessageData;
 import net.minecraft.client.Minecraft;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.PacketDistributor;
+
+import java.util.List;
 
 /** 保存客户端邮件缓存，并提供打开邮件界面的入口。 */
 public final class MailClientState {
@@ -12,18 +15,24 @@ public final class MailClientState {
     private static volatile ResourceLocation senderDimension;
     private static volatile int senderX;
     private static volatile int senderZ;
+    private static volatile List<MailMessageData> messages = List.of();
 
     private MailClientState() {
     }
 
     /** 接收服务端状态；未读状态每次同步都重新触发一秒提示动画。 */
-    public static void apply(int count, ResourceLocation dimension, int x, int z) {
+    public static void apply(int count, ResourceLocation dimension, int x, int z, List<MailMessageData> snapshot) {
         int safeCount = Math.max(0, count);
         unreadCount = safeCount;
         senderDimension = dimension;
         senderX = x;
         senderZ = z;
+        messages = snapshot == null ? List.of() : List.copyOf(snapshot);
         shakeStartedAt = safeCount > 0 ? System.currentTimeMillis() : -1L;
+    }
+
+    public static List<MailMessageData> messages() {
+        return messages;
     }
 
     public static int unreadCount() {
@@ -59,7 +68,7 @@ public final class MailClientState {
         unreadCount = 0;
         shakeStartedAt = -1L;
         PacketDistributor.sendToServer(new MailMarkReadPacket());
-        minecraft.setScreen(new MailScreen(openedUnreadCount, senderDimension, senderX, senderZ));
+        minecraft.setScreen(new MailScreen(openedUnreadCount, senderDimension, senderX, senderZ, messages));
     }
 
     public static void reset() {
@@ -68,5 +77,6 @@ public final class MailClientState {
         senderDimension = null;
         senderX = 0;
         senderZ = 0;
+        messages = List.of();
     }
 }

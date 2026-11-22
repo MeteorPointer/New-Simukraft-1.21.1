@@ -19,6 +19,7 @@ import common.cn.nsimu.simukraft.commercial.CommercialDefinitionLoader;
 import common.cn.nsimu.simukraft.commercial.CommercialStockManager;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.economy.EconomyService;
+import common.cn.nsimu.simukraft.economy.FinanceGateway;
 import common.cn.nsimu.simukraft.entity.CitizenEntity;
 import common.cn.nsimu.simukraft.farmland.FarmlandBoxManager;
 import common.cn.nsimu.simukraft.industrial.IndustrialBoxManager;
@@ -87,6 +88,13 @@ public final class SimuKraftCommand {
         root.then(Commands.literal("storage")
                 .requires(source -> source.hasPermission(2))
                 .executes(context -> storageStats(context.getSource())));
+        root.then(Commands.literal("finance")
+                .requires(source -> source.hasPermission(2))
+                .then(Commands.literal("test")
+                        .executes(context -> testFinanceGateway(context.getSource())))
+                .then(Commands.literal("report")
+                        .then(Commands.literal("test")
+                                .executes(context -> testFinanceReport(context.getSource())))));
         root.then(Commands.literal("city")
                 .then(Commands.literal("permission")
                         .then(Commands.literal("accept")
@@ -335,8 +343,49 @@ public final class SimuKraftCommand {
             source.sendFailure(Component.translatable("message.simukraft.mail.test.player_only"));
             return 0;
         }
-        int unread = MailStateService.receiveTest(player);
+        int unread = common.cn.nsimu.simukraft.network.information.InformationGateway.sendTestMail(player);
         source.sendSuccess(() -> Component.translatable("message.simukraft.mail.test.sent", unread), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** 通过等额入账和扣款验证财政网关及流水，保持城市资金净额不变。 */
+    private static int testFinanceGateway(CommandSourceStack source) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.translatable("message.simukraft.finance.test.player_only"));
+            return 0;
+        }
+        ServerLevel level = player.serverLevel();
+        Optional<CityData> city = CityService.findPlayerCity(level, player.getUUID());
+        if (city.isEmpty()) {
+            source.sendFailure(Component.translatable("message.simukraft.finance.test.no_city"));
+            return 0;
+        }
+        double amount = 1.0D;
+        double before = EconomyService.getCityBalance(level, city.get().cityId());
+        if (!FinanceGateway.deposit(level, city.get().cityId(), player, amount, "finance_gateway_test_income")
+                || !FinanceGateway.withdraw(level, city.get().cityId(), player, amount, "finance_gateway_test_expense")) {
+            source.sendFailure(Component.translatable("message.simukraft.finance.test.failed"));
+            return 0;
+        }
+        double after = EconomyService.getCityBalance(level, city.get().cityId());
+        source.sendSuccess(() -> Component.translatable("message.simukraft.finance.test.success",
+                city.get().cityName(), String.format(Locale.ROOT, "%.2f", before), String.format(Locale.ROOT, "%.2f", after)), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** 立即发送执行者所属城市的结算测试邮件。 */
+    private static int testFinanceReport(CommandSourceStack source) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.translatable("message.simukraft.finance.report.player_only"));
+            return 0;
+        }
+        if (!MailStateService.sendTestWeeklyReport(player)) {
+            source.sendFailure(Component.translatable("message.simukraft.finance.report.no_city"));
+            return 0;
+        }
+        source.sendSuccess(() -> Component.translatable("message.simukraft.finance.report.sent"), false);
         return Command.SINGLE_SUCCESS;
     }
 

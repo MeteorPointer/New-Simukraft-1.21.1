@@ -3,11 +3,10 @@ package common.cn.nsimu.simukraft.network.planner;
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.citizen.CitizenWorkStatus;
 import common.cn.nsimu.simukraft.city.CityService;
-import common.cn.nsimu.simukraft.city.FinanceTransactionData;
 import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.economy.EconomyService;
-import common.cn.nsimu.simukraft.economy.FinanceLedgerService;
+import common.cn.nsimu.simukraft.economy.FinanceGateway;
 import common.cn.nsimu.simukraft.job.CitizenEmploymentService;
 import common.cn.nsimu.simukraft.job.CityJobType;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
@@ -181,11 +180,11 @@ public record CreatePlanningTaskPacket(BlockPos buildBoxPos,
 
         double cost = PlannerBilling.cost(targetBlocks, ServerConfig.plannerMoneyPerBlock(packet.operation()));
         if (cost > 0.0D) {
-            if (!EconomyService.canAfford(level, cityId, cost) || !CityService.withdrawFunds(level, cityId, cost)) {
+            if (!EconomyService.canAfford(level, cityId, cost)
+                    || !FinanceGateway.withdraw(level, cityId, player, cost, "planner")) {
                 InfoToastService.warning(player, Component.translatable("message.simukraft.plan_area.not_enough_funds", cost));
                 return;
             }
-            FinanceLedgerService.record(level, cityId, player, -cost, EconomyService.getCityBalance(level, cityId), FinanceTransactionData.Type.EXPENSE, "planner");
             HudSyncService.syncToCityGroup(level, cityId, true);
         }
 

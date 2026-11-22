@@ -2,10 +2,9 @@ package common.cn.nsimu.simukraft.building;
 
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.city.CityService;
-import common.cn.nsimu.simukraft.city.FinanceTransactionData;
 import common.cn.nsimu.simukraft.config.ServerConfig;
 import common.cn.nsimu.simukraft.economy.EconomyService;
-import common.cn.nsimu.simukraft.economy.FinanceLedgerService;
+import common.cn.nsimu.simukraft.economy.FinanceGateway;
 import common.cn.nsimu.simukraft.material.WorkMaterialPolicy;
 import common.cn.nsimu.simukraft.util.SaveScopedCacheKey;
 import net.minecraft.core.BlockPos;
@@ -213,10 +212,10 @@ public final class BuildingIntegrityService {
         }
         double cost = repairCost(paidTargets.size());
         if (cost > 0.0D) {
-            if (!EconomyService.canAfford(level, building.cityId(), cost) || !CityService.withdrawFunds(level, building.cityId(), cost)) {
+            if (!EconomyService.canAfford(level, building.cityId(), cost)
+                    || !FinanceGateway.withdraw(level, building.cityId(), player, cost, "building_repair")) {
                 return new RepairResult(RepairStatus.NOT_ENOUGH_FUNDS, paidTargets.size(), manualRepairBlocks, cost);
             }
-            FinanceLedgerService.record(level, building.cityId(), player, -cost, EconomyService.getCityBalance(level, building.cityId()), FinanceTransactionData.Type.EXPENSE, "building_repair");
         }
         int repairedBlocks = 0;
         for (RepairTarget target : paidTargets) {

@@ -2,7 +2,7 @@ package common.cn.nsimu.simukraft.city;
 
 import common.cn.nsimu.simukraft.SimuKraft;
 import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
-import common.cn.nsimu.simukraft.economy.FinanceLedgerService;
+import common.cn.nsimu.simukraft.economy.FinanceGateway;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
 import common.cn.nsimu.simukraft.storage.SimuSqliteStorage;
 import net.minecraft.network.chat.Component;
@@ -152,26 +152,12 @@ public final class CityUpgradeService {
             }
             double previousFunds = city.funds();
             CityUpgradeState previousUpgradeState = city.upgradeState();
-            if (definition.requiredFunds() > 0.0D && !city.withdrawFunds(definition.requiredFunds())) {
+            if (definition.requiredFunds() > 0.0D
+                    && !FinanceGateway.withdraw(level, city.cityId(), player, definition.requiredFunds(), "city_upgrade", false)) {
                 return new UpgradeResult(Status.NOT_ENOUGH_FUNDS, definition, null);
             }
             applyConsumedItems(player, consumedItems);
             city.beginUpgrade(definition.level(), level.getGameTime(), definition.durationTicks());
-            FinanceTransactionData financeTransaction = null;
-            List<FinanceTransactionData> evictedFinanceTransactions = List.of();
-            if (definition.requiredFunds() > 0.0D) {
-                financeTransaction = new FinanceTransactionData(
-                        level.getGameTime(),
-                        player.getUUID(),
-                        player.getGameProfile().getName(),
-                        -definition.requiredFunds(),
-                        city.funds(),
-                        FinanceTransactionData.Type.EXPENSE,
-                        "city_upgrade"
-                );
-                evictedFinanceTransactions = city.addFinanceTransactionTracked(
-                        financeTransaction, FinanceLedgerService.MAX_RECORDS_PER_CITY);
-            }
             boolean persisted;
             try {
                 persisted = CityManager.get(level).persistUpgrade(city);
@@ -183,11 +169,14 @@ public final class CityUpgradeService {
                 SimuKraft.LOGGER.error("Rejected city upgrade persistence for {} after authoritative validation", city.cityId());
                 city.setFunds(previousFunds);
                 city.restoreUpgradeState(previousUpgradeState);
-                city.rollbackFinanceTransaction(financeTransaction, evictedFinanceTransactions);
                 restorePlayerItems(player, consumedItems);
                 player.getInventory().setChanged();
                 player.containerMenu.broadcastChanges();
                 return new UpgradeResult(Status.STORAGE_UNAVAILABLE, definition, null);
+            }
+            if (definition.requiredFunds() > 0.0D) {
+                FinanceGateway.record(level, city.cityId(), player, definition.requiredFunds(), city.funds(),
+                        FinanceTransactionData.Type.EXPENSE, "city_upgrade");
             }
             player.getInventory().setChanged();
             player.containerMenu.broadcastChanges();

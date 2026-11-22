@@ -3,6 +3,7 @@ package client.cn.nsimu.simukraft.client.mail;
 import client.cn.nsimu.simukraft.client.city.map.SimuMapManager;
 import client.cn.nsimu.simukraft.client.city.map.SimuMapRegion;
 import common.cn.nsimu.simukraft.SimuKraft;
+import common.cn.nsimu.simukraft.network.mail.MailMessageData;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
@@ -26,6 +27,7 @@ public final class MailScreen extends Screen {
     private static final int BACKGROUND_HEIGHT = 1080;
     private static final ResourceLocation BACKGROUND = texture("mail_background.png");
     private static final ResourceLocation LABEL = texture("mail_label.png");
+    private static final ResourceLocation CHAT_BUBBLE = texture("chattxt.png");
     private static final ResourceLocation[] TAB_ICONS = {
             texture("mail_citizen_icon.png"), texture("mail_system_icon.png"), texture("mail_city_icon.png")
     };
@@ -52,11 +54,13 @@ public final class MailScreen extends Screen {
     private static final int[][] SCROLL_BUTTON_BOUNDS = {{1458, 245, 68, 59}, {1458, 918, 68, 59}};
     private static final int[] THUMB_BOUNDS = {1465, 319, 55, 84};
     private static final int THUMB_TRAVEL = 515;
+    private static final int[] SCROLL_TRACK_BOUNDS = {1458, 319, 68, 599};
     private static final int[] MAP_BOUNDS = {1540, 250, 326, 204};
     private static final double MAP_BLOCK_SCALE = 0.36D;
     private static final int[] ENTER_BOUNDS = {1338, 902, 104, 65};
     private static final int[][] WINDOW_BOUNDS = {{1723, 24, 53, 53}, {1781, 24, 53, 53}, {1842, 23, 53, 53}};
     private static final int MAX_VISIBLE_MESSAGES = 10;
+    private static final int CHAT_LINE_CHAR_LIMIT = 20;
 
     private final List<List<String>> conversations = new ArrayList<>();
     private final List<StringBuilder> drafts = new ArrayList<>();
@@ -64,9 +68,11 @@ public final class MailScreen extends Screen {
     private final ResourceLocation senderDimension;
     private final int senderX;
     private final int senderZ;
+    private final List<MailMessageData> systemMessages;
     private final SimuMapManager mapManager = SimuMapManager.getInstance();
     private int activeTab;
     private int listOffset;
+    private int selectedMailIndex;
     private int pressedControl = -1;
     private boolean draggingThumb;
     private double dragStartY;
@@ -74,11 +80,17 @@ public final class MailScreen extends Screen {
     private boolean mapConsumerAcquired;
 
     public MailScreen(int openedUnreadCount, ResourceLocation senderDimension, int senderX, int senderZ) {
+        this(openedUnreadCount, senderDimension, senderX, senderZ, List.of());
+    }
+
+    public MailScreen(int openedUnreadCount, ResourceLocation senderDimension, int senderX, int senderZ,
+                      List<MailMessageData> systemMessages) {
         super(Component.empty());
         this.openedUnreadCount = Math.max(0, Math.min(99, openedUnreadCount));
         this.senderDimension = senderDimension;
         this.senderX = senderX;
         this.senderZ = senderZ;
+        this.systemMessages = systemMessages == null ? List.of() : List.copyOf(systemMessages);
         for (int i = 0; i < TAB_BOUNDS.length; i++) {
             conversations.add(new ArrayList<>());
             drafts.add(new StringBuilder());
@@ -168,6 +180,10 @@ public final class MailScreen extends Screen {
     }
 
     private void drawMailContent(GuiGraphics graphics) {
+        if (activeTab == 1) {
+            drawSystemMailContent(graphics);
+            return;
+        }
         int count = messageCount();
         int listX = 316;
         int listY = 278;
@@ -179,18 +195,23 @@ public final class MailScreen extends Screen {
             int y = listY;
             for (int i = start; i < Math.min(count, start + MAX_VISIBLE_MESSAGES); i++) {
                 String message = conversations.get(activeTab).get(i);
-                List<net.minecraft.util.FormattedCharSequence> lines = font.split(Component.literal(message), 320);
-                int textWidth = lines.stream().mapToInt(font::width).max().orElse(0);
-                int bubbleWidth = Math.min(720, Math.max(120, textWidth * 2 + 24));
-                int bubbleHeight = Math.max(42, lines.size() * 22 + 16);
-                boolean outgoing = activeTab != 0;
-                int x = outgoing ? 1430 - bubbleWidth : listX;
-                graphics.fill(scaleX(x), scaleY(y), scaleX(x + bubbleWidth), scaleY(y + bubbleHeight),
-                        outgoing ? 0xFFD2F2D2 : 0xFFE4ECEC);
-                graphics.enableScissor(scaleX(x + 10), scaleY(y + 6),
-                        scaleX(x + bubbleWidth - 8), scaleY(y + bubbleHeight - 4));
+                List<String> lines = wrapChatMessage(message);
+                int textWidth = lines.stream().mapToInt(font::width).max().orElse(font.width(" "));
+                float scaleX = width / (float) BACKGROUND_WIDTH;
+                float scaleY = height / (float) BACKGROUND_HEIGHT;
+                int bubbleWidth = Math.max(64, Math.round((textWidth + 24.0F) / Math.max(0.01F, scaleX)));
+                int bubbleHeight = Math.max(48, Math.round((lines.size() * (font.lineHeight + 2.0F) + 16.0F)
+                        / Math.max(0.01F, scaleY)));
+                boolean ownMessage = activeTab == 2;
+                int x = ownMessage ? listX : 1430 - bubbleWidth;
+                drawChatBubble(graphics, x, y, bubbleWidth, bubbleHeight, ownMessage);
+                int screenX = scaleX(x);
+                int screenY = scaleY(y);
+                graphics.enableScissor(screenX + 10, screenY + 6,
+                        scaleX(x + bubbleWidth) - 8, scaleY(y + bubbleHeight) - 4);
                 for (int line = 0; line < lines.size(); line++) {
-                    graphics.drawString(font, lines.get(line), scaleX(x + 12), scaleY(y + 8 + line * 22),
+                    graphics.drawString(font, Component.literal(lines.get(line)), scaleX(x + 12),
+                            screenY + 8 + line * (font.lineHeight + 2),
                             0xFF23383A, false);
                 }
                 graphics.disableScissor();
@@ -198,6 +219,91 @@ public final class MailScreen extends Screen {
             }
         }
         graphics.disableScissor();
+    }
+
+    /** 系统消息使用邮件列表和正文布局，不使用聊天气泡贴图。 */
+    private void drawSystemMailContent(GuiGraphics graphics) {
+        int count = systemMessages.size();
+        int start = Math.min(listOffset, Math.max(0, count - MAX_VISIBLE_MESSAGES));
+        if (count == 0) {
+            drawCentered(graphics, Component.translatable("screen.simukraft.mail.empty"), 900, 580, 0xFF26383A);
+            return;
+        }
+        // 邮件列表和正文使用两个独立区域，避免正文覆盖列表或地图。
+        graphics.enableScissor(scaleX(316), scaleY(270), scaleX(742), scaleY(880));
+        int y = 286;
+        for (int i = start; i < Math.min(count, start + MAX_VISIBLE_MESSAGES); i++) {
+            MailMessageData mail = systemMessages.get(i);
+            int color = mail.unread() ? 0xFF162B31 : 0xFF536467;
+            int row = i == selectedMailIndex ? 0x332D8C8C : 0x00000000;
+            if (row != 0) {
+                graphics.fill(scaleX(320), scaleY(y - 8), scaleX(738), scaleY(y + 34), row);
+            }
+            graphics.drawString(font, Component.literal(truncate(mail.sender(), 190)), scaleX(330), scaleY(y), color, false);
+            graphics.drawString(font, Component.literal(truncate(mail.subject(), 270)), scaleX(510), scaleY(y), color, false);
+            graphics.drawString(font, Component.literal(formatMailTime(mail.timestamp())), scaleX(665), scaleY(y), 0xFF536467, false);
+            y += 54;
+        }
+        graphics.disableScissor();
+
+        MailMessageData selected = systemMessages.get(Math.min(selectedMailIndex, count - 1));
+        int detailX = 760;
+        graphics.enableScissor(scaleX(detailX), scaleY(270), scaleX(1435), scaleY(890));
+        graphics.drawString(font, Component.literal(truncate(selected.subject(), 610)), scaleX(detailX), scaleY(300), 0xFF162B31, false);
+        graphics.drawString(font, Component.literal("发件人: " + truncate(selected.sender(), 540)), scaleX(detailX), scaleY(340), 0xFF536467, false);
+        int bodyY = 390;
+        int bodyWidth = Math.max(120, scaleX(650));
+        float guiScaleY = height / (float) BACKGROUND_HEIGHT;
+        int lineAdvance = Math.max(18, Math.round((font.lineHeight + 3.0F) / Math.max(0.01F, guiScaleY)));
+        for (String line : selected.body().split("\\R", -1)) {
+            List<net.minecraft.util.FormattedCharSequence> wrapped = font.split(Component.literal(line), bodyWidth);
+            if (wrapped.isEmpty()) wrapped = List.of(Component.literal("").getVisualOrderText());
+            for (net.minecraft.util.FormattedCharSequence wrappedLine : wrapped) {
+                graphics.drawString(font, wrappedLine, scaleX(detailX), scaleY(bodyY), 0xFF23383A, false);
+                bodyY += lineAdvance;
+                if (bodyY > 865) break;
+            }
+            if (bodyY > 865) break;
+        }
+        graphics.disableScissor();
+    }
+
+    private String truncate(String text, int maxWidth) {
+        String safe = text == null ? "" : text;
+        return font.width(safe) <= maxWidth ? safe : font.plainSubstrByWidth(safe, Math.max(1, maxWidth - font.width("..."))) + "...";
+    }
+
+    private String formatMailTime(long timestamp) {
+        return timestamp <= 0 ? "" : "第 " + (timestamp / 24000L) + " 天";
+    }
+
+    private void drawChatBubble(GuiGraphics graphics, int x, int y, int width, int height, boolean ownMessage) {
+        int sourceX = ownMessage ? 0 : 64;
+        graphics.blit(CHAT_BUBBLE, scaleX(x), scaleY(y), scaleX(width), scaleY(height),
+                sourceX, 0, 64, 64, 128, 128);
+    }
+
+    private List<String> wrapChatMessage(String message) {
+        List<String> lines = new ArrayList<>();
+        String[] paragraphs = message.split("\\R", -1);
+        for (String paragraph : paragraphs) {
+            StringBuilder line = new StringBuilder();
+            int characters = 0;
+            for (int offset = 0; offset < paragraph.length();) {
+                int codePoint = paragraph.codePointAt(offset);
+                offset += Character.charCount(codePoint);
+                line.appendCodePoint(codePoint);
+                if (++characters == CHAT_LINE_CHAR_LIMIT) {
+                    lines.add(line.toString());
+                    line.setLength(0);
+                    characters = 0;
+                }
+            }
+            if (line.length() > 0 || paragraph.isEmpty()) {
+                lines.add(line.toString());
+            }
+        }
+        return lines.isEmpty() ? List.of("") : lines;
     }
 
     private void drawSenderMap(GuiGraphics graphics) {
@@ -258,6 +364,7 @@ public final class MailScreen extends Screen {
     }
 
     private void drawInput(GuiGraphics graphics) {
+        if (activeTab == 1) return;
         drawTexture(graphics, pressedControl == 7 ? ENTER_PRESSED : ENTER, ENTER_BOUNDS);
         StringBuilder input = drafts.get(activeTab);
         if (!input.isEmpty()) {
@@ -288,7 +395,7 @@ public final class MailScreen extends Screen {
     }
 
     private int messageCount() {
-        return conversations.get(activeTab).size();
+        return activeTab == 1 ? systemMessages.size() : conversations.get(activeTab).size();
     }
 
     private int maxListOffset() {
@@ -298,6 +405,7 @@ public final class MailScreen extends Screen {
     private void selectTab(int tab) {
         activeTab = tab;
         listOffset = 0;
+        selectedMailIndex = 0;
     }
 
     private void scrollList(int amount) {
@@ -311,6 +419,7 @@ public final class MailScreen extends Screen {
         for (int i = 0; i < SCROLL_BUTTON_BOUNDS.length; i++) if (contains(SCROLL_BUTTON_BOUNDS[i], mouseX, mouseY)) return 5 + i;
         if (contains(ENTER_BOUNDS, mouseX, mouseY)) return 7;
         if (contains(thumbBounds(), mouseX, mouseY)) return 8;
+        if (contains(SCROLL_TRACK_BOUNDS, mouseX, mouseY)) return 9;
         return -1;
     }
 
@@ -350,20 +459,30 @@ public final class MailScreen extends Screen {
             dragStartOffset = listOffset;
             return true;
         }
+        if (control == 9) {
+            jumpToScrollPosition(mouseY);
+            draggingThumb = true;
+            dragStartY = mouseY;
+            dragStartOffset = listOffset;
+            return true;
+        }
         if (control >= 10) {
             selectTab(control - 10);
             return true;
         }
         int row = rowAt(mouseY);
         if (row >= 0) {
+            if (activeTab == 1) {
+                selectedMailIndex = Math.min(systemMessages.size() - 1, listOffset + row);
+            }
             return true;
         }
         return inputBoundsContains(mouseX, mouseY) || super.mouseClicked(mouseX, mouseY, button);
     }
 
     private int rowAt(double mouseY) {
-        int top = scaleY(260);
-        int rowHeight = Math.max(1, scaleY(34));
+        int top = scaleY(activeTab == 1 ? 278 : 260);
+        int rowHeight = Math.max(1, scaleY(activeTab == 1 ? 54 : 34));
         if (mouseY < top || mouseY >= scaleY(955)) return -1;
         int row = (int) ((mouseY - top) / rowHeight);
         return row < Math.min(MAX_VISIBLE_MESSAGES, messageCount() - listOffset) ? row : -1;
@@ -384,6 +503,18 @@ public final class MailScreen extends Screen {
             return true;
         }
         return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    private void jumpToScrollPosition(double mouseY) {
+        int maxOffset = maxListOffset();
+        if (maxOffset == 0) {
+            listOffset = 0;
+            return;
+        }
+        double trackStart = scaleY(THUMB_BOUNDS[1]);
+        double travel = Math.max(1.0D, scaleY(THUMB_TRAVEL));
+        double position = Math.max(0.0D, Math.min(1.0D, (mouseY - trackStart) / travel));
+        listOffset = (int) Math.round(position * maxOffset);
     }
 
     @Override
@@ -434,6 +565,7 @@ public final class MailScreen extends Screen {
     }
 
     private void submitInput() {
+        if (activeTab == 1) return;
         StringBuilder input = drafts.get(activeTab);
         if (input.isEmpty()) return;
         conversations.get(activeTab).add(input.toString());

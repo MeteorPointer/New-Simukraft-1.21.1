@@ -178,11 +178,10 @@ public final class ResidentialRentService {
         if (previous != null && !LAST_COLLECTED_RENT_DAY.replace(cityKey, previous, rentDay)) {
             return;
         }
-        if (!EconomyService.depositCityFunds(level, cityId, null, amount, "residential_rent", false)) {
+        if (!FinanceGateway.deposit(level, cityId, null, amount, "residential_rent", true)) {
             LAST_COLLECTED_RENT_DAY.computeIfPresent(cityKey, (key, value) -> value == rentDay ? previous : value);
             return;
         }
-        FinanceLedgerService.record(level, cityId, null, amount, EconomyService.getCityBalance(level, cityId), FinanceTransactionData.Type.INCOME, "residential_rent");
         syncCityMembers(level, cityId);
         SimuKraft.LOGGER.debug("Simukraft: Collected residential rent day={} city={} amount={}", rentDay, cityId, amount);
     }
