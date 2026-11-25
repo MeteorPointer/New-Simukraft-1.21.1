@@ -49,7 +49,9 @@ class LegacyColumnCatchUpTest {
                 assertTrue(hasColumn(statement, "industrial_boxes", "worker_work_pos_long"));
                 try (ResultSet resultSet = statement.executeQuery("PRAGMA user_version")) {
                     assertTrue(resultSet.next());
-                    assertEquals(15, resultSet.getInt(1));
+                    // 期望值取迁移清单里最大的版本号，后续追加迁移（例如 v16 邮件表）不用再改这里。
+                    int latest = SimuMigrations.all().stream().mapToInt(Migration::version).max().orElse(0);
+                    assertEquals(latest, resultSet.getInt(1));
                 }
                 try (ResultSet resultSet = statement.executeQuery(
                         "SELECT filter_mode FROM logistics_channels WHERE channel_id = 'channel'")) {
