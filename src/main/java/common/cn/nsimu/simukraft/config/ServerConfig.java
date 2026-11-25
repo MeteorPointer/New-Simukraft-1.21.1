@@ -71,6 +71,10 @@ public final class ServerConfig {
     public static final ModConfigSpec.DoubleValue MEDICAL_HEAL_AMOUNT;
     public static final ModConfigSpec.DoubleValue MEDICAL_DISEASE_CHANCE_PER_DAY;
     public static final ModConfigSpec.IntValue MEDICAL_DISEASE_TREATMENT_TICKS;
+    public static final ModConfigSpec.IntValue MAIL_MAX_MESSAGES_PER_PLAYER;
+    public static final ModConfigSpec.IntValue MAIL_CITIZEN_REQUEST_INTERVAL_TICKS;
+    public static final ModConfigSpec.IntValue MAIL_CITIZEN_REQUEST_CITIES_PER_PASS;
+    public static final ModConfigSpec.IntValue MAIL_CITIZEN_REQUEST_COOLDOWN_DAYS;
 
     static {
         ModConfigSpec.Builder builder = new ModConfigSpec.Builder();
@@ -393,6 +397,24 @@ public final class ServerConfig {
                 .translation("config.simukraft.debug_city.plotsPerTick")
                 .defineInRange("plotsPerTick", 2, 1, 32);
         builder.pop();
+        builder.push("mail");
+        MAIL_MAX_MESSAGES_PER_PLAYER = builder
+                .comment("Mails kept per player. Older mails are removed from the save.")
+                .translation("config.simukraft.mail.maxMessagesPerPlayer")
+                .defineInRange("maxMessagesPerPlayer", 64, 16, 256);
+        MAIL_CITIZEN_REQUEST_INTERVAL_TICKS = builder
+                .comment("Server ticks between citizen request checks. Each check only looks at a few cities.")
+                .translation("config.simukraft.mail.citizenRequestIntervalTicks")
+                .defineInRange("citizenRequestIntervalTicks", 1200, 100, 72_000);
+        MAIL_CITIZEN_REQUEST_CITIES_PER_PASS = builder
+                .comment("Cities checked for citizen requests in one check.")
+                .translation("config.simukraft.mail.citizenRequestCitiesPerPass")
+                .defineInRange("citizenRequestCitiesPerPass", 2, 1, 32);
+        MAIL_CITIZEN_REQUEST_COOLDOWN_DAYS = builder
+                .comment("Game days before the same kind of citizen request is sent again to one city.")
+                .translation("config.simukraft.mail.citizenRequestCooldownDays")
+                .defineInRange("citizenRequestCooldownDays", 2, 1, 30);
+        builder.pop();
         SPEC = builder.build();
     }
 
@@ -614,6 +636,22 @@ public final class ServerConfig {
 
     public static int logisticsMaxClientPorts() {
         return LOGISTICS_MAX_CLIENT_PORTS.get();
+    }
+
+    public static int mailMaxMessagesPerPlayer() {
+        return MAIL_MAX_MESSAGES_PER_PLAYER.get();
+    }
+
+    public static int mailCitizenRequestIntervalTicks() {
+        return MAIL_CITIZEN_REQUEST_INTERVAL_TICKS.get();
+    }
+
+    public static int mailCitizenRequestCitiesPerPass() {
+        return MAIL_CITIZEN_REQUEST_CITIES_PER_PASS.get();
+    }
+
+    public static int mailCitizenRequestCooldownDays() {
+        return MAIL_CITIZEN_REQUEST_COOLDOWN_DAYS.get();
     }
 
     public static int debugCityPlotsPerTick() {

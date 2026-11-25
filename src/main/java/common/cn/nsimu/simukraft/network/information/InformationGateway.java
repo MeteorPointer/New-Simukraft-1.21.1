@@ -1,5 +1,7 @@
 package common.cn.nsimu.simukraft.network.information;
 
+import common.cn.nsimu.simukraft.city.CityData;
+import common.cn.nsimu.simukraft.network.mail.MailCityNewsService;
 import common.cn.nsimu.simukraft.network.mail.MailStateService;
 import common.cn.nsimu.simukraft.city.group.CityGroupMessageService;
 import common.cn.nsimu.simukraft.city.group.CityUserGroup;
@@ -11,19 +13,29 @@ import net.minecraft.world.item.ItemStack;
 
 import java.util.UUID;
 
-/** 统一信息入口：将系统邮件、测试消息接入邮件状态与客户端同步链路。 */
+/** 统一信息入口：将系统邮件、城市动态和测试消息接入邮件状态与客户端同步链路。 */
 public final class InformationGateway {
     private InformationGateway() {
     }
 
-    /** 投递系统邮件，服务端业务层只需依赖此门面。 */
-    public static int sendSystemMail(ServerPlayer player, String sender, String subject, String body, long timestamp) {
-        return MailStateService.addSystemMail(player, sender, subject, body, timestamp);
+    /** 投递系统邮件，服务端业务层只需依赖此门面；文本用翻译组件，由客户端本地化。 */
+    public static int sendSystemMail(ServerPlayer player, Component sender, Component subject, Component body) {
+        return MailStateService.addSystemMail(player, sender, subject, body);
     }
 
     /** 投递测试邮件，供调试命令验证统一信息链路。 */
     public static int sendTestMail(ServerPlayer player) {
         return MailStateService.receiveTest(player);
+    }
+
+    /** 城市成立后调用：给创建者发欢迎信并向全服广播。 */
+    public static void publishCityFounded(ServerLevel level, CityData city, String founderName) {
+        MailCityNewsService.cityFounded(level, city, founderName);
+    }
+
+    /** 城市升级完成并已落盘后调用：通知本城成员并向全服广播。 */
+    public static void publishCityUpgraded(ServerLevel level, CityData city, int cityLevel, String levelName) {
+        MailCityNewsService.cityUpgraded(level, city, cityLevel, levelName);
     }
 
     /** 统一普通提示入口，保留现有 Toast 客户端表现。 */

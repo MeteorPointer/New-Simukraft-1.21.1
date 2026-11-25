@@ -53,6 +53,7 @@ public final class SimuSqliteStorage {
     private final VirtualVeinSqliteRepository virtualVeins;
     private final ExchangeSqliteRepository exchange;
     private final GlobalMarketSqliteRepository globalMarket;
+    private final MailSqliteRepository mail;
 
     private SimuSqliteStorage(SimuSqliteDatabase database) {
         this.database = database;
@@ -74,6 +75,7 @@ public final class SimuSqliteStorage {
         this.virtualVeins = new VirtualVeinSqliteRepository(database);
         this.exchange = new ExchangeSqliteRepository(database);
         this.globalMarket = new GlobalMarketSqliteRepository(database);
+        this.mail = new MailSqliteRepository(database);
     }
 
     // ── 生命周期 ──────────────────────────────────────────────────────────────
@@ -907,6 +909,81 @@ public final class SimuSqliteStorage {
         String dimensionId = dimensionId(level);
         write(level, "global_market_warehouse:" + cityId,
                 (storage, connection) -> storage.globalMarket.saveWarehouse(connection, dimensionId, cityId.toString(), entries));
+    }
+
+    // ── 邮件 ──────────────────────────────────────────────────────────────────
+
+    /**
+     * loadMail: 读取一个收件人最新的邮件；库不可用或读取失败返回 null。
+     */
+    public static List<MailSqliteRepository.MailRow> loadMail(MinecraftServer server, String recipientId, int limit) {
+        SimuSqliteStorage storage = openSafely(server);
+        return storage != null && recipientId != null ? storage.mail.loadRecipient(recipientId, limit) : null;
+    }
+
+    /**
+     * maxMailId: 读取已用的最大邮件 id，用于主线程分配新 id；失败返回 -1。
+     */
+    public static long maxMailId(MinecraftServer server) {
+        SimuSqliteStorage storage = openSafely(server);
+        return storage != null ? storage.mail.maxId() : -1L;
+    }
+
+    /**
+     * saveMail: 按提交顺序写入一封邮件，并裁掉该收件人超出上限的旧邮件。
+     */
+    public static void saveMail(MinecraftServer server, MailSqliteRepository.MailRow row, int keepPerRecipient) {
+        if (row == null) {
+            return;
+        }
+        writeOrdered(server, (storage, connection) -> storage.mail.insert(connection, row, keepPerRecipient));
+    }
+
+    /**
+     * markMailRead: 把收件人某一分类里 id 不大于 maxId 的邮件标为已读；与 saveMail 同一顺序队列，不会早于插入执行。
+     */
+    public static void markMailRead(MinecraftServer server, String recipientId, String category, long maxId) {
+        if (recipientId == null || category == null) {
+            return;
+        }
+        writeOrdered(server, (storage, connection) -> storage.mail.markRead(connection, recipientId, category, maxId));
+    }
+
+    /**
+     * isMailTutorialDone: 玩家是否已看完邮件教程；库不可用时返回 true，避免教程反复弹出。
+     */
+    public static boolean isMailTutorialDone(MinecraftServer server, String playerId) {
+        SimuSqliteStorage storage = openSafely(server);
+        return storage == null || playerId == null || storage.mail.tutorialDone(playerId);
+    }
+
+    public static void saveMailTutorialDone(MinecraftServer server, String playerId, boolean done) {
+        if (playerId == null) {
+            return;
+        }
+        writeOrdered(server, (storage, connection) -> storage.mail.saveTutorialDone(connection, playerId, done));
+    }
+
+    /**
+     * loadMailSchedule: 读取邮件调度游标；库不可用或读取失败返回 null。
+     */
+    public static Map<String, Long> loadMailSchedule(MinecraftServer server) {
+        SimuSqliteStorage storage = openSafely(server);
+        return storage != null ? storage.mail.loadSchedule() : null;
+    }
+
+    public static void saveMailSchedule(MinecraftServer server, String key, long value) {
+        if (key == null) {
+            return;
+        }
+        writeOrdered(server, (storage, connection) -> storage.mail.saveSchedule(connection, key, value));
+    }
+
+    private static void writeOrdered(MinecraftServer server, StorageWrite action) {
+        SimuSqliteStorage storage = openSafely(server);
+        if (storage != null) {
+            storage.database.submitWrite(connection -> action.execute(storage, connection));
+        }
     }
 
     private static String dimensionId(ServerLevel level) {

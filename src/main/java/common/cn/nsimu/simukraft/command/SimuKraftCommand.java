@@ -39,6 +39,7 @@ import common.cn.nsimu.simukraft.network.building.BuildingCacheReloadPacket;
 import common.cn.nsimu.simukraft.network.guidebook.ReloadGuideBookPacket;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
 import common.cn.nsimu.simukraft.network.mail.MailStateService;
+import common.cn.nsimu.simukraft.network.mail.MailWeeklyReportService;
 import common.cn.nsimu.simukraft.path.CitizenNavigationService;
 import common.cn.nsimu.simukraft.path.report.PathReportService;
 import common.cn.nsimu.simukraft.path.report.PathReportWriter;
@@ -333,7 +334,11 @@ public final class SimuKraftCommand {
                 .then(Commands.literal("mail")
                         .then(Commands.literal("test")
                                 .requires(source -> source.hasPermission(2))
-                                .executes(context -> testMail(context.getSource())))));
+                                .executes(context -> testMail(context.getSource())))
+                        .then(Commands.literal("tutorial")
+                                .then(Commands.literal("reset")
+                                        .requires(source -> source.hasPermission(2))
+                                        .executes(context -> resetMailTutorial(context.getSource()))))));
     }
 
     /** 发送一封测试邮件，验证服务端状态同步和客户端 HUD 提示。 */
@@ -345,6 +350,18 @@ public final class SimuKraftCommand {
         }
         int unread = common.cn.nsimu.simukraft.network.information.InformationGateway.sendTestMail(player);
         source.sendSuccess(() -> Component.translatable("message.simukraft.mail.test.sent", unread), false);
+        return Command.SINGLE_SUCCESS;
+    }
+
+    /** 重置执行者的邮件教程状态，下次收到邮件时重新弹出。 */
+    private static int resetMailTutorial(CommandSourceStack source) {
+        ServerPlayer player = source.getPlayer();
+        if (player == null) {
+            source.sendFailure(Component.translatable("message.simukraft.mail.test.player_only"));
+            return 0;
+        }
+        MailStateService.resetTutorial(player);
+        source.sendSuccess(() -> Component.translatable("message.simukraft.mail.tutorial.reset"), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -381,7 +398,7 @@ public final class SimuKraftCommand {
             source.sendFailure(Component.translatable("message.simukraft.finance.report.player_only"));
             return 0;
         }
-        if (!MailStateService.sendTestWeeklyReport(player)) {
+        if (!MailWeeklyReportService.sendTestReport(player)) {
             source.sendFailure(Component.translatable("message.simukraft.finance.report.no_city"));
             return 0;
         }

@@ -72,6 +72,10 @@ public record ServerConfigSavePacket(
         int logisticsMaxWarehouseContainers,
         int logisticsMaxClientPorts,
         int debugCityPlotsPerTick,
+        int mailMaxMessagesPerPlayer,
+        int mailCitizenRequestIntervalTicks,
+        int mailCitizenRequestCitiesPerPass,
+        int mailCitizenRequestCooldownDays,
         boolean creativeMaterials,
         boolean expertMaterials,
         boolean materialCategoryMatching,
@@ -145,6 +149,10 @@ public record ServerConfigSavePacket(
         buf.writeVarInt(p.logisticsMaxWarehouseContainers);
         buf.writeVarInt(p.logisticsMaxClientPorts);
         buf.writeVarInt(p.debugCityPlotsPerTick);
+        buf.writeVarInt(p.mailMaxMessagesPerPlayer);
+        buf.writeVarInt(p.mailCitizenRequestIntervalTicks);
+        buf.writeVarInt(p.mailCitizenRequestCitiesPerPass);
+        buf.writeVarInt(p.mailCitizenRequestCooldownDays);
         buf.writeBoolean(p.creativeMaterials);
         buf.writeBoolean(p.expertMaterials);
         buf.writeBoolean(p.materialCategoryMatching);
@@ -171,6 +179,7 @@ public record ServerConfigSavePacket(
                 buf.readVarInt(), buf.readDouble(), buf.readVarInt(), buf.readDouble(),
                 buf.readVarInt(), buf.readVarInt(),
                 buf.readVarInt(),
+                buf.readVarInt(), buf.readVarInt(), buf.readVarInt(), buf.readVarInt(),
                 buf.readBoolean(), buf.readBoolean(), buf.readBoolean(), buf.readVarInt(),
                 readStrings(buf), readStrings(buf), readStrings(buf), readStrings(buf));
     }
@@ -234,6 +243,10 @@ public record ServerConfigSavePacket(
         ServerConfig.LOGISTICS_MAX_WAREHOUSE_CONTAINERS.set(p.logisticsMaxWarehouseContainers);
         ServerConfig.LOGISTICS_MAX_CLIENT_PORTS.set(p.logisticsMaxClientPorts);
         ServerConfig.DEBUG_CITY_PLOTS_PER_TICK.set(Math.clamp(p.debugCityPlotsPerTick, 1, 32));
+        ServerConfig.MAIL_MAX_MESSAGES_PER_PLAYER.set(Math.clamp(p.mailMaxMessagesPerPlayer, 16, 256));
+        ServerConfig.MAIL_CITIZEN_REQUEST_INTERVAL_TICKS.set(Math.clamp(p.mailCitizenRequestIntervalTicks, 100, 72000));
+        ServerConfig.MAIL_CITIZEN_REQUEST_CITIES_PER_PASS.set(Math.clamp(p.mailCitizenRequestCitiesPerPass, 1, 32));
+        ServerConfig.MAIL_CITIZEN_REQUEST_COOLDOWN_DAYS.set(Math.clamp(p.mailCitizenRequestCooldownDays, 1, 30));
         ServerConfig.MATERIALS_CREATIVE_MODE.set(p.creativeMaterials);
         ServerConfig.MATERIALS_EXPERT_MODE.set(p.expertMaterials);
         ServerConfig.MATERIALS_CATEGORY_MATCHING.set(p.materialCategoryMatching);

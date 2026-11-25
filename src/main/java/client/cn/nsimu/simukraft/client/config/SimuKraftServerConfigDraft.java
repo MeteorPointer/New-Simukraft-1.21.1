@@ -66,6 +66,10 @@ final class SimuKraftServerConfigDraft {
     int logisticsMaxWarehouseContainers;
     int logisticsMaxClientPorts;
     int debugCityPlotsPerTick;
+    int mailMaxMessagesPerPlayer;
+    int mailCitizenRequestIntervalTicks;
+    int mailCitizenRequestCitiesPerPass;
+    int mailCitizenRequestCooldownDays;
     WorkMode workMode;
     boolean materialCategoryMatching;
     int materialWarningCooldownSeconds;
@@ -145,6 +149,10 @@ final class SimuKraftServerConfigDraft {
         logisticsMaxWarehouseContainers = ServerConfig.LOGISTICS_MAX_WAREHOUSE_CONTAINERS.get();
         logisticsMaxClientPorts = ServerConfig.LOGISTICS_MAX_CLIENT_PORTS.get();
         debugCityPlotsPerTick = ServerConfig.DEBUG_CITY_PLOTS_PER_TICK.get();
+        mailMaxMessagesPerPlayer = ServerConfig.MAIL_MAX_MESSAGES_PER_PLAYER.get();
+        mailCitizenRequestIntervalTicks = ServerConfig.MAIL_CITIZEN_REQUEST_INTERVAL_TICKS.get();
+        mailCitizenRequestCitiesPerPass = ServerConfig.MAIL_CITIZEN_REQUEST_CITIES_PER_PASS.get();
+        mailCitizenRequestCooldownDays = ServerConfig.MAIL_CITIZEN_REQUEST_COOLDOWN_DAYS.get();
         workMode = WorkMode.from(ServerConfig.MATERIALS_CREATIVE_MODE.get(), ServerConfig.MATERIALS_EXPERT_MODE.get());
         materialCategoryMatching = ServerConfig.MATERIALS_CATEGORY_MATCHING.get();
         materialWarningCooldownSeconds = ServerConfig.MATERIAL_WARNING_COOLDOWN_SECONDS.get();
@@ -213,6 +221,10 @@ final class SimuKraftServerConfigDraft {
         logisticsMaxWarehouseContainers = 64;
         logisticsMaxClientPorts = 32;
         debugCityPlotsPerTick = 2;
+        mailMaxMessagesPerPlayer = 64;
+        mailCitizenRequestIntervalTicks = 1200;
+        mailCitizenRequestCitiesPerPass = 2;
+        mailCitizenRequestCooldownDays = 2;
         workMode = WorkMode.NORMAL;
         materialCategoryMatching = true;
         materialWarningCooldownSeconds = 20;
@@ -246,6 +258,8 @@ final class SimuKraftServerConfigDraft {
                 logisticsDistanceStepBlocks, logisticsStepCost,
                 logisticsMaxWarehouseContainers, logisticsMaxClientPorts,
                 debugCityPlotsPerTick,
+                mailMaxMessagesPerPlayer, mailCitizenRequestIntervalTicks,
+                mailCitizenRequestCitiesPerPass, mailCitizenRequestCooldownDays,
                 workMode == WorkMode.CREATIVE, workMode == WorkMode.EXPERT,
                 materialCategoryMatching, materialWarningCooldownSeconds,
                 List.copyOf(allModeBlockBlacklist), List.copyOf(basicMaterials),

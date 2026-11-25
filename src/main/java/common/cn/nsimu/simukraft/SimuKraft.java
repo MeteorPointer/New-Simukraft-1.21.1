@@ -39,7 +39,10 @@ import common.cn.nsimu.simukraft.network.ModNetwork;
 import common.cn.nsimu.simukraft.util.NpcForceLoadService;
 import common.cn.nsimu.simukraft.network.city.chunk.CityChunkSyncService;
 import common.cn.nsimu.simukraft.network.hud.HudSyncService;
+import common.cn.nsimu.simukraft.network.mail.MailCitizenRequestService;
+import common.cn.nsimu.simukraft.network.mail.MailCityNewsService;
 import common.cn.nsimu.simukraft.network.mail.MailStateService;
+import common.cn.nsimu.simukraft.network.mail.MailWeeklyReportService;
 import common.cn.nsimu.simukraft.network.rts.RtsChunkViewService;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteCitizenAccess;
 import common.cn.nsimu.simukraft.network.rts.RtsRemoteMenuAccess;
@@ -132,6 +135,7 @@ public final class SimuKraft {
         NeoForge.EVENT_BUS.addListener(this::onServerStopped);
         NeoForge.EVENT_BUS.addListener(this::onLevelSave);
         NeoForge.EVENT_BUS.addListener(this::onPlayerInteractBed);
+        NeoForge.EVENT_BUS.addListener(MailCityNewsService::onConstructionComplete);
         LOGGER.info("\nWelcome to\n========================================================================\n███████╗██╗███╗   ███╗██╗   ██╗██╗  ██╗██████╗  █████╗ ███████╗████████╗\n██╔════╝██║████╗ ████║██║   ██║██║ ██╔╝██╔══██╗██╔══██╗██╔════╝╚══██╔══╝\n███████╗██║██╔████╔██║██║   ██║█████╔╝ ██████╔╝███████║█████╗     ██║   \n╚════██║██║██║╚██╔╝██║██║   ██║██╔═██╗ ██╔══██╗██╔══██║██╔══╝     ██║   \n███████║██║██║ ╚═╝ ██║╚██████╔╝██║  ██╗██║  ██║██║  ██║██║        ██║   \n╚══════╝╚═╝╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝        ╚═╝  \n========================================================================\n");
     }
 
@@ -335,7 +339,8 @@ public final class SimuKraft {
     private long lastReportTickNanos;
 
     private void onServerTick(ServerTickEvent.Post event) {
-        MailStateService.tickWeeklyReports(event.getServer());
+        MailWeeklyReportService.tick(event.getServer());
+        MailCitizenRequestService.tick(event.getServer());
         DebugCityBootstrapService.tick(event.getServer());
         // 先刷新城市运行状态，保证本 tick 的居民和医疗调度使用最新的激活结果。
         event.getServer().getAllLevels().forEach(CityRuntimeService::tick);
@@ -438,7 +443,7 @@ public final class SimuKraft {
         VirtualVeinService.clearServerCache(event.getServer());
         CityPoiManager.clearGlobalCache();
         common.cn.nsimu.simukraft.util.SaveScopedCacheKey.clearServerCache(event.getServer());
-        MailStateService.clearAll();
+        MailStateService.clearServerCaches(event.getServer());
     }
 
     /**

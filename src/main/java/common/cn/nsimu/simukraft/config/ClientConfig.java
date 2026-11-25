@@ -193,8 +193,11 @@ public final class ClientConfig {
         return Math.max(1, Math.min(10, RTS_MOVE_HOLD_SECONDS.get()));
     }
 
-    /** fontName: 返回规范化的客户端字体名称。 */
+    /** fontName: 返回规范化的客户端字体名称；配置尚未加载时（游戏初始化早期画加载提示）用默认字体。 */
     public static String fontName() {
+        if (!SPEC.isLoaded()) {
+            return DEFAULT_FONT;
+        }
         String value = FONT.get();
         return isFont(value) ? value.toLowerCase(Locale.ROOT) : DEFAULT_FONT;
     }

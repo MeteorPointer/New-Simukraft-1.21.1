@@ -32,7 +32,8 @@ public final class SimuMigrations {
                 new FarmlandBoxesDimensionPrimaryKey(),
                 new GlobalMarketBuildingWarehouse(),
                 new CommercialStockReleaseDay(),
-                new LegacyColumnCatchUp());
+                new LegacyColumnCatchUp(),
+                new MailTables());
     }
 
     /**
@@ -663,6 +664,34 @@ public final class SimuMigrations {
                 }
             }
             return false;
+        }
+    }
+    /**
+     * v16：邮件、玩家教程状态和邮件调度游标。旧版邮件只在内存里，没有需要搬迁的数据。
+     */
+    private static final class MailTables implements Migration {
+        @Override
+        public int version() {
+            return 16;
+        }
+
+        @Override
+        public String description() {
+            return "add mail messages, mail player state and mail schedule tables";
+        }
+
+        @Override
+        public void apply(Connection connection) throws SQLException {
+            try (Statement statement = connection.createStatement()) {
+                statement.executeUpdate("CREATE TABLE IF NOT EXISTS mail_messages(id INTEGER PRIMARY KEY, recipient_id TEXT NOT NULL, "
+                        + "category TEXT NOT NULL, sender_key TEXT NOT NULL, sender_json TEXT NOT NULL, subject_json TEXT NOT NULL, "
+                        + "body_json TEXT NOT NULL, game_time INTEGER NOT NULL, unread INTEGER NOT NULL DEFAULT 1, "
+                        + "outgoing INTEGER NOT NULL DEFAULT 0, created_at INTEGER NOT NULL DEFAULT 0)");
+                statement.executeUpdate("CREATE INDEX IF NOT EXISTS idx_mail_messages_recipient ON mail_messages(recipient_id, id)");
+                statement.executeUpdate("CREATE TABLE IF NOT EXISTS mail_player_state(player_id TEXT PRIMARY KEY, "
+                        + "tutorial_done INTEGER NOT NULL DEFAULT 0)");
+                statement.executeUpdate("CREATE TABLE IF NOT EXISTS mail_schedule(schedule_key TEXT PRIMARY KEY, last_value INTEGER NOT NULL)");
+            }
         }
     }
 }

@@ -333,5 +333,14 @@
     "sounds": [
       "simukraft:block/cheese_machine"
     ]
+  },
+  "ui.mail_tutorial.voice": {
+    "subtitle": "simukraft.subtitle.mail_tutorial.voice",
+    "sounds": [
+      {
+        "name": "minecraft:note/bit",
+        "volume": 0.35
+      }
+    ]
   }
 }

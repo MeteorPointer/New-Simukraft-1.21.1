@@ -22,6 +22,8 @@ public final class ModSoundEvents {
     // FIRST_DREAM：旧版首次进入世界时播放的梦境音乐。
     public static final DeferredHolder<SoundEvent, SoundEvent> FIRST_DREAM = registerSound("music.first_dream");
     public static final DeferredHolder<SoundEvent, SoundEvent> MONEY_COLLECT = registerSound("money.collect");
+    // MAIL_TUTORIAL_VOICE：邮件教程逐字弹出文字时的说话音。
+    public static final DeferredHolder<SoundEvent, SoundEvent> MAIL_TUTORIAL_VOICE = registerSound("ui.mail_tutorial.voice");
     public static final DeferredHolder<SoundEvent, SoundEvent> CONSTRUCTION_COMPLETE = registerSound("construction.complete");
     public static final DeferredHolder<SoundEvent, SoundEvent> NPC_HURT_MALE = registerSound("npc.hurt.male");
     public static final DeferredHolder<SoundEvent, SoundEvent> NPC_HURT_FEMALE = registerSound("npc.hurt.female");

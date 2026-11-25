@@ -148,6 +148,15 @@ public final class SimuKraftServerConfigScreen {
         page.addChild(SimuKraftConfigWidgets.section(Component.translatable("gui.simukraft.config.section.debug_city")));
         page.addChild(SimuKraftConfigWidgets.row(Component.translatable("config.simukraft.debug_city.plotsPerTick"),
                 SimuKraftConfigWidgets.intField(draft.debugCityPlotsPerTick, 1, 32, value -> draft.debugCityPlotsPerTick = value)));
+        page.addChild(SimuKraftConfigWidgets.section(Component.translatable("gui.simukraft.config.section.mail")));
+        page.addChild(SimuKraftConfigWidgets.row(Component.translatable("config.simukraft.mail.maxMessagesPerPlayer"),
+                SimuKraftConfigWidgets.intField(draft.mailMaxMessagesPerPlayer, 16, 256, value -> draft.mailMaxMessagesPerPlayer = value)));
+        page.addChild(SimuKraftConfigWidgets.row(Component.translatable("config.simukraft.mail.citizenRequestIntervalTicks"),
+                SimuKraftConfigWidgets.intField(draft.mailCitizenRequestIntervalTicks, 100, 72000, value -> draft.mailCitizenRequestIntervalTicks = value)));
+        page.addChild(SimuKraftConfigWidgets.row(Component.translatable("config.simukraft.mail.citizenRequestCitiesPerPass"),
+                SimuKraftConfigWidgets.intField(draft.mailCitizenRequestCitiesPerPass, 1, 32, value -> draft.mailCitizenRequestCitiesPerPass = value)));
+        page.addChild(SimuKraftConfigWidgets.row(Component.translatable("config.simukraft.mail.citizenRequestCooldownDays"),
+                SimuKraftConfigWidgets.intField(draft.mailCitizenRequestCooldownDays, 1, 30, value -> draft.mailCitizenRequestCooldownDays = value)));
         page.addChild(SimuKraftConfigWidgets.section(Component.translatable("gui.simukraft.config.section.economy")));
         page.addChild(SimuKraftConfigWidgets.row(Component.translatable("gui.simukraft.config.city_chunk_price"),
                 SimuKraftConfigWidgets.doubleField(draft.cityChunkPrice, 0.0D, 1_000_000.0D, value -> draft.cityChunkPrice = value)));

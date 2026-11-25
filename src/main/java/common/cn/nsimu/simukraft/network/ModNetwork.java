@@ -31,6 +31,8 @@ import common.cn.nsimu.simukraft.network.hud.HudSyncPacket;
 import common.cn.nsimu.simukraft.network.industrial.*;
 import common.cn.nsimu.simukraft.network.logistics.*;
 import common.cn.nsimu.simukraft.network.mail.MailMarkReadPacket;
+import common.cn.nsimu.simukraft.network.mail.MailReplyPacket;
+import common.cn.nsimu.simukraft.network.mail.MailTutorialDonePacket;
 import common.cn.nsimu.simukraft.network.mail.MailStatePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestBlockTogglePacket;
 import common.cn.nsimu.simukraft.network.manifest.ManifestHeldOpenResponsePacket;
@@ -144,6 +146,8 @@ public final class ModNetwork {
         registrar.playToServer(ManifestTogglePacket.TYPE, ManifestTogglePacket.STREAM_CODEC, ManifestTogglePacket::handle);
         registrar.playToServer(ManifestBlockTogglePacket.TYPE, ManifestBlockTogglePacket.STREAM_CODEC, ManifestBlockTogglePacket::handle);
         registrar.playToServer(MailMarkReadPacket.TYPE, MailMarkReadPacket.STREAM_CODEC, MailMarkReadPacket::handle);
+        registrar.playToServer(MailReplyPacket.TYPE, MailReplyPacket.STREAM_CODEC, MailReplyPacket::handle);
+        registrar.playToServer(MailTutorialDonePacket.TYPE, MailTutorialDonePacket.STREAM_CODEC, MailTutorialDonePacket::handle);
         registrar.playToServer(ServerConfigSavePacket.TYPE, ServerConfigSavePacket.STREAM_CODEC, ServerConfigSavePacket::handle);
         registrar.playToClient(CityCoreOpenResponsePacket.TYPE, CityCoreOpenResponsePacket.STREAM_CODEC, CityCoreOpenResponsePacket::handle);
         registrar.playToClient(CityCoreMembersResponsePacket.TYPE, CityCoreMembersResponsePacket.STREAM_CODEC, CityCoreMembersResponsePacket::handle);

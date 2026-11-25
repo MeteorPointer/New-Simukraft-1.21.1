@@ -11,9 +11,16 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import java.util.ArrayList;
 import java.util.List;
 
-/** 同步玩家当前邮件未读数量到客户端。 */
-public record MailStatePacket(int unreadCount, ResourceLocation senderDimension, int senderX, int senderZ,
-                              List<MailMessageData> messages) implements CustomPacketPayload {
+/**
+ * 同步玩家邮件快照：未读数、是否待看教程、邮件列表和发件方名片。
+ *
+ * <p>ownContactKey 是玩家所属城市的名片 key，没有城市时为空串。
+ */
+public record MailStatePacket(int unreadCount, boolean tutorialPending, String ownContactKey,
+                              List<MailMessageData> messages, List<MailContactData> contacts) implements CustomPacketPayload {
+    private static final int MAX_MESSAGES = 320;
+    private static final int MAX_CONTACTS = 96;
+
     public static final Type<MailStatePacket> TYPE = new Type<>(
             ResourceLocation.fromNamespaceAndPath(SimuKraft.MOD_ID, "mail_state"));
     public static final StreamCodec<RegistryFriendlyByteBuf, MailStatePacket> STREAM_CODEC =
@@ -21,11 +28,9 @@ public record MailStatePacket(int unreadCount, ResourceLocation senderDimension,
 
     public MailStatePacket {
         unreadCount = Math.max(0, unreadCount);
-        messages = messages == null ? List.of() : List.copyOf(messages);
-    }
-
-    public MailStatePacket(int unreadCount, ResourceLocation senderDimension, int senderX, int senderZ) {
-        this(unreadCount, senderDimension, senderX, senderZ, List.of());
+        ownContactKey = ownContactKey == null ? "" : ownContactKey;
+        messages = messages == null ? List.of() : List.copyOf(messages.subList(0, Math.min(MAX_MESSAGES, messages.size())));
+        contacts = contacts == null ? List.of() : List.copyOf(contacts.subList(0, Math.min(MAX_CONTACTS, contacts.size())));
     }
 
     @Override
@@ -35,41 +40,29 @@ public record MailStatePacket(int unreadCount, ResourceLocation senderDimension,
 
     private static void encode(RegistryFriendlyByteBuf buffer, MailStatePacket packet) {
         buffer.writeVarInt(packet.unreadCount());
-        buffer.writeBoolean(packet.senderDimension() != null);
-        if (packet.senderDimension() != null) {
-            buffer.writeResourceLocation(packet.senderDimension());
-            buffer.writeInt(packet.senderX());
-            buffer.writeInt(packet.senderZ());
-        }
-        buffer.writeVarInt(Math.min(64, packet.messages().size()));
-        packet.messages().stream().limit(64).forEach(message -> {
-            buffer.writeLong(message.id());
-            buffer.writeUtf(message.category(), 16);
-            buffer.writeUtf(message.sender(), 128);
-            buffer.writeUtf(message.subject(), 256);
-            buffer.writeUtf(message.body(), 4096);
-            buffer.writeLong(message.timestamp());
-            buffer.writeBoolean(message.unread());
-        });
+        buffer.writeBoolean(packet.tutorialPending());
+        buffer.writeUtf(packet.ownContactKey(), 64);
+        buffer.writeVarInt(packet.messages().size());
+        packet.messages().forEach(message -> MailMessageData.encode(buffer, message));
+        buffer.writeVarInt(packet.contacts().size());
+        packet.contacts().forEach(contact -> MailContactData.encode(buffer, contact));
     }
 
     private static MailStatePacket decode(RegistryFriendlyByteBuf buffer) {
         int unreadCount = buffer.readVarInt();
-        if (!buffer.readBoolean()) {
-            return decodeMessages(unreadCount, null, 0, 0, buffer);
+        boolean tutorialPending = buffer.readBoolean();
+        String ownContactKey = buffer.readUtf(64);
+        int messageCount = Math.min(MAX_MESSAGES, buffer.readVarInt());
+        List<MailMessageData> messages = new ArrayList<>(messageCount);
+        for (int i = 0; i < messageCount; i++) {
+            messages.add(MailMessageData.decode(buffer));
         }
-        return decodeMessages(unreadCount, buffer.readResourceLocation(), buffer.readInt(), buffer.readInt(), buffer);
-    }
-
-    private static MailStatePacket decodeMessages(int unreadCount, ResourceLocation dimension, int x, int z,
-                                                  RegistryFriendlyByteBuf buffer) {
-        int size = Math.min(64, buffer.readVarInt());
-        List<MailMessageData> messages = new ArrayList<>(size);
-        for (int i = 0; i < size; i++) {
-            messages.add(new MailMessageData(buffer.readLong(), buffer.readUtf(16), buffer.readUtf(128),
-                    buffer.readUtf(256), buffer.readUtf(4096), buffer.readLong(), buffer.readBoolean()));
+        int contactCount = Math.min(MAX_CONTACTS, buffer.readVarInt());
+        List<MailContactData> contacts = new ArrayList<>(contactCount);
+        for (int i = 0; i < contactCount; i++) {
+            contacts.add(MailContactData.decode(buffer));
         }
-        return new MailStatePacket(unreadCount, dimension, x, z, messages);
+        return new MailStatePacket(unreadCount, tutorialPending, ownContactKey, messages, contacts);
     }
 
     public static void handle(MailStatePacket packet, IPayloadContext context) {

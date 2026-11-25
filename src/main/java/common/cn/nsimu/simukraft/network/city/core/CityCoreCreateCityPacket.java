@@ -92,5 +92,6 @@ public record CityCoreCreateCityPacket(BlockPos pos, String cityName) implements
         PacketDistributor.sendToPlayer(player, CityNetworkViewFactory.buildCreatedCityResponse(level, pos, city, player.getUUID()));
         CityChunkSyncService.syncToAll(level);
         HudSyncService.syncToCityGroup(level, city.cityId(), true);
+        common.cn.nsimu.simukraft.network.information.InformationGateway.publishCityFounded(level, city, player.getGameProfile().getName());
     }
 }

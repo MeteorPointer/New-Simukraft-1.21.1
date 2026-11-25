@@ -15,16 +15,17 @@ public final class MailHudRenderer {
             SimuKraft.MOD_ID, "textures/gui/mail.png");
     private static final ResourceLocation UNREAD_ICON = ResourceLocation.fromNamespaceAndPath(
             SimuKraft.MOD_ID, "textures/gui/incoming_mail.png");
-    private static final int ICON_WIDTH = 26;
-    private static final int ICON_HEIGHT = 21;
-    private static final int MARGIN = 5;
+    static final int ICON_WIDTH = 26;
+    static final int ICON_HEIGHT = 21;
+    static final int MARGIN = 5;
 
     private MailHudRenderer() {
     }
 
     public static void render(RenderGuiEvent.Post event) {
         Minecraft minecraft = Minecraft.getInstance();
-        if (minecraft.player == null || minecraft.screen != null) {
+        // 教程界面需要透过遮罩露出 HUD 上的邮箱，其余界面打开时不画。
+        if (minecraft.player == null || (minecraft.screen != null && !(minecraft.screen instanceof MailTutorialScreen))) {
             return;
         }
         GuiGraphics graphics = event.getGuiGraphics();
