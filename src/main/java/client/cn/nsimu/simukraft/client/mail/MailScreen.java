@@ -28,19 +28,21 @@ import java.util.EnumMap;
 import java.util.List;
 import java.util.Map;
 
-/** 邮件界面：三个标签页、聊天气泡或邮件列表、发件方名片、发件方地图、回复输入和邮件内教程。 */
+/**
+ * 邮件界面：左侧是分类列表（一行一个分类，只画图标，未读换成来信图标）和它自己的滑动条，
+ * 中间按分类显示聊天气泡或系统邮件列表与正文，右侧是发件方名片和地图，底部是回复输入。
+ */
 public final class MailScreen extends Screen {
     private static final ResourceLocation BACKGROUND = MailScreenLayout.texture("mail_background.png");
-    private static final ResourceLocation LABEL = MailScreenLayout.texture("mail_label.png");
     private static final ResourceLocation[] TAB_ICONS = {
             MailScreenLayout.texture("mail_citizen_icon.png"), MailScreenLayout.texture("mail_system_icon.png"),
             MailScreenLayout.texture("mail_city_icon.png")
     };
+    private static final ResourceLocation[] TAB_ICONS_INCOMING = {
+            MailScreenLayout.texture("mail_citizen_icon_incoming.png"), MailScreenLayout.texture("mail_system_icon_incoming.png"),
+            MailScreenLayout.texture("mail_city_icon_incoming.png")
+    };
     private static final MailCategory[] TAB_CATEGORIES = {MailCategory.CITIZEN, MailCategory.SYSTEM, MailCategory.CITY};
-    private static final ResourceLocation ARROW_UP = MailScreenLayout.texture("mail_arrow_up.png");
-    private static final ResourceLocation ARROW_DOWN = MailScreenLayout.texture("mail_arrow_down.png");
-    private static final ResourceLocation ARROW_UP_PRESSED = MailScreenLayout.texture("mail_arrow_up_pressed.png");
-    private static final ResourceLocation ARROW_DOWN_PRESSED = MailScreenLayout.texture("mail_arrow_down_pressed.png");
     private static final ResourceLocation SCROLL_THUMB = MailScreenLayout.texture("mail_scroll_thumb.png");
     private static final ResourceLocation SCROLL_THUMB_PRESSED = MailScreenLayout.texture("mail_scroll_thumb_pressed.png");
     private static final ResourceLocation SCROLL_UP = MailScreenLayout.texture("mail_scroll_up.png");
@@ -60,11 +62,18 @@ public final class MailScreen extends Screen {
     private static final double MAP_BLOCK_SCALE = 0.36D;
     private static final int TEXT_DARK = 0xFF17282B;
     private static final int TEXT_MUTED = 0xFF5B6E71;
-    // 控件编号：0..2 窗口按钮，3..4 标签切换箭头，5..6 滚动按钮，7 发送，8 滑块，9 滑轨，10..12 标签页。
+    private static final int CATEGORY_SELECTED = 0x552D8C8C;
+    // 控件编号：0..2 窗口按钮，3..4 列表上/下，5..6 正文滚动按钮，7 发送，
+    // 8..9 正文滑块和滑轨，10..11 列表滑块，12 起是分类行。
+    private static final int CONTROL_LIST_UP = 3;
+    private static final int CONTROL_LIST_DOWN = 4;
+    private static final int CONTROL_SCROLL_UP = 5;
+    private static final int CONTROL_SCROLL_DOWN = 6;
     private static final int CONTROL_ENTER = 7;
     private static final int CONTROL_THUMB = 8;
     private static final int CONTROL_TRACK = 9;
-    private static final int CONTROL_TAB = 10;
+    private static final int CONTROL_LIST_THUMB = 10;
+    private static final int CONTROL_ROW = 12;
 
     private final MailScreenLayout layout = new MailScreenLayout();
     private final MailContentView content = new MailContentView();
@@ -75,6 +84,7 @@ public final class MailScreen extends Screen {
     private int activeTab;
     private int pressedControl = -1;
     private boolean draggingThumb;
+    private boolean draggingListThumb;
     private boolean mapConsumerAcquired;
     private long mapScanChunk = Long.MIN_VALUE;
     private int seenVersion;
@@ -83,12 +93,13 @@ public final class MailScreen extends Screen {
         super(Component.translatable("screen.simukraft.mail.title"));
         for (MailCategory category : MailCategory.values()) drafts.put(category, new StringBuilder());
         content.setCategory(TAB_CATEGORIES[0]);
+        // 打开界面本身不标已读，等玩家真的切到这个分类再上报，这样未读的来信图标能一直看到。
         seenVersion = MailClientState.version();
         if (withTutorial) {
             tutorial = new MailTutorialOverlay(List.of(
-                    new MailTutorialOverlay.Step("tutorial.simukraft.mail.screen.1", MailTutorialOverlay.Target.TAB_CITIZEN),
-                    new MailTutorialOverlay.Step("tutorial.simukraft.mail.screen.2", MailTutorialOverlay.Target.TAB_SYSTEM),
-                    new MailTutorialOverlay.Step("tutorial.simukraft.mail.screen.3", MailTutorialOverlay.Target.TAB_CITY),
+                    new MailTutorialOverlay.Step("tutorial.simukraft.mail.screen.1", MailTutorialOverlay.Target.ROW_CITIZEN),
+                    new MailTutorialOverlay.Step("tutorial.simukraft.mail.screen.2", MailTutorialOverlay.Target.ROW_SYSTEM),
+                    new MailTutorialOverlay.Step("tutorial.simukraft.mail.screen.3", MailTutorialOverlay.Target.ROW_CITY),
                     new MailTutorialOverlay.Step("tutorial.simukraft.mail.screen.4", MailTutorialOverlay.Target.CONTENT),
                     new MailTutorialOverlay.Step("tutorial.simukraft.mail.screen.5", MailTutorialOverlay.Target.INFO_PANEL),
                     new MailTutorialOverlay.Step("tutorial.simukraft.mail.screen.6", MailTutorialOverlay.Target.INPUT),
@@ -120,9 +131,10 @@ public final class MailScreen extends Screen {
     @Override
     public void tick() {
         super.tick();
-        if (seenVersion != MailClientState.version()) {
+        // 只把正在查看的分类标为已读；教程期间不标，让来信图标在讲解时保持可见。
+        if (tutorial == null && seenVersion != MailClientState.version()) {
             seenVersion = MailClientState.version();
-            if (MailClientState.hasUnread()) MailClientState.requestMarkRead();
+            MailClientState.requestMarkRead(category());
         }
     }
 
@@ -134,10 +146,10 @@ public final class MailScreen extends Screen {
                 MailScreenLayout.SOURCE_WIDTH, MailScreenLayout.SOURCE_HEIGHT,
                 MailScreenLayout.SOURCE_WIDTH, MailScreenLayout.SOURCE_HEIGHT);
         drawWindowButtons(graphics);
-        drawTabs(graphics);
-        drawArrowButtons(graphics);
+        drawCategoryList(graphics);
+        drawListScrollbar(graphics);
         content.render(graphics, font, layout, selectedKeys.get(category()));
-        drawScrollbar(graphics);
+        drawContentScrollbar(graphics);
         drawMap(graphics);
         drawInfoPanel(graphics);
         drawInput(graphics);
@@ -161,26 +173,51 @@ public final class MailScreen extends Screen {
         }
     }
 
-    private void drawTabs(GuiGraphics graphics) {
-        for (int i = 0; i < MailScreenLayout.TABS.length; i++) {
-            if (i == activeTab) layout.drawTexture(graphics, LABEL, MailScreenLayout.TABS[i]);
-            int[] bounds = MailScreenLayout.TABS[i];
-            int iconSize = 64;
-            int x = bounds[0] + (bounds[2] - iconSize) / 2 + 18;
-            int y = bounds[1] + (bounds[3] - iconSize) / 2;
-            graphics.blit(TAB_ICONS[i], layout.x(x), layout.y(y), layout.x(x + iconSize) - layout.x(x),
-                    layout.y(y + iconSize) - layout.y(y), 0.0F, 0.0F, 16, 16, 16, 16);
+    /** 分类图标随窗口缩放，约等于列表宽度的四分之一，最小 16 像素保证清晰。 */
+    private int categoryIconSize() {
+        return Math.max(16, layout.x(40));
+    }
+
+    private void drawCategoryList(GuiGraphics graphics) {
+        int iconSize = categoryIconSize();
+        for (int i = 0; i < MailScreenLayout.CATEGORY_ROWS.length; i++) {
+            int[] row = layout.rect(MailScreenLayout.CATEGORY_ROWS[i]);
+            int iconX = row[0] + (row[2] - iconSize) / 2;
+            int iconY = row[1] + (row[3] - iconSize) / 2;
+            if (i == activeTab) {
+                int pad = Math.max(3, iconSize / 5);
+                graphics.fill(iconX - pad, iconY - pad, iconX + iconSize + pad, iconY + iconSize + pad, CATEGORY_SELECTED);
+            }
+            // 该分类有未读来信时换成来信图标，查看后由服务端标为已读再换回普通图标。
+            ResourceLocation icon = MailClientState.hasUnread(TAB_CATEGORIES[i]) ? TAB_ICONS_INCOMING[i] : TAB_ICONS[i];
+            graphics.blit(icon, iconX, iconY, iconSize, iconSize, 0.0F, 0.0F, 16, 16, 16, 16);
         }
     }
 
-    private void drawArrowButtons(GuiGraphics graphics) {
-        layout.drawTexture(graphics, pressedControl == 3 ? ARROW_UP_PRESSED : ARROW_UP, MailScreenLayout.TAB_ARROWS[0]);
-        layout.drawTexture(graphics, pressedControl == 4 ? ARROW_DOWN_PRESSED : ARROW_DOWN, MailScreenLayout.TAB_ARROWS[1]);
+    private void drawListScrollbar(GuiGraphics graphics) {
+        layout.drawTexture(graphics, pressedControl == CONTROL_LIST_UP ? SCROLL_UP_PRESSED : SCROLL_UP,
+                MailScreenLayout.LIST_SCROLL_UP);
+        layout.drawTexture(graphics, pressedControl == CONTROL_LIST_DOWN ? SCROLL_DOWN_PRESSED : SCROLL_DOWN,
+                MailScreenLayout.LIST_SCROLL_DOWN);
+        layout.drawTexture(graphics, draggingListThumb ? SCROLL_THUMB_PRESSED : SCROLL_THUMB, listThumbSource());
     }
 
-    private void drawScrollbar(GuiGraphics graphics) {
-        layout.drawTexture(graphics, pressedControl == 5 ? SCROLL_UP_PRESSED : SCROLL_UP, MailScreenLayout.SCROLL_BUTTONS[0]);
-        layout.drawTexture(graphics, pressedControl == 6 ? SCROLL_DOWN_PRESSED : SCROLL_DOWN, MailScreenLayout.SCROLL_BUTTONS[1]);
+    private int[] listThumbSource() {
+        int y = MailScreenLayout.LIST_THUMB[1] + Math.round(MailScreenLayout.LIST_THUMB_TRAVEL * categoryFraction());
+        return new int[]{MailScreenLayout.LIST_THUMB[0], y, MailScreenLayout.LIST_THUMB[2], MailScreenLayout.LIST_THUMB[3]};
+    }
+
+    /** 滑块位置反映当前查看的分类：第一个分类在最上面，最后一个在最下面。 */
+    private float categoryFraction() {
+        int last = TAB_CATEGORIES.length - 1;
+        return last <= 0 ? 0.0F : activeTab / (float) last;
+    }
+
+    private void drawContentScrollbar(GuiGraphics graphics) {
+        layout.drawTexture(graphics, pressedControl == CONTROL_SCROLL_UP ? SCROLL_UP_PRESSED : SCROLL_UP,
+                MailScreenLayout.SCROLL_BUTTONS[0]);
+        layout.drawTexture(graphics, pressedControl == CONTROL_SCROLL_DOWN ? SCROLL_DOWN_PRESSED : SCROLL_DOWN,
+                MailScreenLayout.SCROLL_BUTTONS[1]);
         layout.drawTexture(graphics, draggingThumb ? SCROLL_THUMB_PRESSED : SCROLL_THUMB, thumbSource());
     }
 
@@ -262,8 +299,8 @@ public final class MailScreen extends Screen {
     }
 
     private void drawTooltips(GuiGraphics graphics, int mouseX, int mouseY) {
-        for (int i = 0; i < MailScreenLayout.TABS.length; i++) {
-            if (layout.contains(MailScreenLayout.TABS[i], mouseX, mouseY)) {
+        for (int i = 0; i < MailScreenLayout.CATEGORY_ROWS.length; i++) {
+            if (layout.contains(MailScreenLayout.CATEGORY_ROWS[i], mouseX, mouseY)) {
                 String name = TAB_CATEGORIES[i].name().toLowerCase(java.util.Locale.ROOT);
                 graphics.renderComponentTooltip(font, List.of(
                         Component.translatable("screen.simukraft.mail.tab." + name),
@@ -272,8 +309,10 @@ public final class MailScreen extends Screen {
                 return;
             }
         }
-        if (layout.contains(MailScreenLayout.TAB_ARROWS[0], mouseX, mouseY) || layout.contains(MailScreenLayout.TAB_ARROWS[1], mouseX, mouseY)) {
-            graphics.renderTooltip(font, Component.translatable("screen.simukraft.mail.tab_switch"), mouseX, mouseY);
+        if (layout.contains(MailScreenLayout.LIST_SCROLL_UP, mouseX, mouseY)
+                || layout.contains(MailScreenLayout.LIST_SCROLL_DOWN, mouseX, mouseY)
+                || layout.contains(listThumbSource(), mouseX, mouseY)) {
+            graphics.renderTooltip(font, Component.translatable("screen.simukraft.mail.list.scroll"), mouseX, mouseY);
         } else if (layout.contains(MailScreenLayout.MAP, mouseX, mouseY)) {
             graphics.renderTooltip(font, Component.translatable("screen.simukraft.mail.map.tooltip"), mouseX, mouseY);
         }
@@ -380,6 +419,7 @@ public final class MailScreen extends Screen {
         if (next == activeTab) return;
         activeTab = next;
         content.setCategory(category());
+        if (tutorial == null) MailClientState.requestMarkRead(category());
     }
 
     private void submitInput() {
@@ -397,9 +437,9 @@ public final class MailScreen extends Screen {
     private void syncTutorialTab() {
         if (tutorial == null) return;
         switch (tutorial.currentTarget()) {
-            case TAB_CITIZEN -> selectTab(0);
-            case TAB_SYSTEM -> selectTab(1);
-            case TAB_CITY -> selectTab(2);
+            case ROW_CITIZEN -> selectTab(0);
+            case ROW_SYSTEM -> selectTab(1);
+            case ROW_CITY -> selectTab(2);
             case CONTENT, INFO_PANEL, INPUT -> selectTab(0);
             default -> {
             }
@@ -408,9 +448,9 @@ public final class MailScreen extends Screen {
 
     private int[] tutorialBounds(MailTutorialOverlay.Target target) {
         return switch (target) {
-            case TAB_CITIZEN -> layout.rect(MailScreenLayout.TABS[0]);
-            case TAB_SYSTEM -> layout.rect(MailScreenLayout.TABS[1]);
-            case TAB_CITY -> layout.rect(MailScreenLayout.TABS[2]);
+            case ROW_CITIZEN -> layout.rect(MailScreenLayout.CATEGORY_ROWS[0]);
+            case ROW_SYSTEM -> layout.rect(MailScreenLayout.CATEGORY_ROWS[1]);
+            case ROW_CITY -> layout.rect(MailScreenLayout.CATEGORY_ROWS[2]);
             case CONTENT -> layout.rect(MailScreenLayout.CONTENT);
             case INFO_PANEL -> layout.rect(new int[]{MailScreenLayout.MAP[0], MailScreenLayout.MAP[1],
                     MailScreenLayout.MAP[2], MailScreenLayout.INFO[1] + MailScreenLayout.INFO[3] - MailScreenLayout.MAP[1]});
@@ -423,6 +463,8 @@ public final class MailScreen extends Screen {
     private void endTutorial() {
         tutorial = null;
         MailClientState.finishTutorial();
+        selectTab(0);
+        seenVersion = MailClientState.version();
     }
 
     // ── 输入 ───────────────────────────────────────────────────────────────────
@@ -431,14 +473,14 @@ public final class MailScreen extends Screen {
         for (int i = 0; i < MailScreenLayout.WINDOW_BUTTONS.length; i++) {
             if (layout.contains(MailScreenLayout.WINDOW_BUTTONS[i], mouseX, mouseY)) return i;
         }
-        for (int i = 0; i < MailScreenLayout.TABS.length; i++) {
-            if (layout.contains(MailScreenLayout.TABS[i], mouseX, mouseY)) return CONTROL_TAB + i;
+        for (int i = 0; i < MailScreenLayout.CATEGORY_ROWS.length; i++) {
+            if (layout.contains(MailScreenLayout.CATEGORY_ROWS[i], mouseX, mouseY)) return CONTROL_ROW + i;
         }
-        for (int i = 0; i < MailScreenLayout.TAB_ARROWS.length; i++) {
-            if (layout.contains(MailScreenLayout.TAB_ARROWS[i], mouseX, mouseY)) return 3 + i;
-        }
+        if (layout.contains(MailScreenLayout.LIST_SCROLL_UP, mouseX, mouseY)) return CONTROL_LIST_UP;
+        if (layout.contains(MailScreenLayout.LIST_SCROLL_DOWN, mouseX, mouseY)) return CONTROL_LIST_DOWN;
+        if (layout.contains(listThumbSource(), mouseX, mouseY)) return CONTROL_LIST_THUMB;
         for (int i = 0; i < MailScreenLayout.SCROLL_BUTTONS.length; i++) {
-            if (layout.contains(MailScreenLayout.SCROLL_BUTTONS[i], mouseX, mouseY)) return 5 + i;
+            if (layout.contains(MailScreenLayout.SCROLL_BUTTONS[i], mouseX, mouseY)) return CONTROL_SCROLL_UP + i;
         }
         if (category().allowsReply() && layout.contains(MailScreenLayout.ENTER, mouseX, mouseY)) return CONTROL_ENTER;
         if (layout.contains(thumbSource(), mouseX, mouseY)) return CONTROL_THUMB;
@@ -458,14 +500,14 @@ public final class MailScreen extends Screen {
             pressedControl = control;
             return true;
         }
-        if (control == 3 || control == 4) {
+        if (control == CONTROL_LIST_UP || control == CONTROL_LIST_DOWN) {
             pressedControl = control;
-            selectTab(activeTab + (control == 3 ? -1 : 1));
+            selectTab(activeTab + (control == CONTROL_LIST_UP ? -1 : 1));
             return true;
         }
-        if (control == 5 || control == 6) {
+        if (control == CONTROL_SCROLL_UP || control == CONTROL_SCROLL_DOWN) {
             pressedControl = control;
-            content.scrollContent((control == 5 ? -1 : 1) * (font.lineHeight + 3) * 3.0D);
+            content.scrollContent((control == CONTROL_SCROLL_UP ? -1 : 1) * (font.lineHeight + 3) * 3.0D);
             return true;
         }
         if (control == CONTROL_ENTER) {
@@ -473,13 +515,20 @@ public final class MailScreen extends Screen {
             submitInput();
             return true;
         }
+        if (control == CONTROL_LIST_THUMB) {
+            draggingListThumb = true;
+            dragListThumbTo(mouseY);
+            return true;
+        }
         if (control == CONTROL_THUMB || control == CONTROL_TRACK) {
             draggingThumb = true;
             dragThumbTo(mouseY);
             return true;
         }
-        if (control >= CONTROL_TAB) {
-            selectTab(control - CONTROL_TAB);
+        if (control >= CONTROL_ROW) {
+            selectTab(control - CONTROL_ROW);
+            // 点的是当前分类时 selectTab 不会重发已读，这里再补一次。
+            if (tutorial == null) MailClientState.requestMarkRead(category());
             return true;
         }
         String key = content.click(font, layout, mouseX, mouseY);
@@ -490,6 +539,15 @@ public final class MailScreen extends Screen {
         return super.mouseClicked(mouseX, mouseY, button);
     }
 
+    /** 拖动左侧滑块：按位置换算成分类下标，直接切到最近的分类。 */
+    private void dragListThumbTo(double mouseY) {
+        double trackStart = layout.y(MailScreenLayout.LIST_THUMB[1] + MailScreenLayout.LIST_THUMB[3] / 2);
+        double travel = Math.max(1.0D, layout.y(MailScreenLayout.LIST_THUMB[1] + MailScreenLayout.LIST_THUMB_TRAVEL)
+                - layout.y(MailScreenLayout.LIST_THUMB[1]));
+        double fraction = Math.max(0.0D, Math.min(1.0D, (mouseY - trackStart) / travel));
+        selectTab(Math.round((float) (fraction * (TAB_CATEGORIES.length - 1))));
+    }
+
     private void dragThumbTo(double mouseY) {
         double trackStart = layout.y(MailScreenLayout.THUMB[1] + MailScreenLayout.THUMB[3] / 2);
         double travel = Math.max(1.0D, layout.y(MailScreenLayout.THUMB[1] + MailScreenLayout.THUMB_TRAVEL) - layout.y(MailScreenLayout.THUMB[1]));
@@ -498,7 +556,11 @@ public final class MailScreen extends Screen {
 
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
-        if (draggingThumb && button == 0) {
+        if (button == 0 && draggingListThumb) {
+            dragListThumbTo(mouseY);
+            return true;
+        }
+        if (button == 0 && draggingThumb) {
             dragThumbTo(mouseY);
             return true;
         }
@@ -508,10 +570,11 @@ public final class MailScreen extends Screen {
     @Override
     public boolean mouseReleased(double mouseX, double mouseY, int button) {
         if (button != 0) return super.mouseReleased(mouseX, mouseY, button);
-        boolean handled = pressedControl >= 0 || draggingThumb;
+        boolean handled = pressedControl >= 0 || draggingThumb || draggingListThumb;
         int released = pressedControl;
         pressedControl = -1;
         draggingThumb = false;
+        draggingListThumb = false;
         // 最小化和关闭都退出界面；窗口化按钮只有按下反馈。
         if ((released == 0 || released == 2) && layout.contains(MailScreenLayout.WINDOW_BUTTONS[released], mouseX, mouseY)) {
             onClose();

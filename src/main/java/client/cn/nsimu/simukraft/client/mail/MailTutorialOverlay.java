@@ -36,7 +36,7 @@ final class MailTutorialOverlay {
 
     /** 聚光灯对准的界面区域。 */
     enum Target {
-        NONE, HUD_ICON, TAB_CITIZEN, TAB_SYSTEM, TAB_CITY, CONTENT, INFO_PANEL, INPUT
+        NONE, HUD_ICON, ROW_CITIZEN, ROW_SYSTEM, ROW_CITY, CONTENT, INFO_PANEL, INPUT
     }
 
     record Step(String textKey, Target target) {

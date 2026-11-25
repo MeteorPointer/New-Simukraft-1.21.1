@@ -1,5 +1,6 @@
 package client.cn.nsimu.simukraft.client.mail;
 
+import common.cn.nsimu.simukraft.network.mail.MailCategory;
 import common.cn.nsimu.simukraft.network.mail.MailContactData;
 import common.cn.nsimu.simukraft.network.mail.MailMarkReadPacket;
 import common.cn.nsimu.simukraft.network.mail.MailMessageData;
@@ -120,23 +121,28 @@ public final class MailClientState {
         return tutorialPending;
     }
 
-    /** 打开邮件界面；withTutorial 为 true 时继续邮件内的教程步骤。 */
+    /** 打开邮件界面；withTutorial 为 true 时继续邮件内的教程步骤。已读由界面按正在查看的标签页逐类请求。 */
     public static void open(boolean withTutorial) {
         Minecraft minecraft = Minecraft.getInstance();
         if (minecraft.player == null) {
             return;
         }
-        requestMarkRead();
         minecraft.setScreen(new MailScreen(withTutorial));
     }
 
-    /** 界面打开期间收到新邮件时再次确认已读，未读数由服务端回传。 */
-    static void requestMarkRead() {
-        if (unreadCount > 0) {
-            unreadCount = 0;
-            shakeStartedAt = -1L;
+    /** 某个分类里有没有自己的未读邮件，用于左侧分类行的来信图标。 */
+    public static boolean hasUnread(MailCategory category) {
+        for (MailMessageData message : messages) {
+            if (message.category() == category && message.countsAsUnread()) return true;
         }
-        PacketDistributor.sendToServer(new MailMarkReadPacket());
+        return false;
+    }
+
+    /** 请求服务端把正在查看的分类标为已读；结果以服务端回传的快照为准。 */
+    static void requestMarkRead(MailCategory category) {
+        if (hasUnread(category)) {
+            PacketDistributor.sendToServer(new MailMarkReadPacket(category));
+        }
     }
 
     public static void reset() {

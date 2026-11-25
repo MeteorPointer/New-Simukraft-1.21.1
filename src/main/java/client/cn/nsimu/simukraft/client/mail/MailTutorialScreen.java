@@ -30,6 +30,8 @@ public final class MailTutorialScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         overlay.render(graphics, font, width, height);
+        // 遮罩盖在 HUD 之上；这里在遮罩之后补画一次来信图标，聚光灯里就不会被黑色图层压暗。
+        MailHudRenderer.drawIcon(graphics, true);
     }
 
     @Override

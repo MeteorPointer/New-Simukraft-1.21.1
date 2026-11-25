@@ -28,10 +28,17 @@ public final class MailHudRenderer {
         if (minecraft.player == null || (minecraft.screen != null && !(minecraft.screen instanceof MailTutorialScreen))) {
             return;
         }
-        GuiGraphics graphics = event.getGuiGraphics();
+        drawIcon(event.getGuiGraphics(), MailClientState.hasUnread());
+    }
+
+    /**
+     * 画左上角邮箱图标。教程界面在遮罩之后会再调一次，并固定画来信图标，
+     * 保证聚光灯里露出的是“收到邮件”的样子，而不是被黑色遮罩压暗或被换成普通图标。
+     */
+    static void drawIcon(GuiGraphics graphics, boolean unread) {
         int x = MARGIN + Math.round(MailClientState.shakeOffset(System.currentTimeMillis()));
         int y = MARGIN;
-        ResourceLocation icon = MailClientState.hasUnread() ? UNREAD_ICON : READ_ICON;
+        ResourceLocation icon = unread ? UNREAD_ICON : READ_ICON;
         graphics.blit(icon, x, y, 0.0F, 0.0F, ICON_WIDTH, ICON_HEIGHT, ICON_WIDTH, ICON_HEIGHT);
     }
 }
